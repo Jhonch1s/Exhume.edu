@@ -1,0 +1,27 @@
+[gd_scene format=3 uid="uid://cq6eyihgiwmey"]
+
+[ext_resource type="Texture2D" uid="uid://cppxsh1fn1110" path="res://assets/tile_maps/starter.png" id="1_n63jd"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_cuh2j"]
+texture = ExtResource("1_n63jd")
+texture_region_size = Vector2i(32, 32)
+use_texture_padding = false
+0:0/0 = 0
+1:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+1:2/0 = 0
+0:2/0 = 0
+2:2/0 = 0
+2:1/0 = 0
+2:0/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_7kgjf"]
+tile_size = Vector2i(32, 32)
+sources/0 = SubResource("TileSetAtlasSource_cuh2j")
+
+[node name="Zona" type="Node2D" unique_id=1215045435]
+
+[node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=811063023]
+tile_set = SubResource("TileSet_7kgjf")
+rendering_quadrant_size = 32
