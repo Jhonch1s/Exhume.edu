@@ -1,3 +1,13 @@
 [gd_scene format=3 uid="uid://bswvdm3i2oi7a"]
 
+[ext_resource type="Script" uid="uid://bb033fqcyohtd" path="res://scenes/ficha/ficha.gd" id="1_2ahgq"]
+[ext_resource type="Texture2D" uid="uid://b3t86fanvckjf" path="res://assets/test/fichas_isometric.png" id="1_d3vww"]
+
 [node name="Ficha" type="Node2D" unique_id=1112424073]
+script = ExtResource("1_2ahgq")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1081307098]
+texture_filter = 1
+texture = ExtResource("1_d3vww")
+hframes = 3
+vframes = 4
