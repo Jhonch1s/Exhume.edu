@@ -86,6 +86,8 @@ func _process(_delta : float) -> void:
 			#ahora chequeamos que este dentro de lo dibujado
 			if tablero.has(coordenada_actual):
 				capa_selector.set_cell(coordenada_actual, 0, Vector2i(1,1)) ## 1,1 es la posi de mi selected en el atlas
+				
+				#esto es para el dibujar el path
 				camino_actual_tentativo = calcular_camino(ficha_jugador.coordenada_mapa, coordenada_actual)
 				dibujar_trayectoria(camino_actual_tentativo)
 			else:
@@ -132,25 +134,19 @@ func _unhandled_input(event: InputEvent) -> void:
 		#si el click es derecho
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
 			if tablero.has(coordenada_clic) and ficha_jugador:
-				
-				#verificamos si es caminable
 				if tablero[coordenada_clic]["caminable"]:
-					
-					# liberamos la casilla
 					var coord_anterior = ficha_jugador.coordenada_mapa
-					tablero[coord_anterior]["contenido"]=null
+					tablero[coord_anterior]["contenido"] = null
 					
-					#movemos la ficha a la nueva coord
 					ficha_jugador.mover_a_coordenada_instantaneo(coordenada_clic)
 					
-					#ocupamos la casilla nueva
 					tablero[coordenada_clic]["contenido"] = ficha_jugador
-					
-					#hacemos la que la camara la siga
 					centrar_camara_en_ficha()
 					
-					#ocultamos el panel de detalles por siacaso
-					panel_detalles.visible=false
+					panel_detalles.visible = false
+					
+					# LIMPIAMOS EL CAMINO DIBUJADO AL MOVER
+					capa_camino.clear()
 					
 					print("fichamovida de: ", coord_anterior, " a ", coordenada_clic)
 				else:
@@ -201,12 +197,12 @@ func inicializar_astar() -> void:
 		
 		##Configuramos el costo de pasar por una selda
 		#si no es caminable (agua o tiene contenido), se desactiva
-		if (not tablero[coord]["caminable"]) or (tablero[coord]["contenido"] != null):
+		if not tablero[coord]["caminable"]:
 			astar.set_point_disabled(id, true)
 		
 		##sino, si tiene daño (lava u otras adiciones a futuro), le damos un costo muy alto para el algoritmo
 		elif tablero[coord]["damage"] != null:
-			astar.set_point_weight_scale(id, 5.0) ##ta potente
+			astar.set_point_weight_scale(id, 5.0) #ta potente
 		else:
 			astar.set_point_weight_scale(id, 1.0) #piso de chill
 	##ahora conectamos los puntos vecinos entre sí, porque están todos sueltos (vecinos arriba abajo costados)
@@ -220,6 +216,7 @@ func inicializar_astar() -> void:
 				var id_vecino = obtener_id_unico(vecino)
 				if not astar.are_points_connected(id_actual, id_vecino):
 					astar.connect_points(id_actual, id_vecino, true)
+
 func obtener_id_unico(coord:Vector2i) -> int:
 	#cuenta chota pa que de entero
 	return (coord.x + 1000) + (coord.y+1000)*2000
