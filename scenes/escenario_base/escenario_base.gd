@@ -268,10 +268,10 @@ func dibujar_trayectoria (camino: Array[Vector2i])-> void:
 ##La de elegir bien la flecha
 func obtener_tile_flecha(dir: Vector2i)-> Vector2i:
 	match dir: ##tremendo el match, ahorra buen laburo
-		Vector2i(1,0): return Vector2i(0,3) ##apunta abajo derecha
-		Vector2i(-1,0): return Vector2i(1,2) ##apunta arriba izquierda
-		Vector2i(0,1): return Vector2i(1,3) ##apunta abajo izquierda
-		Vector2i(0,-1): return Vector2i(0,2) ##apunta abajo derecha
+		Vector2i(1,0): return Vector2i(0,2) 
+		Vector2i(-1,0): return Vector2i(1,3) 
+		Vector2i(0,1): return Vector2i(0,3) 
+		Vector2i(0,-1): return Vector2i(1,2) 
 	return Vector2i(0,2)
 
 ##La brava
@@ -285,15 +285,15 @@ func obtener_tile_camino(dir_ingreso: Vector2i, dir_salida: Vector2i)->Vector2i:
 	
 	##si cambia de direccion es una curva o esquina, aca se pone feo
 	if (dir_ingreso == Vector2i(1, 0) and dir_salida == Vector2i(0, 1)) or (dir_ingreso == Vector2i(0, -1) and dir_salida == Vector2i(-1, 0)):
-		return Vector2i(0,1) # coordenada tlas >
+		return Vector2i(2,1) # coordenada tlas ^
 	
 	if (dir_ingreso == Vector2i(1, 0) and dir_salida == Vector2i(0, -1)) or (dir_ingreso == Vector2i(0, 1) and dir_salida == Vector2i(-1, 0)):
-		return Vector2i(2, 1) # coordenada atlas ^
+		return Vector2i(0, 1) # coordenada atlas >
 	
 	if (dir_ingreso == Vector2i(-1, 0) and dir_salida == Vector2i(0, 1)) or (dir_ingreso == Vector2i(0, -1) and dir_salida == Vector2i(1, 0)):
-		return Vector2i(2, 0) # coord atlas v
+		return Vector2i(1, 1) # coord atlas <
 	
 	if (dir_ingreso == Vector2i(-1, 0) and dir_salida == Vector2i(0, -1)) or (dir_ingreso == Vector2i(0, 1) and dir_salida == Vector2i(1, 0)):
-		return Vector2i(1, 1) # <
+		return Vector2i(2, 0) # v
 	
 	return Vector2i(0,3)

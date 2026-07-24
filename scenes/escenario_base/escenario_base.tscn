@@ -86,14 +86,14 @@ script = ExtResource("1_3j2a0")
 position = Vector2(320, 181)
 zoom = Vector2(2, 2)
 
-[node name="CapaCamino" type="TileMapLayer" parent="." unique_id=2140207141]
-texture_filter = 1
-tile_set = SubResource("TileSet_7kgjf")
-
 [node name="Zona1" parent="." unique_id=1662731053 instance=ExtResource("2_3j2a0")]
 
 [node name="CapaSelector" type="TileMapLayer" parent="." unique_id=1500853187]
 tile_set = ExtResource("3_elvtm")
+
+[node name="CapaCamino" type="TileMapLayer" parent="." unique_id=2140207141]
+texture_filter = 1
+tile_set = SubResource("TileSet_7kgjf")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=592841260]
 
