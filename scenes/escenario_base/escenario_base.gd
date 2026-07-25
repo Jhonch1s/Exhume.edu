@@ -133,7 +133,7 @@ func spawnear_ficha_inicial() ->void:
 	if coord_inicio == Vector2i (-999, -999): return
 	
 	ficha_jugador = ESCENA_FICHA.instantiate()
-	add_child(ficha_jugador)
+	zona_actual.add_child(ficha_jugador)
 	
 	ficha_jugador.inicializar(coord_inicio,_capa_suelo)
 	

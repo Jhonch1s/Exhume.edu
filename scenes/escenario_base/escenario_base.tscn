@@ -7,13 +7,6 @@
 [ext_resource type="Shader" uid="uid://bd1ru2hdb8q3x" path="res://scenes/escenario_base/escenario_base.gdshader" id="3_m8dhx"]
 [ext_resource type="Texture2D" uid="uid://b47l603pmxva7" path="res://assets/test/niebla.png" id="4_3ubgt"]
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_maugy"]
-shader = ExtResource("3_m8dhx")
-shader_parameter/textura_niebla = ExtResource("4_3ubgt")
-shader_parameter/posicion_jugador = Vector2(-1, -1)
-shader_parameter/radio_luz = 0.1
-shader_parameter/velocidad_movimiento = 0.02
-
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_m8dhx"]
 texture = ExtResource("2_85xdd")
 texture_region_size = Vector2i(64, 32)
@@ -88,14 +81,27 @@ tile_layout = 4
 tile_size = Vector2i(64, 32)
 sources/0 = SubResource("TileSetAtlasSource_m8dhx")
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_maugy"]
+shader = ExtResource("3_m8dhx")
+shader_parameter/textura_niebla = ExtResource("4_3ubgt")
+shader_parameter/posicion_jugador = Vector2(-1, -1)
+shader_parameter/radio_luz = 0.1
+shader_parameter/velocidad_movimiento = 0.02
+
 [node name="EscenarioBase" type="Node2D" unique_id=1215045435]
 script = ExtResource("1_3j2a0")
 
-[node name="Camera2D" type="Camera2D" parent="." unique_id=643464011]
-position = Vector2(320, 181)
-zoom = Vector2(2, 2)
+[node name="FondoOscuro" type="CanvasModulate" parent="." unique_id=1869572455]
+color = Color(0.08235294, 0.105882354, 0.15686275, 1)
 
 [node name="Zona1" parent="." unique_id=1662731053 instance=ExtResource("2_3j2a0")]
+
+[node name="CapaCamino" type="TileMapLayer" parent="." unique_id=2140207141]
+texture_filter = 1
+tile_set = SubResource("TileSet_7kgjf")
+
+[node name="CapaSelector" type="TileMapLayer" parent="." unique_id=1500853187]
+tile_set = ExtResource("3_elvtm")
 
 [node name="NieblaShader" type="ColorRect" parent="." unique_id=2000872246]
 z_index = 5
@@ -106,12 +112,9 @@ offset_right = 1500.0
 offset_bottom = 700.0
 mouse_filter = 2
 
-[node name="CapaSelector" type="TileMapLayer" parent="." unique_id=1500853187]
-tile_set = ExtResource("3_elvtm")
-
-[node name="CapaCamino" type="TileMapLayer" parent="." unique_id=2140207141]
-texture_filter = 1
-tile_set = SubResource("TileSet_7kgjf")
+[node name="Camera2D" type="Camera2D" parent="." unique_id=643464011]
+position = Vector2(320, 181)
+zoom = Vector2(2, 2)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=592841260]
 
@@ -123,6 +126,3 @@ offset_bottom = 31.0
 [node name="TextoInfo" type="Label" parent="CanvasLayer/PanelDetalle" unique_id=880245950]
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
-
-[node name="FondoOscuro" type="CanvasModulate" parent="." unique_id=1869572455]
-color = Color(0.08235294, 0.105882354, 0.15686275, 1)
