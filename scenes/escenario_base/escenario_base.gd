@@ -75,6 +75,13 @@ var ultima_coordenada_hover: Vector2i = Vector2i(-999,-999)
 var camino_actual_tentativo: Array[Vector2i]=[]
 
 func _process(_delta : float) -> void:
+	centrar_camara_en_ficha()
+	
+	if ficha_jugador and ficha_jugador.esta_moviendose:
+		capa_selector.clear()
+		capa_camino.clear()
+		return
+
 	var _capa_suelo : TileMapLayer = zona_actual.get_node_or_null("CapaSuelo")
 	if _capa_suelo:
 		var posicion_mouse = get_global_mouse_position()
@@ -133,22 +140,23 @@ func _unhandled_input(event: InputEvent) -> void:
 		
 		#si el click es derecho
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
-			if tablero.has(coordenada_clic) and ficha_jugador:
-				if tablero[coordenada_clic]["caminable"]:
+			if tablero.has(coordenada_clic) and ficha_jugador and not ficha_jugador.esta_moviendose:
+				if tablero[coordenada_clic]["caminable"] and not camino_actual_tentativo.is_empty():
+					#liberamos celda de origen en el diccionario
 					var coord_anterior = ficha_jugador.coordenada_mapa
 					tablero[coord_anterior]["contenido"] = null
 					
-					ficha_jugador.mover_a_coordenada_instantaneo(coordenada_clic)
+					#ocupamos la casilla de destino final
+					var coord_destino = camino_actual_tentativo[-1]
+					tablero[coord_destino]["contenido"]= ficha_jugador
 					
-					tablero[coordenada_clic]["contenido"] = ficha_jugador
-					centrar_camara_en_ficha()
-					
-					panel_detalles.visible = false
-					
-					# LIMPIAMOS EL CAMINO DIBUJADO AL MOVER
+					#Limpiamos flechas de la pantalla
 					capa_camino.clear()
+					panel_detalles.visible=false
 					
-					print("fichamovida de: ", coord_anterior, " a ", coordenada_clic)
+					#iniciamos pasito a pasito
+					ficha_jugador.mover_por_camino(camino_actual_tentativo)
+					
 				else:
 					print("No te puedes mover ahí")
 
@@ -174,10 +182,26 @@ func spawnear_ficha_inicial() ->void:
 	
 	ficha_jugador.inicializar(coord_inicio,_capa_suelo)
 	
+	#conectamos las señales de la ficha
+	ficha_jugador.paso_dado.connect(_on_ficha_paso_dado)
+	ficha_jugador.movimiento_terminado.connect(_on_ficha_movimiento_terminado)
+		
 	tablero[coord_inicio]["contenido"]= ficha_jugador
 	centrar_camara_en_ficha()
 	
 	print("Ficha creada con éxito en la coordenada: ", coord_inicio)
+
+func _on_ficha_paso_dado (nueva_coord: Vector2i)->void:
+	#logica de antorcha
+	ficha_jugador.pasos_antorcha_actual -=1
+	print("Paso dado en:", nueva_coord, ". pasos de anrocha restantes: ",ficha_jugador.pasos_antorcha_actual)
+	
+	if ficha_jugador.pasos_antorcha_actual<=0:
+		print("Antorcha consumida")
+
+func _on_ficha_movimiento_terminado()->void:
+	#en el futuro puede hacer otras cositas
+	print("La ficha llegó al destino final")
 
 func centrar_camara_en_ficha() -> void:
 	if ficha_jugador and camera_2d:
