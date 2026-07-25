@@ -13,7 +13,6 @@ const ESCENA_FICHA=preload("res://scenes/ficha/ficha.tscn")
 const maximoAntorcha: int = 50
 
 # estructura de datos central
-# algo como { Vector2i(0,0): {"tipo": "pasto", "ocupado": false} }
 var tablero: TableroGrid = TableroGrid.new()
 var pathfinding: PathFindingManager=PathFindingManager.new()
 var ficha_jugador: Ficha = null
@@ -146,6 +145,14 @@ func _on_ficha_paso_dado(_nueva_coord: Vector2i) -> void:
 	# Lógica de antorcha
 	ficha_jugador.pasos_antorcha_actual -= 1
 	
+	if ficha_jugador.pasos_antorcha_actual <=0:
+		var tiene_luz= ficha_jugador.consumir_o_recargar_antorcha()
+		
+		if not tiene_luz:
+			#acá podemos poner algún efecto o indicador
+			pass
+	
+	
 	var porcentaje_restante = float(max(0, ficha_jugador.pasos_antorcha_actual)) / 50.0
 	
 	# Reducir progresivamente el radio de la luz (sin el tope alto de 0.5)
@@ -162,7 +169,7 @@ func _on_ficha_paso_dado(_nueva_coord: Vector2i) -> void:
 func centrar_camara_en_ficha() -> void:
 	if ficha_jugador and camera_2d:
 		camera_2d.global_position = ficha_jugador.global_position
-		
+
 #apartado visual
 func actualizar_luz_niebla() -> void:
 	#verificamos que esta el jugador y la niebla para que no crashe
@@ -177,13 +184,15 @@ func actualizar_luz_niebla() -> void:
 	var uv_y = (pos_ficha.y - pos_rect.y) / tamano_rect.y
 	var uv_pos = Vector2(uv_x, uv_y)
 
-	var pasos_antorcha = max(0, ficha_jugador.pasos_antorcha_actual)
+	var pasos = max(0, ficha_jugador.pasos_antorcha_actual)
 	
-	# Usamos un porcentaje (de 0.0 a 1.0) sobre un radio máximo de 0.18
-	var porcentaje: float = float(pasos_antorcha) / 50.0 #ese 50 es el maximo de la antorcha
+	var radio_maximo: float = 0.18
+	var radio_calculado: float = radio_maximo
 	
-	# Si se apaga le damos oscuridad absoluta
-	var radio_calculado: float = max(0.0, 0.18 * porcentaje)
+	if pasos <=10:
+		##mati ahora se reduce desde que le quedan 10 o menos
+		var porcentaje: float = float(pasos) / 10.0
+		radio_calculado=radio_maximo*porcentaje
 
 	#se lo mandamos pal shader
 	var mat = niebla_shader.material as ShaderMaterial

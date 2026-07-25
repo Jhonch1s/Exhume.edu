@@ -2,9 +2,14 @@ extends PointLight2D
 
 #velocidad del parpadeo
 var tiempo: float = 0.0
-
+@onready var ficha : Ficha = get_parent() as Ficha
 #delta es el tiempo que tomo renderizar el ultimo fotograma (basicamente pa que ande bien en todas las pc a la misma vez aunque tengas una tostadora)
 func _process(delta: float) -> void:
+	if ficha and ficha.pasos_antorcha_actual<0:
+		enabled = false
+		return
+	enabled =true
+	
 	tiempo += delta * 12.0 #lo multiplicamos por 12 pa que se mueva bien rico (sin el x12 va muy lento)
 	
 	#variación suave de intensidad combinando una onda senoidal y un poco de ruido aleatorio

@@ -8,8 +8,8 @@ class_name Ficha
 var fue: int = 3
 var des: int = 4
 var vol: int = 2
-var energia_maxima: int = 50
-var energia_actual: int = 50
+var energia_maxima: int = 200
+var energia_actual: int = 200
 
 #cosas de exhume
 var pv_max: int
@@ -19,8 +19,9 @@ var pv_actual: int
 var clase: String = "Ladrón"
 
 #inventario super bascio ¿Final?
-var antorchas: int = 2
-var pasos_antorcha_actual : int = 50 ##-1 por cada casilla que se mueva
+var antorchas: int = 3
+var PASOS_MAX_ANTORCHA: int = 80
+var pasos_antorcha_actual : int = 80 ##-1 por cada casilla que se mueva
 var raciones: int = 3 #necesarias pa descansar
 
 #movimiento y posicion
@@ -46,7 +47,23 @@ func inicializar (coordenada_inicial: Vector2i, capa: TileMapLayer) -> void:
 	coordenada_mapa = coordenada_inicial
 	if capa_referencia:
 		global_position = capa_referencia.map_to_local(coordenada_mapa)
+
+func consumir_o_recargar_antorcha()->bool:
+	if pasos_antorcha_actual > 0:
+		return true #tiene luz todavía
 	
+	if antorchas > 1:
+		antorchas -=1 #se gasta una
+		pasos_antorcha_actual = PASOS_MAX_ANTORCHA #se reestablece duracion
+		print("Se cambia antorcha")
+		return true
+	
+	else:
+		#era la ultima
+		antorchas=0
+		print("No quedan más antorchas")
+		return false
+
 func mover_por_camino(camino: Array[Vector2i])-> void:
 	if camino.is_empty() or esta_moviendose or not capa_referencia:
 		return
