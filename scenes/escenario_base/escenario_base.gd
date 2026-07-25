@@ -137,10 +137,18 @@ func spawnear_ficha_inicial() ->void:
 func _on_ficha_paso_dado (nueva_coord: Vector2i)->void:
 	#logica de antorcha
 	ficha_jugador.pasos_antorcha_actual -=1
-	print("Paso dado en:", nueva_coord, ". pasos de anrocha restantes: ",ficha_jugador.pasos_antorcha_actual)
 	
-	if ficha_jugador.pasos_antorcha_actual<=0:
+	# reducir progresivamente el radio de la luz según se agote la antorcha:
+	if ficha_jugador.has_node("PointLight2D"):
+		var luz = ficha_jugador.get_node("PointLight2D")
+		var porcentaje_restante = float(ficha_jugador.pasos_antorcha_actual) / 50.0
+		luz.texture_scale = max(0.5, 2.5 * porcentaje_restante)
+
+	if ficha_jugador.pasos_antorcha_actual <= 0:
 		print("Antorcha consumida")
+		# apagar la luz por completo
+		if ficha_jugador.has_node("PointLight2D"):
+			ficha_jugador.get_node("PointLight2D").enabled = false
 
 func centrar_camara_en_ficha() -> void:
 	if ficha_jugador and camera_2d:

@@ -8,6 +8,8 @@ class_name Ficha
 var fue: int = 3
 var des: int = 4
 var vol: int = 2
+var energia_maxima: int = 20
+var energia_actual: int = 20
 
 #cosas de exhume
 var pv_max: int
@@ -52,6 +54,15 @@ func mover_por_camino(camino: Array[Vector2i])-> void:
 	esta_moviendose = true
 	
 	for siguiente_coord in camino:
+		
+		#para que no de mas pasos si se canso
+		if energia_actual <= 0:
+			print("sin energia para caminar mas")
+			break
+		#restamos energia por maso
+		energia_actual -= 1
+		print("energia actual: ", energia_actual)
+		
 		var destino_pixeles = capa_referencia.map_to_local(siguiente_coord)
 		
 		#aca animamos movimiento de una celda a la que siga
