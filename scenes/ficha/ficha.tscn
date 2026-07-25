@@ -25,8 +25,10 @@ texture = ExtResource("1_d3vww")
 hframes = 3
 vframes = 4
 
-[node name="PointLight2D" type="PointLight2D" parent="." unique_id=360061408]
+[node name="Antorcha" type="PointLight2D" parent="." unique_id=360061408]
 color = Color(1, 0.6, 0.2, 1)
 energy = 1.2
+shadow_enabled = true
 texture = SubResource("GradientTexture2D_85xdd")
+texture_scale = 2.5
 script = ExtResource("3_bh6u4")

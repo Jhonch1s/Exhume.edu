@@ -8,8 +8,8 @@ class_name Ficha
 var fue: int = 3
 var des: int = 4
 var vol: int = 2
-var energia_maxima: int = 20
-var energia_actual: int = 20
+var energia_maxima: int = 50
+var energia_actual: int = 50
 
 #cosas de exhume
 var pv_max: int
