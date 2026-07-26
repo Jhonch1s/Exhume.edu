@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bl2if4pdlpdli"
+path="res://.godot/imported/The Escalation.mp3-f2e7c511f49a35565172ba1099c86150.mp3str"
+
+[deps]
+
+source_file="res://assets/music/The Escalation.mp3"
+dest_files=["res://.godot/imported/The Escalation.mp3-f2e7c511f49a35565172ba1099c86150.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

@@ -2,6 +2,13 @@
 
 [ext_resource type="TileSet" uid="uid://b514khvcqn1oi" path="res://assets/tile_sets/basics.tres" id="1_nfkb8"]
 [ext_resource type="Texture2D" uid="uid://b6khj7og6m8mp" path="res://assets/test/walls_isometric.png" id="2_ub4f1"]
+[ext_resource type="PackedScene" uid="uid://rnk8xbn42ckd" path="res://scenes/antorcha_pared/antorcha_pared.tscn" id="3_703cl"]
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_703cl"]
+polygon = PackedVector2Array(-33.46515, -64.30861, -0.15422058, -46.727837, 34.236237, -62.766434, -0.15422058, -80.65564)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_2if4s"]
+polygon = PackedVector2Array(-33.46515, -64.30861, -0.15422058, -46.727837, 34.236237, -62.766434, -0.15422058, -80.65564)
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_yiwlg"]
 texture = ExtResource("2_ub4f1")
@@ -64,13 +71,16 @@ texture_region_size = Vector2i(64, 96)
 7:5/0 = 0
 0:0/0 = 0
 0:0/0/texture_origin = Vector2i(0, 32)
+0:0/0/occlusion_layer_0/polygon_0/polygon = SubResource("OccluderPolygon2D_703cl")
 1:0/0 = 0
 1:0/0/texture_origin = Vector2i(0, 32)
+1:0/0/occlusion_layer_0/polygon_0/polygon = SubResource("OccluderPolygon2D_2if4s")
 
 [sub_resource type="TileSet" id="TileSet_7kgjf"]
 tile_shape = 1
 tile_layout = 4
 tile_size = Vector2i(64, 32)
+occlusion_layer_0/light_mask = 1
 sources/0 = SubResource("TileSetAtlasSource_yiwlg")
 
 [node name="Zona1" type="Node2D" unique_id=1662731053]
@@ -100,3 +110,35 @@ y_sort_enabled = true
 texture_filter = 1
 tile_map_data = PackedByteArray("AAAGAPr/AAAAAAAAAAAFAPn/AAABAAAAAAAEAPj/AAAAAAAAAAADAPf/AAAAAAAAAAAHAPv/AAAAAAAAAAAIAPz/AAAAAAAAAAAKAPz/AAAAAAAAAAAJAPz/AAAAAAAAAAAPAPz/AAAAAAAAAAACAPb/AAAAAAAAAAABAPf/AAAAAAAAAAAAAPf/AAAAAAAAAAD///f/AAABAAAAAAD+//f/AAAAAAAAAAD9//f/AAAAAAAAAAD8//f/AAAAAAAAAAD7//f/AAAAAAAAAAD6//f/AAAAAAAAAAD5//f/AAAAAAAAAAD4//f/AAAAAAAAAAATAPz/AAAAAAAAAAAUAPz/AAAAAAAAAAAVAPz/AAAAAAAAAAAWAPz/AAABAAAAAAAXAPz/AAAAAAAAAAAYAPz/AAAAAAAAAAAYAP3/AAAAAAAAAAAYAP7/AAAAAAAAAAAYAP//AAAAAAAAAAAYAAAAAAAAAAAAAAAYAAEAAAAAAAAAAAAYAAIAAAABAAAAAAAYAAMAAAAAAAAAAAAYAAQAAAAAAAAAAAAYAAUAAAAAAAAAAAAYAAYAAAAAAAAAAAAYAAcAAAAAAAAAAAAYAAgAAAABAAAAAAAYAAkAAAAAAAAAAAAYAAoAAAAAAAAAAAAYAAsAAAAAAAAAAAAXAAsAAAAAAAAAAAAXAAwAAAAAAAAAAAAWAA0AAAAAAAAAAAAVAA4AAAAAAAAAAAAUAA8AAAABAAAAAAATABAAAAAAAAAAAAASABEAAAAAAAAAAAARABIAAAAAAAAAAAARABMAAAAAAAAAAAARABQAAAAAAAAAAAARABUAAAAAAAAAAAARABYAAAAAAAAAAAARABcAAAAAAAAAAAARABgAAAAAAAAAAAARABkAAAAAAAAAAAAGABMAAAAAAAAAAAAGABQAAAAAAAAAAAAGABIAAAABAAAAAAAFABUAAAAAAAAAAAARABoAAAAAAAAAAAARABsAAAAAAAAAAAARABwAAAAAAAAAAAARAB0AAAAAAAAAAAARAB4AAAAAAAAAAAALAB4AAAAAAAAAAAAKAB0AAAAAAAAAAAAMAAYAAAAAAAAAAAALAAYAAAAAAAAAAAAKAAYAAAAAAAAAAAAJAAYAAAABAAAAAAAMAAUAAAAAAAAAAAALAAUAAAAAAAAAAAAMAAQAAAAAAAAAAAANAAQAAAAAAAAAAAAOAAMAAAAAAAAAAAAOAAIAAAAAAAAAAAAPAAIAAAAAAAAAAAAPAAMAAAAAAAAAAAANAAMAAAAAAAAAAAAPAP3/AAAAAAAAAAAOAP7/AAAAAAAAAAAOAP//AAAAAAAAAAAOAAAAAAAAAAAAAAAPAP7/AAAAAAAAAAAPAP//AAAAAAAAAAAPAAAAAAAAAAAAAAAOAAEAAAAAAAAAAAD3//7/AAAAAAAAAAD3//3/AAAAAAAAAAD3//z/AAAAAAAAAAA=")
 tile_set = SubResource("TileSet_7kgjf")
+
+[node name="Antorchas" type="Node2D" parent="." unique_id=708795273]
+
+[node name="antorcha_pared" parent="Antorchas" unique_id=563288984 instance=ExtResource("3_703cl")]
+position = Vector2(532, -73)
+
+[node name="antorcha_pared2" parent="Antorchas" unique_id=900950014 instance=ExtResource("3_703cl")]
+position = Vector2(487, -73)
+
+[node name="antorcha_pared3" parent="Antorchas" unique_id=2109444936 instance=ExtResource("3_703cl")]
+position = Vector2(776, 166)
+
+[node name="antorcha_pared4" parent="Antorchas" unique_id=1458442579 instance=ExtResource("3_703cl")]
+position = Vector2(1128, -104)
+
+[node name="antorcha_pared5" parent="Antorchas" unique_id=581914515 instance=ExtResource("3_703cl")]
+position = Vector2(1035, -277)
+
+[node name="antorcha_pared6" parent="Antorchas" unique_id=1239771825 instance=ExtResource("3_703cl")]
+position = Vector2(842, -373)
+
+[node name="antorcha_pared7" parent="Antorchas" unique_id=685473308 instance=ExtResource("3_703cl")]
+position = Vector2(636, -439)
+
+[node name="antorcha_pared8" parent="Antorchas" unique_id=2111580731 instance=ExtResource("3_703cl")]
+position = Vector2(-9, -213)
+
+[node name="antorcha_pared9" parent="Antorchas" unique_id=1010611308 instance=ExtResource("3_703cl")]
+position = Vector2(-55, -216)
+
+[node name="antorcha_pared10" parent="Antorchas" unique_id=721704153 instance=ExtResource("3_703cl")]
+position = Vector2(-264, -152)

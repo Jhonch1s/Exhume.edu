@@ -171,34 +171,55 @@ func centrar_camara_en_ficha() -> void:
 		camera_2d.global_position = ficha_jugador.global_position
 
 #apartado visual
+# apartado visual
 func actualizar_luz_niebla() -> void:
-	#verificamos que esta el jugador y la niebla para que no crashe
+	# verificamos que esta el jugador y la niebla para que no crashe
 	if not is_instance_valid(ficha_jugador) or not is_instance_valid(niebla_shader):
 		return
-	#traducimos las cordenadas a uv
-	var pos_ficha = ficha_jugador.global_position
+		
+	var mat = niebla_shader.material as ShaderMaterial
+	if not mat:
+		return
+
+	# array para almacenar todas las luces
+	var posiciones: Array[Vector2] = []
+	var radios: Array[float] = []
+	
 	var pos_rect = niebla_shader.global_position
 	var tamano_rect = niebla_shader.size
 
-	var uv_x = (pos_ficha.x - pos_rect.x) / tamano_rect.x
-	var uv_y = (pos_ficha.y - pos_rect.y) / tamano_rect.y
-	var uv_pos = Vector2(uv_x, uv_y)
+	# antorcha del jugador
+	var pos_ficha = ficha_jugador.global_position
+	var uv_x_jugador = (pos_ficha.x - pos_rect.x) / tamano_rect.x
+	var uv_y_jugador = (pos_ficha.y - pos_rect.y) / tamano_rect.y
+	posiciones.append(Vector2(uv_x_jugador, uv_y_jugador))
 
 	var pasos = max(0, ficha_jugador.pasos_antorcha_actual)
-	
 	var radio_maximo: float = 0.18
 	var radio_calculado: float = radio_maximo
 	
-	if pasos <=10:
-		##mati ahora se reduce desde que le quedan 10 o menos
+	if pasos <= 10:
+		## mati ahora se reduce desde que le quedan 10 o menos 
 		var porcentaje: float = float(pasos) / 10.0
-		radio_calculado=radio_maximo*porcentaje
+		radio_calculado = radio_maximo * porcentaje
+		
+	radios.append(radio_calculado)
 
-	#se lo mandamos pal shader
-	var mat = niebla_shader.material as ShaderMaterial
-	if mat:
-		mat.set_shader_parameter("posicion_jugador", uv_pos)
-		mat.set_shader_parameter("radio_luz", radio_calculado)
+	# luces paredes
+	# buscamoss todos los nodos en el grupo "antorchas_pared"
+	var luces_pared = get_tree().get_nodes_in_group("antorchas_pared")
+	for luz in luces_pared:
+		var uv_x_luz = (luz.global_position.x - pos_rect.x) / tamano_rect.x
+		var uv_y_luz = (luz.global_position.y - pos_rect.y) / tamano_rect.y
+		posiciones.append(Vector2(uv_x_luz, uv_y_luz))
+		
+		# Tamaño fijo del agujero en la niebla para las paredes (si queres que sea mas chico el ovalo de la antorcha cambialo aca)
+		radios.append(0.10) 
+
+	#le mandamos al shader
+	mat.set_shader_parameter("posiciones_luces", posiciones)
+	mat.set_shader_parameter("radios_luces", radios)
+	mat.set_shader_parameter("cantidad_luces", posiciones.size())
 
 #para verificar si una casilla está dentro del alcance visible actual, lo estamos usando para lo del click izquierdo asi no puede hacer trampa
 #se puede agragar para que no ande caminando por lo oscuro pero ta, vemos
