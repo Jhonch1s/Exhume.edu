@@ -226,12 +226,14 @@ func actualizar_luz_niebla() -> void:
 func _esta_en_rango_vision(coord: Vector2i) -> bool:
 	if not ficha_jugador:
 		return false
-	
+	if ficha_jugador.pasos_antorcha_actual <= 10:
 	#calculamos distancia en casillas desde la ficha a la coordenada destino
-	var dist_casillas = Vector2(ficha_jugador.coordenada_mapa).distance_to(Vector2(coord))
+		var dist_casillas = Vector2(ficha_jugador.coordenada_mapa).distance_to(Vector2(coord))
 	
 	# calculamos el radio permitido según la antorcha
 	# si tiene 50 la antorcha entonces ilumina 10 casillas, si le quedan 15 pasos ilumina solo 3 casillas
-	var rango_maximo = float(max(0, ficha_jugador.pasos_antorcha_actual)) / maximoAntorcha
+		var rango_maximo = float(max(0, ficha_jugador.pasos_antorcha_actual)) / maximoAntorcha
 	
-	return dist_casillas <= rango_maximo
+		return dist_casillas <= rango_maximo
+		
+	return true
