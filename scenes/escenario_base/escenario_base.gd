@@ -23,7 +23,11 @@ func _ready() -> void:
 	tablero.generar_desde_zona(zona_actual)
 	pathfinding.inicializar(tablero.datos)
 	spawnear_ficha_inicial()
-	actualizar_luz_niebla()
+	var total_luces := 0
+	for coord in tablero.datos:
+		if tablero.datos[coord]["iluminacion"].size() > 0:
+			total_luces += 1
+	print("Celdas con iluminación: ", total_luces)
 
 func _process(_delta : float) -> void:
 	centrar_camara_en_ficha()
@@ -82,11 +86,15 @@ func _manejar_clic_izquierdo(coord: Vector2i)->void:
 			var info_texto = "Coordenada: "+ str(coord)+"\n"
 			info_texto += "Tipo: " + datos["zona"] + "\n"
 			info_texto += "Caminable: " + ("Sí" if datos["caminable"] else "No") + "\n"
-			if datos["contenido"] != null:
-				info_texto+= "Contenido: Ficha presente \n"
+			if datos["contenido"].size() > 0:
+				info_texto += "Contenido: " + str(datos["contenido"].size()) + " objeto(s) \n"
 			if datos["damage"] != null:
-				info_texto += "¡PELIGRO!: Daño de " + str(datos["damage"]["tipo"])
-				
+				info_texto += "¡PELIGRO!: Daño de " + str(datos["damage"]["tipo"]) + "\n"
+			if datos["iluminacion"].size() > 0:
+				for luz in datos["iluminacion"]:
+					var estado = "Encendida" if luz["encendida"] else "Apagada"
+					info_texto += "Iluminación: " + luz["tipo"] + " - " + estado + "\n"
+
 			# mostramos la info en la interfaz
 			texto_info.text = info_texto
 		panel_detalles.visible = true
@@ -102,7 +110,7 @@ func _manejar_clic_derecho(coord:Vector2i)-> void:
 	if tablero.es_caminable(coord) and ficha_jugador and not ficha_jugador.esta_moviendose:
 		if not camino_actual_tentativo.is_empty():
 			#liberamos celda de origen en el diccionario
-			tablero.liberar_celda(ficha_jugador.coordenada_mapa)
+			tablero.liberar_celda(ficha_jugador.coordenada_mapa, ficha_jugador)
 			
 			#ocupamos la casilla de destino final
 			var coord_destino = camino_actual_tentativo[-1]
@@ -152,8 +160,7 @@ func _on_ficha_paso_dado(_nueva_coord: Vector2i) -> void:
 			#acá podemos poner algún efecto o indicador
 			pass
 	
-	
-	var porcentaje_restante = float(max(0, ficha_jugador.pasos_antorcha_actual)) / 50.0
+	var porcentaje_restante = float(max(0, ficha_jugador.pasos_antorcha_actual)) / float(ficha_jugador.PASOS_MAX_ANTORCHA)	
 	
 	# Reducir progresivamente el radio de la luz (sin el tope alto de 0.5)
 	if ficha_jugador.has_node("Antorcha"):
@@ -205,16 +212,20 @@ func actualizar_luz_niebla() -> void:
 		
 	radios.append(radio_calculado)
 
-	# luces paredes
-	# buscamoss todos los nodos en el grupo "antorchas_pared"
-	var luces_pared = get_tree().get_nodes_in_group("antorchas_pared")
-	for luz in luces_pared:
-		var uv_x_luz = (luz.global_position.x - pos_rect.x) / tamano_rect.x
-		var uv_y_luz = (luz.global_position.y - pos_rect.y) / tamano_rect.y
-		posiciones.append(Vector2(uv_x_luz, uv_y_luz))
-		
-		# Tamaño fijo del agujero en la niebla para las paredes (si queres que sea mas chico el ovalo de la antorcha cambialo aca)
-		radios.append(0.10) 
+	# luces del tablero (leídas desde CapaLuces)
+	var capa_suelo: TileMapLayer = zona_actual.get_node_or_null("CapaSuelo")
+	if capa_suelo:
+		for coord in tablero.datos:
+			var celda = tablero.datos[coord]
+			if celda["iluminacion"].size() > 0:
+				for luz_info in celda["iluminacion"]:
+					if luz_info["encendida"]:
+						# convertimos coord de tile a posición de pixel
+						var pos_luz = capa_suelo.map_to_local(coord) + luz_info["offset_luz"]
+						var uv_x_luz = (pos_luz.x - pos_rect.x) / tamano_rect.x
+						var uv_y_luz = (pos_luz.y - pos_rect.y) / tamano_rect.y
+						posiciones.append(Vector2(uv_x_luz, uv_y_luz))
+						radios.append(luz_info["radio"])
 
 	#le mandamos al shader
 	mat.set_shader_parameter("posiciones_luces", posiciones)
