@@ -10,7 +10,7 @@ extends Node2D
 @onready var niebla_shader: ColorRect = $NieblaShader
 
 const ESCENA_FICHA=preload("res://scenes/ficha/ficha.tscn")
-const maximoAntorcha: int = 50
+const MAXIMO_ANTORCHA: int = 50
 
 # estructura de datos central
 var tablero: TableroGrid = TableroGrid.new()
@@ -232,7 +232,7 @@ func _esta_en_rango_vision(coord: Vector2i) -> bool:
 	
 	# calculamos el radio permitido según la antorcha
 	# si tiene 50 la antorcha entonces ilumina 10 casillas, si le quedan 15 pasos ilumina solo 3 casillas
-		var rango_maximo = float(max(0, ficha_jugador.pasos_antorcha_actual)) / maximoAntorcha
+		var rango_maximo = float(max(0, ficha_jugador.pasos_antorcha_actual)) / MAXIMO_ANTORCHA
 	
 		return dist_casillas <= rango_maximo
 		

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://rnk8xbn42ckd"]
 
-[ext_resource type="Script" uid="uid://cmyvxg7l2ggg7" path="res://scenes/antorcha_pared/antorchaPared.gd" id="1_vjowr"]
+[ext_resource type="Script" uid="uid://cmyvxg7l2ggg7" path="res://scenes/antorcha_pared/antorcha_pared.gd" id="1_vjowr"]
 
 [sub_resource type="Gradient" id="Gradient_tygsw"]
 offsets = PackedFloat32Array(0.0024038462, 0.87740386)

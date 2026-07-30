@@ -85,9 +85,10 @@ sources/0 = SubResource("TileSetAtlasSource_m8dhx")
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_maugy"]
 shader = ExtResource("3_m8dhx")
 shader_parameter/textura_niebla = ExtResource("4_3ubgt")
-shader_parameter/posicion_jugador = Vector2(-1, -1)
-shader_parameter/radio_luz = 0.1
 shader_parameter/velocidad_movimiento = 0.02
+shader_parameter/posiciones_luces = PackedVector2Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+shader_parameter/radios_luces = PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+shader_parameter/cantidad_luces = 0
 
 [node name="EscenarioBase" type="Node2D" unique_id=1215045435]
 script = ExtResource("1_3j2a0")

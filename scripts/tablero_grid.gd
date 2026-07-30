@@ -30,7 +30,7 @@ func generar_desde_zona(zona: Node2D) -> void:
 			if datos.has(coordenada):
 				datos[coordenada]={
 					"zona":"agua",
-					"contenido":null,
+					"contenido":[],
 					"caminable":false,
 					"damage":null
 				}
