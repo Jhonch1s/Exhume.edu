@@ -1,10 +1,9 @@
 [gd_scene format=3 uid="uid://cq6eyihgiwmey"]
 
 [ext_resource type="Script" uid="uid://csb3u3lb5s2oi" path="res://scenes/escenario_base/escenario_base.gd" id="1_3j2a0"]
-[ext_resource type="PackedScene" uid="uid://21yp2g6tjqu" path="res://scenes/Zona1/zona_1.tscn" id="2_3j2a0"]
+[ext_resource type="PackedScene" uid="uid://21yp2g6tjqu" path="res://scenes/zona1/zona_1.tscn" id="2_3j2a0"]
 [ext_resource type="Texture2D" uid="uid://bj6drlln1vbvq" path="res://assets/test/path_isometric.png" id="2_85xdd"]
 [ext_resource type="TileSet" uid="uid://b514khvcqn1oi" path="res://assets/tile_sets/basics.tres" id="3_elvtm"]
-[ext_resource type="Shader" uid="uid://bd1ru2hdb8q3x" path="res://scenes/escenario_base/escenario_base.gdshader" id="3_m8dhx"]
 [ext_resource type="Texture2D" uid="uid://b47l603pmxva7" path="res://assets/test/niebla.png" id="4_3ubgt"]
 [ext_resource type="AudioStream" uid="uid://b64t4hje6pskj" path="res://assets/music/Echoes of Time v2.mp3" id="7_541xx"]
 
@@ -82,13 +81,24 @@ tile_layout = 4
 tile_size = Vector2i(64, 32)
 sources/0 = SubResource("TileSetAtlasSource_m8dhx")
 
+[sub_resource type="Shader" id="Shader_3ubgt"]
+code = "shader_type canvas_item;
+
+uniform sampler2D textura_niebla: filter_nearest, repeat_enable;
+uniform float velocidad_movimiento = 0.02;
+uniform sampler2D textura_mascara: filter_linear, repeat_disable;
+
+void fragment() {
+	vec2 uv_animada = UV + vec2(TIME * velocidad_movimiento, TIME * (velocidad_movimiento * 0.5));
+	vec4 color_niebla = texture(textura_niebla, uv_animada);
+	float mascara = texture(textura_mascara, UV).r;
+	COLOR = vec4(color_niebla.rgb, color_niebla.a * mascara);
+}"
+
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_maugy"]
-shader = ExtResource("3_m8dhx")
+shader = SubResource("Shader_3ubgt")
 shader_parameter/textura_niebla = ExtResource("4_3ubgt")
 shader_parameter/velocidad_movimiento = 0.02
-shader_parameter/posiciones_luces = PackedVector2Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-shader_parameter/radios_luces = PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-shader_parameter/cantidad_luces = 0
 
 [node name="EscenarioBase" type="Node2D" unique_id=1215045435]
 script = ExtResource("1_3j2a0")

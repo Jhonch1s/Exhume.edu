@@ -2,7 +2,7 @@
 
 [ext_resource type="TileSet" uid="uid://b514khvcqn1oi" path="res://assets/tile_sets/basics.tres" id="1_nfkb8"]
 [ext_resource type="Texture2D" uid="uid://b6khj7og6m8mp" path="res://assets/test/walls_isometric.png" id="2_ub4f1"]
-[ext_resource type="Texture2D" uid="uid://kurbv5gs4wfq" path="res://assets/test/lights_isometric.png" id="3_2if4s"]
+[ext_resource type="Texture2D" uid="uid://blk4k3e4pnv4r" path="res://assets/test/lights_isometric.png" id="3_2if4s"]
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_703cl"]
 polygon = PackedVector2Array(-33.46515, -64.30861, -0.15422058, -46.727837, 34.236237, -62.766434, -0.15422058, -80.65564)

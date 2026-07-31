@@ -27,7 +27,7 @@ func _ready() -> void:
 	for coord in tablero.datos:
 		if tablero.datos[coord]["iluminacion"].size() > 0:
 			total_luces += 1
-	print("Celdas con iluminación: ", total_luces)
+	#print("Celdas con iluminación: ", total_luces)
 
 func _process(_delta : float) -> void:
 	centrar_camara_en_ficha()
@@ -226,11 +226,26 @@ func actualizar_luz_niebla() -> void:
 						var uv_y_luz = (pos_luz.y - pos_rect.y) / tamano_rect.y
 						posiciones.append(Vector2(uv_x_luz, uv_y_luz))
 						radios.append(luz_info["radio"])
+	
+	# dibujar máscara de luz en una textura (evita bugs con uniforms array en GL Compatibility)
+	const RES = 128
+	var img = Image.create(RES, RES, false, Image.FORMAT_L8)
+	img.fill(Color.WHITE)
 
-	#le mandamos al shader
-	mat.set_shader_parameter("posiciones_luces", posiciones)
-	mat.set_shader_parameter("radios_luces", radios)
-	mat.set_shader_parameter("cantidad_luces", posiciones.size())
+	for i in posiciones.size():
+		var cx = int(posiciones[i].x * RES)
+		var cy = int(posiciones[i].y * RES)
+		var radio_px = max(1, int(radios[i] * RES))
+		for dy in range(-radio_px, radio_px + 1):
+			for dx in range(-radio_px, radio_px + 1):
+				if dx * dx + dy * dy <= radio_px * radio_px:
+					var px = cx + dx
+					var py = cy + dy
+					if px >= 0 and px < RES and py >= 0 and py < RES:
+						img.set_pixel(px, py, Color.BLACK)
+
+	var tex = ImageTexture.create_from_image(img)
+	mat.set_shader_parameter("textura_mascara", tex)
 
 #para verificar si una casilla está dentro del alcance visible actual, lo estamos usando para lo del click izquierdo asi no puede hacer trampa
 #se puede agragar para que no ande caminando por lo oscuro pero ta, vemos

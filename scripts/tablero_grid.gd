@@ -60,6 +60,7 @@ func generar_desde_zona(zona: Node2D) -> void:
 				var tile_coords = _capa_luces.get_cell_atlas_coords(coordenada)
 				print("Coord:", coordenada, " Atlas:", tile_coords)  # ← temporal, borrar después
 				var info_luz = _obtener_info_luz_desde_tile(tile_coords)
+				print("  Luz encontrada? ", info_luz)  # DEBUG
 				if info_luz:
 					datos[coordenada]["iluminacion"].append(info_luz)
 
@@ -182,7 +183,7 @@ func _obtener_info_luz_desde_tile(atlas_coords: Vector2i) -> Dictionary:
 			return {
 				"tipo": "antorcha_pie",
 				"variante": "antorcha_pie_apagada",
-				"encendida": true,
+				"encendida": false,
 				"radio": 0.0,
 				"intensidad": 0.0,
 				"color": Color(1, 0.6, 0.2),
