@@ -30,7 +30,7 @@ var capa_referencia: TileMapLayer = null
 var esta_moviendose: bool= false
 
 #vel movimiento
-@export var velocidad_paso:float=0.5 #en segundos
+@export var velocidad_paso:float=0.2 #en segundos
 
 #señales para conectar al tablero
 signal paso_dado(nueva_coordenada)

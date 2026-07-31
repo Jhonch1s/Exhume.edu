@@ -2,19 +2,6 @@
 
 [ext_resource type="Script" uid="uid://bb033fqcyohtd" path="res://scenes/ficha/ficha.gd" id="1_2ahgq"]
 [ext_resource type="Texture2D" uid="uid://b3t86fanvckjf" path="res://assets/test/fichas_isometric.png" id="1_d3vww"]
-[ext_resource type="Script" uid="uid://pt55gwl3sti3" path="res://scenes/ficha/luz_antorcha.gd" id="3_bh6u4"]
-
-[sub_resource type="Gradient" id="Gradient_2ahgq"]
-offsets = PackedFloat32Array(0.0072115385, 0.8293269)
-colors = PackedColorArray(1, 1, 0.74509805, 1, 0, 0, 0, 0)
-
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_85xdd"]
-gradient = SubResource("Gradient_2ahgq")
-width = 256
-height = 256
-fill = 1
-fill_from = Vector2(0.5, 0.5)
-fill_to = Vector2(1, 0.5)
 
 [node name="Ficha" type="Node2D" unique_id=1112424073]
 script = ExtResource("1_2ahgq")
@@ -25,11 +12,3 @@ texture = ExtResource("1_d3vww")
 offset = Vector2(0, -1)
 hframes = 3
 vframes = 4
-
-[node name="Antorcha" type="PointLight2D" parent="." unique_id=360061408]
-color = Color(1, 0.6, 0.2, 1)
-energy = 1.2
-shadow_enabled = true
-texture = SubResource("GradientTexture2D_85xdd")
-texture_scale = 2.5
-script = ExtResource("3_bh6u4")

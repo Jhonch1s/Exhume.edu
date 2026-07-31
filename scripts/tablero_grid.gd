@@ -9,6 +9,7 @@ func generar_desde_zona(zona: Node2D) -> void:
 	var _capa_agua:TileMapLayer = zona.get_node("CapaAgua")
 	var _capa_lava:TileMapLayer = zona.get_node("CapaLava")
 	var _capa_luces:TileMapLayer = zona.get_node("CapaLuces")
+	var _capa_paredes: TileMapLayer = zona.get_node("CapaParedes")
 	
 	if (not _capa_suelo):
 		print("Todo mal gato")
@@ -23,46 +24,69 @@ func generar_desde_zona(zona: Node2D) -> void:
 			"contenido": [],
 			"caminable": true,
 			"damage": null,
+			"visibilidad": null,
 			"iluminacion":[]
 		}
 		
 	if _capa_agua:
 		var _celdas_agua= _capa_agua.get_used_cells()
 		for coordenada in _celdas_agua:
-			if datos.has(coordenada):
-				datos[coordenada]={
-					"zona":"agua",
-					"contenido":[],
-					"caminable":false,
-					"damage":null,
-					"iluminacion":[]
-				}
-				
+			datos[coordenada]={
+				"zona":"agua",
+				"contenido":[],
+				"caminable":false,
+				"damage":null,
+				"visibilidad": null,
+				"iluminacion":[]
+			}
+			
 	if _capa_lava:
 		var _celdas_lava=_capa_lava.get_used_cells()
 		for coordenada in _celdas_lava:
-			if datos.has(coordenada):
-				datos[coordenada]={
-					"zona":"lava",
-					"contenido":[],
-					"caminable":true,
-					"damage":{
-						"tipo": "fuego",
-						"turnos": 5,
-						"damage": 2
-					},
-					"iluminacion":[]
-				}
+			datos[coordenada]={
+				"zona":"lava",
+				"contenido":[],
+				"caminable":true,
+				"damage":{
+					"tipo": "fuego",
+					"turnos": 5,
+					"damage": 2
+				},
+				"visibilidad": null,
+				"iluminacion":[]
+			}
+	if _capa_paredes:
+		var _celdas_paredes = _capa_paredes.get_used_cells()
+		for coordenada in _celdas_paredes:
+			datos[coordenada] = {
+				"zona": "pared",
+				"contenido": [],
+				"caminable": false,
+				"damage": null,
+				"visibilidad": null,
+				"iluminacion": []
+			}
+
 	if _capa_luces:
-		var _celdas_luces = _capa_luces.get_used_cells()
-		for coordenada in _celdas_luces:
-			if datos.has(coordenada):
+			var _celdas_luces = _capa_luces.get_used_cells()
+			for coordenada in _celdas_luces:
+				# Si una  luz está en el vacío, creamos la celda base
+				if not datos.has(coordenada):
+					datos[coordenada] = {
+						"zona": "piso_vacio",
+						"contenido": [],
+						"caminable": true,
+						"damage": null,
+						"visibilidad": null,
+						"iluminacion": []
+					}
+					
 				var tile_coords = _capa_luces.get_cell_atlas_coords(coordenada)
-				print("Coord:", coordenada, " Atlas:", tile_coords)  # ← temporal, borrar después
 				var info_luz = _obtener_info_luz_desde_tile(tile_coords)
-				print("  Luz encontrada? ", info_luz)  # DEBUG
-				if info_luz:
+				if info_luz and not info_luz.is_empty():
 					datos[coordenada]["iluminacion"].append(info_luz)
+	
+
 
 #utilidades
 func es_celda_valida(coord: Vector2i) -> bool:

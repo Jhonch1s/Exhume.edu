@@ -1,19 +1,5 @@
 [gd_scene format=3 uid="uid://rnk8xbn42ckd"]
 
-[ext_resource type="Script" uid="uid://cmyvxg7l2ggg7" path="res://scenes/antorcha_pared/antorcha_pared.gd" id="1_vjowr"]
-
-[sub_resource type="Gradient" id="Gradient_tygsw"]
-offsets = PackedFloat32Array(0.0024038462, 0.87740386)
-colors = PackedColorArray(1, 1, 0.74509805, 1, 0, 0, 0, 0)
-
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_maugy"]
-gradient = SubResource("Gradient_tygsw")
-width = 150
-height = 150
-fill = 1
-fill_from = Vector2(0.5, 0.5)
-fill_to = Vector2(1, 0.5)
-
 [sub_resource type="Curve" id="Curve_maugy"]
 _data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.3, 0.5), -1.2424613, -1.2424613, 0, 0, Vector2(0.7, 0.1), 0.0, 0.0, 0, 0]
 point_count = 3
@@ -23,13 +9,6 @@ metadata/_snap_enabled = true
 colors = PackedColorArray(0.96862745, 0.8980392, 0.24705882, 1, 0.64705884, 0, 0, 0)
 
 [node name="antorcha_pared" type="Node2D" unique_id=563288984 groups=["antorchas_pared"]]
-
-[node name="AntorchaPared" type="PointLight2D" parent="." unique_id=1484560656]
-color = Color(1, 0.6, 0.2, 1)
-energy = 1.2
-shadow_enabled = true
-texture = SubResource("GradientTexture2D_maugy")
-script = ExtResource("1_vjowr")
 
 [node name="Chispas" type="CPUParticles2D" parent="." unique_id=1304899456]
 position = Vector2(0, -5)

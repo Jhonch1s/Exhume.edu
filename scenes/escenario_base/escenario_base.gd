@@ -7,31 +7,40 @@ extends Node2D
 @onready var texto_info: Label = $CanvasLayer/PanelDetalle/TextoInfo
 @onready var camera_2d: Camera2D = $Camera2D
 @onready var capa_camino: TileMapLayer = $CapaCamino
-@onready var niebla_shader: ColorRect = $NieblaShader
 
-const ESCENA_FICHA=preload("res://scenes/ficha/ficha.tscn")
-const MAXIMO_ANTORCHA: int = 50
+#nodods de vision
+@onready var gestor_vision: FOVManager = $GestorVision
+@onready var capa_oscuridad: TileMapLayer = $CapaOscuridad
+
+const ESCENA_FICHA = preload("res://scenes/ficha/ficha.tscn")
 
 # estructura de datos central
 var tablero: TableroGrid = TableroGrid.new()
-var pathfinding: PathFindingManager=PathFindingManager.new()
+var pathfinding: PathFindingManager = PathFindingManager.new()
 var ficha_jugador: Ficha = null
 var ultima_coordenada_hover: Vector2i = Vector2i(-999,-999)
-var camino_actual_tentativo: Array[Vector2i]=[]
+var camino_actual_tentativo: Array[Vector2i] = []
 
 func _ready() -> void:
 	tablero.generar_desde_zona(zona_actual)
 	pathfinding.inicializar(tablero.datos)
+	
+	# 1 inicializamos el fov manager con la capa y los datos del mapa
+	gestor_vision.inicializar(capa_oscuridad, tablero.datos)
+	
 	spawnear_ficha_inicial()
+	
+	# 2 forzamos la iluminación inicial donde spawnea la ficha
+	if ficha_jugador:
+		_actualizar_luz_jugador(ficha_jugador.coordenada_mapa)
+		
 	var total_luces := 0
 	for coord in tablero.datos:
 		if tablero.datos[coord]["iluminacion"].size() > 0:
 			total_luces += 1
-	#print("Celdas con iluminación: ", total_luces)
 
 func _process(_delta : float) -> void:
 	centrar_camara_en_ficha()
-	actualizar_luz_niebla()
 	
 	if ficha_jugador and ficha_jugador.esta_moviendose:
 		capa_selector.clear()
@@ -65,7 +74,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		var coord_clic = capa_suelo.local_to_map(get_global_mouse_position())
 		
 		#si el click es izquierdo
-		
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			_manejar_clic_izquierdo(coord_clic)
 			
@@ -78,7 +86,6 @@ func _manejar_clic_izquierdo(coord: Vector2i)->void:
 		if not _esta_en_rango_vision(coord):
 			texto_info.text = "Coordenada: " + str(coord) + "\nÁrea no explorada (A ciegas)"
 		else:
-		
 			# logica del dialogo o menu a futuro
 			var datos = tablero.obtener_datos_celda(coord)
 		
@@ -97,11 +104,11 @@ func _manejar_clic_izquierdo(coord: Vector2i)->void:
 
 			# mostramos la info en la interfaz
 			texto_info.text = info_texto
+			
 		panel_detalles.visible = true
 		# aver si anda que el panel este cerca del mouse
 		panel_detalles.global_position = get_viewport().get_mouse_position() + Vector2(15, 15)
 		
-		print("Menú abierto para: ", coord)
 	else:
 		# fuera del mapa = ocultamos el panel
 		panel_detalles.visible = false
@@ -118,7 +125,7 @@ func _manejar_clic_derecho(coord:Vector2i)-> void:
 			
 			#Limpiamos flechas de la pantalla
 			capa_camino.clear()
-			panel_detalles.visible=false
+			panel_detalles.visible = false
 			
 			#iniciamos pasito a pasito
 			ficha_jugador.mover_por_camino(camino_actual_tentativo)
@@ -149,117 +156,43 @@ func spawnear_ficha_inicial() ->void:
 	ficha_jugador.paso_dado.connect(_on_ficha_paso_dado)
 	tablero.ocupar_celda(coord_inicio, ficha_jugador)
 
-func _on_ficha_paso_dado(_nueva_coord: Vector2i) -> void:
+func _on_ficha_paso_dado(nueva_coord: Vector2i) -> void:
 	# Lógica de antorcha
 	ficha_jugador.pasos_antorcha_actual -= 1
 	
-	if ficha_jugador.pasos_antorcha_actual <=0:
-		var tiene_luz= ficha_jugador.consumir_o_recargar_antorcha()
-		
-		if not tiene_luz:
-			#acá podemos poner algún efecto o indicador
-			pass
-	
-	var porcentaje_restante = float(max(0, ficha_jugador.pasos_antorcha_actual)) / float(ficha_jugador.PASOS_MAX_ANTORCHA)	
-	
-	# Reducir progresivamente el radio de la luz (sin el tope alto de 0.5)
-	if ficha_jugador.has_node("Antorcha"):
-		var luz = ficha_jugador.get_node("Antorcha")
-		# Permitimos que baje hasta 0.2 para que se achique visualmente junto con la niebla
-		luz.texture_scale = max(0.1, 2.5 * porcentaje_restante)
-
 	if ficha_jugador.pasos_antorcha_actual <= 0:
-		print("Antorcha consumida")
-		if ficha_jugador.has_node("Antorcha"):
-			ficha_jugador.get_node("Antorcha").enabled = false
+		var tiene_luz = ficha_jugador.consumir_o_recargar_antorcha()
+		if not tiene_luz:
+			print("El jugador se ha quedado completamente a oscuras.")
+	
+	# 3. Actualizamos la visión en el nuevo tile donde pisó el jugador
+	_actualizar_luz_jugador(nueva_coord)
+
+func _actualizar_luz_jugador(coordenada: Vector2i) -> void:
+	# Verificamos si le quedan antorchas/pasos
+	if ficha_jugador.pasos_antorcha_actual <= 0 and ficha_jugador.antorchas <= 0:
+		gestor_vision.actualizar_vision(coordenada, 1) # Radio mínimo a oscuras
+		return
+		
+	var radio_actual: float = 5.0
+	
+	# 10 pasos o menos para aplicar la reducción
+	if ficha_jugador.pasos_antorcha_actual <= 10:
+		# porcentaje en base a esos últimos 10 pasos
+		var porcentaje_final = float(max(0, ficha_jugador.pasos_antorcha_actual)) / 10.0
+		
+		# max(1.0) asegura que antes de apagarse siga viendo su propia casilla.
+		radio_actual = max(1.0, porcentaje_final * 5.0)
+	
+	# Le decimos al FOVManager que trace los rayos
+	gestor_vision.actualizar_vision(coordenada, int(radio_actual))
 
 func centrar_camara_en_ficha() -> void:
 	if ficha_jugador and camera_2d:
 		camera_2d.global_position = ficha_jugador.global_position
 
-#apartado visual
-# apartado visual
-func actualizar_luz_niebla() -> void:
-	# verificamos que esta el jugador y la niebla para que no crashe
-	if not is_instance_valid(ficha_jugador) or not is_instance_valid(niebla_shader):
-		return
-		
-	var mat = niebla_shader.material as ShaderMaterial
-	if not mat:
-		return
-
-	# array para almacenar todas las luces
-	var posiciones: Array[Vector2] = []
-	var radios: Array[float] = []
-	
-	var pos_rect = niebla_shader.global_position
-	var tamano_rect = niebla_shader.size
-
-	# antorcha del jugador
-	var pos_ficha = ficha_jugador.global_position
-	var uv_x_jugador = (pos_ficha.x - pos_rect.x) / tamano_rect.x
-	var uv_y_jugador = (pos_ficha.y - pos_rect.y) / tamano_rect.y
-	posiciones.append(Vector2(uv_x_jugador, uv_y_jugador))
-
-	var pasos = max(0, ficha_jugador.pasos_antorcha_actual)
-	var radio_maximo: float = 0.18
-	var radio_calculado: float = radio_maximo
-	
-	if pasos <= 10:
-		## mati ahora se reduce desde que le quedan 10 o menos 
-		var porcentaje: float = float(pasos) / 10.0
-		radio_calculado = radio_maximo * porcentaje
-		
-	radios.append(radio_calculado)
-
-	# luces del tablero (leídas desde CapaLuces)
-	var capa_suelo: TileMapLayer = zona_actual.get_node_or_null("CapaSuelo")
-	if capa_suelo:
-		for coord in tablero.datos:
-			var celda = tablero.datos[coord]
-			if celda["iluminacion"].size() > 0:
-				for luz_info in celda["iluminacion"]:
-					if luz_info["encendida"]:
-						# convertimos coord de tile a posición de pixel
-						var pos_luz = capa_suelo.map_to_local(coord) + luz_info["offset_luz"]
-						var uv_x_luz = (pos_luz.x - pos_rect.x) / tamano_rect.x
-						var uv_y_luz = (pos_luz.y - pos_rect.y) / tamano_rect.y
-						posiciones.append(Vector2(uv_x_luz, uv_y_luz))
-						radios.append(luz_info["radio"])
-	
-	# dibujar máscara de luz en una textura (evita bugs con uniforms array en GL Compatibility)
-	const RES = 128
-	var img = Image.create(RES, RES, false, Image.FORMAT_L8)
-	img.fill(Color.WHITE)
-
-	for i in posiciones.size():
-		var cx = int(posiciones[i].x * RES)
-		var cy = int(posiciones[i].y * RES)
-		var radio_px = max(1, int(radios[i] * RES))
-		for dy in range(-radio_px, radio_px + 1):
-			for dx in range(-radio_px, radio_px + 1):
-				if dx * dx + dy * dy <= radio_px * radio_px:
-					var px = cx + dx
-					var py = cy + dy
-					if px >= 0 and px < RES and py >= 0 and py < RES:
-						img.set_pixel(px, py, Color.BLACK)
-
-	var tex = ImageTexture.create_from_image(img)
-	mat.set_shader_parameter("textura_mascara", tex)
-
-#para verificar si una casilla está dentro del alcance visible actual, lo estamos usando para lo del click izquierdo asi no puede hacer trampa
-#se puede agragar para que no ande caminando por lo oscuro pero ta, vemos
+# 4. ¡Ahora es ultra simple! Le preguntamos directo al diccionario.
 func _esta_en_rango_vision(coord: Vector2i) -> bool:
-	if not ficha_jugador:
-		return false
-	if ficha_jugador.pasos_antorcha_actual <= 10:
-	#calculamos distancia en casillas desde la ficha a la coordenada destino
-		var dist_casillas = Vector2(ficha_jugador.coordenada_mapa).distance_to(Vector2(coord))
-	
-	# calculamos el radio permitido según la antorcha
-	# si tiene 50 la antorcha entonces ilumina 10 casillas, si le quedan 15 pasos ilumina solo 3 casillas
-		var rango_maximo = float(max(0, ficha_jugador.pasos_antorcha_actual)) / MAXIMO_ANTORCHA
-	
-		return dist_casillas <= rango_maximo
-		
-	return true
+	var datos_celda = tablero.obtener_datos_celda(coord)
+	# Si la celda existe y su estado es VISIBLE, retorna true. De lo contrario, false.
+	return datos_celda.get("visibilidad", "OCULTO") == "VISIBLE"

@@ -4,12 +4,6 @@
 [ext_resource type="Texture2D" uid="uid://b6khj7og6m8mp" path="res://assets/test/walls_isometric.png" id="2_ub4f1"]
 [ext_resource type="Texture2D" uid="uid://blk4k3e4pnv4r" path="res://assets/test/lights_isometric.png" id="3_2if4s"]
 
-[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_703cl"]
-polygon = PackedVector2Array(-33.46515, -64.30861, -0.15422058, -46.727837, 34.236237, -62.766434, -0.15422058, -80.65564)
-
-[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_2if4s"]
-polygon = PackedVector2Array(-33.46515, -64.30861, -0.15422058, -46.727837, 34.236237, -62.766434, -0.15422058, -80.65564)
-
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_yiwlg"]
 texture = ExtResource("2_ub4f1")
 texture_region_size = Vector2i(64, 96)
@@ -25,10 +19,6 @@ texture_region_size = Vector2i(64, 96)
 0:1/0/texture_origin = Vector2i(0, 32)
 1:1/0 = 0
 1:1/0/texture_origin = Vector2i(0, 32)
-2:1/0 = 0
-2:1/0/texture_origin = Vector2i(0, 32)
-3:1/0 = 0
-3:1/0/texture_origin = Vector2i(0, 32)
 4:1/0 = 0
 5:1/0 = 0
 6:1/0 = 0
@@ -37,10 +27,6 @@ texture_region_size = Vector2i(64, 96)
 0:2/0/texture_origin = Vector2i(0, 32)
 1:2/0 = 0
 1:2/0/texture_origin = Vector2i(0, 32)
-2:2/0 = 0
-2:2/0/texture_origin = Vector2i(0, 32)
-3:2/0 = 0
-3:2/0/texture_origin = Vector2i(0, 32)
 4:2/0 = 0
 5:2/0 = 0
 6:2/0 = 0
@@ -71,16 +57,13 @@ texture_region_size = Vector2i(64, 96)
 7:5/0 = 0
 0:0/0 = 0
 0:0/0/texture_origin = Vector2i(0, 32)
-0:0/0/occlusion_layer_0/polygon_0/polygon = SubResource("OccluderPolygon2D_703cl")
 1:0/0 = 0
 1:0/0/texture_origin = Vector2i(0, 32)
-1:0/0/occlusion_layer_0/polygon_0/polygon = SubResource("OccluderPolygon2D_2if4s")
 
 [sub_resource type="TileSet" id="TileSet_7kgjf"]
 tile_shape = 1
 tile_layout = 4
 tile_size = Vector2i(64, 32)
-occlusion_layer_0/light_mask = 1
 sources/0 = SubResource("TileSetAtlasSource_yiwlg")
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_dx7gn"]
