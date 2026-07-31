@@ -10,7 +10,7 @@ extends Node2D
 
 #nodods de vision
 @onready var gestor_vision: FOVManager = $GestorVision
-@onready var capa_oscuridad: TileMapLayer = $CapaOscuridad
+@onready var capa_oscuridad: TileMapLayer = $Zona1/CapaOscuridad
 
 const ESCENA_FICHA = preload("res://scenes/ficha/ficha.tscn")
 

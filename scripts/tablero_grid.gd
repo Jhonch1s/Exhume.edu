@@ -133,86 +133,77 @@ func obtener_luces_visibles()-> Array:
 func _obtener_info_luz_desde_tile(atlas_coords: Vector2i) -> Dictionary:
 	# Mapear coordenadas del tile a tipo de luz
 	match atlas_coords:
-		Vector2i(0, 0):  # antorcha pared izq prendida
+		Vector2i(0, 0):  # Antorcha pared izq prendida
 			return {
 				"tipo": "antorcha",
 				"variante": "pared_izq",
 				"encendida": true,
-				"radio": 0.10,
-				"intensidad": 1.3,
-				"color": Color(1, 0.6, 0.2),
-				"offset_luz": Vector2(0, -32)
+				"radio_luz": 1,
+				"radio_penumbra": 2,
+				"atraviesa_muros": false
 			}
-		Vector2i(1, 0):  # antorcha pared der prendida
+		Vector2i(1, 0):  # Antorcha pared der prendida
 			return {
 				"tipo": "antorcha",
 				"variante": "pared_der",
 				"encendida": true,
-				"radio": 0.10,
-				"intensidad": 1.3,
-				"color": Color(1, 0.6, 0.2),
-				"offset_luz": Vector2(0, -32)
+				"radio_luz": 1,
+				"radio_penumbra": 2,
+				"atraviesa_muros": false
 			}
-		Vector2i(2, 0):  # antorcha pared izq apagada
+		Vector2i(2, 0):  # Antorcha pared izq apagada
 			return {
 				"tipo": "antorcha",
 				"variante": "pared_izq",
 				"encendida": false,
-				"radio": 0.0,
-				"intensidad": 0.0,
-				"color": Color(1, 0.6, 0.2),
-				"offset_luz": Vector2(0, -32)
+				"radio_luz": 0,
+				"radio_penumbra": 0,
+				"atraviesa_muros": false
 			}
-		Vector2i(3, 0):  # antorcha pared izq apagada
+		Vector2i(3, 0):  # Antorcha pared der apagada
 			return {
 				"tipo": "antorcha",
 				"variante": "pared_der",
 				"encendida": false,
-				"radio": 0.0,
-				"intensidad": 0.0,
-				"color": Color(1, 0.6, 0.2),
-				"offset_luz": Vector2(0, -32)
+				"radio_luz": 0,
+				"radio_penumbra": 0,
+				"atraviesa_muros": false
 			}
-		Vector2i(0, 1):  # fogata simple apagada
+		Vector2i(0, 1):  # Fogata simple apagada
 			return {
 				"tipo": "fogata",
 				"variante": "fogata_apagada",
 				"encendida": false,
-				"radio": 0.0,
-				"intensidad": 0.0,
-				"color": Color(1, 0.6, 0.2),
-				"offset_luz": Vector2(0, -32)
+				"radio_luz": 0,
+				"radio_penumbra": 0,
+				"atraviesa_muros": false
 			}
-		Vector2i(1, 1):  # fogata simple encendida
+		Vector2i(1, 1):  # Fogata simple encendida
 			return {
 				"tipo": "fogata",
 				"variante": "fogata_encendida",
 				"encendida": true,
-				"radio": 0.10,
-				"intensidad": 1.3,
-				"color": Color(1, 0.6, 0.2),
-				"offset_luz": Vector2(0, -32)
+				"radio_luz": 1,
+				"radio_penumbra": 3,
+				"atraviesa_muros": false
 			}
-		Vector2i(0, 2): # antorcha pie simple encendida
+		Vector2i(0, 2):  # Antorcha pie simple encendida
 			return {
 				"tipo": "antorcha_pie",
 				"variante": "antorcha_pie_encendida",
 				"encendida": true,
-				"radio": 0.10,
-				"intensidad": 1.3,
-				"color": Color(1, 0.6, 0.2),
-				"offset_luz": Vector2(0, -32)
+				"radio_luz": 1,
+				"radio_penumbra": 2,
+				"atraviesa_muros": false
 			}
-		Vector2i(1, 2):  # antorcha pie simple apagada
+		Vector2i(1, 2):  # Antorcha pie simple apagada
 			return {
 				"tipo": "antorcha_pie",
 				"variante": "antorcha_pie_apagada",
 				"encendida": false,
-				"radio": 0.0,
-				"intensidad": 0.0,
-				"color": Color(1, 0.6, 0.2),
-				"offset_luz": Vector2(0, -32)
+				"radio_luz": 0,
+				"radio_penumbra": 0,
+				"atraviesa_muros": false
 			}
-		# ... agregar más tiles según tu atlas
 		_:
 			return {}
