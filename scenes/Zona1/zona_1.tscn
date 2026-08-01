@@ -3,7 +3,7 @@
 [ext_resource type="TileSet" uid="uid://b514khvcqn1oi" path="res://assets/tile_sets/basics.tres" id="1_nfkb8"]
 [ext_resource type="Texture2D" uid="uid://b6khj7og6m8mp" path="res://assets/test/walls_isometric.png" id="2_ub4f1"]
 [ext_resource type="Texture2D" uid="uid://blk4k3e4pnv4r" path="res://assets/test/lights_isometric.png" id="3_2if4s"]
-[ext_resource type="Texture2D" uid="uid://cq6h1kfybci2l" path="res://assets/test/bones_isometric.png" id="3_dx7gn"]
+[ext_resource type="Texture2D" uid="uid://gllyjuhbpx7b" path="res://assets/test/bones_isometric.png" id="3_dx7gn"]
 [ext_resource type="Texture2D" uid="uid://b7onhum7o4hc5" path="res://assets/test/shadow_isometric.png" id="4_2if4s"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_yiwlg"]
@@ -70,14 +70,6 @@ tile_layout = 4
 tile_size = Vector2i(64, 32)
 sources/0 = SubResource("TileSetAtlasSource_yiwlg")
 
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_gu20q"]
-texture = ExtResource("3_dx7gn")
-texture_region_size = Vector2i(64, 32)
-0:1/0 = 0
-1:1/0 = 0
-0:2/0 = 0
-1:2/0 = 0
-
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_dx7gn"]
 texture = ExtResource("2_ub4f1")
 texture_region_size = Vector2i(64, 32)
@@ -131,13 +123,22 @@ texture_region_size = Vector2i(64, 96)
 1:8/0 = 0
 2:8/0 = 0
 
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_gu20q"]
+texture = ExtResource("3_dx7gn")
+texture_region_size = Vector2i(64, 32)
+0:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+
 [sub_resource type="TileSet" id="TileSet_bxy32"]
 tile_shape = 1
 tile_layout = 4
 tile_size = Vector2i(64, 32)
 sources/1 = SubResource("TileSetAtlasSource_dx7gn")
 sources/2 = SubResource("TileSetAtlasSource_d77le")
-sources/0 = SubResource("TileSetAtlasSource_gu20q")
+sources/4 = SubResource("TileSetAtlasSource_gu20q")
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_2if4s"]
 texture = ExtResource("4_2if4s")
@@ -194,7 +195,7 @@ tile_set = SubResource("TileSet_bxy32")
 [node name="CapaDecoracion" type="TileMapLayer" parent="." unique_id=729455674]
 y_sort_enabled = true
 texture_filter = 1
-tile_map_data = PackedByteArray("AAD+/wwAAQACAAQAAAD+/w0AAQACAAQAAAD9/w0AAQACAAQAAAD9/w4AAQACAAQAAAD9/w8AAQABAAQAAAD+/w8AAQABAAQAAAD+/w4AAQABAAQAAAD//w4AAQABAAQAAAD//w0AAQABAAQAAAD9/xAAAQABAAQAAAD//wwAAQABAAQAAAABAA0AAQABAAQAAAACABAAAQABAAQAAAAKAP3/AQACAAQAAAAJAP7/AQACAAQAAAAJAP3/AQACAAQAAAAMAAAAAQABAAQAAAAMAAEAAQABAAQAAAANAAEAAQACAAQAAAAFABIAAAAAAAIAAAAEAAUAAAABAAIAAAADAPj/AAABAAIAAAATAAUAAAABAAIAAAAXAAcAAAAAAAEAAAAIAAYAAAAAAAEAAAA=")
+tile_map_data = PackedByteArray("AAD+/wwAAQACAAQAAAD+/w0AAQACAAQAAAD9/w0AAQACAAQAAAD9/w4AAQACAAQAAAD9/w8AAQABAAQAAAD+/w8AAQABAAQAAAD+/w4AAQABAAQAAAD//w4AAQABAAQAAAD//w0AAQABAAQAAAD9/xAAAQABAAQAAAD//wwAAQABAAQAAAABAA0AAQABAAQAAAACABAAAQABAAQAAAAKAP3/AQACAAQAAAAJAP7/AQACAAQAAAAJAP3/AQACAAQAAAAMAAAAAQABAAQAAAAMAAEAAQABAAQAAAANAAEAAQACAAQAAAAFABIABAAAAAIAAAAEAAUABAABAAIAAAADAPj/BAABAAIAAAATAAUABAABAAIAAAAXAAcABAAAAAEAAAAIAAYABAAAAAEAAAAXAAYABAAAAAEAAAAOABsABAABAAIAAAA=")
 tile_set = SubResource("TileSet_bxy32")
 
 [node name="CapaOscuridad" type="TileMapLayer" parent="." unique_id=366060652]
