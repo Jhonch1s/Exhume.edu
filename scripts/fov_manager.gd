@@ -8,6 +8,8 @@ var celdas_visibles_actuales: Array[Vector2i] = []
 const ATLAS_OSCURIDAD = 0 
 const TILE_SOMBRA_PLANO = Vector2i(0, 1) # tile al 60% de opacidad
 const TILE_NEGRO_PLANO = Vector2i(0, 0)  # tile negro total
+const TILE_NEGRO_MEDIO = Vector2i(0, 2) 
+const TILE_SOMBRA_MEDIO = Vector2i(0, 4)
 const TILE_SOMBRA_ALTO = Vector2i(2, 0) 
 const TILE_NEGRO_ALTO = Vector2i(1, 0)
 
@@ -120,16 +122,29 @@ func _oscurecer_celda(coord: Vector2i, tipo_estado: String) -> void:
 	if not datos_tablero.has(coord):
 		return
 		
-	var es_pared: bool = datos_tablero[coord].get("zona", "") == "pared"
+	var zona_tipo: String = datos_tablero[coord].get("zona", "")
+	var altura: int = datos_tablero[coord].get("altura", 0) # 0: Plano, 1: Medio, 2: Pared
 	var tiene_luz: bool = datos_tablero[coord].get("iluminacion", []).size() > 0
 	
 	var tile_a_dibujar: Vector2i
 	
 	if tipo_estado == "OCULTO":
-		var necesita_sombra_alta: bool = es_pared or tiene_luz
-		tile_a_dibujar = TILE_NEGRO_ALTO if necesita_sombra_alta else TILE_NEGRO_PLANO
-		
+		# En OCULTO (100% negro) mantenemos las sombras altas/medias
+		# para tapar completamente objetos, luces y muros no descubiertos.
+		if altura == 2 or zona_tipo == "pared":
+			tile_a_dibujar = TILE_NEGRO_ALTO
+		elif altura == 1 or tiene_luz:
+			tile_a_dibujar = TILE_NEGRO_MEDIO
+		else:
+			tile_a_dibujar = TILE_NEGRO_PLANO
+			
 	elif tipo_estado == "EXPLORADO":
-		tile_a_dibujar = TILE_SOMBRA_ALTO if es_pared else TILE_SOMBRA_PLANO
+		# En EXPLORADO (60% semitransparente) SOLO las paredes llevan sombra alta.
+		# Las decoraciones de piso (altura 1), luces y suelo usan sombra PLANA (altura 0)
+		# para no encimar sombras semitransparentes con la celda de atrás.
+		if altura == 2 or zona_tipo == "pared":
+			tile_a_dibujar = TILE_SOMBRA_ALTO
+		else:
+			tile_a_dibujar = TILE_SOMBRA_PLANO
 		
 	capa_oscuridad.set_cell(coord, ATLAS_OSCURIDAD, tile_a_dibujar)
