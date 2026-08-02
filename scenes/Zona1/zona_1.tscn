@@ -189,7 +189,7 @@ tile_set = SubResource("TileSet_7kgjf")
 [node name="CapaLuces" type="TileMapLayer" parent="." unique_id=411027868]
 y_sort_enabled = true
 texture_filter = 1
-tile_map_data = PackedByteArray("AAABAPj/AgAAAAAAAAD///j/AgAAAAAAAAAFAPr/AgAAAAAAAAAEAPn/AgABAAAAAAAJAAcAAgAAAAAAAAAIAAYAAgABAAAAAAAFABIAAgAAAAAAAAATAA8AAgABAAAAAAAPABsAAgAAAAEAAAASAAUAAgABAAEAAAD8//j/AgAAAAAAAAD8//7/AgAAAAIAAAA=")
+tile_map_data = PackedByteArray("AAABAPj/AgAAAAAAAAD///j/AgAAAAAAAAAFAPr/AgAAAAAAAAAEAPn/AgABAAAAAAAJAAcAAgAAAAAAAAAIAAYAAgABAAAAAAATAA8AAgABAAAAAAAPABsAAgAAAAEAAAASAAUAAgABAAEAAAD8//j/AgAAAAAAAAD8//7/AgAAAAIAAAAFABIAAgABAAAAAAA=")
 tile_set = SubResource("TileSet_bxy32")
 
 [node name="CapaDecoracion" type="TileMapLayer" parent="." unique_id=729455674]
