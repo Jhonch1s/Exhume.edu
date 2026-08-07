@@ -13,11 +13,12 @@ func inicializar(tablero_datos:Dictionary) -> void:
 		
 		##Configuramos el costo de pasar por una selda
 		#si no es caminable (agua o tiene contenido), se desactiva
-		if not tablero_datos[coord]["caminable"]:
+		var celda: Celda = tablero_datos[coord]
+		if not celda.caminable:
 			astar.set_point_disabled(id, true)
 		
 		##sino, si tiene daño (lava u otras adiciones a futuro), le damos un costo muy alto para el algoritmo
-		elif tablero_datos[coord]["damage"] != null:
+		elif celda.damage != null:
 			astar.set_point_weight_scale(id, 5.0) #ta potente
 		else:
 			astar.set_point_weight_scale(id, 1.0) #piso de chill

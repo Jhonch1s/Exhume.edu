@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://bswvdm3i2oi7a"]
 
 [ext_resource type="Script" uid="uid://bb033fqcyohtd" path="res://scenes/ficha/ficha.gd" id="1_2ahgq"]
-[ext_resource type="Texture2D" uid="uid://cvql5ogge0d1m" path="res://assets/test/caballero_isometric.png" id="2_bh6u4"]
 [ext_resource type="Script" uid="uid://cfehvqkv1of6i" path="res://scenes/ficha/antorcha.gd" id="3_bh6u4"]
+[ext_resource type="Texture2D" uid="uid://cwwdsu54qywxu" path="res://assets/characters/player/knight/sprites/caballero_isometric.png" id="3_n6hvf"]
 
 [sub_resource type="Gradient" id="Gradient_2ahgq"]
 offsets = PackedFloat32Array(0, 0.87740386)
@@ -16,11 +16,14 @@ fill = 1
 fill_from = Vector2(0.5, 0.5)
 fill_to = Vector2(1, 0.5)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_gu20q"]
+atlas = ExtResource("3_n6hvf")
+
 [node name="Ficha" type="Node2D" unique_id=1112424073]
 script = ExtResource("1_2ahgq")
 
 [node name="Antorcha" type="PointLight2D" parent="." unique_id=1112126709]
-position = Vector2(-11, -45)
+position = Vector2(-9, -53)
 color = Color(1, 0.8980392, 0, 1)
 energy = 1.2
 texture = SubResource("GradientTexture2D_uylti")
@@ -30,9 +33,9 @@ script = ExtResource("3_bh6u4")
 light_mask = 2
 visibility_layer = 2
 texture_filter = 1
-position = Vector2(0, -15.999999)
+position = Vector2(0, -33)
 scale = Vector2(0.9352941, 1.0555555)
-texture = ExtResource("2_bh6u4")
+texture = SubResource("AtlasTexture_gu20q")
 offset = Vector2(0, -1)
 hframes = 4
 vframes = 3

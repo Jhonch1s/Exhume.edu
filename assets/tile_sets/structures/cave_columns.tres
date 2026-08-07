@@ -1,0 +1,19 @@
+[gd_resource type="TileSet" format=3 uid="uid://6tn667rbykno"]
+
+[ext_resource type="Texture2D" uid="uid://mlt7qlrjx746" path="res://assets/tiles/structures/cave_columns/sources/cave_columns.png" id="1_w7t2r"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_rp7rv"]
+texture = ExtResource("1_w7t2r")
+texture_region_size = Vector2i(64, 32)
+1:0/size_in_atlas = Vector2i(1, 3)
+1:0/0 = 0
+1:0/0/texture_origin = Vector2i(0, 32)
+0:0/size_in_atlas = Vector2i(1, 3)
+0:0/0 = 0
+0:0/0/texture_origin = Vector2i(0, 32)
+
+[resource]
+tile_shape = 1
+tile_layout = 4
+tile_size = Vector2i(64, 32)
+sources/0 = SubResource("TileSetAtlasSource_rp7rv")

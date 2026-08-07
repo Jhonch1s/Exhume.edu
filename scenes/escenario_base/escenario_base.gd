@@ -34,11 +34,6 @@ func _ready() -> void:
 	if ficha_jugador:
 		_actualizar_luz_jugador(ficha_jugador.coordenada_mapa)
 		
-	var total_luces := 0
-	for coord in tablero.datos:
-		if tablero.datos[coord]["iluminacion"].size() > 0:
-			total_luces += 1
-
 func _process(_delta : float) -> void:
 	centrar_camara_en_ficha()
 	
@@ -87,18 +82,18 @@ func _manejar_clic_izquierdo(coord: Vector2i)->void:
 			texto_info.text = "Coordenada: " + str(coord) + "\nÁrea no explorada (A ciegas)"
 		else:
 			# logica del dialogo o menu a futuro
-			var datos = tablero.obtener_datos_celda(coord)
+			var celda: Celda = tablero.obtener_celda(coord)
 		
 			# se construye texto segun lo guardado en el diccionario
 			var info_texto = "Coordenada: "+ str(coord)+"\n"
-			info_texto += "Tipo: " + datos["zona"] + "\n"
-			info_texto += "Caminable: " + ("Sí" if datos["caminable"] else "No") + "\n"
-			if datos["contenido"].size() > 0:
-				info_texto += "Contenido: " + str(datos["contenido"].size()) + " objeto(s) \n"
-			if datos["damage"] != null:
-				info_texto += "¡PELIGRO!: Daño de " + str(datos["damage"]["tipo"]) + "\n"
-			if datos["iluminacion"].size() > 0:
-				for luz in datos["iluminacion"]:
+			info_texto += "Tipo: " + str(celda.zona) + "\n"
+			info_texto += "Caminable: " + ("Sí" if celda.caminable else "No") + "\n"
+			if celda.tiene_contenido():
+				info_texto += "Contenido: " + str(celda.contenido.size()) + " objeto(s) \n"
+			if celda.damage != null:
+				info_texto += "¡PELIGRO!: Daño de " + str(celda.damage["tipo"]) + "\n"
+			if celda.tiene_iluminacion():
+				for luz in celda.iluminacion:
 					var estado = "Encendida" if luz["encendida"] else "Apagada"
 					info_texto += "Iluminación: " + luz["tipo"] + " - " + estado + "\n"
 
@@ -193,6 +188,5 @@ func centrar_camara_en_ficha() -> void:
 
 # 4. ¡Ahora es ultra simple! Le preguntamos directo al diccionario.
 func _esta_en_rango_vision(coord: Vector2i) -> bool:
-	var datos_celda = tablero.obtener_datos_celda(coord)
-	# Si la celda existe y su estado es VISIBLE, retorna true. De lo contrario, false.
-	return datos_celda.get("visibilidad", "OCULTO") == "VISIBLE"
+	var celda: Celda = tablero.obtener_celda(coord)
+	return celda != null and celda.visibilidad == Celda.EstadoVisibilidad.VISIBLE

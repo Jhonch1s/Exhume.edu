@@ -1,0 +1,147 @@
+[gd_resource type="TileSet" format=3 uid="uid://cja2guulmaygb"]
+
+[ext_resource type="Texture2D" uid="uid://d1itvtxal7pkm" path="res://assets/tiles/terrain/fog_masks/terrain_fog_explored.png" id="1_1fw30"]
+[ext_resource type="Texture2D" uid="uid://8wgrnqkumulo" path="res://assets/tiles/terrain/fog_masks/terrain_fog_hidden.png" id="2_wl06f"]
+[ext_resource type="Texture2D" uid="uid://b2lb785cq324b" path="res://assets/tiles/structures/walls/fog_masks/walls_cave_fog_explored.png" id="3_bsauu"]
+[ext_resource type="Texture2D" uid="uid://o2bpew4qyeqt" path="res://assets/tiles/structures/walls/fog_masks/walls_cave_fog_hidden.png" id="4_s35k3"]
+[ext_resource type="Texture2D" uid="uid://1m8th3gk60wb" path="res://assets/tiles/structures/cave_columns/fog_masks/cave_columns_fog_explored.png" id="5_kags4"]
+[ext_resource type="Texture2D" uid="uid://bi7d3dkyrj2qn" path="res://assets/tiles/structures/cave_columns/fog_masks/cave_columns_fog_hidden.png" id="6_ha1fv"]
+[ext_resource type="Texture2D" uid="uid://sl081b0ygynr" path="res://assets/tiles/decorations/medium/cave_formations/fog_masks/stalagmites_medium_fog_explored.png" id="7_5uh0j"]
+[ext_resource type="Texture2D" uid="uid://boevn5t50jerj" path="res://assets/tiles/decorations/medium/cave_formations/fog_masks/stalagmites_medium_fog_hidden.png" id="8_s0ihh"]
+[ext_resource type="Texture2D" uid="uid://b7xp6lu43cy5v" path="res://assets/tiles/lighting/fog_masks/lights_fog_explored.png" id="9_k8b5h"]
+[ext_resource type="Texture2D" uid="uid://01ql63y43xvk" path="res://assets/tiles/lighting/fog_masks/lights_fog_hidden.png" id="10_43lna"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_aw2fj"]
+texture = ExtResource("1_1fw30")
+texture_region_size = Vector2i(64, 32)
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_7ox5f"]
+texture = ExtResource("2_wl06f")
+texture_region_size = Vector2i(64, 32)
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_kymmu"]
+texture = ExtResource("3_bsauu")
+texture_region_size = Vector2i(64, 32)
+1:0/size_in_atlas = Vector2i(1, 3)
+1:0/0 = 0
+1:0/0/texture_origin = Vector2i(0, 32)
+0:0/size_in_atlas = Vector2i(1, 3)
+0:0/0 = 0
+0:0/0/texture_origin = Vector2i(0, 32)
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_stvu5"]
+texture = ExtResource("4_s35k3")
+texture_region_size = Vector2i(64, 32)
+0:0/size_in_atlas = Vector2i(1, 3)
+0:0/0 = 0
+0:0/0/texture_origin = Vector2i(0, 32)
+1:0/size_in_atlas = Vector2i(1, 3)
+1:0/0 = 0
+1:0/0/texture_origin = Vector2i(0, 32)
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_hhvn1"]
+texture = ExtResource("5_kags4")
+texture_region_size = Vector2i(64, 32)
+0:0/size_in_atlas = Vector2i(1, 3)
+0:0/0 = 0
+0:0/0/texture_origin = Vector2i(0, 32)
+1:0/size_in_atlas = Vector2i(1, 3)
+1:0/0 = 0
+1:0/0/texture_origin = Vector2i(0, 32)
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_6hopx"]
+texture = ExtResource("6_ha1fv")
+texture_region_size = Vector2i(64, 32)
+0:0/size_in_atlas = Vector2i(1, 3)
+0:0/0 = 0
+0:0/0/texture_origin = Vector2i(0, 32)
+1:0/size_in_atlas = Vector2i(1, 3)
+1:0/0 = 0
+1:0/0/texture_origin = Vector2i(0, 32)
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_h1qrt"]
+texture = ExtResource("7_5uh0j")
+texture_region_size = Vector2i(64, 32)
+0:0/size_in_atlas = Vector2i(1, 2)
+0:0/0 = 0
+0:0/0/texture_origin = Vector2i(0, 16)
+1:0/size_in_atlas = Vector2i(1, 2)
+1:0/0 = 0
+1:0/0/texture_origin = Vector2i(0, 16)
+0:2/size_in_atlas = Vector2i(1, 2)
+0:2/0 = 0
+0:2/0/texture_origin = Vector2i(0, 16)
+1:2/size_in_atlas = Vector2i(1, 2)
+1:2/0 = 0
+1:2/0/texture_origin = Vector2i(0, 16)
+2:2/size_in_atlas = Vector2i(1, 2)
+2:2/0 = 0
+2:2/0/texture_origin = Vector2i(0, 16)
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_8ndod"]
+texture = ExtResource("8_s0ihh")
+texture_region_size = Vector2i(64, 32)
+0:0/size_in_atlas = Vector2i(1, 2)
+0:0/0 = 0
+0:0/0/texture_origin = Vector2i(0, 16)
+1:0/size_in_atlas = Vector2i(1, 2)
+1:0/0 = 0
+1:0/0/texture_origin = Vector2i(0, 16)
+0:2/size_in_atlas = Vector2i(1, 2)
+0:2/0 = 0
+0:2/0/texture_origin = Vector2i(0, 16)
+1:2/size_in_atlas = Vector2i(1, 2)
+1:2/0 = 0
+1:2/0/texture_origin = Vector2i(0, 16)
+2:2/size_in_atlas = Vector2i(1, 2)
+2:2/0 = 0
+2:2/0/texture_origin = Vector2i(0, 16)
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_wjflx"]
+texture = ExtResource("9_k8b5h")
+texture_region_size = Vector2i(64, 32)
+2:0/size_in_atlas = Vector2i(1, 3)
+2:0/0 = 0
+2:0/0/texture_origin = Vector2i(0, 32)
+3:0/size_in_atlas = Vector2i(1, 3)
+3:0/0 = 0
+3:0/0/texture_origin = Vector2i(0, 32)
+1:6/size_in_atlas = Vector2i(1, 3)
+1:6/0 = 0
+1:6/0/texture_origin = Vector2i(0, 32)
+0:3/size_in_atlas = Vector2i(1, 3)
+0:3/0 = 0
+0:3/0/texture_origin = Vector2i(0, 32)
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_0y7b1"]
+texture = ExtResource("10_43lna")
+texture_region_size = Vector2i(64, 32)
+2:0/size_in_atlas = Vector2i(1, 3)
+2:0/0 = 0
+2:0/0/texture_origin = Vector2i(0, 32)
+3:0/size_in_atlas = Vector2i(1, 3)
+3:0/0 = 0
+3:0/0/texture_origin = Vector2i(0, 32)
+0:3/size_in_atlas = Vector2i(1, 3)
+0:3/0 = 0
+0:3/0/texture_origin = Vector2i(0, 32)
+1:6/size_in_atlas = Vector2i(1, 3)
+1:6/0 = 0
+1:6/0/texture_origin = Vector2i(0, 32)
+
+[resource]
+tile_shape = 1
+tile_layout = 4
+tile_size = Vector2i(64, 32)
+sources/0 = SubResource("TileSetAtlasSource_aw2fj")
+sources/1 = SubResource("TileSetAtlasSource_7ox5f")
+sources/2 = SubResource("TileSetAtlasSource_kymmu")
+sources/3 = SubResource("TileSetAtlasSource_stvu5")
+sources/4 = SubResource("TileSetAtlasSource_hhvn1")
+sources/5 = SubResource("TileSetAtlasSource_6hopx")
+sources/6 = SubResource("TileSetAtlasSource_h1qrt")
+sources/7 = SubResource("TileSetAtlasSource_8ndod")
+sources/8 = SubResource("TileSetAtlasSource_wjflx")
+sources/9 = SubResource("TileSetAtlasSource_0y7b1")

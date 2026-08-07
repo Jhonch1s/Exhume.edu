@@ -1,0 +1,17 @@
+[gd_resource type="TileSet" format=3 uid="uid://bvv3o4iyhffgu"]
+
+[ext_resource type="Texture2D" uid="uid://c8b5qs8t23pu6" path="res://assets/tiles/decorations/floor/remains/sources/skeletal_remains_isometric.png" id="1_vw5a0"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_4phvd"]
+texture = ExtResource("1_vw5a0")
+texture_region_size = Vector2i(64, 32)
+0:0/0 = 0
+1:0/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+
+[resource]
+tile_shape = 1
+tile_layout = 4
+tile_size = Vector2i(64, 32)
+sources/0 = SubResource("TileSetAtlasSource_4phvd")
