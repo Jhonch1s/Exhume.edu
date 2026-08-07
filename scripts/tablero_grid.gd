@@ -12,6 +12,7 @@ func generar_desde_zona(zona: Node2D) -> void:
 	var _capa_paredes: TileMapLayer = zona.get_node_or_null("CapaParedes")
 	var _capa_columnas: TileMapLayer = zona.get_node_or_null("CapaColumnas")
 	var _capa_deco_nocaminable: TileMapLayer = zona.get_node_or_null("CapaDecoracionNoCaminable")
+	var _capa_decoracion: TileMapLayer = zona.get_node_or_null("CapaDecoracion")
 	
 	if not _capa_suelo:
 		print("Error: No se encontró CapaSuelo")
@@ -20,90 +21,128 @@ func generar_desde_zona(zona: Node2D) -> void:
 	# 1. Escaneamos Suelo
 	var _celdas_suelo = _capa_suelo.get_used_cells()
 	for coordenada in _celdas_suelo:
-		datos[coordenada] = Celda.new(&"piso_vacio", true)
+		datos[coordenada] = _crear_celda_desde_tile(_capa_suelo, coordenada, &"piso_vacio")
 
 	# 2. Escaneamos Agua
 	if _capa_agua:
 		var _celdas_agua = _capa_agua.get_used_cells()
 		for coordenada in _celdas_agua:
-			datos[coordenada] = Celda.new(&"agua", false)
+			var celda_agua := _crear_celda_desde_tile(_capa_agua, coordenada, &"agua")
+			# La capa define el comportamiento del líquido, independientemente de su textura.
+			celda_agua.caminable = false
+			datos[coordenada] = celda_agua
 
 	# 3. Escaneamos Lava
 	if _capa_lava:
 		var _celdas_lava = _capa_lava.get_used_cells()
 		for coordenada in _celdas_lava:
-			datos[coordenada] = Celda.new(
-				&"lava",
-				true,
-				0,
-				{
-					"tipo": "fuego",
-					"turnos": 5,
-					"damage": 2
-				}
-			)
+			var celda_lava := _crear_celda_desde_tile(_capa_lava, coordenada, &"lava")
+			celda_lava.damage = {
+				"tipo": "fuego",
+				"turnos": 5,
+				"damage": 2
+			}
+			datos[coordenada] = celda_lava
 
 	# 4. Escaneamos Paredes
 	if _capa_paredes:
 		var _celdas_paredes = _capa_paredes.get_used_cells()
 		for coordenada in _celdas_paredes:
-			var celda_pared := Celda.new(&"pared", false, 2)
-			celda_pared.bloquea_vision = true
-			celda_pared.configurar_fog(&"pared", _capa_paredes.get_cell_atlas_coords(coordenada))
-			datos[coordenada] = celda_pared
+			datos[coordenada] = _crear_celda_desde_tile(_capa_paredes, coordenada, &"pared")
 	
 	# 5. Escaneamos columnas: son altas y bloquean el paso, pero dejan pasar la luz.
 	if _capa_columnas:
 		for coordenada in _capa_columnas.get_used_cells():
-			var tile_data := _capa_columnas.get_cell_tile_data(coordenada)
-			var celda_columna := Celda.new(
-				&"columna",
-				bool(tile_data.get_custom_data(&"caminable")),
-				int(tile_data.get_custom_data(&"altura"))
-			)
-			celda_columna.bloquea_vision = bool(tile_data.get_custom_data(&"bloquea_vision"))
-			celda_columna.configurar_fog(
-				StringName(tile_data.get_custom_data(&"familia_fog")),
-				Vector2i(
-					int(tile_data.get_custom_data(&"fog_atlas_x")),
-					int(tile_data.get_custom_data(&"fog_atlas_y"))
-				)
-			)
-			datos[coordenada] = celda_columna
+			datos[coordenada] = _crear_celda_desde_tile(_capa_columnas, coordenada, &"columna")
 
 	# 6. Escaneamos Decoraciones No Caminables
 	if _capa_deco_nocaminable:
 		var _celdas_decoracion = _capa_deco_nocaminable.get_used_cells()
 		for coord in _celdas_decoracion:
+			var celda_decoracion := _crear_celda_desde_tile(
+				_capa_deco_nocaminable,
+				coord,
+				&"decoracion"
+			)
 			if datos.has(coord):
-				datos[coord].caminable = false
+				datos[coord].caminable = datos[coord].caminable and celda_decoracion.caminable
+				datos[coord].bloquea_vision = (
+					datos[coord].bloquea_vision or celda_decoracion.bloquea_vision
+				)
 				# No degradamos una pared o columna si las capas se solapan.
-				if datos[coord].altura < 2:
-					datos[coord].altura = 1
+				if celda_decoracion.altura > datos[coord].altura:
+					datos[coord].altura = celda_decoracion.altura
 					datos[coord].zona = &"decoracion"
 					datos[coord].configurar_fog(
-						&"estalagmita",
-						_capa_deco_nocaminable.get_cell_atlas_coords(coord)
+						celda_decoracion.familia_fog,
+						celda_decoracion.coordenada_fog
 					)
 			else:
-				var celda_decoracion := Celda.new(&"decoracion", false, 1)
-				celda_decoracion.configurar_fog(
-					&"estalagmita",
-					_capa_deco_nocaminable.get_cell_atlas_coords(coord)
-				)
 				datos[coord] = celda_decoracion
 
-	# 7. Escaneo de luces del mapa.
+	# 7. Las decoraciones planas pueden modificar propiedades sin sustituir el terreno.
+	if _capa_decoracion:
+		for coord in _capa_decoracion.get_used_cells():
+			if not datos.has(coord):
+				continue
+			var celda_decoracion := _crear_celda_desde_tile(
+				_capa_decoracion,
+				coord,
+				&"decoracion"
+			)
+			datos[coord].caminable = datos[coord].caminable and celda_decoracion.caminable
+			datos[coord].bloquea_vision = (
+				datos[coord].bloquea_vision or celda_decoracion.bloquea_vision
+			)
+
+	# 8. Escaneo de luces del mapa.
 	if _capa_luces:
 		var _celdas_luces = _capa_luces.get_used_cells()
 		for coord in _celdas_luces:
-			var atlas_coords = _capa_luces.get_cell_atlas_coords(coord)
-			var info_luz = _obtener_info_luz_desde_tile(atlas_coords)
+			var tile_data := _capa_luces.get_cell_tile_data(coord)
+			var info_luz := _obtener_info_luz_desde_tile(tile_data)
 			if not info_luz.is_empty():
+				var propiedades_luz := _crear_celda_desde_tile(_capa_luces, coord, &"luz")
+				info_luz["aplicar_mascara_fog"] = propiedades_luz.familia_fog == &"luz"
+				info_luz["altura_fog"] = propiedades_luz.altura
+				info_luz["coordenada_fog"] = propiedades_luz.coordenada_fog
+				if datos.has(coord):
+					datos[coord].caminable = datos[coord].caminable and propiedades_luz.caminable
+					datos[coord].bloquea_vision = (
+						datos[coord].bloquea_vision or propiedades_luz.bloquea_vision
+					)
 				registrar_luz(coord, info_luz)
 
 
 # --- UTILIDADES ---
+
+func _crear_celda_desde_tile(
+	capa: TileMapLayer,
+	coord: Vector2i,
+	zona: StringName
+) -> Celda:
+	var tile_data := capa.get_cell_tile_data(coord)
+	if tile_data == null:
+		push_warning("No se encontraron datos para el tile %s en %s" % [coord, capa.name])
+		return Celda.new(zona)
+
+	var celda := Celda.new(
+		zona,
+		bool(tile_data.get_custom_data(&"caminable")),
+		int(tile_data.get_custom_data(&"altura"))
+	)
+	celda.bloquea_vision = bool(tile_data.get_custom_data(&"bloquea_vision"))
+	var familia := StringName(tile_data.get_custom_data(&"familia_fog"))
+	if familia == &"":
+		familia = &"terreno"
+	celda.configurar_fog(
+		familia,
+		Vector2i(
+			int(tile_data.get_custom_data(&"fog_atlas_x")),
+			int(tile_data.get_custom_data(&"fog_atlas_y"))
+		)
+	)
+	return celda
 
 func es_celda_valida(coord: Vector2i) -> bool:
 	return datos.has(coord)
@@ -149,99 +188,19 @@ func obtener_luces_visibles() -> Array:
 				})
 	return luces
 
-func _obtener_info_luz_desde_tile(atlas_coords: Vector2i) -> Dictionary:
-	match atlas_coords:
-		Vector2i(0, 0): # Antorcha pared izq prendida
-			return {
-				"tipo": "antorcha",
-				"variante": "pared_izq",
-				"encendida": true,
-				"radio_luz": 1,
-				"radio_penumbra": 2,
-				"atraviesa_muros": false,
-				"aplicar_mascara_fog": false,
-				"coordenada_fog": Vector2i(2, 0)
-			}
-		Vector2i(1, 0): # Antorcha pared der prendida
-			return {
-				"tipo": "antorcha",
-				"variante": "pared_der",
-				"encendida": true,
-				"radio_luz": 1,
-				"radio_penumbra": 2,
-				"atraviesa_muros": false,
-				"aplicar_mascara_fog": false,
-				"coordenada_fog": Vector2i(3, 0)
-			}
-		Vector2i(2, 0): # Antorcha pared izq apagada
-			return {
-				"tipo": "antorcha",
-				"variante": "pared_izq",
-				"encendida": false,
-				"radio_luz": 0,
-				"radio_penumbra": 0,
-				"atraviesa_muros": false,
-				"aplicar_mascara_fog": false,
-				"coordenada_fog": Vector2i(2, 0)
-			}
-		Vector2i(3, 0): # Antorcha pared der apagada
-			return {
-				"tipo": "antorcha",
-				"variante": "pared_der",
-				"encendida": false,
-				"radio_luz": 0,
-				"radio_penumbra": 0,
-				"atraviesa_muros": false,
-				"aplicar_mascara_fog": false,
-				"coordenada_fog": Vector2i(3, 0)
-			}
-		Vector2i(0, 3): # Fogata simple apagada
-			return {
-				"tipo": "fogata",
-				"variante": "fogata_apagada",
-				"encendida": false,
-				"radio_luz": 0,
-				"radio_penumbra": 0,
-				"atraviesa_muros": false,
-				"aplicar_mascara_fog": true,
-				"altura_fog": 1,
-				"coordenada_fog": Vector2i(0, 3)
-			}
-		Vector2i(1, 3): # Fogata simple encendida
-			return {
-				"tipo": "fogata",
-				"variante": "fogata_encendida",
-				"encendida": true,
-				"radio_luz": 1,
-				"radio_penumbra": 3,
-				"atraviesa_muros": false,
-				"aplicar_mascara_fog": true,
-				"altura_fog": 1,
-				"coordenada_fog": Vector2i(0, 3)
-			}
-		Vector2i(0, 6): # Antorcha pie simple encendida
-			return {
-				"tipo": "antorcha_pie",
-				"variante": "antorcha_pie_encendida",
-				"encendida": true,
-				"radio_luz": 1,
-				"radio_penumbra": 2,
-				"atraviesa_muros": false,
-				"aplicar_mascara_fog": true,
-				"altura_fog": 1,
-				"coordenada_fog": Vector2i(1, 6)
-			}
-		Vector2i(1, 6): # Antorcha pie simple apagada
-			return {
-				"tipo": "antorcha_pie",
-				"variante": "antorcha_pie_apagada",
-				"encendida": false,
-				"radio_luz": 0,
-				"radio_penumbra": 0,
-				"atraviesa_muros": false,
-				"aplicar_mascara_fog": true,
-				"altura_fog": 1,
-				"coordenada_fog": Vector2i(1, 6)
-			}
-		_:
-			return {}
+func _obtener_info_luz_desde_tile(tile_data: TileData) -> Dictionary:
+	if tile_data == null:
+		return {}
+
+	var tipo := StringName(tile_data.get_custom_data(&"tipo_luz"))
+	if tipo == &"":
+		return {}
+
+	return {
+		"tipo": tipo,
+		"variante": StringName(tile_data.get_custom_data(&"variante_luz")),
+		"encendida": bool(tile_data.get_custom_data(&"encendida")),
+		"radio_luz": int(tile_data.get_custom_data(&"radio_luz")),
+		"radio_penumbra": int(tile_data.get_custom_data(&"radio_penumbra")),
+		"atraviesa_muros": bool(tile_data.get_custom_data(&"atraviesa_muros"))
+	}

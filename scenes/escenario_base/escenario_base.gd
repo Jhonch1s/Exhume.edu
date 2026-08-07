@@ -186,7 +186,7 @@ func centrar_camara_en_ficha() -> void:
 	if ficha_jugador and camera_2d:
 		camera_2d.global_position = ficha_jugador.global_position
 
-# 4. ¡Ahora es ultra simple! Le preguntamos directo al diccionario.
+# Le preguntamos directo al diccionario.
 func _esta_en_rango_vision(coord: Vector2i) -> bool:
 	var celda: Celda = tablero.obtener_celda(coord)
 	return celda != null and celda.visibilidad == Celda.EstadoVisibilidad.VISIBLE
