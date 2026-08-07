@@ -55,9 +55,20 @@ func generar_desde_zona(zona: Node2D) -> void:
 	# 5. Escaneamos columnas: son altas y bloquean el paso, pero dejan pasar la luz.
 	if _capa_columnas:
 		for coordenada in _capa_columnas.get_used_cells():
-			var celda_columna := Celda.new(&"columna", false, 2)
-			celda_columna.bloquea_vision = false
-			celda_columna.configurar_fog(&"columna", _capa_columnas.get_cell_atlas_coords(coordenada))
+			var tile_data := _capa_columnas.get_cell_tile_data(coordenada)
+			var celda_columna := Celda.new(
+				&"columna",
+				bool(tile_data.get_custom_data(&"caminable")),
+				int(tile_data.get_custom_data(&"altura"))
+			)
+			celda_columna.bloquea_vision = bool(tile_data.get_custom_data(&"bloquea_vision"))
+			celda_columna.configurar_fog(
+				StringName(tile_data.get_custom_data(&"familia_fog")),
+				Vector2i(
+					int(tile_data.get_custom_data(&"fog_atlas_x")),
+					int(tile_data.get_custom_data(&"fog_atlas_y"))
+				)
+			)
 			datos[coordenada] = celda_columna
 
 	# 6. Escaneamos Decoraciones No Caminables

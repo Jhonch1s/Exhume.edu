@@ -6,12 +6,32 @@
 texture = ExtResource("1_vw5a0")
 texture_region_size = Vector2i(64, 32)
 0:0/0 = 0
+0:0/0/custom_data_1 = true
+0:0/0/custom_data_3 = "terreno"
 1:0/0 = 0
+1:0/0/custom_data_1 = true
+1:0/0/custom_data_3 = "terreno"
 0:2/0 = 0
+0:2/0/custom_data_1 = true
+0:2/0/custom_data_3 = "terreno"
 1:2/0 = 0
+1:2/0/custom_data_1 = true
+1:2/0/custom_data_3 = "terreno"
 
 [resource]
 tile_shape = 1
 tile_layout = 4
 tile_size = Vector2i(64, 32)
+custom_data_layer_0/name = "altura"
+custom_data_layer_0/type = 2
+custom_data_layer_1/name = "caminable"
+custom_data_layer_1/type = 1
+custom_data_layer_2/name = "bloquea_vision"
+custom_data_layer_2/type = 1
+custom_data_layer_3/name = "familia_fog"
+custom_data_layer_3/type = 4
+custom_data_layer_4/name = "fog_atlas_x"
+custom_data_layer_4/type = 2
+custom_data_layer_5/name = "fog_atlas_y"
+custom_data_layer_5/type = 2
 sources/0 = SubResource("TileSetAtlasSource_4phvd")
