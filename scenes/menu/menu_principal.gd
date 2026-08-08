@@ -1,6 +1,11 @@
 extends Control
 
+@onready var musica_menu: AudioStreamPlayer = $MusicaMenu
 
+
+func _ready() -> void:
+	if musica_menu.stream is AudioStreamMP3:
+		musica_menu.stream.loop = true
 
 func _on_jugar_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/menu/nueva_partida.tscn")
