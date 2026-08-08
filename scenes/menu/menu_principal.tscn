@@ -1,6 +1,43 @@
 [gd_scene format=3 uid="uid://cs8u6wofy85mw"]
 
 [ext_resource type="Script" uid="uid://d3ke3a2hywkv1" path="res://scenes/menu/menu_principal.gd" id="1_ytm4j"]
+[ext_resource type="Texture2D" uid="uid://wmp38jijj6e1" path="res://assets/ui/backgrounds/main_menu/00_fondo_limpio.png" id="2_fondo"]
+[ext_resource type="Texture2D" uid="uid://cgk3snp3i2qji" path="res://assets/ui/backgrounds/main_menu/30_medio_posterior_v02.png" id="3_posterior"]
+[ext_resource type="Texture2D" uid="uid://dtrp2ihmc354x" path="res://assets/ui/backgrounds/main_menu/50_medio_frontal_v02.png" id="4_medio"]
+[ext_resource type="Texture2D" uid="uid://b5j47n0q2pyju" path="res://assets/ui/backgrounds/main_menu/90_frontal_v02.png" id="5_frontal"]
+[ext_resource type="Script" uid="uid://c705ydw5hn7q3" path="res://scenes/menu/fondo_parallax.gd" id="6_parallax"]
+[ext_resource type="Texture2D" uid="uid://drfqmhen2vro0" path="res://assets/ui/backgrounds/main_menu/haz_luz_mask.png" id="7_haz_luz"]
+[ext_resource type="Shader" uid="uid://bsf8xp3uwqvbb" path="res://scenes/menu/niebla_posterior.gdshader" id="8_niebla"]
+[ext_resource type="Shader" uid="uid://cx6preya72ij6" path="res://scenes/menu/vineta_menu.gdshader" id="9_vineta"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_niebla"]
+shader = ExtResource("8_niebla")
+shader_parameter/color_niebla = Color(0.72, 0.76, 0.8, 0.24)
+shader_parameter/escala_ruido = 4.2
+shader_parameter/velocidad = 0.018
+shader_parameter/densidad = 0.48
+shader_parameter/borde_superior = 0.52
+shader_parameter/borde_inferior = 0.94
+shader_parameter/inicio_desvanecido_menu = 0.64
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_niebla_frontal"]
+shader = ExtResource("8_niebla")
+shader_parameter/color_niebla = Color(0.82, 0.86, 0.9, 0.9)
+shader_parameter/escala_ruido = 3.0
+shader_parameter/velocidad = 0.11
+shader_parameter/densidad = 0.2
+shader_parameter/borde_superior = 0.64
+shader_parameter/borde_inferior = 0.99
+shader_parameter/inicio_desvanecido_menu = 0.72
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vineta"]
+shader = ExtResource("9_vineta")
+shader_parameter/color_sombra = Color(0, 0, 0, 0.48)
+shader_parameter/centro_visual = Vector2(0.38, 0.48)
+shader_parameter/inicio_bordes = 0.48
+shader_parameter/fin_bordes = 1.02
+shader_parameter/inicio_derecha = 0.64
+shader_parameter/fuerza_derecha = 0.32
 
 [node name="MenuPrincipal" type="Control" unique_id=1673646563]
 layout_mode = 3
@@ -10,6 +47,106 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_ytm4j")
+
+[node name="FondoParallax" type="Control" parent="." unique_id=1981846104]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("6_parallax")
+
+[node name="FondoLimpio" type="TextureRect" parent="FondoParallax" unique_id=1453045541]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_fondo")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="MedioPosterior" type="TextureRect" parent="FondoParallax" unique_id=2080841584]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("3_posterior")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="HazLuz" type="TextureRect" parent="FondoParallax" unique_id=593444014]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("7_haz_luz")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="NieblaPosterior" type="ColorRect" parent="FondoParallax" unique_id=2040303254]
+material = SubResource("ShaderMaterial_niebla")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="MedioFrontal" type="TextureRect" parent="FondoParallax" unique_id=331147230]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("4_medio")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Frontal" type="TextureRect" parent="FondoParallax" unique_id=1006695060]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("5_frontal")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="NieblaFrontal" type="ColorRect" parent="FondoParallax" unique_id=401987434]
+material = SubResource("ShaderMaterial_niebla_frontal")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Vineta" type="ColorRect" parent="FondoParallax" unique_id=1836884713]
+material = SubResource("ShaderMaterial_vineta")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=433733623]
 layout_mode = 1

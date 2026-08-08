@@ -6,6 +6,10 @@
 [ext_resource type="TileSet" uid="uid://b514khvcqn1oi" path="res://assets/tile_sets/basics.tres" id="3_elvtm"]
 [ext_resource type="AudioStream" uid="uid://b64t4hje6pskj" path="res://assets/music/Echoes of Time v2.mp3" id="7_541xx"]
 [ext_resource type="Script" uid="uid://dmxu10ah1q6vf" path="res://scripts/fov_manager.gd" id="7_t484h"]
+[ext_resource type="Shader" path="res://scenes/menu/filtro_crt_luminancia.gdshader" id="8_crt"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_crt_zona"]
+shader = ExtResource("8_crt")
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_m8dhx"]
 texture = ExtResource("2_85xdd")
@@ -44,7 +48,20 @@ tile_set = ExtResource("3_elvtm")
 position = Vector2(320, 181)
 zoom = Vector2(2, 2)
 
+[node name="FiltroCRT" type="CanvasLayer" parent="."]
+layer = 1
+
+[node name="Pantalla" type="ColorRect" parent="FiltroCRT"]
+material = SubResource("ShaderMaterial_crt_zona")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=592841260]
+layer = 2
 
 [node name="PanelDetalle" type="PanelContainer" parent="CanvasLayer" unique_id=615423362]
 visible = false
