@@ -9,7 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://drfqmhen2vro0" path="res://assets/ui/backgrounds/main_menu/haz_luz_mask.png" id="7_haz_luz"]
 [ext_resource type="Shader" uid="uid://bsf8xp3uwqvbb" path="res://scenes/menu/niebla_posterior.gdshader" id="8_niebla"]
 [ext_resource type="Shader" uid="uid://cx6preya72ij6" path="res://scenes/menu/vineta_menu.gdshader" id="9_vineta"]
-[ext_resource type="AudioStream" path="res://assets/music/menu/tema_menu_principal.mp3" id="10_musica_menu"]
+[ext_resource type="AudioStream" uid="uid://choev3ek0cmew" path="res://assets/music/menu/tema_menu_principal.mp3" id="10_musica_menu"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_niebla"]
 shader = ExtResource("8_niebla")
@@ -49,7 +49,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_ytm4j")
 
-[node name="MusicaMenu" type="AudioStreamPlayer" parent="."]
+[node name="MusicaMenu" type="AudioStreamPlayer" parent="." unique_id=1428414897]
 stream = ExtResource("10_musica_menu")
 volume_db = -12.0
 autoplay = true
