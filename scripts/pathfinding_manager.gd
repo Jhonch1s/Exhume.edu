@@ -38,6 +38,19 @@ func calcular_camino(origen: Vector2i, destino: Vector2i, tablero_datos:Dictiona
 	var camino:Array[Vector2i]=[]
 	if not tablero_datos.has(origen) or not tablero_datos.has(destino):
 		return camino
+
+	# La ocupacion es dinamica: se evalua en cada consulta de ruta.
+	for coord in tablero_datos.keys():
+		var celda: Celda = tablero_datos[coord]
+		var bloqueada := not celda.caminable or celda.tiene_contenido() or celda.esta_reservada()
+		if coord == origen:
+			bloqueada = false
+		astar.set_point_disabled(_obtener_id_unico(coord), bloqueada)
+
+	if destino != origen:
+		var celda_destino: Celda = tablero_datos[destino]
+		if celda_destino.tiene_contenido() or celda_destino.esta_reservada():
+			return camino
 	
 	var id_origen = _obtener_id_unico(origen)
 	var id_destino = _obtener_id_unico(destino)

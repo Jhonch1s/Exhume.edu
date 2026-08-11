@@ -4,96 +4,105 @@ class_name Ficha
 @export var nombre: String = "Heroe Jr."
 @export var titulo: String = "El come cebolla"
 
-##atributos
 var fue: int = 3
 var des: int = 4
 var vol: int = 2
 var energia_maxima: int = 200
 var energia_actual: int = 200
 
-#cosas de exhume
 var pv_max: int
 var pv_actual: int
+var clase: String = "Ladron"
 
-##clases: fuerza = guerrero, des = ladrón, vol = mago
-var clase: String = "Ladrón"
-
-#inventario super bascio ¿Final?
 var antorchas: int = 3
 var PASOS_MAX_ANTORCHA: int = 80
-var pasos_antorcha_actual : int = 80 ##-1 por cada casilla que se mueva
-var raciones: int = 3 #necesarias pa descansar
+var pasos_antorcha_actual: int = 80
+var raciones: int = 3
 
-#movimiento y posicion
-var coordenada_mapa: Vector2i = Vector2i(0,0)
+var coordenada_mapa: Vector2i = Vector2i.ZERO
 var capa_referencia: TileMapLayer = null
-var esta_moviendose: bool= false
+var esta_moviendose: bool = false
+var interrupcion_solicitada: bool = false
 
-#vel movimiento
-@export var velocidad_paso:float=0.2 #en segundos
+@export var velocidad_paso: float = 0.2
 
-#señales para conectar al tablero
-signal paso_dado(nueva_coordenada)
-signal movimiento_terminado
+signal paso_dado(nueva_coordenada: Vector2i)
+signal movimiento_terminado(interrumpido: bool)
 
+func _ready() -> void:
+	pv_max = fue + des + vol
+	pv_actual = pv_max
 
-
-func _ready()->void:
-	pv_max=fue+des+vol
-	pv_actual=pv_max
-
-func inicializar (coordenada_inicial: Vector2i, capa: TileMapLayer) -> void:
+func inicializar(coordenada_inicial: Vector2i, capa: TileMapLayer) -> void:
 	capa_referencia = capa
 	coordenada_mapa = coordenada_inicial
 	if capa_referencia:
 		global_position = capa_referencia.map_to_local(coordenada_mapa)
 
-func consumir_o_recargar_antorcha()->bool:
+func consumir_o_recargar_antorcha() -> bool:
 	if pasos_antorcha_actual > 0:
-		return true #tiene luz todavía
-	
+		return true
 	if antorchas > 1:
-		antorchas -=1 #se gasta una
-		pasos_antorcha_actual = PASOS_MAX_ANTORCHA #se reestablece duracion
+		antorchas -= 1
+		pasos_antorcha_actual = PASOS_MAX_ANTORCHA
 		print("Se cambia antorcha")
 		return true
-	
-	else:
-		#era la ultima
-		antorchas=0
-		print("No quedan más antorchas")
-		return false
+	antorchas = 0
+	print("No quedan mas antorchas")
+	return false
 
-func mover_por_camino(camino: Array[Vector2i])-> void:
+func solicitar_interrupcion() -> void:
+	if esta_moviendose:
+		interrupcion_solicitada = true
+
+func mover_por_camino(
+	camino: Array[Vector2i],
+	preparar_paso: Callable,
+	confirmar_paso: Callable,
+	cancelar_paso: Callable
+) -> void:
 	if camino.is_empty() or esta_moviendose or not capa_referencia:
 		return
-	
+
 	esta_moviendose = true
-	
+	interrupcion_solicitada = false
+	var fue_interrumpido := false
+
 	for siguiente_coord in camino:
-		
-		#para que no de mas pasos si se canso
+		# AStar incluye el origen: no cuenta como paso ni consume recursos.
+		if siguiente_coord == coordenada_mapa:
+			continue
+		if interrupcion_solicitada:
+			fue_interrumpido = true
+			break
 		if energia_actual <= 0:
 			print("sin energia para caminar mas")
+			fue_interrumpido = true
 			break
-		#restamos energia por maso
+
+		var origen := coordenada_mapa
+		# La ruta puede quedar obsoleta; reservamos cada destino antes de usarlo.
+		if not preparar_paso.call(origen, siguiente_coord, self):
+			fue_interrumpido = true
+			break
+
+		var destino_pixeles := capa_referencia.map_to_local(siguiente_coord)
+		var tween := create_tween()
+		tween.tween_property(self, "global_position", destino_pixeles, velocidad_paso)
+		await tween.finished
+
+		if not confirmar_paso.call(origen, siguiente_coord, self):
+			cancelar_paso.call(siguiente_coord, self)
+			global_position = capa_referencia.map_to_local(origen)
+			fue_interrumpido = true
+			break
+
+		# El paso se vuelve definitivo solamente al llegar.
+		coordenada_mapa = siguiente_coord
 		energia_actual -= 1
 		print("energia actual: ", energia_actual)
-		
-		var destino_pixeles = capa_referencia.map_to_local(siguiente_coord)
-		
-		#aca animamos movimiento de una celda a la que siga
-		var tween = create_tween()
-		tween.tween_property(self, "global_position", destino_pixeles, velocidad_paso)
-		
-		#esperamos que termine a animacion
-		await tween.finished
-		
-		#al llegar se actualiza la coordenada
-		coordenada_mapa = siguiente_coord
-		
-		#emitimos la señal de que estamos en una nueva casilla
 		paso_dado.emit(coordenada_mapa)
-	
-	esta_moviendose=false
-	movimiento_terminado.emit()
+
+	esta_moviendose = false
+	interrupcion_solicitada = false
+	movimiento_terminado.emit(fue_interrumpido)

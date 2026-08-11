@@ -16,6 +16,7 @@ var visibilidad: int
 var familia_fog: StringName = &"terreno"
 var coordenada_fog: Vector2i = Vector2i.ZERO
 var contenido: Array[Object] = []
+var reservas: Array[Object] = []
 var iluminacion: Array[Dictionary] = []
 
 func _init(
@@ -33,6 +34,9 @@ func _init(
 
 func tiene_contenido() -> bool:
 	return not contenido.is_empty()
+
+func esta_reservada() -> bool:
+	return not reservas.is_empty()
 
 func tiene_iluminacion() -> bool:
 	return not iluminacion.is_empty()

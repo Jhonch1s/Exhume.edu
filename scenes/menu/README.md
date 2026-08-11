@@ -11,7 +11,8 @@ Pantallas actuales:
 
 Cuando aparezcan elementos reutilizables (botón con icono, diálogo, selector de atributos,
 tarjeta de personaje), se recomienda guardarlos como escenas independientes en
-`scenes/menu/components/`. No hace falta crear esa carpeta hasta que exista el primer componente.
+`scenes/menu/componentes/`. Actualmente contiene el menú colgante y la tabla reutilizable
+para cada opción del menú principal.
 
 Los recursos gráficos, tipografías, temas y sonidos no deben guardarse junto a estas escenas;
 su ubicación común es `res://assets/ui/`.

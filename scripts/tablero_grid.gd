@@ -3,6 +3,13 @@ class_name TableroGrid
 
 var datos: Dictionary[Vector2i, Celda] = {}
 
+# Puntos de extension para trampas, encuentros, puertas y otros triggers.
+signal celda_reservada(coord: Vector2i, contenido: Object)
+signal reserva_cancelada(coord: Vector2i, contenido: Object)
+signal reserva_confirmada(coord: Vector2i, contenido: Object)
+signal celda_ocupada(coord: Vector2i, contenido: Object)
+signal celda_desocupada(coord: Vector2i, contenido: Object)
+
 func generar_desde_zona(zona: Node2D) -> void:
 	datos.clear()
 	var _capa_suelo: TileMapLayer = zona.get_node_or_null("CapaSuelo")
@@ -150,6 +157,18 @@ func es_celda_valida(coord: Vector2i) -> bool:
 func es_caminable(coord: Vector2i) -> bool:
 	return datos.has(coord) and datos[coord].caminable
 
+func puede_entrar(coord: Vector2i, contenido: Object = null) -> bool:
+	if not es_caminable(coord):
+		return false
+	var celda: Celda = datos[coord]
+	for ocupante in celda.contenido:
+		if ocupante != contenido:
+			return false
+	for reserva in celda.reservas:
+		if reserva != contenido:
+			return false
+	return true
+
 func obtener_celda(coord: Vector2i) -> Celda:
 	return datos.get(coord) as Celda
 
@@ -157,13 +176,40 @@ func ocupar_celda(coord: Vector2i, contenido: Object) -> void:
 	if datos.has(coord):
 		if contenido not in datos[coord].contenido:
 			datos[coord].contenido.append(contenido)
+			celda_ocupada.emit(coord, contenido)
 
 func liberar_celda(coord: Vector2i, contenido: Object) -> void:
 	if datos.has(coord):
 		if contenido != null:
-			datos[coord].contenido.erase(contenido)
+			if contenido in datos[coord].contenido:
+				datos[coord].contenido.erase(contenido)
+				celda_desocupada.emit(coord, contenido)
 		else:
+			for ocupante in datos[coord].contenido.duplicate():
+				celda_desocupada.emit(coord, ocupante)
 			datos[coord].contenido.clear()
+
+func reservar_celda(coord: Vector2i, contenido: Object) -> bool:
+	if contenido == null or not puede_entrar(coord, contenido):
+		return false
+	if contenido not in datos[coord].reservas:
+		datos[coord].reservas.append(contenido)
+		celda_reservada.emit(coord, contenido)
+	return true
+
+func cancelar_reserva(coord: Vector2i, contenido: Object) -> void:
+	if datos.has(coord) and contenido in datos[coord].reservas:
+		datos[coord].reservas.erase(contenido)
+		reserva_cancelada.emit(coord, contenido)
+
+func confirmar_movimiento(origen: Vector2i, destino: Vector2i, contenido: Object) -> bool:
+	if not datos.has(destino) or contenido not in datos[destino].reservas:
+		return false
+	datos[destino].reservas.erase(contenido)
+	reserva_confirmada.emit(destino, contenido)
+	liberar_celda(origen, contenido)
+	ocupar_celda(destino, contenido)
+	return true
 
 func registrar_luz(coord: Vector2i, info_luz: Dictionary) -> void:
 	if datos.has(coord):

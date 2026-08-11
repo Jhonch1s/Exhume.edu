@@ -133,7 +133,7 @@ func _reproducir_reaccion_secundaria() -> void:
 	for indice in piezas_colgantes.size():
 		var pieza := piezas_colgantes[indice]
 		var rotacion_base := rotaciones_base[pieza]
-		# Cada nivel pierde un 18 % de fuerza y alterna su direccion.
+		# Cada nivel pierde un 18 % de fuerza y alterna direccion.
 		var magnitud := 1.2 * pow(0.82, indice)
 		var direccion := 1.0 if indice % 2 == 0 else -1.0
 		var amplitud := magnitud * direccion * intensidad_reaccion
