@@ -1,3 +1,7 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# Respaldos y autoguardados de editores graficos
+*~
+*.kra-autosave.kra

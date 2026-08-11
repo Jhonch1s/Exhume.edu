@@ -1,0 +1,245 @@
+[gd_scene format=3 uid="uid://cgjdxbsbvqa7s"]
+
+[ext_resource type="Texture2D" uid="uid://cnw2bfdtqtu4t" path="res://assets/ui/panels/main_menu/hanging_menu/chains/chain_vertical.png" id="1_5yc4p"]
+[ext_resource type="Script" uid="uid://fr2dtvc4tser" path="res://scenes/menu/componentes/menu_colgante.gd" id="1_43jk8"]
+[ext_resource type="Texture2D" uid="uid://bpwo8atgtsc2u" path="res://assets/ui/panels/main_menu/hanging_menu/logo_sign/logo_sign_exhume.png" id="1_do4o8"]
+[ext_resource type="PackedScene" uid="uid://ys4chspcvcg0" path="res://scenes/menu/componentes/tabla_menu_opcion.tscn" id="2_e2cv3"]
+
+[node name="MenuColgante" type="Control" unique_id=1368382610]
+custom_minimum_size = Vector2(620, 1000)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 620.0
+offset_bottom = 1000.0
+mouse_filter = 2
+script = ExtResource("1_43jk8")
+
+[node name="RigColgante" type="Control" parent="." unique_id=1174164115]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Cadenas" type="Control" parent="RigColgante" unique_id=588647632]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="CadenaSuperiorIzquierda" type="TextureRect" parent="RigColgante/Cadenas" unique_id=1699152744]
+layout_mode = 0
+offset_left = 155.0
+offset_top = -30.0
+offset_right = 185.0
+offset_bottom = 90.0
+mouse_filter = 2
+texture = ExtResource("1_5yc4p")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CadenaLogoNuevaIzquierda" type="TextureRect" parent="RigColgante/Cadenas" unique_id=114462868]
+layout_mode = 0
+offset_left = 155.0
+offset_top = 210.0
+offset_right = 185.0
+offset_bottom = 330.0
+mouse_filter = 2
+texture = ExtResource("1_5yc4p")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CadenaNuevaContinuarIzquierda" type="TextureRect" parent="RigColgante/Cadenas" unique_id=1466747234]
+layout_mode = 0
+offset_left = 155.0
+offset_top = 360.0
+offset_right = 185.0
+offset_bottom = 480.0
+mouse_filter = 2
+texture = ExtResource("1_5yc4p")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CadenaContinuarOpcionesIzquierda" type="TextureRect" parent="RigColgante/Cadenas" unique_id=1400925755]
+layout_mode = 0
+offset_left = 155.0
+offset_top = 510.0
+offset_right = 185.0
+offset_bottom = 630.0
+mouse_filter = 2
+texture = ExtResource("1_5yc4p")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CadenaOpcionesSalirIzquierda" type="TextureRect" parent="RigColgante/Cadenas" unique_id=269079001]
+layout_mode = 0
+offset_left = 155.0
+offset_top = 660.0
+offset_right = 185.0
+offset_bottom = 780.0
+mouse_filter = 2
+texture = ExtResource("1_5yc4p")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CadenaSuperiorDerecha" type="TextureRect" parent="RigColgante/Cadenas" unique_id=1076522683]
+layout_mode = 0
+offset_left = 435.0
+offset_top = -30.0
+offset_right = 465.0
+offset_bottom = 90.0
+mouse_filter = 2
+texture = ExtResource("1_5yc4p")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CadenaLogoNuevaDerecha" type="TextureRect" parent="RigColgante/Cadenas" unique_id=1734895172]
+layout_mode = 0
+offset_left = 435.0
+offset_top = 210.0
+offset_right = 465.0
+offset_bottom = 330.0
+mouse_filter = 2
+texture = ExtResource("1_5yc4p")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CadenaNuevaContinuarDerecha" type="TextureRect" parent="RigColgante/Cadenas" unique_id=219273055]
+layout_mode = 0
+offset_left = 435.0
+offset_top = 360.0
+offset_right = 465.0
+offset_bottom = 480.0
+mouse_filter = 2
+texture = ExtResource("1_5yc4p")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CadenaContinuarOpcionesDerecha" type="TextureRect" parent="RigColgante/Cadenas" unique_id=74815968]
+layout_mode = 0
+offset_left = 435.0
+offset_top = 510.0
+offset_right = 465.0
+offset_bottom = 630.0
+mouse_filter = 2
+texture = ExtResource("1_5yc4p")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CadenaOpcionesSalirDerecha" type="TextureRect" parent="RigColgante/Cadenas" unique_id=2029094807]
+layout_mode = 0
+offset_left = 435.0
+offset_top = 660.0
+offset_right = 465.0
+offset_bottom = 780.0
+mouse_filter = 2
+texture = ExtResource("1_5yc4p")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ColaIzquierdaRig" type="Control" parent="RigColgante/Cadenas" unique_id=1117712296]
+layout_mode = 0
+offset_left = 155.0
+offset_top = 810.0
+offset_right = 185.0
+offset_bottom = 930.0
+pivot_offset = Vector2(15, 0)
+mouse_filter = 2
+
+[node name="Tramo" type="TextureRect" parent="RigColgante/Cadenas/ColaIzquierdaRig"]
+layout_mode = 0
+offset_right = 30.0
+offset_bottom = 120.0
+mouse_filter = 2
+texture = ExtResource("1_5yc4p")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ColaDerechaRig" type="Control" parent="RigColgante/Cadenas" unique_id=1278632139]
+layout_mode = 0
+offset_left = 435.0
+offset_top = 810.0
+offset_right = 465.0
+offset_bottom = 1020.0
+pivot_offset = Vector2(15, 0)
+mouse_filter = 2
+
+[node name="TramoSuperior" type="TextureRect" parent="RigColgante/Cadenas/ColaDerechaRig"]
+layout_mode = 0
+offset_right = 30.0
+offset_bottom = 120.0
+mouse_filter = 2
+texture = ExtResource("1_5yc4p")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TramoInferior" type="TextureRect" parent="RigColgante/Cadenas/ColaDerechaRig" unique_id=748606198]
+layout_mode = 0
+offset_top = 90.0
+offset_right = 30.0
+offset_bottom = 210.0
+mouse_filter = 2
+texture = ExtResource("1_5yc4p")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Carteles" type="Control" parent="RigColgante" unique_id=1619691183]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="CartelLogo" type="TextureRect" parent="RigColgante/Carteles" unique_id=430032102]
+layout_mode = 0
+offset_left = 50.0
+offset_top = 70.0
+offset_right = 570.0
+offset_bottom = 245.0
+mouse_filter = 2
+texture = ExtResource("1_do4o8")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NuevaExcursion" parent="RigColgante/Carteles" unique_id=252711353 instance=ExtResource("2_e2cv3")]
+layout_mode = 0
+offset_left = 70.0
+offset_top = 280.0
+offset_right = 550.0
+offset_bottom = 400.0
+rotation = 0.036651913
+texto = "NUEVA EXCURSIÓN"
+
+[node name="Continuar" parent="RigColgante/Carteles" unique_id=1662041811 instance=ExtResource("2_e2cv3")]
+layout_mode = 0
+offset_left = 70.0
+offset_top = 430.0
+offset_right = 550.0
+offset_bottom = 550.0
+rotation = -0.017453292
+texto = "CONTINUAR"
+
+[node name="Opciones" parent="RigColgante/Carteles" unique_id=883773045 instance=ExtResource("2_e2cv3")]
+layout_mode = 0
+offset_left = 70.0
+offset_top = 580.0
+offset_right = 550.0
+offset_bottom = 700.0
+rotation = 0.04363323
+texto = "OPCIONES"
+
+[node name="Salir" parent="RigColgante/Carteles" unique_id=857923647 instance=ExtResource("2_e2cv3")]
+layout_mode = 0
+offset_left = 70.0
+offset_top = 730.0
+offset_right = 550.0
+offset_bottom = 850.0
+rotation = 0.02617994
+texto = "SALIR"

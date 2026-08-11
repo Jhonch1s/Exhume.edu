@@ -16,7 +16,7 @@ func _on_continuar_pressed() -> void:
 
 
 func _on_opciones_pressed() -> void:
-	pass # Replace with function body.
+	get_tree().change_scene_to_file("res://scenes/menu/opciones.tscn")
 
 
 func _on_salir_pressed() -> void:
