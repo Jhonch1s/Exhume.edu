@@ -1,0 +1,33 @@
+[gd_scene format=4 uid="uid://c3fylqk6c8tid"]
+
+[ext_resource type="Script" uid="uid://drxi8lkr1dyt4" path="res://scenes/tests/escena_prueba_acciones.gd" id="1_vyf4i"]
+[ext_resource type="TileSet" uid="uid://b514khvcqn1oi" path="res://assets/tile_sets/basics.tres" id="2_0t4pc"]
+[ext_resource type="Script" uid="uid://die8iyedu661" path="res://scripts/tablero_grid.gd" id="3_1g3p7"]
+[ext_resource type="PackedScene" uid="uid://bswvdm3i2oi7a" path="res://scenes/ficha/ficha.tscn" id="4_2nomh"]
+[ext_resource type="Script" uid="uid://bmy4l58k8yauq" path="res://scenes/tests/objeto_examinable_prueba.gd" id="5_objeto"]
+[ext_resource type="Script" uid="uid://dppidaxjqvx0u" path="res://scripts/interacciones/gestor_acciones.gd" id="6_ur8qy"]
+[ext_resource type="Script" path="res://scripts/interacciones/debug/registro_acciones_desarrollo.gd" id="7_registro"]
+
+[node name="EscenaPruebaAcciones" type="Node2D" unique_id=1776989539]
+script = ExtResource("1_vyf4i")
+
+[node name="CapaSuelo" type="TileMapLayer" parent="." unique_id=425340412]
+y_sort_enabled = true
+tile_map_data = PackedByteArray("AAAAAP//AQAAAAAAAAABAP//AQAAAAAAAAACAP//AQAAAAAAAAADAP//AQAAAAAAAAAEAP//AQAAAAAAAAAAAAAAAQABAAAAAAD//wAAAQABAAAAAAD/////AQABAAAAAAA=")
+tile_set = ExtResource("2_0t4pc")
+
+[node name="TableroGrid" type="Node" parent="." unique_id=2067938912]
+script = ExtResource("3_1g3p7")
+
+[node name="Ficha" parent="." unique_id=1112424073 instance=ExtResource("4_2nomh")]
+
+[node name="Interactuables" type="Node2D" parent="." unique_id=1167138643]
+
+[node name="ObjetoPrueba" type="Node2D" parent="Interactuables" unique_id=1585701486]
+script = ExtResource("5_objeto")
+
+[node name="GestorAcciones" type="Node" parent="." unique_id=1321312000]
+script = ExtResource("6_ur8qy")
+
+[node name="RegistroAccionesDesarrollo" type="Node" parent="."]
+script = ExtResource("7_registro")

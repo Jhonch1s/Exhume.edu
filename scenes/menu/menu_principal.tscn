@@ -155,17 +155,16 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="MenuColgante" parent="." instance=ExtResource("11_menu_colgante")]
+[node name="MenuColgante" parent="." unique_id=89026940 instance=ExtResource("11_menu_colgante")]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -650.0
 offset_right = -30.0
-offset_bottom = 1000.0
 grow_horizontal = 0
 
-[connection signal="nueva_excursion_presionada" from="MenuColgante" to="." method="_on_jugar_pressed"]
 [connection signal="continuar_presionado" from="MenuColgante" to="." method="_on_continuar_pressed"]
+[connection signal="nueva_excursion_presionada" from="MenuColgante" to="." method="_on_jugar_pressed"]
 [connection signal="opciones_presionadas" from="MenuColgante" to="." method="_on_opciones_pressed"]
 [connection signal="salir_presionado" from="MenuColgante" to="." method="_on_salir_pressed"]

@@ -57,7 +57,7 @@ func generar_desde_zona(zona: Node2D) -> void:
 		for coordenada in _celdas_paredes:
 			datos[coordenada] = _crear_celda_desde_tile(_capa_paredes, coordenada, &"pared")
 	
-	# 5. Escaneamos columnas: son altas y bloquean el paso, pero dejan pasar la luz.
+	# 5. Escaneamos columnas: son altas y bloquean tanto el paso como la visión.
 	if _capa_columnas:
 		for coordenada in _capa_columnas.get_used_cells():
 			datos[coordenada] = _crear_celda_desde_tile(_capa_columnas, coordenada, &"columna")

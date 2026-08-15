@@ -6,15 +6,15 @@
 
 ## Estado general
 
-- Estado actual: diseño aprobado; implementación todavía no iniciada.
-- Próximo hito: **Interacción básica** (fases 0 a 4).
+- Estado actual: Fase 1 — Núcleo de acciones completada.
+- Próximo paso: **Fase 2 — Entidad interactuable base**, dentro del hito Interacción básica.
 - Primera vertical slice: una palanca colocada en el mapa que pueda examinarse y accionarse desde un menú contextual obligatorio.
-- Última actualización de este registro: 11 de agosto de 2026.
+- Última actualización de este registro: 14 de agosto de 2026.
 
 ### Progreso por fases
 
-- [ ] Fase 0 — Contratos y vocabulario.
-- [ ] Fase 1 — Núcleo de acciones.
+- [x] Fase 0 — Contratos y vocabulario.
+- [x] Fase 1 — Núcleo de acciones. *(completada el 14 de agosto de 2026)*
 - [ ] Fase 2 — Entidad interactuable base.
 - [ ] Fase 3 — Examinar e información progresiva.
 - [ ] Fase 4 — Menú contextual obligatorio.
@@ -230,11 +230,12 @@ La fase termina cuando el equipo puede describir el flujo completo de una palanc
 
 ### Registro de implementación
 
-- Estado: pendiente.
-- Decisiones nuevas: —
-- Archivos modificados: —
-- Pruebas: —
-- Pendientes: —
+- Estado: completada el 11 de agosto de 2026.
+- Responsable: sesión Codex del 11 de agosto de 2026.
+- Decisiones nuevas: código y contenido en español; catálogos cerrados mediante `enum`; IDs y etiquetas extensibles mediante `StringName`; `EstadoResolucion` distingue éxito, fallo y bloqueo, mientras la interrupción es una consecuencia ortogonal; los costes se cobran una sola vez después de resolver; orden determinista por categoría, prioridad e ID estable.
+- Archivos modificados: [`docs/CONTRATOS_SISTEMA_INTERACCIONES.md`](docs/CONTRATOS_SISTEMA_INTERACCIONES.md) y este roadmap.
+- Pruebas: revisión conceptual completa de los flujos de palanca, trampa e item arrojado; verificación contra las convenciones actuales de `Celda`, `TableroGrid` y `EscenarioBase`.
+- Pendientes: convertir los contratos conceptuales en clases de la Fase 1 y validar sus invariantes mediante pruebas ejecutables.
 
 ## Fase 1 — Núcleo de acciones
 
@@ -272,11 +273,13 @@ Una acción artificial puede enviarse a un receptor de prueba y devuelve un resu
 
 ### Registro de implementación
 
-- Estado: pendiente.
-- Decisiones nuevas: —
-- Archivos modificados: —
-- Pruebas: —
-- Pendientes: —
+- Estado: completada el 14 de agosto de 2026; iniciada el 11 de agosto de 2026.
+- Responsable: sesiones Codex del 11 y 14 de agosto de 2026.
+- Decisiones nuevas: vocabulario compartido agrupado en `TiposInteraccion`; los tres contratos son `RefCounted` inmutables después de construirse y devuelven copias defensivas de sus colecciones; los resultados se crean mediante fábricas de éxito, fallo y bloqueo; un bloqueo descarta siempre efectos, cambios, costes e interrupción; las opciones se crean mediante fábricas habilitada/bloqueada y mantienen separados disponibilidad, secreto y costes previstos; los receptores cumplen por comportamiento los métodos idempotentes `validar_accion()` y `resolver_accion()`, sin imponer herencia común; `GestorAcciones` resuelve sincrónicamente, mide alcance mediante distancia Manhattan y emite inicio, resolución y finalización exactamente una vez para todo contexto existente; línea de efecto y costes se integran como servicios separados; el `validador_espacial` usa `TipoLineaEfecto` (`NINGUNA`, `VISUAL`, `FISICA`); `ValidadorEspacialTablero` implementa `VISUAL` con Bresenham compartido con FOV, bloquea obstáculos intermedios y permite un destino opaco; `FISICA` permanece explícitamente no implementada; el `proveedor_costes` valida sin mutar, consume sincrónicamente antes de emitir las señales finales y respeta `PoliticaCobro` (`SOLO_EXITO`, `AL_INTENTAR`); `accion_resuelta` expone el resultado base y `accion_finalizada` el resultado definitivo; `ProveedorCostesFicha` resuelve el actor del contexto, soporta únicamente energía entera y rechaza claves desconocidas; el registro de desarrollo observa las señales sin modificar el gestor y conserva líneas deterministas consultables además de su salida opcional a consola.
+- Archivos modificados: [`scripts/interacciones/tipos_interaccion.gd`](scripts/interacciones/tipos_interaccion.gd), [`scripts/interacciones/contexto_accion.gd`](scripts/interacciones/contexto_accion.gd), [`scripts/interacciones/resultado_accion.gd`](scripts/interacciones/resultado_accion.gd), [`scripts/interacciones/opcion_accion.gd`](scripts/interacciones/opcion_accion.gd), [`scripts/interacciones/gestor_acciones.gd`](scripts/interacciones/gestor_acciones.gd), [`scripts/interacciones/validador_espacial_tablero.gd`](scripts/interacciones/validador_espacial_tablero.gd), [`scripts/interacciones/proveedor_costes_ficha.gd`](scripts/interacciones/proveedor_costes_ficha.gd), [`scripts/interacciones/debug/registro_acciones_desarrollo.gd`](scripts/interacciones/debug/registro_acciones_desarrollo.gd), [`scripts/geometria_grid.gd`](scripts/geometria_grid.gd), [`scripts/fov_manager.gd`](scripts/fov_manager.gd), [`scripts/tablero_grid.gd`](scripts/tablero_grid.gd), [`scenes/tests/EscenaPruebaAcciones.tscn`](scenes/tests/EscenaPruebaAcciones.tscn), [`scenes/tests/escena_prueba_acciones.gd`](scenes/tests/escena_prueba_acciones.gd), [`scenes/tests/objeto_examinable_prueba.gd`](scenes/tests/objeto_examinable_prueba.gd), [`assets/tile_sets/basics.tres`](assets/tile_sets/basics.tres), [`assets/tile_sets/structures/cave_columns.tres`](assets/tile_sets/structures/cave_columns.tres), [`docs/CONTRATOS_SISTEMA_INTERACCIONES.md`](docs/CONTRATOS_SISTEMA_INTERACCIONES.md) y este roadmap.
+- Pruebas: reconocimiento de las clases globales durante el escaneo de Godot 4.7; [`tests/interacciones/prueba_resultado_accion.gd`](tests/interacciones/prueba_resultado_accion.gd) valida 3 casos de resultado; [`tests/interacciones/prueba_contexto_accion.gd`](tests/interacciones/prueba_contexto_accion.gd) valida 2 casos de contexto incluyendo requisitos espacial y económico; [`tests/interacciones/prueba_opcion_accion.gd`](tests/interacciones/prueba_opcion_accion.gd) valida 3 casos de opción incluyendo requisito espacial y política de cobro; [`tests/interacciones/prueba_contrato_receptor_acciones.gd`](tests/interacciones/prueba_contrato_receptor_acciones.gd) valida 2 casos del protocolo receptor; [`tests/interacciones/prueba_gestor_acciones.gd`](tests/interacciones/prueba_gestor_acciones.gd) valida 6 casos del ciclo, alcance, bloqueos, contratos y señales; [`tests/interacciones/prueba_servicio_espacial_acciones.gd`](tests/interacciones/prueba_servicio_espacial_acciones.gd) valida 4 casos del servicio espacial; [`tests/interacciones/prueba_servicio_costes_acciones.gd`](tests/interacciones/prueba_servicio_costes_acciones.gd) valida 7 casos del servicio de costes; [`tests/interacciones/prueba_proveedor_costes_ficha.gd`](tests/interacciones/prueba_proveedor_costes_ficha.gd) valida 5 casos de actor, claves, unidades, insuficiencia y cobro real; [`tests/interacciones/prueba_validador_espacial_tablero.gd`](tests/interacciones/prueba_validador_espacial_tablero.gd) valida 7 casos de geometría, tablero, obstáculos, extremos, modo físico e integración; [`tests/interacciones/prueba_registro_acciones_desarrollo.gd`](tests/interacciones/prueba_registro_acciones_desarrollo.gd) valida el formato de las tres etapas, el coste final, la desconexión y la limpieza; [`tests/interacciones/prueba_escena_acciones.gd`](tests/interacciones/prueba_escena_acciones.gd) valida la misma escena ejecutable mediante su modo automático de integración; [`tests/tablero/prueba_columnas_bloquean_vision.gd`](tests/tablero/prueba_columnas_bloquean_vision.gd) valida las dos variantes del TileSet y las columnas colocadas en `Zona1`; la escena técnica completó `EXAMINAR` con línea visual real, registro de las tres etapas, coste de energía `200 → 199` y cambio `fue_examinado: false → true`; en uso manual la escena espera `Espacio`/`Enter`, permite reiniciar con `R` y presenta el estado en pantalla; carga breve de la escena principal y de la escena técnica sin errores de GDScript; batería ejecutada correctamente con Godot 4.7; comprobación de formato mediante `git diff --check`.
+- Cierre: la escena técnica ejecuta desde `F6` un éxito mediante `Espacio`/`Enter` y un bloqueo determinista mediante `B`; el bloqueo devuelve `costes_insuficientes`, conserva energía `200 → 200`, mantiene `fue_examinado: false → false` y registra costes `{}`. La prueba automatizada reproduce ambos casos.
+- Pendientes/deuda no bloqueante: definir un proveedor compuesto cuando existan costes de turno, cargas o items; definir la línea `FISICA` cuando existan propiedades de obstáculos y alturas.
 
 ## Fase 2 — Entidad interactuable base
 
@@ -816,11 +819,11 @@ La primera implementación debe cubrir exclusivamente las fases 0 a 4 y usar una
 
 Entregables de esa primera iteración:
 
-- [ ] Contratos definitivos y catálogo inicial de etiquetas.
-- [ ] `ContextoAccion`.
-- [ ] `ResultadoAccion`.
-- [ ] `OpcionAccion`.
-- [ ] `GestorAcciones`.
+- [x] Contratos definitivos y catálogo inicial de etiquetas.
+- [x] `ContextoAccion`.
+- [x] `ResultadoAccion`.
+- [x] `OpcionAccion`.
+- [x] `GestorAcciones`.
 - [ ] `Interactuable` e `InteractuableDefinition`.
 - [ ] Registro del interactuable dentro de una `Celda`.
 - [ ] Palanca de prueba con estado activado/desactivado.
@@ -894,4 +897,3 @@ flowchart TD
     Z --> AA["IMPACTAR en celda o entidad"]
     AA --> M
 ```
-

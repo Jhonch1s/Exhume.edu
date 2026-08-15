@@ -67,27 +67,7 @@ func _obtener_area_circulo(centro: Vector2i, radio: int) -> Array[Vector2i]:
 	return area
 
 func _trazar_linea_bresenham(p0: Vector2i, p1: Vector2i) -> Array[Vector2i]:
-	var puntos: Array[Vector2i] = []
-	var dx = abs(p1.x - p0.x)
-	var dy = -abs(p1.y - p0.y)
-	var sx = 1 if p0.x < p1.x else -1
-	var sy = 1 if p0.y < p1.y else -1
-	var err = dx + dy
-	var e2 = 0
-	var actual = p0
-	
-	while true:
-		puntos.append(actual)
-		if actual == p1: break
-		e2 = 2 * err
-		if e2 >= dy:
-			err += dy
-			actual.x += sx
-		if e2 <= dx:
-			err += dx
-			actual.y += sy
-			
-	return puntos
+	return GeometriaGrid.trazar_linea(p0, p1)
 
 # --- PROYECTOR DE LUZ GENÉRICO ---
 
