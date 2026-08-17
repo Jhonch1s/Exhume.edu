@@ -10,8 +10,6 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 
 @onready var zona_actual: Node2D = $Zona1
 @onready var capa_selector: TileMapLayer = $CapaSelector
-@onready var panel_detalles: PanelContainer = $CanvasLayer/PanelDetalle
-@onready var texto_info: Label = $CanvasLayer/PanelDetalle/TextoInfo
 @onready var panel_resultado_accion: PanelResultadoAccion = (
 	$CanvasLayer/PanelResultadoAccion
 )
@@ -123,15 +121,6 @@ func _unhandled_input(event: InputEvent) -> void:
 				panel_resultado_accion.ocultar()
 		get_viewport().set_input_as_handled()
 		return
-	if (
-		event is InputEventKey
-		and event.pressed
-		and not event.echo
-		and event.keycode == KEY_E
-	):
-		if _examinar_provisional(ultima_coordenada_hover):
-			get_viewport().set_input_as_handled()
-		return
 	if not event is InputEventMouseButton or not event.pressed:
 		return
 	var capa_suelo: TileMapLayer = zona_actual.get_node_or_null("CapaSuelo")
@@ -144,7 +133,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		_manejar_clic_derecho(coord_clic)
 
 func _manejar_clic_izquierdo(coord: Vector2i) -> void:
-	panel_detalles.visible = false
 	if (
 		ficha_jugador == null
 		or ficha_jugador.esta_moviendose
@@ -180,7 +168,6 @@ func _manejar_clic_derecho(coord: Vector2i) -> void:
 		return
 
 	capa_camino.clear()
-	panel_detalles.visible = false
 	ficha_jugador.mover_por_camino(
 		camino_confirmado,
 		_preparar_paso_ficha,
@@ -411,52 +398,3 @@ func _actualizar_estado_modal_interaccion() -> void:
 		capa_camino.clear()
 		camino_actual_tentativo.clear()
 	estado_modal_interaccion_cambiado.emit(interaccion_modal_activa)
-
-
-func _examinar_provisional(coord: Vector2i) -> bool:
-	if ficha_jugador == null or not tablero.es_celda_valida(coord):
-		return false
-	var objetivo := _obtener_objetivo_examinable(tablero.obtener_celda(coord))
-	if objetivo == null:
-		return false
-	var perfil := objetivo.definicion.perfil_observacion
-	var contexto := ContextoAccion.new(
-		TiposInteraccion.TipoAccion.EXAMINAR,
-		ficha_jugador,
-		ficha_jugador.coordenada_mapa,
-		coord,
-		objetivo,
-		null,
-		&"",
-		[],
-		{},
-		perfil.alcance_basico,
-		{},
-		TiposInteraccion.TipoLineaEfecto.VISUAL,
-		{},
-		TiposInteraccion.PoliticaCobro.SOLO_EXITO,
-		SolicitudExamen.new(ficha_jugador.obtener_id_observador())
-	)
-	var resultado := gestor_acciones.procesar_accion(contexto)
-	panel_resultado_accion.mostrar_resultado(
-		objetivo.definicion.nombre,
-		resultado,
-		catalogo_mensajes
-	)
-	return true
-
-
-func _celda_tiene_objetivo_examinable(celda: Celda) -> bool:
-	return _obtener_objetivo_examinable(celda) != null
-
-
-func _obtener_objetivo_examinable(celda: Celda) -> Interactuable:
-	if celda == null:
-		return null
-	for contenido in celda.interactuables:
-		if not contenido is Interactuable or not is_instance_valid(contenido):
-			continue
-		for opcion in contenido.obtener_opciones_accion(ficha_jugador):
-			if opcion.tipo == TiposInteraccion.TipoAccion.EXAMINAR and opcion.habilitada:
-				return contenido
-	return null

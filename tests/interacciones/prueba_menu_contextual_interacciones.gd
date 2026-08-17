@@ -150,7 +150,30 @@ func _probar_vista_menu(entradas: Array[EntradaMenuContextual]) -> void:
 	)
 	_comprobar(cancelaciones[0] == 1, "Cancelar debe emitir su señal propia.")
 	menu.ocultar()
+	_probar_limites_viewport(menu, entradas)
+	menu.ocultar()
 	menu.free()
+
+
+func _probar_limites_viewport(
+	menu: MenuContextualInteracciones,
+	entradas: Array[EntradaMenuContextual]
+) -> void:
+	menu.mostrar("Borde inferior derecho", entradas, Vector2(100000, 100000))
+	var tamano_viewport := menu.get_viewport_rect().size
+	_comprobar(
+		menu.position.x + menu.size.x <= tamano_viewport.x - menu.margen_viewport + 0.1
+		and menu.position.y + menu.size.y <= tamano_viewport.y - menu.margen_viewport + 0.1,
+		"El menú debe desplazarse dentro de los bordes derecho e inferior."
+	)
+
+	menu._posicion_solicitada = Vector2(-100000, -100000)
+	menu._ajustar_posicion_al_viewport()
+	_comprobar(
+		menu.position.x >= menu.margen_viewport
+		and menu.position.y >= menu.margen_viewport,
+		"El menú debe respetar los bordes izquierdo y superior."
+	)
 
 
 func _probar_objetivos_multiples(

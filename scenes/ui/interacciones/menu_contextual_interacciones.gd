@@ -6,13 +6,17 @@ signal objetivo_elegido(objetivo: Interactuable)
 signal cancelado
 
 @export var separacion_opciones: int = 6
+@export_range(0.0, 64.0, 1.0) var margen_viewport: float = 8.0
 
 @onready var etiqueta_titulo: Label = $Margen/Contenido/Titulo
 @onready var contenedor_opciones: VBoxContainer = $Margen/Contenido/Opciones
 
+var _posicion_solicitada: Vector2 = Vector2.ZERO
+
 
 func _ready() -> void:
 	contenedor_opciones.add_theme_constant_override(&"separation", separacion_opciones)
+	get_viewport().size_changed.connect(_ajustar_posicion_al_viewport)
 
 
 func mostrar(
@@ -22,10 +26,13 @@ func mostrar(
 ) -> void:
 	_limpiar_opciones()
 	etiqueta_titulo.text = titulo
-	position = posicion_pantalla
+	_posicion_solicitada = posicion_pantalla
 	for entrada in entradas:
 		_agregar_entrada(entrada)
 	visible = true
+	reset_size()
+	_ajustar_posicion_al_viewport()
+	call_deferred(&"_ajustar_posicion_al_viewport")
 	_enfocar_primera_entrada_habilitada()
 
 
@@ -126,3 +133,19 @@ func _limpiar_opciones() -> void:
 	for hijo in contenedor_opciones.get_children():
 		contenedor_opciones.remove_child(hijo)
 		hijo.queue_free()
+
+
+func _ajustar_posicion_al_viewport() -> void:
+	if not visible:
+		return
+	var tamano_viewport := get_viewport_rect().size
+	var tamano_menu := size.max(get_combined_minimum_size())
+	var minimo := Vector2(margen_viewport, margen_viewport)
+	var maximo := Vector2(
+		maxf(minimo.x, tamano_viewport.x - tamano_menu.x - margen_viewport),
+		maxf(minimo.y, tamano_viewport.y - tamano_menu.y - margen_viewport)
+	)
+	position = Vector2(
+		clampf(_posicion_solicitada.x, minimo.x, maximo.x),
+		clampf(_posicion_solicitada.y, minimo.y, maximo.y)
+	)

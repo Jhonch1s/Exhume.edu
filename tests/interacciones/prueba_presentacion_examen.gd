@@ -11,7 +11,7 @@ func _ejecutar_pruebas() -> void:
 	_probar_catalogo()
 	_probar_panel_exito_y_cierre()
 	_probar_panel_bloqueo()
-	_probar_activacion_provisional_en_escenario()
+	_probar_retiro_activacion_provisional_en_escenario()
 
 	if _fallos.is_empty():
 		print("PresentacionExamen: 4 pruebas correctas.")
@@ -92,7 +92,7 @@ func _probar_panel_bloqueo() -> void:
 	panel.queue_free()
 
 
-func _probar_activacion_provisional_en_escenario() -> void:
+func _probar_retiro_activacion_provisional_en_escenario() -> void:
 	var escena := load("res://scenes/escenario_base/escenario_base.tscn") as PackedScene
 	_comprobar(escena != null, "La escena principal debe cargar con el panel reutilizable.")
 	if escena == null:
@@ -102,28 +102,38 @@ func _probar_activacion_provisional_en_escenario() -> void:
 	var fuente := escenario.tablero.obtener_interactuable(
 		&"zona1_antorcha_pie_02_01"
 	) as FuenteLuzInteractuable
-	_comprobar(fuente != null, "La activación provisional necesita la antorcha vertical slice.")
+	_comprobar(fuente != null, "La regresión necesita la antorcha vertical slice.")
 	if fuente != null:
 		escenario.ficha_jugador.coordenada_mapa = fuente.coordenada_mapa
 		escenario.tablero.obtener_celda(fuente.coordenada_mapa).visibilidad = (
 			Celda.EstadoVisibilidad.VISIBLE
 		)
+		escenario.ultima_coordenada_hover = fuente.coordenada_mapa
+		var evento_e := InputEventKey.new()
+		evento_e.keycode = KEY_E
+		evento_e.pressed = true
+		escenario._unhandled_input(evento_e)
 		_comprobar(
-			escenario._examinar_provisional(fuente.coordenada_mapa),
-			"La activación temporal debe encontrar un objetivo examinable."
+			not escenario.has_method(&"_examinar_provisional"),
+			"El helper que elegía automáticamente el primer examinable debe retirarse."
 		)
 		_comprobar(
-			escenario.panel_resultado_accion.visible,
-			"El resultado real debe abrir el panel fuera del interactuable."
+			not escenario.panel_resultado_accion.visible
+			and not escenario.menu_contextual.visible,
+			"La tecla E ya no debe abrir una interacción ni saltarse el menú."
 		)
 		_comprobar(
-			escenario.registro_conocimiento.conoce_fragmento(
+			not escenario.registro_conocimiento.conoce_fragmento(
 				&"jugador_principal",
 				fuente.id_instancia,
 				&"identidad"
 			),
-			"La presentación debe consumir el resultado sin impedir el descubrimiento."
+			"La tecla retirada no debe producir descubrimientos ni efectos laterales."
 		)
+	_comprobar(
+		escenario.get_node_or_null("CanvasLayer/PanelDetalle") == null,
+		"El panel técnico heredado debe retirarse de la escena principal."
+	)
 	escenario.queue_free()
 
 

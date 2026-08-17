@@ -416,8 +416,8 @@ antorcha utiliza este punto para elegir entre dos variantes de un único fragmen
 recuerda el ID estable `identidad`, no el valor actual de `encendida`.
 
 El tablero inyecta un mismo servicio en los interactuables registrados. El escenario
-principal instancia el gestor, el registro y el servicio, pero todavía no vincula
-el examen al menú contextual de la Fase 4.
+principal instancia el gestor, el registro y el servicio, y vincula el examen al
+menú contextual obligatorio sin entregar esa responsabilidad al interactuable.
 
 ### Presentación provisional
 
@@ -438,13 +438,18 @@ el mundo no recupera input entre ambas vistas y el objetivo permanece selecciona
 y resaltado hasta que el resultado se cierra. El panel no conoce la opción elegida,
 el constructor de contexto ni la implementación del objetivo.
 
+La vista del menú recibe una posición de pantalla solicitada, pero es responsable de
+limitar su posición final al rectángulo visible del viewport. El ajuste considera su
+tamaño mínimo una vez construidas las opciones, respeta un margen configurable en los
+cuatro bordes y se recalcula cuando cambia el tamaño de la ventana.
+
 La antorcha de pie, la fogata y ambas orientaciones de antorcha de pared publican
 `EXAMINAR`. Todas ofrecen un fragmento `BASICO` con variantes narrativas encendida y
 apagada; la antorcha de pie conserva además sus fragmentos detallado y secreto.
 
-El atajo `E` permanece únicamente como activación técnica heredada hasta el cierre
-4.7. Selecciona el primer examinable y no resuelve múltiples objetivos, por lo que
-no forma parte del flujo definitivo y debe retirarse junto con sus helpers.
+No existe un atajo directo para `EXAMINAR`. Toda interacción voluntaria comienza con
+el clic izquierdo, conserva la selección explícita cuando hay varios objetivos y
+obliga a elegir una opción del menú antes de construir y resolver el contexto.
 
 Para la primera fuente de luz, el diseño aprobado prevé información básica hasta
 cinco celdas e información detallada solo en adyacencia. Ese alcance de observación
