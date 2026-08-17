@@ -3,6 +3,7 @@ class_name Ficha
 
 @export var nombre: String = "Heroe Jr."
 @export var titulo: String = "El come cebolla"
+@export var id_observador: StringName = &"jugador_principal"
 
 var fue: int = 3
 var des: int = 4
@@ -28,6 +29,10 @@ var interrupcion_solicitada: bool = false
 
 signal paso_dado(nueva_coordenada: Vector2i)
 signal movimiento_terminado(interrumpido: bool)
+
+
+func obtener_id_observador() -> StringName:
+	return id_observador
 
 func _ready() -> void:
 	pv_max = fue + des + vol

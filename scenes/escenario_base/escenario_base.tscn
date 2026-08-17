@@ -7,6 +7,9 @@
 [ext_resource type="AudioStream" uid="uid://b64t4hje6pskj" path="res://assets/music/Echoes of Time v2.mp3" id="7_541xx"]
 [ext_resource type="Script" uid="uid://dmxu10ah1q6vf" path="res://scripts/fov_manager.gd" id="7_t484h"]
 [ext_resource type="Shader" path="res://scenes/menu/filtro_crt_luminancia.gdshader" id="8_crt"]
+[ext_resource type="PackedScene" path="res://scenes/ui/interacciones/panel_resultado_accion.tscn" id="9_panel_resultado"]
+[ext_resource type="Resource" path="res://assets/interactuables/mensajes_interacciones.tres" id="10_catalogo_mensajes"]
+[ext_resource type="PackedScene" path="res://scenes/ui/interacciones/menu_contextual_interacciones.tscn" id="11_menu_contextual"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_crt_zona"]
 shader = ExtResource("8_crt")
@@ -34,6 +37,7 @@ sources/0 = SubResource("TileSetAtlasSource_m8dhx")
 [node name="EscenarioBase" type="Node2D" unique_id=1215045435]
 y_sort_enabled = true
 script = ExtResource("1_3j2a0")
+catalogo_mensajes = ExtResource("10_catalogo_mensajes")
 
 [node name="Zona1" parent="." unique_id=1662731053 instance=ExtResource("2_3j2a0")]
 
@@ -71,6 +75,10 @@ offset_bottom = 31.0
 [node name="TextoInfo" type="Label" parent="CanvasLayer/PanelDetalle" unique_id=880245950]
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
+
+[node name="PanelResultadoAccion" parent="CanvasLayer" instance=ExtResource("9_panel_resultado")]
+
+[node name="MenuContextualInteracciones" parent="CanvasLayer" instance=ExtResource("11_menu_contextual")]
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1734531678]
 stream = ExtResource("7_541xx")

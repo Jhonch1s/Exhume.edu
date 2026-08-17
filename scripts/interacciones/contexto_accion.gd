@@ -57,6 +57,10 @@ var politica_cobro: TiposInteraccion.PoliticaCobro:
 	get:
 		return _politica_cobro
 
+var solicitud_examen: SolicitudExamen:
+	get:
+		return _solicitud_examen
+
 var _tipo: TiposInteraccion.TipoAccion
 var _id_accion: StringName
 var _actor: Object
@@ -71,6 +75,7 @@ var _metadatos: Dictionary
 var _tipo_linea_efecto: TiposInteraccion.TipoLineaEfecto
 var _costes_solicitados: Dictionary[StringName, float]
 var _politica_cobro: TiposInteraccion.PoliticaCobro
+var _solicitud_examen: SolicitudExamen
 
 
 func _init(
@@ -91,7 +96,8 @@ func _init(
 	costes_solicitados_iniciales: Dictionary[StringName, float] = {},
 	politica_cobro_inicial: TiposInteraccion.PoliticaCobro = (
 		TiposInteraccion.PoliticaCobro.SOLO_EXITO
-	)
+	),
+	solicitud_examen_inicial: SolicitudExamen = null
 ) -> void:
 	_tipo = tipo_inicial
 	_actor = actor_inicial
@@ -107,6 +113,7 @@ func _init(
 	_tipo_linea_efecto = tipo_linea_efecto_inicial
 	_costes_solicitados = costes_solicitados_iniciales.duplicate()
 	_politica_cobro = politica_cobro_inicial
+	_solicitud_examen = solicitud_examen_inicial
 
 
 func tiene_origen() -> bool:

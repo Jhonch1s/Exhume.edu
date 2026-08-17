@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://cl5u1p3hlirr2" path="res://scripts/interacciones/interactuables/fuentes_luz/fuente_luz_interactuable.gd" id="1_script"]
+
+[node name="FuenteLuzInteractuable" type="Node2D" groups=["interactuables"]]
+script = ExtResource("1_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+region_enabled = true

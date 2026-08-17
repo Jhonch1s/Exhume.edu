@@ -1,9 +1,23 @@
 extends Node2D
 
+signal opcion_contextual_seleccionada(opcion: OpcionAccion)
+signal accion_contextual_finalizada(
+	opcion: OpcionAccion,
+	contexto: ContextoAccion,
+	resultado: ResultadoAccion
+)
+signal estado_modal_interaccion_cambiado(activo: bool)
+
 @onready var zona_actual: Node2D = $Zona1
 @onready var capa_selector: TileMapLayer = $CapaSelector
 @onready var panel_detalles: PanelContainer = $CanvasLayer/PanelDetalle
 @onready var texto_info: Label = $CanvasLayer/PanelDetalle/TextoInfo
+@onready var panel_resultado_accion: PanelResultadoAccion = (
+	$CanvasLayer/PanelResultadoAccion
+)
+@onready var menu_contextual: MenuContextualInteracciones = (
+	$CanvasLayer/MenuContextualInteracciones
+)
 @onready var camera_2d: Camera2D = $Camera2D
 @onready var capa_camino: TileMapLayer = $CapaCamino
 @onready var gestor_vision: FOVManager = $GestorVision
@@ -11,16 +25,53 @@ extends Node2D
 
 const ESCENA_FICHA = preload("res://scenes/ficha/ficha.tscn")
 
+@export var catalogo_mensajes: CatalogoMensajesInteraccion
+
 var tablero: TableroGrid = TableroGrid.new()
 var pathfinding: PathFindingManager = PathFindingManager.new()
+var gestor_acciones: GestorAcciones = GestorAcciones.new()
+var registro_conocimiento: RegistroConocimiento = RegistroConocimiento.new()
+var servicio_examen: ServicioExamen
 var ficha_jugador: Ficha = null
+var selector_objetivos: SelectorObjetivosInteraccion = SelectorObjetivosInteraccion.new()
+var adaptador_menu_contextual: AdaptadorMenuContextual = AdaptadorMenuContextual.new()
+var constructor_contexto_accion: ConstructorContextoAccion = ConstructorContextoAccion.new()
 var ultima_coordenada_hover: Vector2i = Vector2i(-999, -999)
+var objetivos_hover: Array[Interactuable] = []
+var objetivo_hover: Interactuable = null
+var objetivo_resaltado: Interactuable = null
+var ultima_opcion_contextual_seleccionada: OpcionAccion = null
+var ultimo_contexto_contextual: ContextoAccion = null
+var ultimo_resultado_contextual: ResultadoAccion = null
+var interaccion_modal_activa: bool = false
+var estado_seleccion_objetivos: EstadoSeleccionObjetivos = EstadoSeleccionObjetivos.new()
+var objetivos_pendientes_seleccion: Array[Interactuable]:
+	get:
+		return estado_seleccion_objetivos.objetivos_pendientes.duplicate()
+var objetivo_seleccionado: Interactuable:
+	get:
+		return estado_seleccion_objetivos.objetivo_seleccionado
+var celda_seleccionada: Variant:
+	get:
+		return estado_seleccion_objetivos.celda_seleccionada
 var camino_actual_tentativo: Array[Vector2i] = []
 
 func _ready() -> void:
+	menu_contextual.opcion_accion_elegida.connect(_on_opcion_contextual_elegida)
+	menu_contextual.objetivo_elegido.connect(_on_objetivo_contextual_elegido)
+	menu_contextual.cancelado.connect(_on_menu_contextual_cancelado)
+	panel_resultado_accion.resultado_presentado.connect(_on_resultado_accion_presentado)
+	panel_resultado_accion.cerrado.connect(_on_panel_resultado_cerrado)
+	add_child(gestor_acciones)
 	tablero.generar_desde_zona(zona_actual)
+	servicio_examen = ServicioExamen.new(tablero, registro_conocimiento)
+	tablero.configurar_servicio_examen(servicio_examen)
+	gestor_acciones.configurar_validador_espacial(ValidadorEspacialTablero.new(tablero))
+	var capa_suelo: TileMapLayer = zona_actual.get_node_or_null("CapaSuelo")
+	if capa_suelo:
+		tablero.registrar_interactuables_desde_zona(zona_actual, capa_suelo)
 	pathfinding.inicializar(tablero.datos)
-	gestor_vision.inicializar(capa_oscuridad, tablero.datos)
+	gestor_vision.inicializar(capa_oscuridad, tablero)
 	spawnear_ficha_inicial()
 	if ficha_jugador:
 		_actualizar_luz_jugador(ficha_jugador.coordenada_mapa)
@@ -30,6 +81,13 @@ func _process(_delta: float) -> void:
 	if ficha_jugador and ficha_jugador.esta_moviendose:
 		capa_selector.clear()
 		capa_camino.clear()
+		_limpiar_hover_interaccion()
+		ultima_coordenada_hover = Vector2i(-999, -999)
+		return
+	if interaccion_modal_activa:
+		capa_selector.clear()
+		capa_camino.clear()
+		camino_actual_tentativo.clear()
 		return
 
 	var capa_suelo: TileMapLayer = zona_actual.get_node_or_null("CapaSuelo")
@@ -38,6 +96,7 @@ func _process(_delta: float) -> void:
 	var coord_actual := capa_suelo.local_to_map(get_global_mouse_position())
 	if coord_actual == ultima_coordenada_hover:
 		return
+	_actualizar_hover_interaccion(coord_actual)
 	capa_selector.clear()
 	if tablero.es_celda_valida(coord_actual):
 		capa_selector.set_cell(coord_actual, 0, Vector2i(1, 1))
@@ -53,6 +112,26 @@ func _process(_delta: float) -> void:
 	ultima_coordenada_hover = coord_actual
 
 func _unhandled_input(event: InputEvent) -> void:
+	if interaccion_modal_activa:
+		if event.is_action_pressed(&"ui_cancel"):
+			if is_instance_valid(menu_contextual) and menu_contextual.visible:
+				_cerrar_menu_contextual()
+			elif (
+				is_instance_valid(panel_resultado_accion)
+				and panel_resultado_accion.visible
+			):
+				panel_resultado_accion.ocultar()
+		get_viewport().set_input_as_handled()
+		return
+	if (
+		event is InputEventKey
+		and event.pressed
+		and not event.echo
+		and event.keycode == KEY_E
+	):
+		if _examinar_provisional(ultima_coordenada_hover):
+			get_viewport().set_input_as_handled()
+		return
 	if not event is InputEventMouseButton or not event.pressed:
 		return
 	var capa_suelo: TileMapLayer = zona_actual.get_node_or_null("CapaSuelo")
@@ -65,32 +144,22 @@ func _unhandled_input(event: InputEvent) -> void:
 		_manejar_clic_derecho(coord_clic)
 
 func _manejar_clic_izquierdo(coord: Vector2i) -> void:
-	if not tablero.es_celda_valida(coord):
-		panel_detalles.visible = false
+	panel_detalles.visible = false
+	if (
+		ficha_jugador == null
+		or ficha_jugador.esta_moviendose
+		or interaccion_modal_activa
+	):
 		return
-	if not _esta_en_rango_vision(coord):
-		texto_info.text = "Coordenada: " + str(coord) + "\nArea no explorada (A ciegas)"
-	else:
-		var celda: Celda = tablero.obtener_celda(coord)
-		var info_texto := "Coordenada: " + str(coord) + "\n"
-		info_texto += "Tipo: " + str(celda.zona) + "\n"
-		info_texto += "Caminable: " + ("Si" if celda.caminable else "No") + "\n"
-		if celda.tiene_contenido():
-			info_texto += "Contenido: " + str(celda.contenido.size()) + " objeto(s)\n"
-		if celda.esta_reservada():
-			info_texto += "Reservada por movimiento\n"
-		if celda.damage != null:
-			info_texto += "PELIGRO: Dano de " + str(celda.damage["tipo"]) + "\n"
-		if celda.tiene_iluminacion():
-			for luz in celda.iluminacion:
-				var estado: String = "Encendida" if luz["encendida"] else "Apagada"
-				info_texto += "Iluminacion: " + str(luz["tipo"]) + " - " + estado + "\n"
-		texto_info.text = info_texto
-	panel_detalles.visible = true
-	panel_detalles.global_position = get_viewport().get_mouse_position() + Vector2(15, 15)
+	if not _solicitar_interaccion_en_celda(coord):
+		_cerrar_menu_contextual()
+		return
+	_abrir_menu_contextual(get_viewport().get_mouse_position())
 
 func _manejar_clic_derecho(coord: Vector2i) -> void:
 	if not ficha_jugador:
+		return
+	if interaccion_modal_activa:
 		return
 	if ficha_jugador.esta_moviendose:
 		# Se interrumpe al terminar el paso en curso, nunca entre dos celdas.
@@ -98,6 +167,7 @@ func _manejar_clic_derecho(coord: Vector2i) -> void:
 		return
 	if not tablero.puede_entrar(coord, ficha_jugador):
 		return
+	_cerrar_menu_contextual()
 
 	# La linea dibujada es tentativa: al confirmar se calcula una ruta nueva.
 	var camino_confirmado := pathfinding.calcular_camino(
@@ -166,6 +236,227 @@ func centrar_camara_en_ficha() -> void:
 	if ficha_jugador and camera_2d:
 		camera_2d.global_position = ficha_jugador.global_position
 
-func _esta_en_rango_vision(coord: Vector2i) -> bool:
-	var celda: Celda = tablero.obtener_celda(coord)
-	return celda != null and celda.visibilidad == Celda.EstadoVisibilidad.VISIBLE
+func _actualizar_hover_interaccion(coord: Vector2i) -> void:
+	objetivos_hover = selector_objetivos.obtener_objetivos_perceptibles(
+		tablero,
+		coord,
+		ficha_jugador
+	)
+	objetivo_hover = objetivos_hover[0] if objetivos_hover.size() == 1 else null
+	_actualizar_resaltado_interaccion()
+
+
+func _limpiar_hover_interaccion() -> void:
+	objetivos_hover.clear()
+	objetivo_hover = null
+	_actualizar_resaltado_interaccion()
+
+
+func _solicitar_interaccion_en_celda(coord: Vector2i) -> bool:
+	var objetivos := selector_objetivos.obtener_objetivos_perceptibles(
+		tablero,
+		coord,
+		ficha_jugador
+	)
+	var iniciada := estado_seleccion_objetivos.iniciar(coord, objetivos)
+	_actualizar_resaltado_interaccion()
+	return iniciada
+
+
+func seleccionar_objetivo_interaccion(objetivo: Interactuable) -> bool:
+	var seleccion_valida := estado_seleccion_objetivos.seleccionar(objetivo)
+	_actualizar_resaltado_interaccion()
+	return seleccion_valida
+
+
+func _limpiar_seleccion_interaccion() -> void:
+	estado_seleccion_objetivos.limpiar()
+	_actualizar_resaltado_interaccion()
+
+
+func _actualizar_resaltado_interaccion() -> void:
+	var siguiente := objetivo_seleccionado if objetivo_seleccionado != null else objetivo_hover
+	if objetivo_resaltado == siguiente:
+		return
+	if is_instance_valid(objetivo_resaltado):
+		objetivo_resaltado.establecer_resaltado(false)
+	objetivo_resaltado = siguiente if is_instance_valid(siguiente) else null
+	if objetivo_resaltado != null:
+		objetivo_resaltado.establecer_resaltado(true)
+
+
+func _abrir_menu_contextual(posicion_pantalla: Vector2) -> void:
+	if objetivo_seleccionado != null:
+		var opciones := objetivo_seleccionado.obtener_opciones_accion(ficha_jugador)
+		menu_contextual.mostrar(
+			objetivo_seleccionado.definicion.nombre,
+			adaptador_menu_contextual.construir_entradas_acciones(
+				opciones,
+				catalogo_mensajes
+			),
+			posicion_pantalla
+		)
+		_actualizar_estado_modal_interaccion()
+		return
+	if not objetivos_pendientes_seleccion.is_empty():
+		menu_contextual.mostrar(
+			catalogo_mensajes.resolver(&"interaccion.seleccionar_objetivo"),
+			adaptador_menu_contextual.construir_entradas_objetivos(
+				objetivos_pendientes_seleccion,
+				catalogo_mensajes
+			),
+			posicion_pantalla
+		)
+		_actualizar_estado_modal_interaccion()
+
+
+func _on_objetivo_contextual_elegido(objetivo: Interactuable) -> void:
+	if seleccionar_objetivo_interaccion(objetivo):
+		_abrir_menu_contextual(menu_contextual.position)
+
+
+func _on_opcion_contextual_elegida(opcion: OpcionAccion) -> void:
+	ultima_opcion_contextual_seleccionada = opcion
+	opcion_contextual_seleccionada.emit(opcion)
+	_ejecutar_opcion_contextual(opcion)
+
+
+func _ejecutar_opcion_contextual(opcion: OpcionAccion) -> void:
+	var contexto: ContextoAccion = null
+	var resultado: ResultadoAccion
+	if opcion == null or not opcion.habilitada:
+		var motivo := (
+			opcion.motivo_bloqueo if opcion != null
+			else &"opcion_accion_invalida"
+		)
+		resultado = ResultadoAccion.crear_bloqueo(motivo)
+	elif not celda_seleccionada is Vector2i:
+		resultado = ResultadoAccion.crear_bloqueo(&"celda_objetivo_invalida")
+	else:
+		var coordenada_objetivo: Vector2i = celda_seleccionada
+		var construccion: Variant = constructor_contexto_accion.construir_desde_opcion(
+			opcion,
+			ficha_jugador,
+			ficha_jugador.coordenada_mapa,
+			coordenada_objetivo
+		)
+		if construccion is ContextoAccion:
+			contexto = construccion
+			resultado = gestor_acciones.procesar_accion(contexto)
+		else:
+			var motivo_construccion: StringName = construccion
+			resultado = ResultadoAccion.crear_bloqueo(motivo_construccion)
+
+	ultimo_contexto_contextual = contexto
+	ultimo_resultado_contextual = resultado
+	var titulo_resultado := _obtener_titulo_resultado_contextual(opcion)
+	menu_contextual.ocultar()
+	panel_resultado_accion.mostrar_resultado(
+		titulo_resultado,
+		resultado,
+		catalogo_mensajes
+	)
+	accion_contextual_finalizada.emit(opcion, contexto, resultado)
+
+
+func _on_menu_contextual_cancelado() -> void:
+	_cerrar_menu_contextual()
+
+
+func _cerrar_menu_contextual() -> void:
+	if is_instance_valid(menu_contextual):
+		menu_contextual.ocultar()
+	ultima_opcion_contextual_seleccionada = null
+	_limpiar_seleccion_interaccion()
+	ultima_coordenada_hover = Vector2i(-999, -999)
+	_actualizar_estado_modal_interaccion()
+
+
+func _on_resultado_accion_presentado(_resultado: ResultadoAccion) -> void:
+	_actualizar_estado_modal_interaccion()
+
+
+func _on_panel_resultado_cerrado() -> void:
+	if not menu_contextual.visible:
+		_limpiar_seleccion_interaccion()
+	ultima_coordenada_hover = Vector2i(-999, -999)
+	_actualizar_estado_modal_interaccion()
+
+
+func _obtener_titulo_resultado_contextual(opcion: OpcionAccion) -> String:
+	if (
+		opcion != null
+		and opcion.objetivo is Interactuable
+		and is_instance_valid(opcion.objetivo)
+		and opcion.objetivo.definicion != null
+		and not opcion.objetivo.definicion.nombre.is_empty()
+	):
+		return opcion.objetivo.definicion.nombre
+	return "Interacción"
+
+
+func _actualizar_estado_modal_interaccion() -> void:
+	var siguiente := (
+		(is_instance_valid(menu_contextual) and menu_contextual.visible)
+		or (
+			is_instance_valid(panel_resultado_accion)
+			and panel_resultado_accion.visible
+		)
+	)
+	if interaccion_modal_activa == siguiente:
+		return
+	interaccion_modal_activa = siguiente
+	if interaccion_modal_activa:
+		capa_selector.clear()
+		capa_camino.clear()
+		camino_actual_tentativo.clear()
+	estado_modal_interaccion_cambiado.emit(interaccion_modal_activa)
+
+
+func _examinar_provisional(coord: Vector2i) -> bool:
+	if ficha_jugador == null or not tablero.es_celda_valida(coord):
+		return false
+	var objetivo := _obtener_objetivo_examinable(tablero.obtener_celda(coord))
+	if objetivo == null:
+		return false
+	var perfil := objetivo.definicion.perfil_observacion
+	var contexto := ContextoAccion.new(
+		TiposInteraccion.TipoAccion.EXAMINAR,
+		ficha_jugador,
+		ficha_jugador.coordenada_mapa,
+		coord,
+		objetivo,
+		null,
+		&"",
+		[],
+		{},
+		perfil.alcance_basico,
+		{},
+		TiposInteraccion.TipoLineaEfecto.VISUAL,
+		{},
+		TiposInteraccion.PoliticaCobro.SOLO_EXITO,
+		SolicitudExamen.new(ficha_jugador.obtener_id_observador())
+	)
+	var resultado := gestor_acciones.procesar_accion(contexto)
+	panel_resultado_accion.mostrar_resultado(
+		objetivo.definicion.nombre,
+		resultado,
+		catalogo_mensajes
+	)
+	return true
+
+
+func _celda_tiene_objetivo_examinable(celda: Celda) -> bool:
+	return _obtener_objetivo_examinable(celda) != null
+
+
+func _obtener_objetivo_examinable(celda: Celda) -> Interactuable:
+	if celda == null:
+		return null
+	for contenido in celda.interactuables:
+		if not contenido is Interactuable or not is_instance_valid(contenido):
+			continue
+		for opcion in contenido.obtener_opciones_accion(ficha_jugador):
+			if opcion.tipo == TiposInteraccion.TipoAccion.EXAMINAR and opcion.habilitada:
+				return contenido
+	return null

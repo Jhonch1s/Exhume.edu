@@ -15,9 +15,15 @@ var damage: Variant
 var visibilidad: int
 var familia_fog: StringName = &"terreno"
 var coordenada_fog: Vector2i = Vector2i.ZERO
-var contenido: Array[Object] = []
+var ocupantes: Array[Object] = []
+var contenido: Array[Object]:
+	get:
+		return ocupantes
 var reservas: Array[Object] = []
-var iluminacion: Array[Dictionary] = []
+var interactuables: Array[Object] = []
+var items_suelo: Array[Object] = []
+var efectos_superficie: Array[Object] = []
+var iluminacion: Array[Object] = []
 
 func _init(
 	tipo_zona: StringName = &"piso_vacio",
@@ -33,7 +39,10 @@ func _init(
 	visibilidad = estado_inicial
 
 func tiene_contenido() -> bool:
-	return not contenido.is_empty()
+	return not ocupantes.is_empty()
+
+func tiene_interactuables() -> bool:
+	return not interactuables.is_empty()
 
 func esta_reservada() -> bool:
 	return not reservas.is_empty()

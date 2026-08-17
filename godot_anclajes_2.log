@@ -1,0 +1,42 @@
+Godot Engine v4.7.stable.official.5b4e0cb0f - https://godotengine.org
+
+CENTRO (7, -5)
+  (6, -6) zona=pared camina=false bloquea=true
+  (7, -6) zona=pared camina=false bloquea=true
+  (8, -6) zona=pared camina=false bloquea=true
+  (6, -5) zona=piso_vacio camina=true bloquea=false
+  (7, -5) zona=piso_vacio camina=true bloquea=false
+  (8, -5) zona=piso_vacio camina=true bloquea=false
+  (6, -4) zona=piso_vacio camina=true bloquea=false
+  (7, -4) zona=piso_vacio camina=true bloquea=false
+  (8, -4) zona=piso_vacio camina=true bloquea=false
+CENTRO (22, 10)
+  (21, 9) zona=decoracion camina=false bloquea=false
+  (22, 9) zona=decoracion camina=false bloquea=false
+  (23, 9) zona=pared camina=false bloquea=true
+  (21, 10) zona=piso_vacio camina=true bloquea=false
+  (22, 10) zona=piso_vacio camina=true bloquea=false
+  (23, 10) zona=pared camina=false bloquea=true
+  (21, 11) zona=piso_vacio camina=true bloquea=false
+  (22, 11) zona=piso_vacio camina=true bloquea=false
+  (23, 11) zona=pared camina=false bloquea=true
+CENTRO (57, 5)
+  (56, 4) zona=piso_vacio camina=true bloquea=false
+  (57, 4) zona=piso_vacio camina=true bloquea=false
+  (58, 4) zona=pared camina=false bloquea=true
+  (56, 5) zona=piso_vacio camina=true bloquea=false
+  (57, 5) zona=piso_vacio camina=true bloquea=false
+  (58, 5) zona=pared camina=false bloquea=true
+  (56, 6) zona=piso_vacio camina=true bloquea=false
+  (57, 6) zona=piso_vacio camina=true bloquea=false
+  (58, 6) zona=pared camina=false bloquea=true
+CENTRO (57, 12)
+  (56, 11) zona=piso_vacio camina=true bloquea=false
+  (57, 11) zona=piso_vacio camina=true bloquea=false
+  (58, 11) zona=pared camina=false bloquea=true
+  (56, 12) zona=piso_vacio camina=true bloquea=false
+  (57, 12) zona=piso_vacio camina=true bloquea=false
+  (58, 12) zona=pared camina=false bloquea=true
+  (56, 13) zona=piso_vacio camina=true bloquea=false
+  (57, 13) zona=piso_vacio camina=true bloquea=false
+  (58, 13) zona=pared camina=false bloquea=true

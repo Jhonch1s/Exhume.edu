@@ -2,6 +2,8 @@ extends Node
 class_name TableroGrid
 
 var datos: Dictionary[Vector2i, Celda] = {}
+var interactuables_por_id: Dictionary[StringName, Object] = {}
+var servicio_examen: ServicioExamen
 
 # Puntos de extension para trampas, encuentros, puertas y otros triggers.
 signal celda_reservada(coord: Vector2i, contenido: Object)
@@ -9,13 +11,16 @@ signal reserva_cancelada(coord: Vector2i, contenido: Object)
 signal reserva_confirmada(coord: Vector2i, contenido: Object)
 signal celda_ocupada(coord: Vector2i, contenido: Object)
 signal celda_desocupada(coord: Vector2i, contenido: Object)
+signal interactuable_registrado(coord: Vector2i, interactuable: Interactuable)
+signal interactuable_retirado(coord: Vector2i, interactuable: Interactuable)
+signal iluminacion_cambiada(coord: Vector2i)
 
 func generar_desde_zona(zona: Node2D) -> void:
 	datos.clear()
+	interactuables_por_id.clear()
 	var _capa_suelo: TileMapLayer = zona.get_node_or_null("CapaSuelo")
 	var _capa_agua: TileMapLayer = zona.get_node_or_null("CapaAgua")
 	var _capa_lava: TileMapLayer = zona.get_node_or_null("CapaLava")
-	var _capa_luces: TileMapLayer = zona.get_node_or_null("CapaLuces")
 	var _capa_paredes: TileMapLayer = zona.get_node_or_null("CapaParedes")
 	var _capa_columnas: TileMapLayer = zona.get_node_or_null("CapaColumnas")
 	var _capa_deco_nocaminable: TileMapLayer = zona.get_node_or_null("CapaDecoracionNoCaminable")
@@ -102,25 +107,6 @@ func generar_desde_zona(zona: Node2D) -> void:
 				datos[coord].bloquea_vision or celda_decoracion.bloquea_vision
 			)
 
-	# 8. Escaneo de luces del mapa.
-	if _capa_luces:
-		var _celdas_luces = _capa_luces.get_used_cells()
-		for coord in _celdas_luces:
-			var tile_data := _capa_luces.get_cell_tile_data(coord)
-			var info_luz := _obtener_info_luz_desde_tile(tile_data)
-			if not info_luz.is_empty():
-				var propiedades_luz := _crear_celda_desde_tile(_capa_luces, coord, &"luz")
-				info_luz["aplicar_mascara_fog"] = propiedades_luz.familia_fog == &"luz"
-				info_luz["altura_fog"] = propiedades_luz.altura
-				info_luz["coordenada_fog"] = propiedades_luz.coordenada_fog
-				if datos.has(coord):
-					datos[coord].caminable = datos[coord].caminable and propiedades_luz.caminable
-					datos[coord].bloquea_vision = (
-						datos[coord].bloquea_vision or propiedades_luz.bloquea_vision
-					)
-				registrar_luz(coord, info_luz)
-
-
 # --- UTILIDADES ---
 
 func _crear_celda_desde_tile(
@@ -172,6 +158,82 @@ func puede_entrar(coord: Vector2i, contenido: Object = null) -> bool:
 func obtener_celda(coord: Vector2i) -> Celda:
 	return datos.get(coord) as Celda
 
+func configurar_servicio_examen(nuevo_servicio: ServicioExamen) -> void:
+	servicio_examen = nuevo_servicio
+	for interactuable in interactuables_por_id.values():
+		if is_instance_valid(interactuable):
+			interactuable.configurar_servicio_examen(servicio_examen)
+
+func registrar_interactuables_desde_zona(
+	zona: Node2D,
+	capa_referencia: TileMapLayer
+) -> bool:
+	var registro_valido := true
+	for nodo in zona.find_children("*", "", true, false):
+		if not nodo is Interactuable:
+			continue
+		var interactuable := nodo as Interactuable
+		var posicion_en_capa := capa_referencia.to_local(interactuable.global_position)
+		var coord := capa_referencia.local_to_map(posicion_en_capa)
+		if not registrar_interactuable(coord, interactuable):
+			registro_valido = false
+	return registro_valido
+
+func registrar_interactuable(coord: Vector2i, interactuable: Interactuable) -> bool:
+	var motivo := validar_registro_interactuable(coord, interactuable)
+	if motivo == &"interactuable_invalido":
+		push_error("No se puede registrar un interactuable invalido.")
+		return false
+	if motivo == &"id_instancia_vacio":
+		push_error("El interactuable en %s no tiene id_instancia." % coord)
+		return false
+	if motivo == &"celda_invalida":
+		push_error("El interactuable %s esta fuera del tablero: %s." % [
+			interactuable.id_instancia, coord
+		])
+		return false
+	if motivo == &"id_instancia_duplicado":
+		push_warning("ID de interactuable duplicado: %s." % interactuable.id_instancia)
+		return false
+
+	interactuables_por_id[interactuable.id_instancia] = interactuable
+	datos[coord].interactuables.append(interactuable)
+	interactuable.configurar_registro(self, coord)
+	if servicio_examen != null:
+		interactuable.configurar_servicio_examen(servicio_examen)
+	if interactuable is FuenteLuzInteractuable:
+		registrar_luz(coord, interactuable)
+	interactuable_registrado.emit(coord, interactuable)
+	return true
+
+func validar_registro_interactuable(
+	coord: Vector2i,
+	interactuable: Interactuable
+) -> StringName:
+	if interactuable == null or not is_instance_valid(interactuable):
+		return &"interactuable_invalido"
+	if interactuable.id_instancia == &"":
+		return &"id_instancia_vacio"
+	if not datos.has(coord):
+		return &"celda_invalida"
+	if interactuables_por_id.has(interactuable.id_instancia):
+		return &"id_instancia_duplicado"
+	return &""
+
+func retirar_interactuable(interactuable: Interactuable) -> void:
+	if interactuable == null or not is_instance_valid(interactuable):
+		return
+	var coord := interactuable.coordenada_mapa
+	if datos.has(coord):
+		datos[coord].interactuables.erase(interactuable)
+		if interactuable is FuenteLuzInteractuable:
+			eliminar_luz(coord, interactuable)
+	interactuables_por_id.erase(interactuable.id_instancia)
+	interactuable_retirado.emit(coord, interactuable)
+
+func obtener_interactuable(id_instancia: StringName) -> Interactuable:
+	return interactuables_por_id.get(id_instancia) as Interactuable
+
 func ocupar_celda(coord: Vector2i, contenido: Object) -> void:
 	if datos.has(coord):
 		if contenido not in datos[coord].contenido:
@@ -211,42 +273,40 @@ func confirmar_movimiento(origen: Vector2i, destino: Vector2i, contenido: Object
 	ocupar_celda(destino, contenido)
 	return true
 
-func registrar_luz(coord: Vector2i, info_luz: Dictionary) -> void:
-	if datos.has(coord):
-		if info_luz not in datos[coord].iluminacion:
-			datos[coord].iluminacion.append(info_luz)
-		if info_luz.get("aplicar_mascara_fog", false) and datos[coord].altura < 2:
-			datos[coord].altura = maxi(datos[coord].altura, info_luz.get("altura_fog", 1))
-			datos[coord].configurar_fog(&"luz", info_luz.get("coordenada_fog", Vector2i.ZERO))
+func registrar_luz(coord: Vector2i, fuente: FuenteLuzInteractuable) -> void:
+	if not datos.has(coord) or fuente == null:
+		return
+	if fuente not in datos[coord].iluminacion:
+		datos[coord].iluminacion.append(fuente)
+	var definicion_luz := fuente.obtener_definicion_luz()
+	if definicion_luz != null:
+		datos[coord].caminable = datos[coord].caminable and definicion_luz.permite_caminar
+		datos[coord].bloquea_vision = (
+			datos[coord].bloquea_vision or definicion_luz.bloquea_vision
+		)
+		if definicion_luz.familia_fog == &"luz" and datos[coord].altura < 2:
+			datos[coord].altura = maxi(datos[coord].altura, definicion_luz.altura)
+			datos[coord].configurar_fog(&"luz", definicion_luz.coordenada_fog)
+	if not fuente.estado_luz_cambiado.is_connected(_on_estado_luz_cambiado.bind(fuente)):
+		fuente.estado_luz_cambiado.connect(_on_estado_luz_cambiado.bind(fuente))
+	iluminacion_cambiada.emit(coord)
 
-func eliminar_luz(coord: Vector2i, info_luz: Dictionary) -> void:
+func eliminar_luz(coord: Vector2i, fuente: FuenteLuzInteractuable) -> void:
 	if datos.has(coord):
-		datos[coord].iluminacion.erase(info_luz)
+		datos[coord].iluminacion.erase(fuente)
+	iluminacion_cambiada.emit(coord)
 
 func obtener_luces_visibles() -> Array:
 	var luces: Array = []
 	for coord in datos:
 		for luz in datos[coord].iluminacion:
-			if luz["encendida"]:
+			if is_instance_valid(luz) and luz.encendida:
 				luces.append({
 					"coord": coord,
 					"info": luz
 				})
 	return luces
 
-func _obtener_info_luz_desde_tile(tile_data: TileData) -> Dictionary:
-	if tile_data == null:
-		return {}
-
-	var tipo := StringName(tile_data.get_custom_data(&"tipo_luz"))
-	if tipo == &"":
-		return {}
-
-	return {
-		"tipo": tipo,
-		"variante": StringName(tile_data.get_custom_data(&"variante_luz")),
-		"encendida": bool(tile_data.get_custom_data(&"encendida")),
-		"radio_luz": int(tile_data.get_custom_data(&"radio_luz")),
-		"radio_penumbra": int(tile_data.get_custom_data(&"radio_penumbra")),
-		"atraviesa_muros": bool(tile_data.get_custom_data(&"atraviesa_muros"))
-	}
+func _on_estado_luz_cambiado(_encendida: bool, fuente: FuenteLuzInteractuable) -> void:
+	if is_instance_valid(fuente):
+		iluminacion_cambiada.emit(fuente.coordenada_mapa)

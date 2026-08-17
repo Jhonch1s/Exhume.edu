@@ -6,18 +6,18 @@
 
 ## Estado general
 
-- Estado actual: Fase 1 — Núcleo de acciones completada.
-- Próximo paso: **Fase 2 — Entidad interactuable base**, dentro del hito Interacción básica.
-- Primera vertical slice: una palanca colocada en el mapa que pueda examinarse y accionarse desde un menú contextual obligatorio.
-- Última actualización de este registro: 14 de agosto de 2026.
+- Estado actual: Fase 4 — Menú contextual obligatorio en curso; incrementos 4.1–4.6 completados.
+- Próximo paso: 4.7 — pruebas finales, retirada del atajo temporal y cierre documental.
+- Primera vertical slice: una antorcha o fogata colocada en el mapa que puede examinarse, apagarse y encenderse desde el menú contextual, conservando su iluminación y sombras.
+- Última actualización de este registro: 17 de agosto de 2026.
 
 ### Progreso por fases
 
 - [x] Fase 0 — Contratos y vocabulario.
 - [x] Fase 1 — Núcleo de acciones. *(completada el 14 de agosto de 2026)*
-- [ ] Fase 2 — Entidad interactuable base.
-- [ ] Fase 3 — Examinar e información progresiva.
-- [ ] Fase 4 — Menú contextual obligatorio.
+- [x] Fase 2 — Entidad interactuable base. *(completada el 17 de agosto de 2026)*
+- [x] Fase 3 — Examinar e información progresiva. *(completada el 17 de agosto de 2026)*
+- [ ] Fase 4 — Menú contextual obligatorio. *(iniciada el 17 de agosto de 2026; incrementos 4.1–4.6 completados)*
 - [ ] Fase 5 — Reacciones automáticas al movimiento.
 - [ ] Fase 6 — Sistema de efectos.
 - [ ] Fase 7 — Items e inventario mínimo.
@@ -309,20 +309,21 @@ Representar objetos del mundo con identidad, definición reutilizable, coordenad
 
 - Clase y definición base.
 - Registro espacial desde el tablero.
-- Palanca de prueba colocable desde el editor.
+- Fuente de luz interactuable colocable desde el editor.
 - Validación de IDs duplicados al menos durante desarrollo.
 
 ### Criterio de cierre
 
-Una palanca colocada como escena aparece en la celda correcta, publica sus acciones y conserva un estado activado/desactivado sin lógica especial en `EscenarioBase`.
+Una antorcha o fogata colocada como escena aparece en la celda correcta, publica `Apagar` o `Encender`, conserva su estado y actualiza su aporte de iluminación sin lógica específica de contenido en `EscenarioBase`.
 
 ### Registro de implementación
 
-- Estado: pendiente.
-- Decisiones nuevas: —
-- Archivos modificados: —
-- Pruebas: —
-- Pendientes: —
+- Estado: completada el 17 de agosto de 2026.
+- Responsable: sesión Codex del 17 de agosto de 2026.
+- Decisiones nuevas: la primera vertical slice cambia de palanca a fuente de luz interactuable; el código mantiene nombres en español mediante `DefinicionInteractuable` y `DefinicionFuenteLuz`; la configuración reutilizable se guarda en `Resource` tipados y el estado `encendida` pertenece a cada instancia; antorchas y fogatas dejan de ser tiles y pasan a escenas con ID estable; una misma escena se registra en las categorías `interactuables` e `iluminacion` de su celda; la oclusión lógica sigue siendo responsabilidad de `FOVManager`, mientras la definición conserva la región visual y la máscara de fog propia; las posiciones migradas se obtienen mediante `TileMapLayer.map_to_local()` para respetar el layout isométrico de Godot; el registro devuelve motivos estables y rechaza IDs duplicados sin sustituir ni registrar parcialmente la segunda instancia; los interactuables de esta entrega son estáticos y su movimiento entre celdas queda fuera del alcance actual.
+- Archivos modificados: [`scripts/interacciones/interactuables/definicion_interactuable.gd`](scripts/interacciones/interactuables/definicion_interactuable.gd), [`scripts/interacciones/interactuables/interactuable.gd`](scripts/interacciones/interactuables/interactuable.gd), [`scripts/interacciones/interactuables/fuentes_luz/definicion_fuente_luz.gd`](scripts/interacciones/interactuables/fuentes_luz/definicion_fuente_luz.gd), [`scripts/interacciones/interactuables/fuentes_luz/fuente_luz_interactuable.gd`](scripts/interacciones/interactuables/fuentes_luz/fuente_luz_interactuable.gd), [`scenes/interactuables/fuentes_luz/fuente_luz_interactuable.tscn`](scenes/interactuables/fuentes_luz/fuente_luz_interactuable.tscn), definiciones bajo [`assets/interactuables/luces`](assets/interactuables/luces), [`scripts/celda.gd`](scripts/celda.gd), [`scripts/tablero_grid.gd`](scripts/tablero_grid.gd), [`scripts/fov_manager.gd`](scripts/fov_manager.gd), [`scenes/Zona1/zona_1.tscn`](scenes/Zona1/zona_1.tscn), [`scenes/escenario_base/escenario_base.gd`](scenes/escenario_base/escenario_base.gd), [`tests/interacciones/prueba_fuentes_luz_interactuables.gd`](tests/interacciones/prueba_fuentes_luz_interactuables.gd) y este roadmap.
+- Pruebas: las once luces pintadas en `CapaLuces` se conservan como escenas en sus coordenadas; una antorcha se registra simultáneamente como interactuable y fuente de luz; conserva radios, oclusión, anclaje isométrico y máscara de fog desde su definición; `Apagar` cambia estado, sprite y próxima opción a `Encender`; una pared iluminada queda visible y la celda posterior permanece en sombra; la comprobación manual confirmó alineación y estados visuales; un segundo interactuable con el mismo ID devuelve `id_instancia_duplicado`, se rechaza y no modifica el índice, la celda ni la instancia original; escena principal cargada sin errores; batería existente de trece scripts de prueba completada.
+- Pendientes/deuda no bloqueante: evaluar a futuro si el diseño necesita mover interactuables entre celdas; completar el desregistro automático y la restauración de propiedades de celda cuando existan entidades destruibles; conectar las opciones al menú contextual en la Fase 4.
 
 ## Fase 3 — Examinar e información progresiva
 
@@ -354,11 +355,27 @@ Examinar el mismo objetivo en condiciones distintas produce información coheren
 
 ### Registro de implementación
 
-- Estado: pendiente.
-- Decisiones nuevas: —
-- Archivos modificados: —
-- Pruebas: —
-- Pendientes: —
+- Estado: completada el 17 de agosto de 2026; incrementos 3.1 a 3.5 completados.
+- Responsable: sesión Codex del 17 de agosto de 2026.
+- Decisiones nuevas: el conocimiento pertenecerá a cada observador y se registrará por ID estable de instancia y fragmento; `FragmentoInformacion` representa contenido narrativo reutilizable mediante ID, nivel, mensaje, pistas semánticas y recordabilidad; los secretos exigen al menos una pista explícita; `CondicionesObservacion` transporta de forma inmutable observador, distancia, visibilidad actual, línea visual y pistas sin mezclar conocimiento ni UI; para la primera fuente de luz se prevé examen básico hasta cinco celdas y detallado solo en adyacencia, con alcances independientes del radio mecánico de iluminación; una celda solo explorada no permite descubrimientos nuevos; los perfiles de observación de enemigos quedan diferidos.
+- Archivos modificados en 3.1: [`scripts/interacciones/examen/fragmento_informacion.gd`](scripts/interacciones/examen/fragmento_informacion.gd), [`scripts/interacciones/examen/condiciones_observacion.gd`](scripts/interacciones/examen/condiciones_observacion.gd), [`scripts/interacciones/interactuables/definicion_interactuable.gd`](scripts/interacciones/interactuables/definicion_interactuable.gd), [`tests/interacciones/prueba_contratos_examen.gd`](tests/interacciones/prueba_contratos_examen.gd), [`docs/CONTRATOS_SISTEMA_INTERACCIONES.md`](docs/CONTRATOS_SISTEMA_INTERACCIONES.md) y este roadmap.
+- Pruebas de 3.1: `prueba_contratos_examen.gd` valida los contratos de fragmentos, condiciones y, tras 3.4, solicitud de examen; cubre identidad, mensajes, recordabilidad, pistas, duplicados, copias defensivas, observaciones inválidas e IDs únicos; `prueba_contexto_accion.gd` y `prueba_fuentes_luz_interactuables.gd` continúan correctas con Godot 4.7.
+- Incremento 3.2: `PerfilObservacion` declara alcances básico, detallado y secreto sin acoplarlos al radio de iluminación; `EvaluadorInformacion` filtra fragmentos de forma pura según el perfil, las condiciones actuales y todas las pistas requeridas; `ResultadoEvaluacionInformacion` distingue bloqueos de evaluaciones válidas y señala si la distancia permite detalle; cada definición puede asociar opcionalmente un perfil válido.
+- Archivos modificados en 3.2: [`scripts/interacciones/examen/perfil_observacion.gd`](scripts/interacciones/examen/perfil_observacion.gd), [`scripts/interacciones/examen/evaluador_informacion.gd`](scripts/interacciones/examen/evaluador_informacion.gd), [`scripts/interacciones/examen/resultado_evaluacion_informacion.gd`](scripts/interacciones/examen/resultado_evaluacion_informacion.gd), [`scripts/interacciones/interactuables/definicion_interactuable.gd`](scripts/interacciones/interactuables/definicion_interactuable.gd), [`tests/interacciones/prueba_evaluador_informacion.gd`](tests/interacciones/prueba_evaluador_informacion.gd), [`docs/CONTRATOS_SISTEMA_INTERACCIONES.md`](docs/CONTRATOS_SISTEMA_INTERACCIONES.md) y este roadmap.
+- Pruebas de 3.2: `prueba_evaluador_informacion.gd` valida cinco grupos de casos: alcance básico inclusivo de cinco celdas, detalle adyacente, secreto que exige cercanía y pista, bloqueos por visibilidad, línea y distancia, perfiles inválidos, duplicados y copias defensivas; continúan correctas `prueba_contratos_examen.gd`, `prueba_contexto_accion.gd` y `prueba_fuentes_luz_interactuables.gd` con Godot 4.7.
+- Incremento 3.3: `RegistroConocimiento` conserva en memoria únicamente IDs estables bajo la jerarquía observador, instancia objetivo y fragmento; el registro es atómico e idempotente, ignora fragmentos transitorios y mantiene separados observadores y objetivos; `ResultadoRegistroConocimiento` distingue errores de registros válidos sin novedades; no se implementan todavía serialización, importación ni borrado de conocimiento.
+- Archivos modificados en 3.3: [`scripts/interacciones/examen/registro_conocimiento.gd`](scripts/interacciones/examen/registro_conocimiento.gd), [`scripts/interacciones/examen/resultado_registro_conocimiento.gd`](scripts/interacciones/examen/resultado_registro_conocimiento.gd), [`tests/interacciones/prueba_registro_conocimiento.gd`](tests/interacciones/prueba_registro_conocimiento.gd), [`docs/CONTRATOS_SISTEMA_INTERACCIONES.md`](docs/CONTRATOS_SISTEMA_INTERACCIONES.md) y este roadmap.
+- Pruebas de 3.3: `prueba_registro_conocimiento.gd` valida cinco grupos de casos sobre recordabilidad, idempotencia, separación entre observadores, separación entre instancias, rechazo atómico, duplicados y copias defensivas; continúan correctas `prueba_contratos_examen.gd`, `prueba_evaluador_informacion.gd` y `prueba_fuentes_luz_interactuables.gd` con Godot 4.7.
+- Incremento 3.4: `SolicitudExamen` incorpora ID de observador y pistas como datos tipados de `ContextoAccion`; el actor debe acreditar el mismo ID mediante `obtener_id_observador()`; `ServicioExamen` calcula condiciones desde el tablero, evalúa, registra conocimiento y produce un `ResultadoAccion`; `Interactuable` publica y resuelve `EXAMINAR` mediante el servicio común; la antorcha de pie real contiene fragmentos básico, detallado y secreto, y selecciona una variante básica encendida/apagada sin guardar el valor actual de ese estado; `TableroGrid` inyecta el servicio y `EscenarioBase` deja configurados gestor, registro y validador sin alterar todavía los clics o la UI.
+- Archivos modificados en 3.4: [`scripts/interacciones/examen/solicitud_examen.gd`](scripts/interacciones/examen/solicitud_examen.gd), [`scripts/interacciones/examen/servicio_examen.gd`](scripts/interacciones/examen/servicio_examen.gd), [`scripts/interacciones/contexto_accion.gd`](scripts/interacciones/contexto_accion.gd), [`scripts/interacciones/interactuables/interactuable.gd`](scripts/interacciones/interactuables/interactuable.gd), [`scripts/interacciones/interactuables/fuentes_luz/definicion_fuente_luz.gd`](scripts/interacciones/interactuables/fuentes_luz/definicion_fuente_luz.gd), [`scripts/interacciones/interactuables/fuentes_luz/fuente_luz_interactuable.gd`](scripts/interacciones/interactuables/fuentes_luz/fuente_luz_interactuable.gd), [`assets/interactuables/luces/antorcha_pie.tres`](assets/interactuables/luces/antorcha_pie.tres), [`scripts/tablero_grid.gd`](scripts/tablero_grid.gd), [`scenes/ficha/ficha.gd`](scenes/ficha/ficha.gd), [`scenes/escenario_base/escenario_base.gd`](scenes/escenario_base/escenario_base.gd), [`tests/interacciones/prueba_integracion_examinar_fuente_luz.gd`](tests/interacciones/prueba_integracion_examinar_fuente_luz.gd), pruebas ajustadas, contratos y este roadmap.
+- Pruebas de 3.4: la prueba integral usa la antorcha `zona1_antorcha_pie_02_01` y recorre `GestorAcciones`, validación visual, interactuable, servicio, evaluador, registro y resultado; valida publicación de opciones, un único mensaje básico a cinco celdas, descubrimiento profundo, repetición idempotente, secreto con pista, variante apagada y bloqueo al quedar solo explorada; pasan además contexto, gestor, contratos de examen, evaluador, registro, fuentes de luz y una carga breve de la escena principal con Godot 4.7.
+- Corrección adicional: `RegistroConocimiento` ordena IDs comparando su representación textual, evitando depender del orden interno de `StringName` entre recursos cargados y objetos creados en memoria.
+- Incremento 3.5: `CatalogoMensajesInteraccion` resuelve IDs narrativos desde un `Resource` reemplazable; `PanelResultadoAccion` presenta éxitos y bloqueos, permite cierre mediante botón o `ui_cancel` y expone parámetros y señales para personalización posterior; `EscenarioBase` añade la activación temporal con `E` sobre la celda bajo el cursor y entrega al panel el resultado real de `GestorAcciones`, sin introducir UI dentro del interactuable.
+- Archivos modificados en 3.5: [`scripts/interacciones/presentacion/catalogo_mensajes_interaccion.gd`](scripts/interacciones/presentacion/catalogo_mensajes_interaccion.gd), [`assets/interactuables/mensajes_interacciones.tres`](assets/interactuables/mensajes_interacciones.tres), [`scenes/ui/interacciones/panel_resultado_accion.gd`](scenes/ui/interacciones/panel_resultado_accion.gd), [`scenes/ui/interacciones/panel_resultado_accion.tscn`](scenes/ui/interacciones/panel_resultado_accion.tscn), [`scenes/escenario_base/escenario_base.gd`](scenes/escenario_base/escenario_base.gd), [`scenes/escenario_base/escenario_base.tscn`](scenes/escenario_base/escenario_base.tscn), [`tests/interacciones/prueba_presentacion_examen.gd`](tests/interacciones/prueba_presentacion_examen.gd), contratos y este roadmap.
+- Pruebas de 3.5: `prueba_presentacion_examen.gd` valida catálogo y respaldo, composición ordenada, presentación de bloqueo, señales, botón de cierre y activación real desde la escena principal; pasan además contexto, contratos, evaluador, registro, integración de la antorcha, fuentes de luz y una carga breve de la escena principal con Godot 4.7.
+- Cierre: la antorcha real produce información básica, detallada y secreta según condiciones; el conocimiento recordable permanece por observador e instancia; repetir el examen no duplica descubrimientos; los resultados se presentan fuera del interactuable.
+- Ajuste posterior al cierre: `VISIBLE` se reserva como regla general para reconocimiento pasivo; cuando estado evidente e identidad se solapan, el contenido debe integrarlos en un único fragmento `BASICO`. La antorcha pasa a mostrar una sola frase básica a distancia, con variantes encendida y apagada.
+- Pendientes/deuda no bloqueante: reemplazar en la Fase 4 el atajo `E` y la selección automática del primer objetivo por el menú obligatorio; diseñar el estilo definitivo mediante tema o sustitución de la escena del panel; migrar el catálogo provisional al sistema de localización futuro.
 
 ## Fase 4 — Menú contextual obligatorio
 
@@ -405,11 +422,18 @@ Interactuar con una palanca siempre abre un menú con `Examinar`, `Accionar` y `
 
 ### Registro de implementación
 
-- Estado: pendiente.
-- Decisiones nuevas: —
-- Archivos modificados: —
-- Pruebas: —
-- Pendientes: —
+- Estado: en curso desde el 17 de agosto de 2026; incrementos 4.1–4.6 completados.
+- Responsable: sesión Codex del 17 de agosto de 2026.
+- Decisiones nuevas: el clic izquierdo sustituirá el panel técnico de detalles y solicitará la interacción contextual; los objetivos perceptibles requieren una celda actualmente `VISIBLE`, un ID de instancia válido y al menos una opción publicada; se ordenan por ID estable; un único objetivo puede seleccionarse directamente, mientras varios quedan pendientes de una elección explícita y nunca se elige automáticamente el primero; actualizar el hover no reemplaza una selección confirmada; `Encender` y `Apagar` requerirán adyacencia; el panel de resultados continuará siendo modal durante esta fase; el outline blanco se genera por código mediante un shader en memoria, reutiliza la textura y región del `Sprite2D` y no requiere imágenes auxiliares ensanchadas; el menú y el selector de objetivos comparten una vista genérica basada en `EntradaMenuContextual`; `Cancelar` es una entrada exclusiva de UI; las opciones secretas se omiten antes de crear controles; elegir una opción en 4.3 solo emite su `OpcionAccion` y no resuelve ni modifica el mundo; la navegación de 4.4 consume las acciones abstractas `ui_up`, `ui_down`, `ui_accept` y `ui_cancel`, compartidas por teclado y gamepad; un único estado modal del escenario bloquea órdenes de movimiento, hover accionable y trayectorias mientras el menú o el panel de resultados están abiertos, y solo emite cambios al activarse o restaurarse realmente.
+- Archivos modificados en 4.1–4.4: [`scripts/interacciones/seleccion/selector_objetivos_interaccion.gd`](scripts/interacciones/seleccion/selector_objetivos_interaccion.gd), [`scripts/interacciones/seleccion/estado_seleccion_objetivos.gd`](scripts/interacciones/seleccion/estado_seleccion_objetivos.gd), [`scripts/interacciones/presentacion/resaltador_outline_2d.gd`](scripts/interacciones/presentacion/resaltador_outline_2d.gd), [`scripts/interacciones/presentacion/entrada_menu_contextual.gd`](scripts/interacciones/presentacion/entrada_menu_contextual.gd), [`scripts/interacciones/presentacion/adaptador_menu_contextual.gd`](scripts/interacciones/presentacion/adaptador_menu_contextual.gd), [`scripts/interacciones/interactuables/interactuable.gd`](scripts/interacciones/interactuables/interactuable.gd), [`scenes/ui/interacciones/menu_contextual_interacciones.gd`](scenes/ui/interacciones/menu_contextual_interacciones.gd), [`scenes/ui/interacciones/menu_contextual_interacciones.tscn`](scenes/ui/interacciones/menu_contextual_interacciones.tscn), [`scenes/escenario_base/escenario_base.gd`](scenes/escenario_base/escenario_base.gd), [`scenes/escenario_base/escenario_base.tscn`](scenes/escenario_base/escenario_base.tscn), [`assets/interactuables/mensajes_interacciones.tres`](assets/interactuables/mensajes_interacciones.tres), [`tests/interacciones/prueba_selector_objetivos_interaccion.gd`](tests/interacciones/prueba_selector_objetivos_interaccion.gd), [`tests/interacciones/prueba_resaltado_interactuables.gd`](tests/interacciones/prueba_resaltado_interactuables.gd), [`tests/interacciones/prueba_menu_contextual_interacciones.gd`](tests/interacciones/prueba_menu_contextual_interacciones.gd), [`tests/interacciones/prueba_integracion_menu_contextual.gd`](tests/interacciones/prueba_integracion_menu_contextual.gd) y este roadmap.
+- Pruebas de 4.1–4.4: percepción por visibilidad; filtrado y orden estable de objetivos; selección directa y múltiple; outline programático; orden de opciones por prioridad e ID; omisión de secretos; presentación de bloqueos con motivo; `Cancelar` separado de `OpcionAccion`; menú obligatorio para la antorcha; emisión sin ejecución; conservación del estado mecánico; selector visual de varios objetivos; foco inicial; navegación envolvente que omite opciones deshabilitadas; aceptación de la opción enfocada; cancelación mediante acción abstracta; bloqueo de clic derecho y movimiento; limpieza de trayectoria; estado modal del panel de resultados; activación y restauración modal exactamente una vez.
+- Incremento 4.5: `ConstructorContextoAccion` verifica el protocolo del proveedor y la coherencia entre opción y contexto antes de entregar exactamente un contexto a `GestorAcciones`; `Interactuable` construye `EXAMINAR` con su perfil y `SolicitudExamen`, o `INTERACTUAR` con el ID específico; la fuente de luz declara alcance Manhattan `1.0` para `encender` y `apagar`; la UI no interpreta esas reglas; el gestor revalida inmediatamente antes de resolver y un bloqueo no modifica el objetivo.
+- Archivos añadidos o ampliados en 4.5: [`scripts/interacciones/constructor_contexto_accion.gd`](scripts/interacciones/constructor_contexto_accion.gd), [`scripts/interacciones/interactuables/interactuable.gd`](scripts/interacciones/interactuables/interactuable.gd), [`scripts/interacciones/interactuables/fuentes_luz/fuente_luz_interactuable.gd`](scripts/interacciones/interactuables/fuentes_luz/fuente_luz_interactuable.gd), [`scenes/escenario_base/escenario_base.gd`](scenes/escenario_base/escenario_base.gd), [`tests/interacciones/prueba_constructor_contexto_accion.gd`](tests/interacciones/prueba_constructor_contexto_accion.gd), [`tests/interacciones/prueba_integracion_menu_contextual.gd`](tests/interacciones/prueba_integracion_menu_contextual.gd), [`docs/CONTRATOS_SISTEMA_INTERACCIONES.md`](docs/CONTRATOS_SISTEMA_INTERACCIONES.md) y el catálogo de mensajes.
+- Pruebas de 4.5: construcción coherente de `EXAMINAR` e `INTERACTUAR`; solicitud tipada de examen; adyacencia de `Encender/Apagar`; ejecución exitosa mediante `GestorAcciones`; cambio real de estado; examen con información; revalidación y bloqueo `fuera_de_alcance`; ausencia de mutación al bloquear; cierre del menú y restauración modal tras finalizar.
+- Incremento 4.6: todo resultado del menú se presenta mediante `PanelResultadoAccion`; la transición menú → resultado no libera el estado modal; selección y outline se conservan hasta cerrar el panel; la siguiente apertura reconstruye las opciones desde el estado confirmado; fogata y ambas antorchas de pared incorporan perfil y fragmento básico con variantes encendida/apagada, sin trasladar contenido narrativo a la UI.
+- Archivos añadidos o ampliados en 4.6: [`scenes/escenario_base/escenario_base.gd`](scenes/escenario_base/escenario_base.gd), las cuatro definiciones bajo [`assets/interactuables/luces`](assets/interactuables/luces), [`assets/interactuables/mensajes_interacciones.tres`](assets/interactuables/mensajes_interacciones.tres), [`tests/interacciones/prueba_integracion_menu_contextual.gd`](tests/interacciones/prueba_integracion_menu_contextual.gd), [`docs/CONTRATOS_SISTEMA_INTERACCIONES.md`](docs/CONTRATOS_SISTEMA_INTERACCIONES.md) y este roadmap.
+- Pruebas de 4.6: presentación de éxito, examen y bloqueo; título y mensajes traducidos; continuidad modal; persistencia del resaltado durante el resultado; restauración al cerrar; reconstrucción `Encender/Apagar`; examen desde menú para antorcha de pie, fogata y ambas definiciones de pared; variantes narrativas según estado.
+- Pendientes: 4.7 retirada del atajo temporal `E`, limpieza del panel técnico heredado, batería final y documentación de cierre.
 
 ## Fase 5 — Reacciones automáticas al movimiento
 
@@ -824,10 +848,10 @@ Entregables de esa primera iteración:
 - [x] `ResultadoAccion`.
 - [x] `OpcionAccion`.
 - [x] `GestorAcciones`.
-- [ ] `Interactuable` e `InteractuableDefinition`.
-- [ ] Registro del interactuable dentro de una `Celda`.
-- [ ] Palanca de prueba con estado activado/desactivado.
-- [ ] Acción `EXAMINAR`.
+- [x] `Interactuable` y `DefinicionInteractuable`.
+- [x] Registro del interactuable dentro de una `Celda`.
+- [x] Fuente de luz de prueba con estado encendido/apagado.
+- [x] Acción `EXAMINAR`.
 - [ ] Menú contextual obligatorio.
 - [ ] Pruebas del flujo completo.
 

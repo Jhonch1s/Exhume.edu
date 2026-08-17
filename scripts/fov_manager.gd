@@ -4,6 +4,10 @@ class_name FOVManager
 var capa_oscuridad: TileMapLayer
 var datos_tablero: Dictionary
 var celdas_visibles_actuales: Array[Vector2i] = []
+var tablero: TableroGrid
+var ultimo_centro_jugador: Vector2i
+var ultimo_radio_jugador: int = 0
+var tiene_vision_calculada: bool = false
 
 const FUENTES_FOG_EXPLORADO := {
 	&"terreno": 0,
@@ -21,16 +25,25 @@ const FUENTES_FOG_OCULTO := {
 	&"luz": 9,
 }
 
-func inicializar(_capa: TileMapLayer, _datos: Dictionary) -> void:
+func inicializar(_capa: TileMapLayer, origen_datos: Variant) -> void:
 	capa_oscuridad = _capa
-	datos_tablero = _datos
+	if origen_datos is TableroGrid:
+		tablero = origen_datos
+		datos_tablero = tablero.datos
+		if not tablero.iluminacion_cambiada.is_connected(_on_iluminacion_cambiada):
+			tablero.iluminacion_cambiada.connect(_on_iluminacion_cambiada)
+	else:
+		datos_tablero = origen_datos
 	
-	# 1. Al iniciar, cubrimos todo el mapa conocido de negro total
+	# Al iniciar, cubrimos todo el mapa conocido de negro total
 	for coord in datos_tablero.keys():
 		_oscurecer_celda(coord, Celda.EstadoVisibilidad.OCULTO)
 		datos_tablero[coord].visibilidad = Celda.EstadoVisibilidad.OCULTO
 
 func actualizar_vision(centro_jugador: Vector2i, radio_jugador: int) -> void:
+	ultimo_centro_jugador = centro_jugador
+	ultimo_radio_jugador = radio_jugador
+	tiene_vision_calculada = true
 	# 1. Sombreamos (al 60%) todo lo que estuvo visible en el paso anterior
 	for coord in celdas_visibles_actuales:
 		_oscurecer_celda(coord, Celda.EstadoVisibilidad.EXPLORADO)
@@ -39,22 +52,30 @@ func actualizar_vision(centro_jugador: Vector2i, radio_jugador: int) -> void:
 			
 	celdas_visibles_actuales.clear()
 
-	# 2. Proyectamos primero todas las antorchas/fogatas encendidas del mapa
+	# 2. Proyectamos primero todas las fuentes de luz encendidas del mapa
 	_procesar_luces_mapa()
 
-	# 3. Proyectamos la luz del jugador (le agregamos 1 casilla de penumbra para suavizar los bordes)
+	# 3. Proyectamos la luz del jugador (+1 casilla de penumbra)
 	proyectar_luz_fuente(centro_jugador, radio_jugador, 1, false)
 
 func _procesar_luces_mapa() -> void:
 	for coord in datos_tablero.keys():
-		var lista_luces: Array[Dictionary] = datos_tablero[coord].iluminacion
-		for luz in lista_luces:
-			if luz.get("encendida", false):
-				var r_luz: int = luz.get("radio_luz", 2)
-				var r_penumbra: int = luz.get("radio_penumbra", 1)
-				var atraviesa: bool = luz.get("atraviesa_muros", false)
-				
-				proyectar_luz_fuente(coord, r_luz, r_penumbra, atraviesa)
+		var lista_luces: Array[Object] = datos_tablero[coord].iluminacion
+		for fuente in lista_luces:
+			if not fuente is FuenteLuzInteractuable or not is_instance_valid(fuente):
+				continue
+			var definicion: DefinicionFuenteLuz = fuente.obtener_definicion_luz()
+			if fuente.encendida and definicion != null:
+				proyectar_luz_fuente(
+					coord,
+					definicion.radio_luz,
+					definicion.radio_penumbra,
+					definicion.atraviesa_muros
+				)
+
+func _on_iluminacion_cambiada(_coord: Vector2i) -> void:
+	if tiene_vision_calculada:
+		actualizar_vision(ultimo_centro_jugador, ultimo_radio_jugador)
 
 # --- MATEMÁTICAS Y RAYCASTING ---
 
@@ -69,8 +90,7 @@ func _obtener_area_circulo(centro: Vector2i, radio: int) -> Array[Vector2i]:
 func _trazar_linea_bresenham(p0: Vector2i, p1: Vector2i) -> Array[Vector2i]:
 	return GeometriaGrid.trazar_linea(p0, p1)
 
-# --- PROYECTOR DE LUZ GENÉRICO ---
-
+# --- PROYECTOR DE LUZ GENERICO ---
 func proyectar_luz_fuente(centro: Vector2i, radio_luz: int, radio_penumbra: int, atraviesa_muros: bool = false) -> void:
 	var radio_total = radio_luz + radio_penumbra
 	var celdas_area = _obtener_area_circulo(centro, radio_total)
@@ -93,7 +113,7 @@ func _aplicar_nivel_luz(coord: Vector2i, centro: Vector2i, radio_luz: int) -> vo
 		# Luz central potente (Borra la sombra completamente)
 		_revelar_celda(coord)
 	else:
-		# Halo de penumbra (Sombra al 60%)
+		# Halo de penumbra
 		# Solo se aplica si la casilla no tiene ya luz potente (VISIBLE)
 		if datos_tablero.has(coord) and datos_tablero[coord].visibilidad != Celda.EstadoVisibilidad.VISIBLE:
 			_oscurecer_celda(coord, Celda.EstadoVisibilidad.EXPLORADO)

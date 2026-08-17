@@ -40,6 +40,40 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion
 
 El coordinador reconoce provisionalmente el contrato mediante `has_method(&"validar_accion")` y `has_method(&"resolver_accion")`. La publicación de `OpcionAccion` es una responsabilidad separada que se incorporará con los interactuables; no forma parte de este contrato mínimo.
 
+## Construcción de contextos desde opciones voluntarias
+
+La interfaz contextual no interpreta propiedades concretas del objetivo ni conoce
+las reglas de `EXAMINAR`, antorchas o fogatas. Los proveedores de opciones
+voluntarias implementan el protocolo:
+
+```gdscript
+func construir_contexto_accion(
+    opcion: OpcionAccion,
+    actor: Object,
+    origen: Vector2i,
+    celda_objetivo: Vector2i
+) -> ContextoAccion
+```
+
+`ConstructorContextoAccion` invoca ese protocolo y comprueba que el contexto
+devuelto conserve el tipo, actor, objetivo, coordenadas, línea de efecto, costes y
+política de la opción elegida. Para `INTERACTUAR`, `id_accion` debe coincidir con el
+ID de la opción; para los demás tipos permanece vacío. Un contrato ausente, nulo o
+incoherente se rechaza con un motivo estable y nunca llega a resolución.
+
+`Interactuable` implementa la construcción común. `EXAMINAR` obtiene su alcance del
+perfil de observación y crea una `SolicitudExamen` con el ID del actor.
+`INTERACTUAR` conserva el ID específico publicado. Cada proveedor puede declarar
+el alcance mecánico de sus opciones sin exponerlo a la UI; la primera fuente de luz
+declara alcance Manhattan `1.0` para `encender` y `apagar`.
+
+Elegir una opción habilitada construye exactamente un contexto y lo entrega a
+`GestorAcciones.procesar_accion()`. El gestor repite todas las validaciones
+estructurales, espaciales, específicas y económicas inmediatamente antes de
+resolver. Por ello, una opción que quedó obsoleta mientras el menú estaba abierto
+termina en `BLOQUEO` sin cambios ni costes. `Cancelar` no participa de este
+protocolo y nunca construye contexto.
+
 ## Ciclo inicial del gestor
 
 `GestorAcciones` procesa la lógica de forma síncrona y emite, en ese orden, `accion_iniciada`, `accion_resuelta` y `accion_finalizada`. Un contexto nulo se bloquea antes de iniciar el ciclo porque no existe un objeto válido que transportar en las señales. Para cualquier contexto existente, tanto el éxito como el fallo o bloqueo producen exactamente una resolución y una finalización.
@@ -129,6 +163,7 @@ Objeto inmutable desde que comienza la resolución.
 | `tipo_linea_efecto` | `TipoLineaEfecto` | `NINGUNA`, `VISUAL` o `FISICA`; declara la validación espacial requerida. |
 | `costes_solicitados` | `Dictionary[StringName, float]` | Recursos que el proveedor debe validar y, si corresponde, consumir. |
 | `politica_cobro` | `PoliticaCobro` | `SOLO_EXITO` o `AL_INTENTAR`; nunca permite cobrar un bloqueo. |
+| `solicitud_examen` | `SolicitudExamen` o `null` | Datos tipados y opcionales de `EXAMINAR`; no se sustituyen por metadatos genéricos. |
 
 El contexto se construye con copias de etiquetas, magnitudes y metadatos. Los receptores no deben modificarlo.
 
@@ -224,6 +259,198 @@ enum NivelInformacion {
 - `SECRETO`: información oculta que requiere una condición explícita de descubrimiento.
 
 Descubrir un nivel incluye los inferiores. Los descubrimientos persistentes se registrarán por ID estable del objetivo y por fragmento de información; mejorar temporalmente las condiciones no revela automáticamente secretos.
+
+La progresión de conocimiento no obliga a presentar un mensaje separado por cada
+nivel accesible. Como regla de autoría, `VISIBLE` se reserva principalmente para el
+reconocimiento pasivo del mundo. Cuando el rasgo evidente y la identidad básica
+describen el mismo tema, `BASICO` debe integrarlos en un único fragmento narrativo.
+Así se evita repetir dos frases al examinar desde lejos sin eliminar la distinción
+conceptual entre percepción pasiva y examen activo.
+
+### Fragmentos de información examinable
+
+La información destinada al jugador se define mediante `FragmentoInformacion`, un
+`Resource` reutilizable que describe contenido narrativo y no expone propiedades
+internas del receptor.
+
+| Campo | Tipo | Regla |
+|---|---|---|
+| `id_fragmento` | `StringName` | ID estable dentro de una definición; obligatorio y único. |
+| `nivel` | `NivelInformacion` | Clasifica el fragmento como `VISIBLE`, `BASICO`, `DETALLADO` o `SECRETO`. |
+| `id_mensaje` | `StringName` | ID de presentación localizable; obligatorio. |
+| `pistas_requeridas` | `Array[StringName]` | Condiciones semánticas explícitas necesarias para descubrirlo. No admite valores vacíos ni duplicados. |
+| `se_recuerda` | `bool` | Indica si el descubrimiento debe incorporarse al conocimiento del observador. |
+
+Los fragmentos `SECRETO` deben declarar al menos una pista. Una pista describe una
+condición de dominio, por ejemplo `&"marca_oculta_revelable"`; no identifica la
+variable, habilidad, herramienta o sistema que la produjo. Los estados transitorios,
+como que una llama esté encendida en este momento, pueden representarse mediante un
+fragmento con `se_recuerda = false`.
+
+`DefinicionInteractuable` conserva los fragmentos reutilizables del tipo. Dos
+instancias que comparten definición ofrecen los mismos fragmentos candidatos, pero
+su estado observable y el conocimiento registrado permanecen separados.
+
+### Condiciones de una observación
+
+`CondicionesObservacion` es un contrato inmutable que transporta únicamente hechos
+de la observación actual:
+
+| Campo | Tipo | Regla |
+|---|---|---|
+| `observador` | `Object` | Sujeto que intenta obtener la información; obligatorio. |
+| `distancia` | `float` | Distancia ya calculada, no negativa. |
+| `objetivo_visible` | `bool` | Indica que la celda está actualmente visible, no solo explorada. |
+| `linea_visual_valida` | `bool` | Resultado de la validación visual correspondiente. |
+| `pistas` | `Array[StringName]` | Pistas semánticas disponibles en este intento, sin valores vacíos ni duplicados. |
+
+Las pistas se copian defensivamente. Este contrato no contiene el conocimiento
+recordado ni referencias a UI.
+
+### Perfil y evaluación de información
+
+`PerfilObservacion` separa los alcances de examen de las propiedades mecánicas del
+objetivo. Sus valores iniciales para interactuables estáticos son:
+
+| Campo | Valor inicial | Regla |
+|---|---:|---|
+| `alcance_basico` | `5.0` | Alcance de fragmentos `VISIBLE` y `BASICO`. |
+| `alcance_detallado` | `1.0` | Alcance de fragmentos `DETALLADO`; no puede superar el básico. |
+| `alcance_secreto` | `1.0` | Alcance adicional de fragmentos `SECRETO`; no sustituye sus pistas. |
+| `requiere_objetivo_visible` | `true` | Una celda solo explorada no permite obtener información nueva. |
+| `requiere_linea_visual` | `true` | Exige una línea visual ya validada. |
+
+Cada `DefinicionInteractuable` puede declarar un perfil. Los enemigos y otras
+categorías podrán usar perfiles con alcances distintos sin introducir condiciones
+específicas en el evaluador.
+
+`EvaluadorInformacion` es puro: recibe fragmentos, `CondicionesObservacion` y un
+perfil, no modifica ninguno y devuelve `ResultadoEvaluacionInformacion`. Conserva
+el orden declarado de los fragmentos y aplica estas reglas:
+
+1. Rechazar contratos inválidos e IDs de fragmento duplicados.
+2. Validar visibilidad actual y línea visual según el perfil.
+3. Bloquear cuando la distancia supera el alcance básico.
+4. Filtrar cada nivel por su alcance correspondiente.
+5. Exigir todas las pistas declaradas por cada fragmento.
+6. Informar si la distancia actual permite detalle, sin convertir eso en un descubrimiento persistente.
+
+Los motivos iniciales son `condiciones_observacion_invalidas`,
+`perfil_observacion_invalido`, `fragmentos_informacion_invalidos`,
+`fragmentos_informacion_duplicados`, `objetivo_no_visible`,
+`linea_visual_bloqueada`, `fuera_alcance_examen` y
+`sin_informacion_disponible`.
+
+### Registro de conocimiento por observador
+
+`RegistroConocimiento` mantiene durante la ejecución únicamente IDs estables con
+esta jerarquía:
+
+```text
+id_observador
+└── id_instancia_objetivo
+    └── id_fragmento
+```
+
+No almacena nodos, `Resource`, mensajes ni referencias a UI. La identidad del
+observador se expresa mediante un `StringName` estable para que el modelo pueda
+serializarse en la futura fase de persistencia, aunque en esta fase no se guarda en
+disco.
+
+`registrar_descubrimientos()` valida la solicitud completa antes de modificar el
+registro, ignora fragmentos con `se_recuerda = false` y es idempotente. Devuelve un
+`ResultadoRegistroConocimiento` que distingue:
+
+- Éxito con los IDs aprendidos por primera vez, conservando el orden recibido.
+- Éxito sin novedades cuando todos los fragmentos recordables ya eran conocidos.
+- Fallo sin mutación parcial cuando las claves o los fragmentos son inválidos.
+
+El registro no infiere niveles ni descubre información adicional. Almacena
+exactamente los fragmentos recordables que entregue el evaluador; la inclusión de
+niveles inferiores se obtiene porque el evaluador devuelve todos los fragmentos
+aplicables. `obtener_ids_conocidos()` entrega una copia ordenada y
+`conoce_fragmento()` permite consultar una clave concreta.
+
+Los motivos iniciales del registro son `id_observador_vacio`, `id_objetivo_vacio`,
+`fragmentos_descubrimiento_invalidos` y
+`fragmentos_descubrimiento_duplicados`. El borrado selectivo, la importación y la
+exportación quedan fuera de la Fase 3.
+
+### Solicitud y servicio de examen
+
+`SolicitudExamen` transporta el ID estable del observador y las pistas semánticas
+del intento. Es inmutable, copia sus pistas y exige que el actor implemente:
+
+```gdscript
+func obtener_id_observador() -> StringName
+```
+
+El ID devuelto por el actor debe coincidir con el de la solicitud. De este modo una
+acción no puede atribuir descubrimientos a otro observador. `Ficha` es la primera
+implementación del protocolo mediante su propiedad `id_observador`.
+
+`ServicioExamen` es compartido e independiente de la UI. Recibe `TableroGrid` y un
+`RegistroConocimiento`, y coordina el flujo:
+
+```text
+ContextoAccion EXAMINAR
+→ validar objetivo, definición, solicitud y coordenadas
+→ calcular distancia Manhattan desde el contexto
+→ consultar visibilidad actual en Celda
+→ validar defensivamente la línea visual
+→ evaluar los fragmentos provistos por el interactuable
+→ registrar únicamente los fragmentos recordables nuevos
+→ construir ResultadoAccion
+```
+
+Los mensajes del resultado son los IDs narrativos de todos los fragmentos
+disponibles, aunque ya fueran conocidos. `cambios_estado` contiene únicamente los
+nuevos descubrimientos, identificados mediante observador, objetivo y fragmento.
+Repetir un examen válido vuelve a presentar su información sin duplicar cambios.
+
+`Interactuable` publica la opción `Examinar` y delega su validación y resolución al
+servicio. Puede especializar `obtener_fragmentos_informacion()` para seleccionar
+variantes narrativas según su estado sin exponer la propiedad interna. La primera
+antorcha utiliza este punto para elegir entre dos variantes de un único fragmento
+`BASICO`: ambas presentan identidad y estado evidente en una sola frase. El registro
+recuerda el ID estable `identidad`, no el valor actual de `encendida`.
+
+El tablero inyecta un mismo servicio en los interactuables registrados. El escenario
+principal instancia el gestor, el registro y el servicio, pero todavía no vincula
+el examen al menú contextual de la Fase 4.
+
+### Presentación provisional
+
+`CatalogoMensajesInteraccion` es un `Resource` intercambiable que traduce IDs de
+mensajes y motivos a texto visible. Si falta una entrada conserva el ID como respaldo
+diagnosticable. Este catálogo provisional podrá sustituirse por el sistema de
+localización definitivo sin cambiar fragmentos, resultados ni interactuables.
+
+`PanelResultadoAccion` recibe un título, `ResultadoAccion` y catálogo. Solo compone
+y muestra textos; no evalúa condiciones, registra conocimiento ni conoce clases de
+contenido. La escena expone señales de presentación y cierre, y permite personalizar
+texto del botón, separador, viñeta, tema y estructura visual. Puede cerrarse mediante
+su botón o `ui_cancel`.
+
+Toda opción resuelta desde el menú contextual entrega su `ResultadoAccion` al mismo
+panel reemplazable. La transición menú → resultado conserva un único estado modal:
+el mundo no recupera input entre ambas vistas y el objetivo permanece seleccionado
+y resaltado hasta que el resultado se cierra. El panel no conoce la opción elegida,
+el constructor de contexto ni la implementación del objetivo.
+
+La antorcha de pie, la fogata y ambas orientaciones de antorcha de pared publican
+`EXAMINAR`. Todas ofrecen un fragmento `BASICO` con variantes narrativas encendida y
+apagada; la antorcha de pie conserva además sus fragmentos detallado y secreto.
+
+El atajo `E` permanece únicamente como activación técnica heredada hasta el cierre
+4.7. Selecciona el primer examinable y no resuelve múltiples objetivos, por lo que
+no forma parte del flujo definitivo y debe retirarse junto con sus helpers.
+
+Para la primera fuente de luz, el diseño aprobado prevé información básica hasta
+cinco celdas e información detallada solo en adyacencia. Ese alcance de observación
+es independiente del radio mecánico de iluminación de la fuente. Una celda
+`EXPLORADO` no permitirá descubrimientos nuevos. Los enemigos podrán declarar otro
+perfil de alcance en el futuro sin cambiar estos contratos.
 
 ## Flujos de referencia
 

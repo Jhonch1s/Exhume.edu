@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="CatalogoMensajesInteraccion" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/interacciones/presentacion/catalogo_mensajes_interaccion.gd" id="1_catalogo"]
+
+[resource]
+script = ExtResource("1_catalogo")
+mensajes = {
+&"examen.antorcha_pie.basico_apagada": "Es una antorcha de pie. Está apagada y apenas queda calor en su extremo.",
+&"examen.antorcha_pie.basico_encendida": "Es una antorcha de pie cuya llama ilumina el entorno cercano.",
+&"examen.antorcha_pie.construccion": "El soporte de piedra está ennegrecido por un uso prolongado.",
+&"examen.antorcha_pie.marca_oculta": "Bajo el hollín se distingue una pequeña marca grabada.",
+&"examen.antorcha_pared.basico_apagada": "Es una antorcha fijada a la pared. Está apagada y su soporte conserva algo de hollín.",
+&"examen.antorcha_pared.basico_encendida": "Es una antorcha fijada a la pared cuya llama ilumina el pasadizo.",
+&"examen.fogata.basico_apagada": "Es una pequeña fogata apagada. Entre la leña quedan cenizas y brasas frías.",
+&"examen.fogata.basico_encendida": "Es una pequeña fogata alimentada con leña que ilumina el entorno cercano.",
+&"fuente_luz.apagada": "La fuente de luz queda apagada.",
+&"fuente_luz.encendida": "La fuente de luz queda encendida.",
+&"fuera_alcance_examen": "Está demasiado lejos para examinarlo.",
+&"fuera_de_alcance": "Debes estar junto al objetivo para realizar esa acción.",
+&"interaccion.apagar": "Apagar",
+&"interaccion.cancelar": "Cancelar",
+&"interaccion.encender": "Encender",
+&"interaccion.examinar": "Examinar",
+&"interaccion.seleccionar_objetivo": "¿Qué quieres seleccionar?",
+&"linea_visual_bloqueada": "Algo bloquea la visión del objetivo.",
+&"objetivo_no_visible": "No puedes examinar algo que no ves en este momento.",
+&"sin_informacion_disponible": "No logras obtener información útil.",
+}

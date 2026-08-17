@@ -117,6 +117,10 @@ func _probar_coordenadas_opcionales() -> void:
 		contexto.politica_cobro == TiposInteraccion.PoliticaCobro.SOLO_EXITO,
 		"SOLO_EXITO debe ser la política predeterminada."
 	)
+	_comprobar(
+		contexto.solicitud_examen == null,
+		"Las acciones que no examinan no deben requerir una solicitud de examen."
+	)
 
 
 func _comprobar(condicion: bool, mensaje: String) -> void:

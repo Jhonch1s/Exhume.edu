@@ -1,0 +1,48 @@
+[gd_resource type="Resource" script_class="DefinicionFuenteLuz" load_steps=9 format=3 uid="uid://cy0feigq6rh0i"]
+
+[ext_resource type="Script" uid="uid://cyergln3tfhfs" path="res://scripts/interacciones/interactuables/fuentes_luz/definicion_fuente_luz.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://c83kuwdscr0ds" path="res://assets/tiles/lighting/sources/lights_isometric.png" id="2_textura"]
+[ext_resource type="Script" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="3_fragmento"]
+[ext_resource type="Script" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="4_perfil"]
+
+[sub_resource type="Resource" id="Resource_perfil_antorcha"]
+script = ExtResource("4_perfil")
+
+[sub_resource type="Resource" id="Resource_identidad"]
+script = ExtResource("3_fragmento")
+id_fragmento = &"identidad"
+nivel = 1
+id_mensaje = &"examen.antorcha_pie.basico_encendida"
+
+[sub_resource type="Resource" id="Resource_construccion"]
+script = ExtResource("3_fragmento")
+id_fragmento = &"construccion"
+nivel = 2
+id_mensaje = &"examen.antorcha_pie.construccion"
+
+[sub_resource type="Resource" id="Resource_marca_oculta"]
+script = ExtResource("3_fragmento")
+id_fragmento = &"marca_oculta"
+nivel = 3
+id_mensaje = &"examen.antorcha_pie.marca_oculta"
+pistas_requeridas = Array[StringName]([&"marca_oculta_revelable"])
+
+[resource]
+script = ExtResource("1_script")
+radio_luz = 1
+radio_penumbra = 2
+altura = 1
+permite_caminar = false
+familia_fog = &"luz"
+coordenada_fog = Vector2i(1, 6)
+textura = ExtResource("2_textura")
+region_encendida = Rect2(0, 192, 64, 96)
+region_apagada = Rect2(64, 192, 64, 96)
+mensaje_basico_encendida = &"examen.antorcha_pie.basico_encendida"
+mensaje_basico_apagada = &"examen.antorcha_pie.basico_apagada"
+id_definicion = &"antorcha_pie"
+nombre = "Antorcha de pie"
+descripcion_base = "Una antorcha sostenida por un pedestal de piedra."
+etiquetas = Array[StringName]([&"fuego", &"calor", &"fuente_luz"])
+fragmentos_informacion = Array[ExtResource("3_fragmento")]([SubResource("Resource_identidad"), SubResource("Resource_construccion"), SubResource("Resource_marca_oculta")])
+perfil_observacion = SubResource("Resource_perfil_antorcha")

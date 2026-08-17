@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="DefinicionFuenteLuz" load_steps=7 format=3 uid="uid://c8qj476xbgccl"]
+
+[ext_resource type="Script" uid="uid://cyergln3tfhfs" path="res://scripts/interacciones/interactuables/fuentes_luz/definicion_fuente_luz.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://c83kuwdscr0ds" path="res://assets/tiles/lighting/sources/lights_isometric.png" id="2_textura"]
+[ext_resource type="Script" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="3_fragmento"]
+[ext_resource type="Script" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="4_perfil"]
+
+[sub_resource type="Resource" id="Resource_perfil_fogata"]
+script = ExtResource("4_perfil")
+
+[sub_resource type="Resource" id="Resource_identidad_fogata"]
+script = ExtResource("3_fragmento")
+id_fragmento = &"identidad"
+nivel = 1
+id_mensaje = &"examen.fogata.basico_encendida"
+
+[resource]
+script = ExtResource("1_script")
+radio_luz = 1
+radio_penumbra = 3
+altura = 1
+familia_fog = &"luz"
+coordenada_fog = Vector2i(0, 3)
+textura = ExtResource("2_textura")
+region_encendida = Rect2(64, 96, 64, 96)
+region_apagada = Rect2(0, 96, 64, 96)
+mensaje_basico_encendida = &"examen.fogata.basico_encendida"
+mensaje_basico_apagada = &"examen.fogata.basico_apagada"
+id_definicion = &"fogata"
+nombre = "Fogata"
+descripcion_base = "Una pequeña fogata alimentada con leña."
+etiquetas = Array[StringName]([&"fuego", &"calor", &"fuente_luz"])
+fragmentos_informacion = Array[ExtResource("3_fragmento")]([SubResource("Resource_identidad_fogata")])
+perfil_observacion = SubResource("Resource_perfil_fogata")

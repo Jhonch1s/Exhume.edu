@@ -1,0 +1,38 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/interacciones/panel_resultado_accion.gd" id="1_panel"]
+
+[node name="PanelResultadoAccion" type="PanelContainer"]
+visible = false
+custom_minimum_size = Vector2(360, 0)
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 384.0
+offset_bottom = 220.0
+script = ExtResource("1_panel")
+
+[node name="Margen" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 12
+
+[node name="Contenido" type="VBoxContainer" parent="Margen"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Titulo" type="Label" parent="Margen/Contenido"]
+layout_mode = 2
+text = "Objetivo"
+
+[node name="Mensajes" type="Label" parent="Margen/Contenido"]
+custom_minimum_size = Vector2(328, 96)
+layout_mode = 2
+size_flags_vertical = 3
+text = "Información"
+autowrap_mode = 2
+
+[node name="Cerrar" type="Button" parent="Margen/Contenido"]
+layout_mode = 2
+text = "Cerrar"
