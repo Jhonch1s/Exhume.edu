@@ -43,7 +43,7 @@ func _validar_linea_visual(contexto: ContextoAccion) -> StringName:
 		var celda := tablero.obtener_celda(coordenada)
 		if celda == null:
 			return &"linea_fuera_del_tablero"
-		if celda.bloquea_vision:
+		if celda.bloquea_vision_efectiva():
 			return &"linea_de_efecto_bloqueada"
 
 	return &""

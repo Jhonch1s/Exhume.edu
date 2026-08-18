@@ -84,6 +84,9 @@ func procesar_accion(contexto: ContextoAccion) -> ResultadoAccion:
 			contexto,
 			ResultadoAccion.crear_fallo(&"resultado_receptor_invalido")
 		)
+	var motivo_efectos := _validar_solicitudes_efecto(contexto, resultado_receptor)
+	if motivo_efectos != &"":
+		return _finalizar(contexto, ResultadoAccion.crear_fallo(motivo_efectos))
 
 	var resultado_final: ResultadoAccion = resultado_receptor
 	if _debe_consumir_costes(contexto, resultado_receptor):
@@ -91,6 +94,18 @@ func procesar_accion(contexto: ContextoAccion) -> ResultadoAccion:
 	accion_resuelta.emit(contexto, resultado_receptor)
 	accion_finalizada.emit(contexto, resultado_final)
 	return resultado_final
+
+
+func _validar_solicitudes_efecto(
+	contexto: ContextoAccion,
+	resultado: ResultadoAccion
+) -> StringName:
+	for solicitud in resultado.solicitudes_efecto:
+		if solicitud == null or contexto.id_evento == &"":
+			return &"solicitud_efecto_sin_evento"
+		if solicitud.id_evento != contexto.id_evento:
+			return &"solicitud_efecto_fuera_evento"
+	return &""
 
 
 func _validar_linea_efecto(contexto: ContextoAccion) -> ResultadoAccion:

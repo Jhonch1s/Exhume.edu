@@ -22,37 +22,43 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 @onready var capa_oscuridad: TileMapLayer = $Zona1/CapaOscuridad
 
 const ESCENA_FICHA = preload("res://scenes/ficha/ficha.tscn")
+const DEFINICION_PIEDRA = preload("res://assets/items/piedra/piedra.tres")
 
 @export var catalogo_mensajes: CatalogoMensajesInteraccion
 
 var tablero: TableroGrid = TableroGrid.new()
 var pathfinding: PathFindingManager = PathFindingManager.new()
 var gestor_acciones: GestorAcciones = GestorAcciones.new()
+var consultor_reacciones: ConsultorReaccionesCelda = ConsultorReaccionesCelda.new()
+var resolver_reacciones: ResolverReaccionesCelda
 var registro_conocimiento: RegistroConocimiento = RegistroConocimiento.new()
 var servicio_examen: ServicioExamen
 var ficha_jugador: Ficha = null
+var transferidor_items: TransferidorItems
 var selector_objetivos: SelectorObjetivosInteraccion = SelectorObjetivosInteraccion.new()
 var adaptador_menu_contextual: AdaptadorMenuContextual = AdaptadorMenuContextual.new()
 var constructor_contexto_accion: ConstructorContextoAccion = ConstructorContextoAccion.new()
 var ultima_coordenada_hover: Vector2i = Vector2i(-999, -999)
-var objetivos_hover: Array[Interactuable] = []
-var objetivo_hover: Interactuable = null
-var objetivo_resaltado: Interactuable = null
+var objetivos_hover: Array[Object] = []
+var objetivo_hover: Object = null
+var objetivo_resaltado: Object = null
 var ultima_opcion_contextual_seleccionada: OpcionAccion = null
 var ultimo_contexto_contextual: ContextoAccion = null
 var ultimo_resultado_contextual: ResultadoAccion = null
 var interaccion_modal_activa: bool = false
 var estado_seleccion_objetivos: EstadoSeleccionObjetivos = EstadoSeleccionObjetivos.new()
-var objetivos_pendientes_seleccion: Array[Interactuable]:
+var objetivos_pendientes_seleccion: Array[Object]:
 	get:
 		return estado_seleccion_objetivos.objetivos_pendientes.duplicate()
-var objetivo_seleccionado: Interactuable:
+var objetivo_seleccionado: Object:
 	get:
 		return estado_seleccion_objetivos.objetivo_seleccionado
 var celda_seleccionada: Variant:
 	get:
 		return estado_seleccion_objetivos.celda_seleccionada
 var camino_actual_tentativo: Array[Vector2i] = []
+var ultimo_resultado_salir: ResultadoReacciones
+var ultimo_resultado_entrar: ResultadoReacciones
 
 func _ready() -> void:
 	menu_contextual.opcion_accion_elegida.connect(_on_opcion_contextual_elegida)
@@ -61,17 +67,23 @@ func _ready() -> void:
 	panel_resultado_accion.resultado_presentado.connect(_on_resultado_accion_presentado)
 	panel_resultado_accion.cerrado.connect(_on_panel_resultado_cerrado)
 	add_child(gestor_acciones)
+	resolver_reacciones = ResolverReaccionesCelda.new(gestor_acciones)
 	tablero.generar_desde_zona(zona_actual)
+	transferidor_items = TransferidorItems.new(tablero)
+	tablero.item_suelo_registrado.connect(_on_item_suelo_registrado)
+	tablero.item_suelo_retirado.connect(_on_item_suelo_retirado)
 	servicio_examen = ServicioExamen.new(tablero, registro_conocimiento)
 	tablero.configurar_servicio_examen(servicio_examen)
 	gestor_acciones.configurar_validador_espacial(ValidadorEspacialTablero.new(tablero))
 	var capa_suelo: TileMapLayer = zona_actual.get_node_or_null("CapaSuelo")
 	if capa_suelo:
 		tablero.registrar_interactuables_desde_zona(zona_actual, capa_suelo)
+		tablero.registrar_efectos_superficie_desde_zona(zona_actual, capa_suelo)
 	pathfinding.inicializar(tablero.datos)
 	gestor_vision.inicializar(capa_oscuridad, tablero)
 	spawnear_ficha_inicial()
 	if ficha_jugador:
+		_colocar_piedra_prueba()
 		_actualizar_luz_jugador(ficha_jugador.coordenada_mapa)
 
 func _process(_delta: float) -> void:
@@ -101,7 +113,8 @@ func _process(_delta: float) -> void:
 		camino_actual_tentativo = pathfinding.calcular_camino(
 			ficha_jugador.coordenada_mapa,
 			coord_actual,
-			tablero.datos
+			tablero.datos,
+			ficha_jugador
 		)
 		pathfinding.dibujar_trayectoria(camino_actual_tentativo, capa_camino)
 	else:
@@ -119,6 +132,10 @@ func _unhandled_input(event: InputEvent) -> void:
 				and panel_resultado_accion.visible
 			):
 				panel_resultado_accion.ocultar()
+		get_viewport().set_input_as_handled()
+		return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_G:
+		_soltar_unico_item_prueba()
 		get_viewport().set_input_as_handled()
 		return
 	if not event is InputEventMouseButton or not event.pressed:
@@ -161,7 +178,8 @@ func _manejar_clic_derecho(coord: Vector2i) -> void:
 	var camino_confirmado := pathfinding.calcular_camino(
 		ficha_jugador.coordenada_mapa,
 		coord,
-		tablero.datos
+		tablero.datos,
+		ficha_jugador
 	)
 	if camino_confirmado.size() <= 1:
 		print("No te puedes mover ahi")
@@ -172,7 +190,10 @@ func _manejar_clic_derecho(coord: Vector2i) -> void:
 		camino_confirmado,
 		_preparar_paso_ficha,
 		_confirmar_paso_ficha,
-		_cancelar_paso_ficha
+		_cancelar_paso_ficha,
+		_procesar_salida_paso_ficha,
+		_procesar_entrada_paso_ficha,
+		_calcular_coste_paso_ficha
 	)
 
 func _preparar_paso_ficha(_origen: Vector2i, destino: Vector2i, ficha: Ficha) -> bool:
@@ -183,6 +204,58 @@ func _confirmar_paso_ficha(origen: Vector2i, destino: Vector2i, ficha: Ficha) ->
 
 func _cancelar_paso_ficha(destino: Vector2i, ficha: Ficha) -> void:
 	tablero.cancelar_reserva(destino, ficha)
+
+func _calcular_coste_paso_ficha(
+	_origen: Vector2i,
+	destino: Vector2i,
+	ficha: Ficha
+) -> int:
+	var celda := tablero.obtener_celda(destino)
+	return celda.calcular_coste_movimiento(ficha) if celda != null else -1
+
+func _procesar_salida_paso_ficha(
+	origen: Vector2i,
+	destino: Vector2i,
+	ficha: Ficha
+) -> void:
+	ultimo_resultado_salir = _resolver_reacciones_movimiento(
+		TiposInteraccion.TipoAccion.SALIR,
+		origen,
+		destino,
+		ficha
+	)
+
+func _procesar_entrada_paso_ficha(
+	origen: Vector2i,
+	destino: Vector2i,
+	ficha: Ficha
+) -> void:
+	ultimo_resultado_entrar = _resolver_reacciones_movimiento(
+		TiposInteraccion.TipoAccion.ENTRAR,
+		origen,
+		destino,
+		ficha
+	)
+
+func _resolver_reacciones_movimiento(
+	tipo: TiposInteraccion.TipoAccion,
+	origen: Vector2i,
+	destino: Vector2i,
+	ficha: Ficha
+) -> ResultadoReacciones:
+	var coord_consulta := origen if tipo == TiposInteraccion.TipoAccion.SALIR else destino
+	var celda := tablero.obtener_celda(coord_consulta)
+	var reacciones := consultor_reacciones.obtener_reacciones(celda, tipo, ficha)
+	var resultado := resolver_reacciones.resolver(
+		tipo,
+		ficha,
+		origen,
+		destino,
+		reacciones
+	)
+	if resultado.interrumpe_movimiento:
+		ficha.solicitar_interrupcion()
+	return resultado
 
 func spawnear_ficha_inicial() -> void:
 	var capa_suelo: TileMapLayer = zona_actual.get_node_or_null("CapaSuelo")
@@ -250,7 +323,7 @@ func _solicitar_interaccion_en_celda(coord: Vector2i) -> bool:
 	return iniciada
 
 
-func seleccionar_objetivo_interaccion(objetivo: Interactuable) -> bool:
+func seleccionar_objetivo_interaccion(objetivo: Object) -> bool:
 	var seleccion_valida := estado_seleccion_objetivos.seleccionar(objetivo)
 	_actualizar_resaltado_interaccion()
 	return seleccion_valida
@@ -266,17 +339,21 @@ func _actualizar_resaltado_interaccion() -> void:
 	if objetivo_resaltado == siguiente:
 		return
 	if is_instance_valid(objetivo_resaltado):
-		objetivo_resaltado.establecer_resaltado(false)
+		if objetivo_resaltado.has_method(&"establecer_resaltado"):
+			objetivo_resaltado.call(&"establecer_resaltado", false)
 	objetivo_resaltado = siguiente if is_instance_valid(siguiente) else null
 	if objetivo_resaltado != null:
-		objetivo_resaltado.establecer_resaltado(true)
+		if objetivo_resaltado.has_method(&"establecer_resaltado"):
+			objetivo_resaltado.call(&"establecer_resaltado", true)
 
 
 func _abrir_menu_contextual(posicion_pantalla: Vector2) -> void:
 	if objetivo_seleccionado != null:
-		var opciones := objetivo_seleccionado.obtener_opciones_accion(ficha_jugador)
+		var opciones: Array[OpcionAccion] = objetivo_seleccionado.call(
+			&"obtener_opciones_accion", ficha_jugador
+		)
 		menu_contextual.mostrar(
-			objetivo_seleccionado.definicion.nombre,
+			objetivo_seleccionado.call(&"obtener_nombre_interaccion"),
 			adaptador_menu_contextual.construir_entradas_acciones(
 				opciones,
 				catalogo_mensajes
@@ -297,7 +374,7 @@ func _abrir_menu_contextual(posicion_pantalla: Vector2) -> void:
 		_actualizar_estado_modal_interaccion()
 
 
-func _on_objetivo_contextual_elegido(objetivo: Interactuable) -> void:
+func _on_objetivo_contextual_elegido(objetivo: Object) -> void:
 	if seleccionar_objetivo_interaccion(objetivo):
 		_abrir_menu_contextual(menu_contextual.position)
 
@@ -373,13 +450,55 @@ func _on_panel_resultado_cerrado() -> void:
 func _obtener_titulo_resultado_contextual(opcion: OpcionAccion) -> String:
 	if (
 		opcion != null
-		and opcion.objetivo is Interactuable
 		and is_instance_valid(opcion.objetivo)
-		and opcion.objetivo.definicion != null
-		and not opcion.objetivo.definicion.nombre.is_empty()
+		and opcion.objetivo.has_method(&"obtener_nombre_interaccion")
 	):
-		return opcion.objetivo.definicion.nombre
+		return opcion.objetivo.call(&"obtener_nombre_interaccion")
 	return "Interacción"
+
+
+func _colocar_piedra_prueba() -> void:
+	var direcciones: Array[Vector2i] = [Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT, Vector2i.UP]
+	for direccion in direcciones:
+		var coord := ficha_jugador.coordenada_mapa + direccion
+		if tablero.validar_colocacion_item_suelo(coord, ficha_jugador) != &"":
+			continue
+		var piedra := ItemSuelo.new(ItemInstancia.new(&"zona1_piedra_prueba", DEFINICION_PIEDRA, 1))
+		piedra.configurar_transferidor_items(transferidor_items)
+		tablero.registrar_item_suelo(coord, piedra)
+		return
+
+
+func _on_item_suelo_registrado(coord: Vector2i, item_suelo: ItemSuelo) -> void:
+	if item_suelo.item.definicion.escena_mundo == null:
+		return
+	var representacion := item_suelo.item.definicion.escena_mundo.instantiate() as Node2D
+	if representacion == null:
+		return
+	zona_actual.add_child(representacion)
+	representacion.global_position = zona_actual.get_node("CapaSuelo").map_to_local(coord)
+	item_suelo.vincular_representacion(representacion)
+
+
+func _on_item_suelo_retirado(_coord: Vector2i, item_suelo: ItemSuelo) -> void:
+	var representacion := item_suelo.obtener_representacion()
+	if representacion != null:
+		representacion.queue_free()
+
+
+func _soltar_unico_item_prueba() -> void:
+	if ficha_jugador == null or interaccion_modal_activa:
+		return
+	var contenido := ficha_jugador.inventario.obtener_contenido()
+	if contenido.size() != 1:
+		return
+	var contexto := transferidor_items.construir_contexto_soltar(
+		ficha_jugador,
+		contenido[0],
+		ficha_jugador.coordenada_mapa,
+		ficha_jugador.coordenada_mapa
+	)
+	gestor_acciones.procesar_accion(contexto)
 
 
 func _actualizar_estado_modal_interaccion() -> void:

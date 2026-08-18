@@ -121,6 +121,7 @@ func _probar_coordenadas_opcionales() -> void:
 		contexto.solicitud_examen == null,
 		"Las acciones que no examinan no deben requerir una solicitud de examen."
 	)
+	_comprobar(contexto.id_evento == &"", "El evento debe ser opcional.")
 
 
 func _comprobar(condicion: bool, mensaje: String) -> void:

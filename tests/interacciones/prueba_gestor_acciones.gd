@@ -20,6 +20,17 @@ class ReceptorResultadoInvalido extends RefCounted:
 		return null
 
 
+class ReceptorSolicitudFueraEvento extends RefCounted:
+	func validar_accion(_contexto: ContextoAccion) -> StringName:
+		return &""
+
+	func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
+		return ResultadoAccion.crear_exito(
+			[], [], [], {}, false, false,
+			[SolicitudEfecto.new(&"veneno", &"estado", contexto.actor, &"otro_evento")]
+		)
+
+
 var _fallos: Array[String] = []
 var _eventos: Array[StringName] = []
 var _gestor: GestorAcciones
@@ -38,9 +49,10 @@ func _init() -> void:
 	_probar_objetivo_sin_protocolo()
 	_probar_rechazo_del_receptor()
 	_probar_contratos_invalidos()
+	_probar_solicitud_fuera_evento()
 
 	if _fallos.is_empty():
-		print("GestorAcciones: 6 pruebas correctas.")
+		print("GestorAcciones: 7 pruebas correctas.")
 		quit()
 		return
 
@@ -170,6 +182,36 @@ func _probar_contratos_invalidos() -> void:
 		"Un contrato roto durante la resolución debe producir FALLO."
 	)
 	_comprobar_ciclo_completo("resultado de receptor inválido")
+
+
+func _probar_solicitud_fuera_evento() -> void:
+	var receptor := ReceptorSolicitudFueraEvento.new()
+	var contexto := ContextoAccion.new(
+		TiposInteraccion.TipoAccion.ENTRAR,
+		RefCounted.new(),
+		Vector2i.ZERO,
+		Vector2i(1, 0),
+		receptor,
+		null,
+		&"",
+		[],
+		{},
+		-1.0,
+		{},
+		TiposInteraccion.TipoLineaEfecto.NINGUNA,
+		{},
+		TiposInteraccion.PoliticaCobro.SOLO_EXITO,
+		null,
+		&"evento_correcto"
+	)
+	_eventos.clear()
+	var resultado := _gestor.procesar_accion(contexto)
+	_comprobar(
+		resultado.motivo == &"solicitud_efecto_fuera_evento",
+		"El gestor debe rechazar solicitudes atribuidas a otro evento."
+	)
+	_comprobar(resultado.solicitudes_efecto.is_empty(), "El fallo no debe confirmar solicitudes.")
+	_comprobar_ciclo_completo("solicitud fuera de evento")
 
 
 func _crear_contexto(

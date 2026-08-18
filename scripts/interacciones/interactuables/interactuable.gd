@@ -28,6 +28,14 @@ func configurar_servicio_examen(nuevo_servicio: ServicioExamen) -> void:
 	servicio_examen = nuevo_servicio
 
 
+func obtener_id_objetivo_interaccion() -> StringName:
+	return id_instancia
+
+
+func obtener_nombre_interaccion() -> String:
+	return definicion.nombre if definicion != null else "Interactuable"
+
+
 func establecer_resaltado(activo: bool) -> void:
 	var resaltador := _obtener_resaltador_outline()
 	if resaltador != null:
@@ -78,6 +86,22 @@ func obtener_fragmentos_informacion() -> Array[FragmentoInformacion]:
 	if definicion == null:
 		return []
 	return definicion.fragmentos_informacion.duplicate()
+
+
+func reacciona_automaticamente(_tipo: TiposInteraccion.TipoAccion) -> bool:
+	return false
+
+
+func obtener_id_reaccion() -> StringName:
+	return id_instancia
+
+
+func obtener_coordenada_reaccion() -> Vector2i:
+	return coordenada_mapa
+
+
+func obtener_prioridad_reaccion(_tipo: TiposInteraccion.TipoAccion) -> int:
+	return 0
 
 
 func construir_contexto_accion(

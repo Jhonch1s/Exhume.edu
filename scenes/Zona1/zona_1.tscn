@@ -11,6 +11,8 @@
 [ext_resource type="Resource" uid="uid://c8qj476xbgccl" path="res://assets/interactuables/luces/fogata.tres" id="9_fogata"]
 [ext_resource type="Resource" uid="uid://kjvgt3x64crj" path="res://assets/interactuables/luces/antorcha_pared_izquierda.tres" id="10_pared_izq"]
 [ext_resource type="Resource" uid="uid://bpvm3w36ob568" path="res://assets/interactuables/luces/antorcha_pared_derecha.tres" id="11_pared_der"]
+[ext_resource type="PackedScene" uid="uid://cul4jkns6vh72" path="res://scenes/efectos_superficie/HumoVeneno.tscn" id="12_humo_veneno"]
+[ext_resource type="PackedScene" path="res://scenes/interactuables/trampas/TrampaSuperficie.tscn" id="13_trampa_superficie"]
 
 [node name="Zona1" type="Node2D" unique_id=1662731053]
 y_sort_enabled = true
@@ -43,7 +45,7 @@ tile_set = ExtResource("2_kv68o")
 [node name="Interactuables" type="Node2D" parent="." unique_id=1862476277]
 y_sort_enabled = true
 
-[node name="FuentesLuz" type="Node2D" parent="Interactuables"]
+[node name="FuentesLuz" type="Node2D" parent="Interactuables" unique_id=1007831137]
 y_sort_enabled = true
 
 [node name="AntorchaPie_02_01" parent="Interactuables/FuentesLuz" unique_id=2021354243 instance=ExtResource("3_fuente_luz")]
@@ -100,6 +102,23 @@ definicion = ExtResource("11_pared_der")
 position = Vector2(2240, -704)
 id_instancia = &"zona1_antorcha_pared_der_57_12"
 definicion = ExtResource("11_pared_der")
+
+[node name="Trampas" type="Node2D" parent="Interactuables"]
+y_sort_enabled = true
+
+[node name="TrampaHumo_04_03" parent="Interactuables/Trampas" instance=ExtResource("13_trampa_superficie")]
+position = Vector2(256, 0)
+id_instancia = &"zona1_trampa_humo_04_03"
+
+[node name="TrampaHumo_05_03" parent="Interactuables/Trampas" instance=ExtResource("13_trampa_superficie")]
+position = Vector2(288, -16)
+id_instancia = &"zona1_trampa_humo_05_03"
+
+[node name="EfectosSuperficie" type="Node2D" parent="." unique_id=378389863]
+y_sort_enabled = true
+
+[node name="HumoVeneno" parent="EfectosSuperficie" unique_id=221653413 instance=ExtResource("12_humo_veneno")]
+id_instancia = &"zona1_humo_veneno_00_00"
 
 [node name="CapaColumnas" type="TileMapLayer" parent="." unique_id=1421795526]
 y_sort_enabled = true

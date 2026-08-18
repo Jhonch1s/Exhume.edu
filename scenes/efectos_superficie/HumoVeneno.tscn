@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://cul4jkns6vh72"]
+
+[ext_resource type="Script" uid="uid://bhkrk4oy3m0f5" path="res://scripts/interacciones/reacciones/efectos_superficie/humo_veneno.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://bvu2k5gk6dhce" path="res://assets/tiles/surface_effects/poison/sources/poison_smoke_isometric.png" id="2_guu82"]
+
+[node name="HumoVeneno" type="Node2D" unique_id=700959491 groups=["efectos_superficie"]]
+script = ExtResource("1_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=153905030]
+texture_filter = 1
+texture = ExtResource("2_guu82")
+region_enabled = true
+region_rect = Rect2(0, 0, 64, 32)

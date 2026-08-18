@@ -32,6 +32,10 @@ func inicializar(_capa: TileMapLayer, origen_datos: Variant) -> void:
 		datos_tablero = tablero.datos
 		if not tablero.iluminacion_cambiada.is_connected(_on_iluminacion_cambiada):
 			tablero.iluminacion_cambiada.connect(_on_iluminacion_cambiada)
+		if not tablero.efecto_superficie_registrado.is_connected(_on_superficie_cambiada):
+			tablero.efecto_superficie_registrado.connect(_on_superficie_cambiada)
+		if not tablero.efecto_superficie_retirado.is_connected(_on_superficie_cambiada):
+			tablero.efecto_superficie_retirado.connect(_on_superficie_cambiada)
 	else:
 		datos_tablero = origen_datos
 	
@@ -77,6 +81,10 @@ func _on_iluminacion_cambiada(_coord: Vector2i) -> void:
 	if tiene_vision_calculada:
 		actualizar_vision(ultimo_centro_jugador, ultimo_radio_jugador)
 
+func _on_superficie_cambiada(_coord: Vector2i, _efecto: Object) -> void:
+	if tiene_vision_calculada:
+		actualizar_vision(ultimo_centro_jugador, ultimo_radio_jugador)
+
 # --- MATEMÁTICAS Y RAYCASTING ---
 
 func _obtener_area_circulo(centro: Vector2i, radio: int) -> Array[Vector2i]:
@@ -100,7 +108,11 @@ func proyectar_luz_fuente(centro: Vector2i, radio_luz: int, radio_penumbra: int,
 		
 		for coord in linea:
 			# Si choca con pared y la luz no atraviesa muros, iluminamos la pared y cortamos el rayo
-			if not atraviesa_muros and datos_tablero.has(coord) and datos_tablero[coord].bloquea_vision:
+			if (
+				not atraviesa_muros
+				and datos_tablero.has(coord)
+				and datos_tablero[coord].bloquea_vision_efectiva()
+			):
 				_aplicar_nivel_luz(coord, centro, radio_luz)
 				break
 				

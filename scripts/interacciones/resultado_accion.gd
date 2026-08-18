@@ -17,6 +17,10 @@ var efectos_aplicados: Array:
 	get:
 		return _efectos_aplicados.duplicate()
 
+var solicitudes_efecto: Array[SolicitudEfecto]:
+	get:
+		return _solicitudes_efecto.duplicate()
+
 var cambios_estado: Array[Dictionary]:
 	get:
 		return _cambios_estado.duplicate(true)
@@ -29,6 +33,10 @@ var interrumpe_movimiento: bool:
 	get:
 		return _interrumpe_movimiento
 
+var terminal: bool:
+	get:
+		return _terminal
+
 var exitosa: bool:
 	get:
 		return _estado == TiposInteraccion.EstadoResolucion.EXITO
@@ -37,9 +45,11 @@ var _estado: TiposInteraccion.EstadoResolucion
 var _motivo: StringName
 var _mensajes: Array[StringName]
 var _efectos_aplicados: Array
+var _solicitudes_efecto: Array[SolicitudEfecto]
 var _cambios_estado: Array[Dictionary]
 var _costes_consumidos: Dictionary[StringName, float]
 var _interrumpe_movimiento: bool
+var _terminal: bool
 
 
 func _init(
@@ -49,7 +59,9 @@ func _init(
 	efectos_iniciales: Array = [],
 	cambios_iniciales: Array[Dictionary] = [],
 	costes_iniciales: Dictionary[StringName, float] = {},
-	interrumpe_movimiento_inicial: bool = false
+	interrumpe_movimiento_inicial: bool = false,
+	terminal_inicial: bool = false,
+	solicitudes_iniciales: Array[SolicitudEfecto] = []
 ) -> void:
 	_estado = estado_inicial
 	if _estado == TiposInteraccion.EstadoResolucion.EXITO:
@@ -62,15 +74,19 @@ func _init(
 
 	if _estado == TiposInteraccion.EstadoResolucion.BLOQUEO:
 		_efectos_aplicados = []
+		_solicitudes_efecto = []
 		_cambios_estado = []
 		_costes_consumidos = {}
 		_interrumpe_movimiento = false
+		_terminal = false
 		return
 
 	_efectos_aplicados = efectos_iniciales.duplicate(true)
+	_solicitudes_efecto = solicitudes_iniciales.duplicate()
 	_cambios_estado = cambios_iniciales.duplicate(true)
 	_costes_consumidos = costes_iniciales.duplicate()
 	_interrumpe_movimiento = interrumpe_movimiento_inicial
+	_terminal = terminal_inicial
 
 
 static func crear_exito(
@@ -78,7 +94,9 @@ static func crear_exito(
 	efectos_iniciales: Array = [],
 	cambios_iniciales: Array[Dictionary] = [],
 	costes_iniciales: Dictionary[StringName, float] = {},
-	interrumpe_movimiento_inicial: bool = false
+	interrumpe_movimiento_inicial: bool = false,
+	terminal_inicial: bool = false,
+	solicitudes_iniciales: Array[SolicitudEfecto] = []
 ) -> ResultadoAccion:
 	return ResultadoAccion.new(
 		TiposInteraccion.EstadoResolucion.EXITO,
@@ -87,7 +105,9 @@ static func crear_exito(
 		efectos_iniciales,
 		cambios_iniciales,
 		costes_iniciales,
-		interrumpe_movimiento_inicial
+		interrumpe_movimiento_inicial,
+		terminal_inicial,
+		solicitudes_iniciales
 	)
 
 
@@ -97,7 +117,9 @@ static func crear_fallo(
 	efectos_iniciales: Array = [],
 	cambios_iniciales: Array[Dictionary] = [],
 	costes_iniciales: Dictionary[StringName, float] = {},
-	interrumpe_movimiento_inicial: bool = false
+	interrumpe_movimiento_inicial: bool = false,
+	terminal_inicial: bool = false,
+	solicitudes_iniciales: Array[SolicitudEfecto] = []
 ) -> ResultadoAccion:
 	return ResultadoAccion.new(
 		TiposInteraccion.EstadoResolucion.FALLO,
@@ -106,7 +128,9 @@ static func crear_fallo(
 		efectos_iniciales,
 		cambios_iniciales,
 		costes_iniciales,
-		interrumpe_movimiento_inicial
+		interrumpe_movimiento_inicial,
+		terminal_inicial,
+		solicitudes_iniciales
 	)
 
 
@@ -139,5 +163,7 @@ func con_costes_consumidos(
 		_efectos_aplicados,
 		_cambios_estado,
 		nuevos_costes,
-		_interrumpe_movimiento
+		_interrumpe_movimiento,
+		_terminal,
+		_solicitudes_efecto
 	)

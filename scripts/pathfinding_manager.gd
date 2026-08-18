@@ -17,11 +17,8 @@ func inicializar(tablero_datos:Dictionary) -> void:
 		if not celda.caminable:
 			astar.set_point_disabled(id, true)
 		
-		##sino, si tiene daño (lava u otras adiciones a futuro), le damos un costo muy alto para el algoritmo
-		elif celda.damage != null:
-			astar.set_point_weight_scale(id, 5.0) #ta potente
 		else:
-			astar.set_point_weight_scale(id, 1.0) #piso de chill
+			astar.set_point_weight_scale(id, celda.calcular_peso_ruta())
 	##ahora conectamos los puntos vecinos entre sí, porque están todos sueltos (vecinos arriba abajo costados)
 	var direcciones = [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]
 	
@@ -34,7 +31,12 @@ func inicializar(tablero_datos:Dictionary) -> void:
 				if not astar.are_points_connected(id_actual, id_vecino):
 					astar.connect_points(id_actual, id_vecino, true)
 
-func calcular_camino(origen: Vector2i, destino: Vector2i, tablero_datos:Dictionary)-> Array[Vector2i]:
+func calcular_camino(
+	origen: Vector2i,
+	destino: Vector2i,
+	tablero_datos: Dictionary,
+	actor: Object = null
+) -> Array[Vector2i]:
 	var camino:Array[Vector2i]=[]
 	if not tablero_datos.has(origen) or not tablero_datos.has(destino):
 		return camino
@@ -45,7 +47,9 @@ func calcular_camino(origen: Vector2i, destino: Vector2i, tablero_datos:Dictiona
 		var bloqueada := not celda.caminable or celda.tiene_contenido() or celda.esta_reservada()
 		if coord == origen:
 			bloqueada = false
-		astar.set_point_disabled(_obtener_id_unico(coord), bloqueada)
+		var id := _obtener_id_unico(coord)
+		astar.set_point_disabled(id, bloqueada)
+		astar.set_point_weight_scale(id, celda.calcular_peso_ruta(actor))
 
 	if destino != origen:
 		var celda_destino: Celda = tablero_datos[destino]

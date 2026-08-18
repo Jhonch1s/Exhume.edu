@@ -30,15 +30,15 @@ func construir_entradas_acciones(
 
 
 func construir_entradas_objetivos(
-	objetivos: Array[Interactuable],
+	objetivos: Array[Object],
 	catalogo: CatalogoMensajesInteraccion
 ) -> Array[EntradaMenuContextual]:
-	var objetivos_validos: Array[Interactuable] = []
+	var objetivos_validos: Array[Object] = []
 	for objetivo in objetivos:
 		if (
 			objetivo == null
 			or not is_instance_valid(objetivo)
-			or objetivo.definicion == null
+			or not objetivo.has_method(&"obtener_nombre_interaccion")
 		):
 			continue
 		objetivos_validos.append(objetivo)
@@ -48,7 +48,7 @@ func construir_entradas_objetivos(
 	for objetivo in objetivos_validos:
 		entradas.append(EntradaMenuContextual.desde_objetivo(
 			objetivo,
-			objetivo.definicion.nombre
+			objetivo.call(&"obtener_nombre_interaccion")
 		))
 	entradas.append(EntradaMenuContextual.cancelar(
 		_resolver(catalogo, &"interaccion.cancelar")
@@ -62,8 +62,10 @@ func _ordenar_opciones(izquierda: OpcionAccion, derecha: OpcionAccion) -> bool:
 	return String(izquierda.id) < String(derecha.id)
 
 
-func _ordenar_objetivos(izquierdo: Interactuable, derecho: Interactuable) -> bool:
-	return String(izquierdo.id_instancia) < String(derecho.id_instancia)
+func _ordenar_objetivos(izquierdo: Object, derecho: Object) -> bool:
+	return String(izquierdo.call(&"obtener_id_objetivo_interaccion")) < String(
+		derecho.call(&"obtener_id_objetivo_interaccion")
+	)
 
 
 func _resolver(

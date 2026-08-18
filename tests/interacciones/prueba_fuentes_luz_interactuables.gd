@@ -22,9 +22,13 @@ func _ejecutar_pruebas() -> void:
 	tablero.generar_desde_zona(zona)
 	var registro_valido := tablero.registrar_interactuables_desde_zona(zona, capa_suelo)
 
-	_comprobar(registro_valido, "Todas las fuentes migradas deben registrarse.")
+	_comprobar(registro_valido, "Todos los interactuables de la zona deben registrarse.")
+	var cantidad_fuentes := 0
+	for interactuable in tablero.interactuables_por_id.values():
+		if interactuable is FuenteLuzInteractuable:
+			cantidad_fuentes += 1
 	_comprobar(
-		tablero.interactuables_por_id.size() == 11,
+		cantidad_fuentes == 11,
 		"La migracion debe conservar las once fuentes de CapaLuces."
 	)
 

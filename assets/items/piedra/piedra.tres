@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="DefinicionItem" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/interacciones/items/definicion_item.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/items/piedra_suelo.tscn" id="2"]
+
+[resource]
+script = ExtResource("1")
+id_definicion = &"piedra"
+nombre = "Piedra"
+escena_mundo = ExtResource("2")
+etiquetas = Array[StringName]([&"mineral"])
+apilable = true
+cantidad_maxima = 99

@@ -61,6 +61,18 @@ var solicitud_examen: SolicitudExamen:
 	get:
 		return _solicitud_examen
 
+var id_evento: StringName:
+	get:
+		return _id_evento
+
+var cantidad_item: int:
+	get:
+		return _cantidad_item
+
+var id_item_resultante: StringName:
+	get:
+		return _id_item_resultante
+
 var _tipo: TiposInteraccion.TipoAccion
 var _id_accion: StringName
 var _actor: Object
@@ -76,6 +88,9 @@ var _tipo_linea_efecto: TiposInteraccion.TipoLineaEfecto
 var _costes_solicitados: Dictionary[StringName, float]
 var _politica_cobro: TiposInteraccion.PoliticaCobro
 var _solicitud_examen: SolicitudExamen
+var _id_evento: StringName
+var _cantidad_item: int
+var _id_item_resultante: StringName
 
 
 func _init(
@@ -97,7 +112,10 @@ func _init(
 	politica_cobro_inicial: TiposInteraccion.PoliticaCobro = (
 		TiposInteraccion.PoliticaCobro.SOLO_EXITO
 	),
-	solicitud_examen_inicial: SolicitudExamen = null
+	solicitud_examen_inicial: SolicitudExamen = null,
+	id_evento_inicial: StringName = &"",
+	cantidad_item_inicial: int = -1,
+	id_item_resultante_inicial: StringName = &""
 ) -> void:
 	_tipo = tipo_inicial
 	_actor = actor_inicial
@@ -114,6 +132,9 @@ func _init(
 	_costes_solicitados = costes_solicitados_iniciales.duplicate()
 	_politica_cobro = politica_cobro_inicial
 	_solicitud_examen = solicitud_examen_inicial
+	_id_evento = id_evento_inicial
+	_cantidad_item = cantidad_item_inicial
+	_id_item_resultante = id_item_resultante_inicial
 
 
 func tiene_origen() -> bool:

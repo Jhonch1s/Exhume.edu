@@ -2,13 +2,13 @@ class_name EstadoSeleccionObjetivos
 extends RefCounted
 
 var celda_seleccionada: Variant = null
-var objetivos_pendientes: Array[Interactuable] = []
-var objetivo_seleccionado: Interactuable = null
+var objetivos_pendientes: Array[Object] = []
+var objetivo_seleccionado: Object = null
 
 
 func iniciar(
 	coordenada: Vector2i,
-	objetivos: Array[Interactuable]
+	objetivos: Array[Object]
 ) -> bool:
 	limpiar()
 	if objetivos.is_empty():
@@ -22,7 +22,7 @@ func iniciar(
 	return true
 
 
-func seleccionar(objetivo: Interactuable) -> bool:
+func seleccionar(objetivo: Object) -> bool:
 	if (
 		objetivo == null
 		or not is_instance_valid(objetivo)

@@ -19,6 +19,10 @@ func _init() -> void:
 
 
 func _probar_exito_y_copias_defensivas() -> void:
+	var objetivo_efecto := RefCounted.new()
+	var solicitud := SolicitudEfecto.new(
+		&"veneno", &"estado", objetivo_efecto, &"evento_prueba"
+	)
 	var mensajes_originales: Array[StringName] = [&"examinar.objetivo_observado"]
 	var cambios_originales: Array[Dictionary] = [{
 		&"propiedad": &"informacion_descubierta",
@@ -32,13 +36,20 @@ func _probar_exito_y_copias_defensivas() -> void:
 		mensajes_originales,
 		[],
 		cambios_originales,
-		costes_originales
+		costes_originales,
+		false,
+		false,
+		[solicitud]
 	)
 
 	_comprobar(resultado.exitosa, "Un éxito debe informar exitosa = true.")
 	_comprobar(resultado.motivo == &"", "Un éxito no debe conservar un motivo.")
 	_comprobar(resultado.consumio_accion(), "Debe registrar el coste de acción.")
 	_comprobar(resultado.consumio_turno(), "Debe registrar el coste de turno.")
+	_comprobar(
+		resultado.solicitudes_efecto == [solicitud],
+		"Debe separar solicitudes de efectos confirmados."
+	)
 
 	mensajes_originales.append(&"mensaje_añadido_desde_fuera")
 	cambios_originales[0][&"valor"] = false
@@ -54,6 +65,15 @@ func _probar_exito_y_copias_defensivas() -> void:
 	_comprobar(
 		resultado.costes_consumidos[&"accion"] == 1.0,
 		"Los costes deben copiarse al construir."
+	)
+
+	var terminal := ResultadoAccion.crear_exito([], [], [], {}, true, true)
+	var terminal_con_coste := terminal.con_costes_consumidos({&"energia": 1.0})
+	_comprobar(terminal.interrumpe_movimiento, "Debe conservar la interrupción.")
+	_comprobar(terminal.terminal, "Debe exponer la terminalidad.")
+	_comprobar(
+		terminal_con_coste.terminal,
+		"Confirmar costes no debe perder la terminalidad."
 	)
 
 
@@ -102,6 +122,7 @@ func _probar_bloqueo() -> void:
 	_comprobar(resultado.cambios_estado.is_empty(), "Un bloqueo no admite cambios.")
 	_comprobar(resultado.costes_consumidos.is_empty(), "Un bloqueo no admite costes.")
 	_comprobar(not resultado.interrumpe_movimiento, "Un bloqueo no debe interrumpir.")
+	_comprobar(not resultado.terminal, "Un bloqueo no debe ser terminal.")
 
 
 func _comprobar(condicion: bool, mensaje: String) -> void:

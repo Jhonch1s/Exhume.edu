@@ -6,10 +6,10 @@
 
 ## Estado general
 
-- Estado actual: Fase 4 — Menú contextual obligatorio completada.
-- Próximo paso: Fase 5 — reacciones automáticas al movimiento.
-- Primera vertical slice: una antorcha o fogata colocada en el mapa que puede examinarse, apagarse y encenderse desde el menú contextual, conservando su iluminación y sombras.
-- Última actualización de este registro: 17 de agosto de 2026.
+- Estado actual: Fase 6 — Sistema de efectos completada.
+- Próximo paso: Fase 7 — items e inventario mínimo.
+- Última vertical slice: entrar en la lava real de Zona1 produce daño mediante el mismo aplicador usado por trampas e impactos.
+- Última actualización de este registro: 18 de agosto de 2026.
 
 ### Progreso por fases
 
@@ -18,8 +18,8 @@
 - [x] Fase 2 — Entidad interactuable base. *(completada el 17 de agosto de 2026)*
 - [x] Fase 3 — Examinar e información progresiva. *(completada el 17 de agosto de 2026)*
 - [x] Fase 4 — Menú contextual obligatorio. *(completada el 17 de agosto de 2026)*
-- [ ] Fase 5 — Reacciones automáticas al movimiento.
-- [ ] Fase 6 — Sistema de efectos.
+- [x] Fase 5 — Reacciones automáticas al movimiento. *(completada el 17 de agosto de 2026)*
+- [x] Fase 6 — Sistema de efectos. *(completada el 18 de agosto de 2026)*
 - [ ] Fase 7 — Items e inventario mínimo.
 - [ ] Fase 8 — Usar items sobre objetivos.
 - [ ] Fase 9 — Lanzamiento, trayectoria e impacto.
@@ -466,15 +466,108 @@ Integrar las acciones `ENTRAR` y `SALIR` con el movimiento celda por celda que y
 
 ### Criterio de cierre
 
-La ficha camina sobre una trampa, completa el paso, activa exactamente una reacción, aplica sus efectos y se detiene correctamente en la celda.
+La ficha camina sobre una trampa, completa el paso, activa cada trampa exactamente una vez, aplica sus consecuencias y se detiene correctamente en la celda.
 
 ### Registro de implementación
 
-- Estado: pendiente.
-- Decisiones nuevas: —
-- Archivos modificados: —
-- Pruebas: —
-- Pendientes: —
+- Estado: completada el 17 de agosto de 2026; incrementos 5.1 a 5.6 implementados.
+- Responsable: sesión Codex del 17 de agosto de 2026.
+- Incremento 5.1: `Ficha` expone dos callbacks síncronos por paso. `SALIR` se
+  procesa después de completar el tween y antes de confirmar la ocupación;
+  `ENTRAR` se procesa después de que tablero, coordenada de la ficha y coste
+  normal del paso estén confirmados. Una interrupción solicitada en cualquiera
+  de ambos puntos se aplica antes del siguiente tween, incluso en el último
+  tramo de la ruta.
+- Decisiones nuevas: el coste normal continúa perteneciendo a `Ficha`; los
+  callbacks de 5.1 no crean menú ni presentan UI; las señales de ocupación del
+  tablero siguen siendo observacionales y no disparan reacciones. En 5.2 cada
+  fuente automática acredita ID y prioridad mediante un protocolo de comportamiento;
+  la consulta usa copias, excluye al actor entre ocupantes y ordena por categoría,
+  prioridad e ID estable.
+- Incremento 5.2: `ConsultorReaccionesCelda` consulta terreno, efectos de
+  superficie, interactuables, items y ocupantes sin resolverlos. `ReaccionCelda`
+  conserva el descriptor ordenable y `CategoriaReaccion` fija el orden acordado.
+  La prueba usa humo venenoso como superficie consultable, sin aplicar todavía
+  veneno, daño ni estados.
+- Incremento 5.3: cada descriptor se convierte en un contexto automático dirigido
+  y se procesa mediante `GestorAcciones`; `ResultadoReacciones` agrega mensajes,
+  efectos confirmados, cambios, costes e interrupción. Un receptor duplicado se
+  ejecuta una sola vez y un resultado terminal conserva lo ya resuelto y omite los
+  receptores posteriores. `EscenarioBase` conecta este flujo a `SALIR` y `ENTRAR`
+  sin menú ni presentación directa.
+- Incremento 5.3.1: `Zona1` incorpora el grupo organizativo `EfectosSuperficie` y
+  una instancia `HumoVeneno` en la celda `(0, 0)`. El tablero descubre y registra
+  superficies por ID estable; el humo publica una reacción `ENTRAR` que devuelve
+  mensaje e interrupción sin aplicar todavía daño o estado de veneno. Su escena
+  deja un `Sprite2D` vacío, al nivel visual de la celda, preparado para asignar el
+  atlas creado por arte.
+- Incremento 5.4: cada celda calcula un coste de paso compuesto por base `1`,
+  adicional del terreno y aportes de superficies. `Ficha` valida el total antes
+  de reservar, lo cobra únicamente tras confirmar la ocupación y duplica la
+  duración del tween cuando el coste supera `1`. El pathfinding recalcula esos
+  costes para el actor y suma por separado una penalización de peligro que no
+  consume energía. El humo aporta `1` adicional; entrar cuesta `2`, camina a media
+  velocidad y conserva su interrupción posterior a `ENTRAR`.
+- Incremento 5.5: `TrampaSuperficie` es un interactuable automático que no
+  publica opciones contextuales. Al recibir `ENTRAR`, despliega
+  una escena de superficie configurable en un radio Manhattan sobre celdas
+  caminables, registra cada instancia con ID estable e interrumpe la ruta después
+  de confirmar el paso. Su presentación puede ser oculta, un indicio con opacidad
+  reducida o completamente visible. La primera trampa de Zona1 está en `(4, 3)`,
+  tiene radio `1` y genera humo venenoso en cinco celdas despejadas. Su atlas usa
+  una columna armada y otra presionada; el indicio se presenta con alpha `0.7` y
+  el modo oculto con alpha `0.0`. Las trampas cardinalmente adyacentes se agregan
+  a la misma resolución automática, propagando la cadena sin duplicados ni ciclos;
+  las diagonales no se encadenan.
+- Incremento 5.6: las trampas quedan formalmente limitadas a un solo uso mientras
+  no exista expiración de superficies ni rearme. Zona1 incorpora una segunda
+  trampa en `(5, 3)`, adyacente a la de `(4, 3)`, para comprobar visualmente la
+  cadena real; ambas cambian a la región presionada y despliegan su propio humo.
+- Archivos modificados: [`scenes/ficha/ficha.gd`](scenes/ficha/ficha.gd),
+  [`scenes/escenario_base/escenario_base.gd`](scenes/escenario_base/escenario_base.gd),
+  [`scripts/celda.gd`](scripts/celda.gd),
+  [`scripts/tablero_grid.gd`](scripts/tablero_grid.gd),
+  [`scripts/pathfinding_manager.gd`](scripts/pathfinding_manager.gd),
+  [`assets/tile_sets/terrain/cave_terrain.tres`](assets/tile_sets/terrain/cave_terrain.tres),
+  [`scripts/interacciones/tipos_interaccion.gd`](scripts/interacciones/tipos_interaccion.gd),
+  [`scripts/interacciones/reacciones/reaccion_celda.gd`](scripts/interacciones/reacciones/reaccion_celda.gd),
+  [`scripts/interacciones/reacciones/consultor_reacciones_celda.gd`](scripts/interacciones/reacciones/consultor_reacciones_celda.gd),
+  [`scripts/interacciones/reacciones/resultado_reacciones.gd`](scripts/interacciones/reacciones/resultado_reacciones.gd),
+  [`scripts/interacciones/reacciones/resolver_reacciones_celda.gd`](scripts/interacciones/reacciones/resolver_reacciones_celda.gd),
+  [`scripts/interacciones/reacciones/efectos_superficie/humo_veneno.gd`](scripts/interacciones/reacciones/efectos_superficie/humo_veneno.gd),
+  [`scenes/efectos_superficie/HumoVeneno.tscn`](scenes/efectos_superficie/HumoVeneno.tscn),
+  [`scripts/interacciones/interactuables/trampas/trampa_superficie.gd`](scripts/interacciones/interactuables/trampas/trampa_superficie.gd),
+  [`scenes/interactuables/trampas/TrampaSuperficie.tscn`](scenes/interactuables/trampas/TrampaSuperficie.tscn),
+  [`scenes/Zona1/zona_1.tscn`](scenes/Zona1/zona_1.tscn),
+  [`scripts/interacciones/interactuables/interactuable.gd`](scripts/interacciones/interactuables/interactuable.gd),
+  [`tests/movimiento/prueba_ciclo_seguro_paso.gd`](tests/movimiento/prueba_ciclo_seguro_paso.gd),
+  [`tests/movimiento/prueba_costes_movimiento.gd`](tests/movimiento/prueba_costes_movimiento.gd),
+  [`tests/interacciones/prueba_consultor_reacciones_celda.gd`](tests/interacciones/prueba_consultor_reacciones_celda.gd),
+  [`tests/interacciones/prueba_resolver_reacciones_celda.gd`](tests/interacciones/prueba_resolver_reacciones_celda.gd),
+  [`tests/interacciones/prueba_humo_veneno_superficie.gd`](tests/interacciones/prueba_humo_veneno_superficie.gd),
+  [`tests/interacciones/prueba_trampa_superficie.gd`](tests/interacciones/prueba_trampa_superficie.gd),
+  [`docs/CONTRATOS_SISTEMA_INTERACCIONES.md`](docs/CONTRATOS_SISTEMA_INTERACCIONES.md)
+  y este roadmap.
+- Pruebas: `prueba_ciclo_seguro_paso.gd` caracteriza el orden único
+  `SALIR → confirmar → ENTRAR`, los estados de ocupación y coordenada observados
+  en cada punto, el coste normal único y la interrupción entre pasos;
+  `prueba_consultor_reacciones_celda.gd` cubre categorías, prioridad, desempate
+  estable, filtrado por tipo y exclusión del actor;
+  `prueba_resolver_reacciones_celda.gd` cubre canal común, agregación, duplicados,
+  terminalidad e interrupción. Batería secuencial completa: 29/29 scripts
+  correctos con Godot 4.7; carga breve de la escena principal sin errores de
+  scripts. `prueba_humo_veneno_superficie.gd` valida colocación, registro, consulta,
+  resolución, mensaje, interrupción, coste total `2` y ausencia de efecto mecánico
+  anticipado. `prueba_costes_movimiento.gd` valida composición, separación del
+  peligro, elección de rutas por coste, consumo tras confirmación, duración doble
+  y rechazo sin reserva cuando falta energía. `prueba_trampa_superficie.gd` mueve
+  una ficha real hasta la trampa, confirma ocupación, una activación única por
+  receptor, despliegue radial, interrupción entre pasos y ausencia de reactivación.
+  También valida las dos trampas colocadas, el atlas armado/presionado, los niveles
+  alpha y una cadena de tres trampas cardinales con una diagonal aislada.
+- Pendientes: no se han implementado todavía veneno mecánico, terreno reactivo
+  concreto, explosiones, inspección/desarme de trampas ni efectos generales; esas
+  consecuencias permanecen reservadas para la Fase 6.
 
 ## Fase 6 — Sistema de efectos
 
@@ -513,11 +606,34 @@ El mismo efecto de daño se reutiliza sin modificaciones en lava, una trampa y u
 
 ### Registro de implementación
 
-- Estado: pendiente.
-- Decisiones nuevas: —
-- Archivos modificados: —
-- Pruebas: —
-- Pendientes: —
+- Estado: completada; incrementos 6.1 a 6.8 cerrados el 18 de agosto de 2026.
+- Decisiones nuevas: las aplicaciones se describen mediante `SolicitudEfecto`; la identidad lógica inicial combina evento, clave semántica y objetivo; `NO_APILAR_Y_RENOVAR` conserva la mayor magnitud y duración sin sumarlas; claves, objetivos o eventos distintos permanecen separados; un lote inválido se rechaza completo.
+- Archivos modificados en 6.1: [`scripts/interacciones/tipos_interaccion.gd`](scripts/interacciones/tipos_interaccion.gd), [`scripts/interacciones/efectos/solicitud_efecto.gd`](scripts/interacciones/efectos/solicitud_efecto.gd), [`scripts/interacciones/efectos/agregador_solicitudes_efecto.gd`](scripts/interacciones/efectos/agregador_solicitudes_efecto.gd), [`scripts/interacciones/efectos/resultado_agregacion_efectos.gd`](scripts/interacciones/efectos/resultado_agregacion_efectos.gd), [`tests/interacciones/prueba_agregador_solicitudes_efecto.gd`](tests/interacciones/prueba_agregador_solicitudes_efecto.gd), contratos y este roadmap.
+- Pruebas de 6.1: `prueba_agregador_solicitudes_efecto.gd` valida deduplicación, renovación por máximo, separación por clave, objetivo y evento, orden de primera aparición, copias defensivas y rechazo atómico; correcta con Godot 4.7.
+- Archivos modificados en 6.2: [`scripts/interacciones/contexto_accion.gd`](scripts/interacciones/contexto_accion.gd), [`scripts/interacciones/resultado_accion.gd`](scripts/interacciones/resultado_accion.gd), [`scripts/interacciones/gestor_acciones.gd`](scripts/interacciones/gestor_acciones.gd), [`scripts/interacciones/reacciones/resultado_reacciones.gd`](scripts/interacciones/reacciones/resultado_reacciones.gd), [`scripts/interacciones/reacciones/resolver_reacciones_celda.gd`](scripts/interacciones/reacciones/resolver_reacciones_celda.gd), pruebas, contratos y este roadmap.
+- Pruebas de 6.2: contexto, resultado, gestor y resolución automática validan separación solicitado/aplicado, pertenencia al evento, deduplicación del lote y conservación de señales; regresión correcta de humo y trampas con Godot 4.7.
+- Archivos añadidos o modificados en 6.3: [`scripts/interacciones/efectos/aplicador_efectos.gd`](scripts/interacciones/efectos/aplicador_efectos.gd), [`scripts/interacciones/efectos/resultado_efecto_aplicado.gd`](scripts/interacciones/efectos/resultado_efecto_aplicado.gd), [`scripts/interacciones/efectos/explosion.gd`](scripts/interacciones/efectos/explosion.gd), [`scripts/interacciones/reacciones/resultado_reacciones.gd`](scripts/interacciones/reacciones/resultado_reacciones.gd), [`scripts/interacciones/reacciones/resolver_reacciones_celda.gd`](scripts/interacciones/reacciones/resolver_reacciones_celda.gd), [`scenes/ficha/ficha.gd`](scenes/ficha/ficha.gd), [`tests/interacciones/prueba_danio_y_explosion.gd`](tests/interacciones/prueba_danio_y_explosion.gd), contratos y este roadmap.
+- Pruebas de 6.3: el mismo aplicador descuenta vida para lava, trampa e impacto artificiales; dos explosiones del mismo evento y radio Manhattan producen un único daño confirmado por objetivo; la diagonal queda fuera del radio uno.
+- Archivos añadidos o modificados en 6.4: [`scripts/interacciones/efectos/estado_actor.gd`](scripts/interacciones/efectos/estado_actor.gd), [`scripts/interacciones/efectos/aplicador_efectos.gd`](scripts/interacciones/efectos/aplicador_efectos.gd), [`scripts/interacciones/efectos/resultado_efecto_aplicado.gd`](scripts/interacciones/efectos/resultado_efecto_aplicado.gd), [`scripts/interacciones/reacciones/resultado_reacciones.gd`](scripts/interacciones/reacciones/resultado_reacciones.gd), [`scripts/interacciones/reacciones/efectos_superficie/humo_veneno.gd`](scripts/interacciones/reacciones/efectos_superficie/humo_veneno.gd), [`scenes/ficha/ficha.gd`](scenes/ficha/ficha.gd), [`tests/interacciones/prueba_humo_veneno_superficie.gd`](tests/interacciones/prueba_humo_veneno_superficie.gd), contratos y este roadmap.
+- Decisiones de 6.4: veneno produce dos ticks totales de un punto; el primero es inmediato y queda uno pendiente; renovar restaura el tick pendiente sin repetir el daño inmediato; el debuff adicional queda pospuesto; quemado queda acordado en tres ticks totales de un punto para su incremento de fuego.
+- Pruebas de 6.4: dos nubes superpuestas producen un único estado, mensaje, cambio y daño inmediato; una entrada posterior renueva sin repetir daño; regresión correcta de daño, explosión, resultados, resolución y trampas con Godot 4.7.
+- Archivos modificados en 6.5: [`scripts/celda.gd`](scripts/celda.gd), [`scripts/tablero_grid.gd`](scripts/tablero_grid.gd), [`scripts/interacciones/reacciones/efectos_superficie/humo_veneno.gd`](scripts/interacciones/reacciones/efectos_superficie/humo_veneno.gd), [`tests/movimiento/prueba_costes_movimiento.gd`](tests/movimiento/prueba_costes_movimiento.gd), [`tests/interacciones/prueba_humo_veneno_superficie.gd`](tests/interacciones/prueba_humo_veneno_superficie.gd), contratos y este roadmap.
+- Decisiones de 6.5: cada superficie puede declarar una familia lógica; el coste usa el mayor aporte de una familia y suma familias diferentes; las instancias permanecen registradas por separado; retirar una contribución no elimina las restantes.
+- Pruebas de 6.5: dos nubes superpuestas conservan coste total dos, veneno y mensajes únicos; humo y fuego artificiales suman sus máximos por familia; retirar una nube mantiene el coste de la otra.
+- Archivos modificados en 6.6: [`scripts/celda.gd`](scripts/celda.gd), [`scripts/fov_manager.gd`](scripts/fov_manager.gd), [`scripts/interacciones/validador_espacial_tablero.gd`](scripts/interacciones/validador_espacial_tablero.gd), [`scripts/interacciones/reacciones/efectos_superficie/humo_veneno.gd`](scripts/interacciones/reacciones/efectos_superficie/humo_veneno.gd), [`tests/interacciones/prueba_humo_bloquea_vision.gd`](tests/interacciones/prueba_humo_bloquea_vision.gd), contratos y este roadmap.
+- Decisiones de 6.6: una celda bloquea visión si lo hace su terreno o cualquier superficie activa; `HumoVeneno` declara bloqueo y duración diez; registrar o retirar superficies recalcula el FOV ya inicializado; las superposiciones se componen con OR y retirar una instancia no desactiva las restantes.
+- Corrección posterior del 18 de agosto de 2026: toxicidad y opacidad se separan.
+  `HumoVeneno` deja de bloquear visión; la nueva superficie lógica `Humo` conserva
+  el bloqueo y duración diez. Su generación al apagar fuego o mediante items queda
+  para las fases que implementen esas acciones.
+- Pruebas de 6.6: el humo oculta una celda situada detrás tanto para FOV como para línea visual; dos humos superpuestos mantienen el bloqueo al retirar uno y restauran la visión al retirar el último.
+- Archivos añadidos o modificados en 6.7: [`scripts/interacciones/efectos/aplicador_efectos.gd`](scripts/interacciones/efectos/aplicador_efectos.gd), [`scripts/interacciones/reacciones/efectos_superficie/fuego.gd`](scripts/interacciones/reacciones/efectos_superficie/fuego.gd), [`scenes/efectos_superficie/Fuego.tscn`](scenes/efectos_superficie/Fuego.tscn), [`tests/interacciones/prueba_fuego_y_combinacion_efectos.gd`](tests/interacciones/prueba_fuego_y_combinacion_efectos.gd), contratos y este roadmap.
+- Decisiones de 6.7: `Fuego` es una superficie reutilizable independiente de la trampa, dura siete turnos declarados, suma uno al coste por familia y aplica `quemado`; quemado produce tres ticks de un punto, el primero inmediato y dos pendientes; fuego y veneno coexisten porque usan claves distintas, mientras duplicados de cada familia se deduplican.
+- Pruebas de 6.7: dos fuegos y dos humos superpuestos suman coste tres, aplican exactamente dos estados y dos puntos de daño inmediato; una segunda entrada renueva ambos una sola vez sin repetir daño.
+- Archivos añadidos o modificados en 6.8: [`scripts/celda.gd`](scripts/celda.gd), [`scripts/tablero_grid.gd`](scripts/tablero_grid.gd), [`scripts/interacciones/reacciones/terrenos/terreno_danino.gd`](scripts/interacciones/reacciones/terrenos/terreno_danino.gd), [`tests/interacciones/prueba_lava_sistema_efectos.gd`](tests/interacciones/prueba_lava_sistema_efectos.gd), contratos y este roadmap.
+- Decisiones de 6.8: `TerrenoDanino` representa una reacción de terreno reutilizable que solicita daño instantáneo al entrar; la lava de Zona1 usa magnitud dos y conserva su penalización de ruta; se eliminó por completo el campo provisional `Celda.damage`.
+- Pruebas de 6.8 y cierre: una celda de lava real publica una reacción de terreno, descuenta dos puntos de vida y registra una aplicación confirmada con clave `&"lava"`; junto con las pruebas de trampa e impacto satisface el criterio de reutilizar el mismo aplicador sin modificaciones.
+- Deuda trasladada: ejecutar ticks, duración y expiración desde la fuente de turnos de Fase 11; asignar representación visual definitiva al fuego.
 
 ## Fase 7 — Items e inventario mínimo
 
@@ -574,11 +690,102 @@ Una piedra puede recogerse, mantiene el mismo `instance_id` y estado, y puede so
 
 ### Registro de implementación
 
-- Estado: pendiente.
-- Decisiones nuevas: —
-- Archivos modificados: —
-- Pruebas: —
-- Pendientes: —
+- Estado: incrementos 7.1 a 7.6 implementados el 18 de agosto de 2026;
+  pendiente únicamente repetir la regresión final de cierre.
+- Decisiones nuevas de 7.1: el inventario inicial es ilimitado y la futura
+  capacidad dependerá del peso y la fuerza, no de huecos; una instancia representa
+  una pila con identidad propia; agregar no combina automáticamente; combinar y
+  separar son operaciones explícitas y atómicas; al combinar sobrevive el ID de la
+  pila destino; al separar la pila original conserva su ID y el llamador proporciona
+  el nuevo; definición e instancia incluyen solo los campos usados en esta fase.
+- Archivos añadidos o modificados en 7.1:
+  [`scripts/interacciones/items/definicion_item.gd`](scripts/interacciones/items/definicion_item.gd),
+  [`scripts/interacciones/items/item_instancia.gd`](scripts/interacciones/items/item_instancia.gd),
+  [`scripts/interacciones/items/resultado_operacion_inventario.gd`](scripts/interacciones/items/resultado_operacion_inventario.gd),
+  [`scripts/interacciones/items/inventario.gd`](scripts/interacciones/items/inventario.gd),
+  [`scenes/ficha/ficha.gd`](scenes/ficha/ficha.gd),
+  [`tests/interacciones/prueba_inventario.gd`](tests/interacciones/prueba_inventario.gd),
+  contratos y este roadmap.
+- Pruebas de 7.1: seis grupos correctos de contratos, agregado sin autoapilado,
+  consultas ordenadas, retiro total y parcial, combinación explícita, separación y
+  rechazo atómico.
+- Decisiones nuevas de 7.2: `ItemSuelo` es un contenedor lógico separado de la
+  futura representación `Node2D`; contiene una `ItemInstancia` y solo adquiere
+  coordenada mientras está registrado. `TableroGrid` mantiene el índice global y
+  una única `Celda.items_suelo` conserva la misma referencia. El registro exige una
+  celda existente, pero no caminabilidad ni ausencia de ocupantes; esas restricciones
+  pertenecen a `SOLTAR`.
+- Archivos añadidos o modificados en 7.2:
+  [`scripts/interacciones/items/item_suelo.gd`](scripts/interacciones/items/item_suelo.gd),
+  [`scripts/tablero_grid.gd`](scripts/tablero_grid.gd),
+  [`tests/interacciones/prueba_items_suelo.gd`](tests/interacciones/prueba_items_suelo.gd),
+  contratos y este roadmap.
+- Pruebas de 7.2: cinco grupos correctos de registro ordenado, rechazo sin mutación,
+  ID duplicado, retiro por referencia exacta, limpieza del tablero y contenido
+  colocado en celdas ocupadas o no caminables.
+- Decisiones nuevas de 7.3: `ItemSuelo` publica y recibe `RECOGER`, pero delega la
+  transferencia en un `TransferidorItems` compartido. El contexto transporta la
+  misma `ItemInstancia`, exige alcance Manhattan uno y no requiere línea de efecto
+  ni costes. La transferencia agrega primero al inventario, retira después del
+  tablero y revierte el agregado si el segundo paso falla. `GestorAcciones` no
+  contiene ninguna condición de items.
+- Archivos añadidos o modificados en 7.3:
+  [`scripts/interacciones/items/transferidor_items.gd`](scripts/interacciones/items/transferidor_items.gd),
+  [`scripts/interacciones/items/item_suelo.gd`](scripts/interacciones/items/item_suelo.gd),
+  [`scripts/tablero_grid.gd`](scripts/tablero_grid.gd),
+  [`scenes/ficha/ficha.gd`](scenes/ficha/ficha.gd),
+  [`tests/interacciones/prueba_recoger_item.gd`](tests/interacciones/prueba_recoger_item.gd),
+  contratos y este roadmap.
+- Pruebas de 7.3: cuatro grupos correctos de publicación y construcción de contexto,
+  recogida mediante `GestorAcciones`, conservación de ID y cantidad, segundo
+  intento, alcance, actor sin inventario y rollback ante fallo del retiro. También
+  pasaron las regresiones de gestor, contexto, constructor de contexto, consulta de
+  reacciones y ciclo seguro de movimiento. La ejecución requiere salir del sandbox;
+  dentro de él Godot 4.7 cae durante el arranque nativo.
+- Decisiones nuevas de 7.4: `TransferidorItems` es el receptor de `SOLTAR`; la
+  acción admite la celda actual o una adyacente, exige una pila completa propiedad
+  del actor y valida que la celda exista, sea caminable y no contenga ocupantes ni
+  reservas ajenos. La propia ficha no bloquea su celda. La transferencia retira
+  primero del inventario, registra después un nuevo `ItemSuelo` con la misma
+  instancia y revierte el retiro si el registro falla.
+- Archivos añadidos o modificados en 7.4:
+  [`scripts/interacciones/items/transferidor_items.gd`](scripts/interacciones/items/transferidor_items.gd),
+  [`scripts/tablero_grid.gd`](scripts/tablero_grid.gd),
+  [`tests/interacciones/prueba_soltar_item.gd`](tests/interacciones/prueba_soltar_item.gd),
+  contratos y este roadmap.
+- Pruebas de 7.4: cuatro grupos correctos de soltado mediante `GestorAcciones`,
+  conservación de referencia, ID y cantidad, celda inexistente, no caminable,
+  ocupada o reservada, propiedad, segundo intento y rollback ante fallo del
+  registro. Regresión conjunta correcta de las cuatro pruebas de items y del gestor.
+- Decisiones nuevas de 7.5: `ContextoAccion` incorpora `cantidad_item` e
+  `id_item_resultante`; `-1` representa la pila completa. Las transferencias
+  parciales exigen definición apilable, cantidad menor que la disponible e ID nuevo
+  no duplicado. La pila origen conserva su ID y la porción transferida recibe el
+  nuevo; no existe combinación automática. El rollback de un soltado parcial vuelve
+  a agregar y combinar la porción para recomponer exactamente la pila original.
+- Archivos añadidos o modificados en 7.5:
+  [`scripts/interacciones/contexto_accion.gd`](scripts/interacciones/contexto_accion.gd),
+  [`scripts/interacciones/items/transferidor_items.gd`](scripts/interacciones/items/transferidor_items.gd),
+  [`scripts/interacciones/items/item_suelo.gd`](scripts/interacciones/items/item_suelo.gd),
+  [`tests/interacciones/prueba_transferencias_parciales.gd`](tests/interacciones/prueba_transferencias_parciales.gd),
+  contratos y este roadmap.
+- Pruebas de 7.5: cuatro grupos correctos de recogida parcial, soltado parcial,
+  cantidades e IDs inválidos y rollback. La prueba detectó y corrigió que el primer
+  registro parcial usaba la pila origen en vez de la porción retirada. Regresión
+  correcta de las cinco pruebas de items, contexto, constructor y gestor.
+- Decisiones nuevas de 7.6: el selector acepta objetivos por comportamiento para
+  incluir `ItemSuelo` sin convertir el contenedor lógico en nodo. La representación
+  visual observa altas y bajas del tablero y se recrea desde la definición. La
+  escena principal coloca una piedra junto al inicio; se recoge con el menú
+  contextual y `G` permite soltar la única pila del inventario en la celda actual
+  como control técnico temporal, sin anticipar la UI definitiva de inventario.
+- Recursos de 7.6: fuente editable en
+  [`assets/art_source/items/piedra/piedra_isometrica.ase`](assets/art_source/items/piedra/piedra_isometrica.ase),
+  sprite exportado, definición `piedra.tres` y escena `piedra_suelo.tscn`.
+- Verificación de 7.6: importación correcta del PNG, prueba previa del menú
+  contextual correcta y arranque headless de la escena principal sin errores de
+  script. La regresión final solicitada no se ejecutó porque se rechazó el permiso
+  de ejecución fuera del sandbox; queda pendiente repetirla.
 
 ## Fase 8 — Usar items sobre objetivos
 

@@ -80,6 +80,62 @@ protocolo y nunca construye contexto.
 
 Las validaciones iniciales comprueban actor, objetivo, coordenadas requeridas, alcance y contrato del receptor. El alcance espacial se mide mediante distancia Manhattan para coincidir con las cuatro direcciones conectadas por el movimiento actual. Costes disponibles y agregación de varios receptores se incorporarán mediante contratos específicos antes de cerrar la Fase 1.
 
+## Ciclo seguro de un paso
+
+`Ficha.mover_por_camino()` conserva la animación y la decisión de iniciar el
+siguiente tramo. Cada paso confirmado respeta este orden:
+
+```text
+reservar destino
+→ completar tween
+→ procesar SALIR con ocupación todavía en el origen
+→ confirmar movimiento en TableroGrid
+→ actualizar coordenada de la ficha
+→ cobrar el coste normal del paso
+→ procesar ENTRAR con ocupación confirmada en el destino
+→ emitir paso_dado
+→ continuar o interrumpir antes del siguiente tween
+```
+
+Los puntos `SALIR` y `ENTRAR` son callbacks síncronos coordinados por el
+escenario. No abren menú ni manipulan UI. Las señales de reserva y ocupación de
+`TableroGrid` son observacionales y no constituyen una segunda ruta para
+ejecutar reacciones. La consulta, orden y agregación de varios receptores se
+incorporarán en los siguientes incrementos de la Fase 5.
+
+El coste normal de caminar se cobra exactamente una vez al confirmar el paso y
+permanece separado de futuros costes adicionales del terreno y de las
+consecuencias producidas por reacciones. Una interrupción solicitada durante
+`SALIR` o `ENTRAR` nunca detiene el tween actual ni revierte la ocupación: evita
+que comience el siguiente tramo.
+
+### Consulta de reacciones de una celda
+
+`ConsultorReaccionesCelda` obtiene fuentes compatibles sin validarlas ni
+resolverlas. Consulta, en orden contractual, terreno, efectos de superficie,
+interactuables, items en el suelo y ocupantes. Al consultar ocupantes excluye al
+actor del evento para impedir que reaccione contra sí mismo.
+
+Una fuente automática implementa, además del contrato receptor:
+
+```gdscript
+func reacciona_automaticamente(tipo: TiposInteraccion.TipoAccion) -> bool
+func obtener_id_reaccion() -> StringName
+func obtener_prioridad_reaccion(tipo: TiposInteraccion.TipoAccion) -> int
+```
+
+Las fuentes con retornos inválidos o que no implementan el contrato completo se
+omiten. Cada fuente aceptada produce un `ReaccionCelda` con categoría, prioridad,
+ID estable y receptor. El resultado se ordena por categoría, prioridad entera
+ascendente e ID estable textual. Las colecciones de la celda se consultan mediante
+copias para que una mutación posterior no altere el conjunto ya obtenido.
+
+`Celda.reaccion_terreno` representa la fuente singular asociada al terreno.
+`efectos_superficie`, `interactuables`, `items_suelo` y `ocupantes` conservan sus
+colecciones separadas. `Interactuable` aporta por defecto su `id_instancia` y
+prioridad cero, pero no reacciona automáticamente hasta que una especialización
+lo declare. La consulta no presenta UI, no cobra costes y no aplica consecuencias.
+
 ## Servicio espacial
 
 La línea de efecto se declara mediante `TipoLineaEfecto`: `NINGUNA` no requiere servicio, `VISUAL` representa observación y luz, y `FISICA` queda preparada para herramientas, trayectorias e impactos. No se deduce únicamente del tipo de acción porque una misma acción puede dirigirse a un objetivo del mundo o a una posesión propia.
@@ -92,7 +148,7 @@ func validar_linea_efecto(contexto: ContextoAccion) -> StringName
 
 Devuelve `&""` si la línea está despejada o un motivo de bloqueo. La validación no modifica estado. La ausencia del servicio solo bloquea contextos que lo requieren.
 
-`ValidadorEspacialTablero` implementa actualmente la línea `VISUAL` sobre `TableroGrid`. Usa `GeometriaGrid.trazar_linea()`, utilidad Bresenham compartida con `FOVManager`, y aplica estas reglas: origen y destino deben existir; un hueco intermedio bloquea; las celdas intermedias con `bloquea_vision` bloquean; la celda de destino puede ser opaca porque debe ser posible examinar una pared. `FISICA` devuelve `linea_fisica_no_implementada` hasta definir obstáculos, alturas y colisiones apropiados.
+`ValidadorEspacialTablero` implementa actualmente la línea `VISUAL` sobre `TableroGrid`. Usa `GeometriaGrid.trazar_linea()`, utilidad Bresenham compartida con `FOVManager`, y aplica estas reglas: origen y destino deben existir; un hueco intermedio bloquea; las celdas intermedias con bloqueo efectivo de visión bloquean; la celda de destino puede ser opaca porque debe ser posible examinar una pared. `FISICA` devuelve `linea_fisica_no_implementada` hasta definir obstáculos, alturas y colisiones apropiados.
 
 ## Servicio de costes
 
@@ -164,6 +220,9 @@ Objeto inmutable desde que comienza la resolución.
 | `costes_solicitados` | `Dictionary[StringName, float]` | Recursos que el proveedor debe validar y, si corresponde, consumir. |
 | `politica_cobro` | `PoliticaCobro` | `SOLO_EXITO` o `AL_INTENTAR`; nunca permite cobrar un bloqueo. |
 | `solicitud_examen` | `SolicitudExamen` o `null` | Datos tipados y opcionales de `EXAMINAR`; no se sustituyen por metadatos genéricos. |
+| `id_evento` | `StringName` | Identifica el lote automático compartido; puede estar vacío cuando la acción no solicita efectos. |
+| `cantidad_item` | `int` | Cantidad explícita para transferencias; `-1` significa la pila completa. |
+| `id_item_resultante` | `StringName` | ID obligatorio de la nueva pila en una transferencia parcial; vacío para transferencias completas. |
 
 El contexto se construye con copias de etiquetas, magnitudes y metadatos. Los receptores no deben modificarlo.
 
@@ -175,13 +234,317 @@ El contexto se construye con copias de etiquetas, magnitudes y metadatos. Los re
 | `motivo` | `StringName` | Código legible/localizable; obligatorio para fallo y bloqueo. |
 | `mensajes` | `Array[StringName]` | IDs de mensajes de presentación, en orden. |
 | `efectos_aplicados` | `Array` | Efectos confirmados, no propuestas. |
+| `solicitudes_efecto` | `Array[SolicitudEfecto]` | Consecuencias pedidas por el receptor y todavía no confirmadas. |
 | `cambios_estado` | `Array[Dictionary]` | Registro descriptivo de cambios confirmados. |
 | `costes_consumidos` | `Dictionary[StringName, float]` | Energía, acciones, turnos, cargas o cantidad realmente cobrados. |
 | `interrumpe_movimiento` | `bool` | Solicita detener la ruta tras el paso confirmado. |
+| `terminal` | `bool` | Impide resolver reacciones posteriores del mismo evento sin revertir resultados previos. |
 
 Las propiedades derivadas `exitosa`, `consumio_accion` y `consumio_turno` se calculan desde `estado` y `costes_consumidos`; no se almacenan como fuentes de verdad duplicadas.
 
 Un resultado de `BLOQUEO` debe tener vacíos `efectos_aplicados`, `cambios_estado` y `costes_consumidos`. Los fallos no consumen nada por defecto. Cada coste debe declararse en la opción y cobrarse una sola vez después de resolver.
+
+Los bloqueos tampoco interrumpen ni son terminales. Confirmar costes construye un
+nuevo resultado sin perder las marcas de interrupción o terminalidad.
+
+### Solicitudes de efecto y deduplicación
+
+`SolicitudEfecto` describe una consecuencia pedida pero todavía no confirmada. Es
+inmutable durante la agregación y contiene una `clave` semántica, `tipo`, `fuente`,
+`objetivo`, `magnitud`, `duracion`, `politica_apilado` e `id_evento`. Clave, tipo e
+ID de evento son `StringName`; magnitud y duración no pueden ser negativas.
+
+La política inicial `NO_APILAR_Y_RENOVAR` identifica duplicados por evento, clave
+y objetivo. Conserva la primera posición del grupo, la mayor magnitud y la mayor
+duración; nunca suma estas cantidades. Claves, objetivos o eventos distintos
+coexisten. Solicitudes de un mismo grupo con tipos incompatibles invalidan el lote.
+
+`AgregadorSolicitudesEfecto` es puro: valida el lote completo antes de devolver un
+`ResultadoAgregacionEfectos`, no modifica las solicitudes y no aplica consecuencias.
+Un error devuelve motivo estable y ninguna salida parcial. `ResultadoAccion`
+transporta estas propuestas mediante `solicitudes_efecto`; `efectos_aplicados`
+continúa significando exclusivamente efectos ya confirmados.
+
+`ResolverReaccionesCelda` asigna un mismo `id_evento` a todos los contextos del
+lote. `GestorAcciones` rechaza solicitudes sin evento o atribuidas a otro evento.
+Las señales `accion_resuelta` y `accion_finalizada` conservan el resultado de cada
+receptor; la deduplicación entre receptores ocurre después en `ResultadoReacciones`,
+que expone `solicitudes_validas`, `motivo_solicitudes` y el lote deduplicado.
+
+### Daño instantáneo y explosión
+
+`AplicadorEfectos` admite inicialmente solicitudes de tipo `&"dano"`. Exige
+magnitud entera positiva, duración cero y un objetivo que implemente:
+
+```gdscript
+func recibir_danio(cantidad: int, fuente: Object = null) -> int
+```
+
+El retorno es el daño realmente aplicado después de limitar la vida. Una aplicación
+confirmada produce `ResultadoEfectoAplicado` con clave, tipo, objetivo y magnitud
+real. `Ficha` implementa este protocolo, limita sus puntos de vida a cero y emite
+`puntos_vida_cambiados`; el aplicador no conoce UI, muerte, armadura ni combate.
+
+`ResultadoReacciones` valida primero todas las solicitudes de daño admitidas y solo
+después las aplica en el orden deduplicado. Las solicitudes de tipos todavía no
+implementados permanecen pendientes. Expone `efectos_validos` y `motivo_efectos` y
+agrega únicamente aplicaciones confirmadas a `efectos_aplicados`.
+
+`Explosion.crear_solicitudes()` es una consecuencia instantánea: recorre un radio
+Manhattan, crea una solicitud `&"explosion"`/`&"dano"` por ocupante capaz de recibir
+daño y no crea nodos ni superficies. Dos explosiones con el mismo evento y objetivo
+se reducen mediante la política inicial antes de modificar vida.
+
+`TerrenoDanino` conecta terrenos persistentes al mismo canal. Al `ENTRAR` solicita
+daño instantáneo con una clave estable y deja su aplicación a `AplicadorEfectos`.
+La lava usa magnitud dos y mantiene separada su penalización de pathfinding; `Celda`
+ya no conserva un diccionario provisional de daño.
+
+### Estados y veneno
+
+`EstadoActor` conserva una única instancia por clave con magnitud, duración total y
+ticks pendientes. `Ficha.aplicar_o_renovar_estado()` crea o renueva mediante máximos
+y emite `estado_cambiado`; no avanza turnos ni expira estados.
+
+La configuración inicial de `&"veneno"` es magnitud `1` y dos ticks totales. Al crear
+el estado, `AplicadorEfectos` aplica inmediatamente el primer punto de daño y registra
+un tick pendiente. Renovar conserva una única instancia y restaura ese tick pendiente
+sin repetir el daño inmediato. El descuento del tick y la expiración quedan para la
+fuente de verdad de turnos de Fase 11. El debuff adicional todavía no forma parte del
+contrato.
+
+Una aplicación confirmada de estado agrega su mensaje y cambio descriptivo a
+`ResultadoReacciones`; como las solicitudes se deduplican antes, superficies
+superpuestas no duplican el estado, el daño inicial ni el mensaje. `&"quemado"`
+usa el mismo contrato: tres ticks totales de un punto, el primero inmediato y dos
+pendientes; renovar no repite el daño inmediato.
+
+### Resolución y agregación de reacciones
+
+`ResolverReaccionesCelda` recibe la lista ya ordenada, crea un `ContextoAccion`
+automático dirigido a cada receptor y lo entrega a `GestorAcciones`. No abre menú
+ni presenta resultados. Un mismo objeto receptor se procesa como máximo una vez
+por evento, aunque aparezca repetido en la lista.
+
+`ResultadoReacciones` conserva los resultados individuales y agrega, en orden,
+mensajes, solicitudes, efectos confirmados y cambios de estado. Al finalizar el
+evento deduplica las solicitudes antes de exponerlas. Los costes confirmados con la
+misma clave se suman; `interrumpe_movimiento` y `terminal` se combinan mediante OR.
+Un resultado terminal detiene receptores posteriores, pero conserva todo lo ya
+confirmado.
+
+`EscenarioBase` usa este flujo en los callbacks seguros de cada paso: consulta el
+origen para `SALIR`, el destino para `ENTRAR` y solicita a `Ficha` la interrupción
+agregada. La decisión se aplica después del paso actual y antes del siguiente
+tween. Las reacciones automáticas atraviesan así el mismo gestor lógico que las
+acciones voluntarias, sin construir opciones ni usar el menú contextual.
+
+### Efectos de superficie colocados
+
+Las zonas organizan estas entidades bajo un nodo `EfectosSuperficie`, separado de
+`Interactuables`. Cada instancia pertenece al grupo Godot
+`&"efectos_superficie"`, declara un ID estable y se registra por coordenada en
+`Celda.efectos_superficie`. El grupo facilita el descubrimiento al cargar la zona;
+la categoría mecánica procede del registro en la celda.
+
+La primera instancia es `HumoVeneno`. Su representación es un `Sprite2D` al nivel
+visual de la celda y su reacción automática a `ENTRAR` solicita el estado veneno e
+interrumpe. No usa colisiones, `Area2D`, señales físicas ni menú contextual. El
+mensaje y cambio se registran únicamente después de aplicar el estado deduplicado.
+
+`Fuego` sigue el mismo contrato de superficie sin depender de una trampa concreta.
+Al `ENTRAR` solicita `quemado`, añade uno al coste bajo la familia `&"fuego"` y
+declara siete turnos de duración. Fuego y humo pueden coexistir y aplicar sus dos
+estados; varias instancias de una misma familia producen una sola solicitud lógica
+por objetivo y evento.
+
+### Coste de un paso y peso de ruta
+
+`Celda.calcular_coste_movimiento(actor)` compone el coste entero del paso como
+`1 + adicional del terreno + adicionales lógicos de superficies`. El adicional del
+terreno se carga desde el dato de tile `coste_movimiento_adicional`. Una
+superficie puede aportar un entero no negativo mediante
+`obtener_coste_movimiento_adicional(actor)`; no necesita implementar este método
+si no modifica el coste. `HumoVeneno` aporta inicialmente `1`, por lo que entrar
+en su celda cuesta `2`.
+
+Una superficie puede declarar `obtener_familia_superficie() -> StringName`. La
+celda conserva el mayor aporte de cada familia y suma familias distintas. Las
+superficies sin familia se consideran contribuciones independientes para mantener
+compatibilidad. Dos nubes `&"humo_veneno"` superpuestas cuestan una sola unidad
+adicional; humo y fuego sí pueden sumar costes diferentes.
+
+`TableroGrid.retirar_efecto_superficie()` elimina únicamente la instancia indicada
+del registro global y de su celda y emite `efecto_superficie_retirado`. No libera el
+nodo: la entidad propietaria conserva el control de su representación. Si queda otra
+instancia de la misma familia, su contribución mecánica continúa activa.
+
+### Bloqueo visual de superficies
+
+`Celda.bloquea_vision_efectiva()` combina con OR el bloqueo propio del terreno y
+el declarado por cada superficie activa mediante `bloquea_vision_superficie()`.
+`FOVManager` y `ValidadorEspacialTablero` consultan esta única fuente. El FOV se
+recalcula al registrar o retirar una superficie; por ello, dos bloqueos
+superpuestos permanecen activos hasta retirar el último.
+
+`Humo` bloquea visión y declara una duración de superficie de diez turnos. El valor
+queda disponible desde `obtener_duracion_superficie()`; su decremento y expiración
+pertenecen a la fuente de turnos de la Fase 11. `HumoVeneno` aplica veneno y coste
+de movimiento, pero no bloquea visión: toxicidad y opacidad son propiedades
+independientes.
+
+La ficha calcula y valida ese total antes de reservar el destino o iniciar el
+tween. Si no dispone de energía suficiente, permanece en el origen y no reserva
+ni consume. El coste se descuenta una sola vez después de confirmar la ocupación
+del destino y antes de resolver `ENTRAR`. Un coste mayor que `1` duplica la
+duración del tween del paso, equivalente a caminar a la mitad de velocidad; no se
+interrumpe nunca una animación entre celdas.
+
+`Celda.calcular_peso_ruta(actor)` suma al coste de movimiento una
+`penalizacion_peligro_ruta` no negativa. Esta penalización orienta el pathfinding
+sin cobrar energía: la lava conserva un peso total alto mientras su daño se aplica
+por separado como reacción de terreno. Veneno, quemado y otros estados tampoco se
+modelan como costes de desplazamiento.
+
+### Trampas que despliegan superficies
+
+`TrampaSuperficie` es un interactuable únicamente automático: participa en la
+categoría `INTERACTUABLE` al resolver `ENTRAR`, pero devuelve cero opciones
+voluntarias. Por ello no puede seleccionarse, resaltarse ni examinarse a distancia
+desde el menú contextual. La inspección adyacente y el desarme quedan fuera de
+este incremento.
+
+Cada instancia configura una `PackedScene` de superficie y un radio entero. Las
+trampas son de un solo uso. Al activarse, `TableroGrid` instancia la superficie sobre las
+celdas caminables comprendidas por distancia Manhattan, le asigna un ID estable,
+la coloca bajo `EfectosSuperficie` y la registra en la celda correspondiente. El
+resultado informa esos cambios e interrumpe la ruta después de que la ficha haya
+terminado el tween y confirmado su ocupación.
+
+La consulta de reacciones usa una instantánea: el humo creado sobre la celda de
+la trampa no se ejecuta retroactivamente en el mismo evento `ENTRAR`. Sí modifica
+el coste y reacciona en entradas posteriores. Una explosión instantánea permanece
+como consecuencia separada y nunca se registra como superficie.
+
+La presentación visual es independiente de la reacción y admite `OCULTA`,
+`INDICIO` y `VISIBLE`. `OCULTA` transparenta el sprite; `INDICIO` usa el sprite creado
+con opacidad reducida; `VISIBLE` lo muestra completo. Estos estados no conceden
+por sí mismos opciones de interacción ni conocimiento al actor.
+
+El atlas inicial usa celdas de `64×32`: la primera columna representa la placa
+armada y la segunda la placa presionada. `INDICIO` usa alpha `0.7`, `OCULTA`
+alpha `0.0` y `VISIBLE` alpha `1.0`. Activar la trampa cambia la región del sprite
+sin intervención de la UI.
+
+Una trampa consultada incluye también las trampas cardinalmente adyacentes que
+puedan reaccionar a `ENTRAR`. La consulta expande toda la componente conectada,
+ordena los receptores con las reglas normales y evita ciclos por identidad. El
+resolver entrega cada receptor una sola vez al mismo `GestorAcciones`; cada trampa
+despliega su propia superficie. La adyacencia diagonal no inicia ni prolonga una
+cadena.
+
+## Items e inventario mínimo
+
+`DefinicionItem` es un `Resource` compartido que declara únicamente
+`id_definicion`, `nombre`, etiquetas semánticas, si admite apilado y su cantidad
+máxima. Una definición no apilable exige cantidad máxima uno. Peso, capacidad de
+carga, presentación, cargas y durabilidad se incorporarán cuando exista una regla
+que los consuma.
+
+`ItemInstancia` representa una pila lógica con `id_instancia`, definición y
+cantidad. La pila posee la identidad; sus unidades internas no tienen IDs
+individuales. El ID permanece estable mientras exista la pila y la cantidad debe
+estar entre uno y el máximo de su definición.
+
+`Inventario` es un componente lógico `RefCounted` contenido por `Ficha`. En 7.1 no
+tiene límite: la capacidad futura se calculará mediante peso y fuerza. Conserva
+instancias únicas por ID, devuelve copias ordenadas de su contenido y permite
+consultar por ID de instancia o definición.
+
+Agregar una instancia nunca la apila automáticamente. `combinar()` es explícito,
+exige la misma definición apilable y rechaza por completo una suma superior al
+máximo; la pila destino conserva su ID y la de origen desaparece. `separar()` exige
+una cantidad menor que la original y un ID nuevo aportado por el llamador; la pila
+original conserva su identidad. Un retiro total devuelve la misma instancia; un
+retiro parcial produce otra instancia con ID explícito.
+
+Todas las operaciones validan completamente antes de modificar el contenido y
+devuelven `ResultadoOperacionInventario`. Un fallo no contiene transferencia
+parcial y deja intactos contenido, cantidades e identidades. En 7.1 no se emiten
+señales ni se registran items en celdas.
+
+### Presencia lógica en el suelo
+
+`ItemSuelo` es un contenedor lógico `RefCounted`, no una representación visual.
+Conserva una `ItemInstancia` y adquiere una coordenada únicamente mientras está
+registrado. La futura escena o sprite observará este estado, pero nunca será la
+fuente de verdad mecánica.
+
+Desde 7.6 puede vincular temporalmente una representación `Node2D`. El escenario
+la instancia desde `DefinicionItem.escena_mundo` al registrarse y la elimina al
+retirarse; coordenada, identidad y cantidad continúan perteneciendo al modelo
+lógico. El selector incluye items mediante el mismo protocolo por comportamiento
+que los interactuables.
+
+`TableroGrid` es la autoridad de registro mediante `items_suelo_por_id`. La misma
+referencia de `ItemSuelo` aparece exactamente una vez en el índice global y en
+`Celda.items_suelo`. Registrar valida por completo antes de añadir y ordena la celda
+por ID de instancia. Retirar exige que índice, coordenada y referencia de celda
+coincidan; un objeto diferente con el mismo ID no puede retirar el original.
+
+Una celda solo debe existir para aceptar contenido colocado. Caminabilidad,
+ocupantes y reservas no restringen el registro general: son precondiciones de la
+acción futura `SOLTAR`. Regenerar el tablero invalida las coordenadas anteriores y
+vacía todos los registros sin depender de nodos visuales.
+
+### Recoger
+
+`ItemSuelo` publica `RECOGER` y cumple el protocolo receptor, pero delega la
+operación en un `TransferidorItems` compartido. El contexto conserva como objetivo
+el contenedor del suelo y como `item` su misma `ItemInstancia`; declara alcance
+Manhattan uno, línea de efecto `NINGUNA` y ningún coste.
+
+`TransferidorItems` valida actor, inventario, identidad del contexto y registro
+exacto en `TableroGrid`. La transferencia es síncrona: agrega primero la instancia
+al inventario, la retira después del tablero y solo entonces devuelve éxito. Como
+el inventario no emite señales, ningún observador puede ver el estado intermedio.
+Si el retiro falla inesperadamente, se retira inmediatamente la misma instancia del
+inventario y se devuelve `FALLO`; el item permanece únicamente en el suelo.
+
+Una recogida confirmada conserva referencia, ID y cantidad y registra un cambio
+`&"item_recogido"`. Un segundo intento se bloquea porque el contenedor ya no está
+registrado. `GestorAcciones` continúa completamente ajeno a estas reglas.
+
+### Soltar
+
+`TransferidorItems` recibe `SOLTAR` directamente. El contexto transporta una pila
+completa propiedad del inventario del actor, usa el transferidor como objetivo y
+declara alcance Manhattan uno. En 7.4 no admite cantidades parciales.
+
+La celda destino debe existir, ser caminable y no contener ocupantes ni reservas
+distintos del actor. La ficha puede soltar en su propia celda porque su ocupación y
+reserva no se consideran obstáculos ajenos. Estas restricciones pertenecen a la
+acción, no al registro general de contenido colocado.
+
+La transferencia retira primero la misma `ItemInstancia` del inventario y registra
+después un nuevo `ItemSuelo` que la contiene. Si el registro falla, agrega de nuevo
+la instancia original al inventario antes de devolver `FALLO`. El éxito conserva
+referencia, ID y cantidad y registra un cambio `&"item_soltado"` con la coordenada
+confirmada.
+
+### Transferencias parciales
+
+`RECOGER` y `SOLTAR` usan `ContextoAccion.cantidad_item`; `-1` o la cantidad total
+transfieren la pila original y exigen `id_item_resultante` vacío. Una cantidad
+parcial debe ser positiva, menor que la disponible, pertenecer a una definición
+apilable y declarar un ID resultante nuevo y no duplicado.
+
+La pila origen conserva su ID y reduce su cantidad. La porción transferida recibe
+el nuevo ID y no se combina automáticamente. Una recogida parcial mantiene el
+origen registrado en la celda; un soltado parcial mantiene el origen en inventario
+y registra únicamente la nueva instancia en el suelo. Ante un fallo de registro,
+el inventario vuelve a agregar y combinar explícitamente la porción para recomponer
+la cantidad e identidad originales.
 
 ## `OpcionAccion`
 

@@ -37,3 +37,15 @@ enum PoliticaCobro {
 	SOLO_EXITO,
 	AL_INTENTAR,
 }
+
+enum PoliticaApilado {
+	NO_APILAR_Y_RENOVAR,
+}
+
+enum CategoriaReaccion {
+	TERRENO,
+	EFECTO_SUPERFICIE,
+	INTERACTUABLE,
+	ITEM_SUELO,
+	OCUPANTE,
+}

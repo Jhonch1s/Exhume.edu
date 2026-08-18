@@ -13,12 +13,14 @@ var energia_actual: int = 200
 
 var pv_max: int
 var pv_actual: int
+var _estados: Dictionary[StringName, EstadoActor] = {}
 var clase: String = "Ladron"
 
 var antorchas: int = 3
 var PASOS_MAX_ANTORCHA: int = 80
 var pasos_antorcha_actual: int = 80
 var raciones: int = 3
+var inventario: Inventario = Inventario.new()
 
 var coordenada_mapa: Vector2i = Vector2i.ZERO
 var capa_referencia: TileMapLayer = null
@@ -29,10 +31,53 @@ var interrupcion_solicitada: bool = false
 
 signal paso_dado(nueva_coordenada: Vector2i)
 signal movimiento_terminado(interrumpido: bool)
+signal puntos_vida_cambiados(actual: int, maximo: int)
+signal estado_cambiado(clave: StringName, estado: EstadoActor)
 
 
 func obtener_id_observador() -> StringName:
 	return id_observador
+
+func obtener_inventario() -> Inventario:
+	return inventario
+
+func recibir_danio(cantidad: int, _fuente: Object = null) -> int:
+	if cantidad <= 0:
+		return 0
+	var anterior := pv_actual
+	pv_actual = maxi(0, pv_actual - cantidad)
+	var aplicado := anterior - pv_actual
+	if aplicado > 0:
+		print("Vida de %s: %d/%d" % [nombre, pv_actual, pv_max])
+		puntos_vida_cambiados.emit(pv_actual, pv_max)
+	return aplicado
+
+func obtener_estado(clave: StringName) -> EstadoActor:
+	return _estados.get(clave) as EstadoActor
+
+func aplicar_o_renovar_estado(
+	clave: StringName,
+	magnitud: float,
+	duracion_total: int,
+	ticks_pendientes: int,
+	_fuente: Object = null
+) -> Dictionary:
+	if clave == &"" or magnitud < 0.0 or duracion_total <= 0 or ticks_pendientes < 0:
+		return {}
+	var estado := obtener_estado(clave)
+	var creado := estado == null
+	if creado:
+		estado = EstadoActor.new(clave, magnitud, duracion_total, ticks_pendientes)
+		_estados[clave] = estado
+	else:
+		estado.renovar(magnitud, duracion_total, ticks_pendientes)
+	estado_cambiado.emit(clave, estado)
+	return {
+		&"clave": clave,
+		&"creado": creado,
+		&"duracion_total": estado.duracion_total,
+		&"ticks_pendientes": estado.ticks_pendientes,
+	}
 
 func _ready() -> void:
 	pv_max = fue + des + vol
@@ -64,7 +109,10 @@ func mover_por_camino(
 	camino: Array[Vector2i],
 	preparar_paso: Callable,
 	confirmar_paso: Callable,
-	cancelar_paso: Callable
+	cancelar_paso: Callable,
+	procesar_salida: Callable = Callable(),
+	procesar_entrada: Callable = Callable(),
+	calcular_coste_paso: Callable = Callable()
 ) -> void:
 	if camino.is_empty() or esta_moviendose or not capa_referencia:
 		return
@@ -80,12 +128,23 @@ func mover_por_camino(
 		if interrupcion_solicitada:
 			fue_interrumpido = true
 			break
-		if energia_actual <= 0:
+		var origen := coordenada_mapa
+		var coste_paso := 1
+		if calcular_coste_paso.is_valid():
+			var coste_calculado: Variant = calcular_coste_paso.call(
+				origen,
+				siguiente_coord,
+				self
+			)
+			if not coste_calculado is int or coste_calculado < 1:
+				fue_interrumpido = true
+				break
+			coste_paso = coste_calculado
+		if energia_actual < coste_paso:
 			print("sin energia para caminar mas")
 			fue_interrumpido = true
 			break
 
-		var origen := coordenada_mapa
 		# La ruta puede quedar obsoleta; reservamos cada destino antes de usarlo.
 		if not preparar_paso.call(origen, siguiente_coord, self):
 			fue_interrumpido = true
@@ -93,8 +152,16 @@ func mover_por_camino(
 
 		var destino_pixeles := capa_referencia.map_to_local(siguiente_coord)
 		var tween := create_tween()
-		tween.tween_property(self, "global_position", destino_pixeles, velocidad_paso)
+		tween.tween_property(
+			self,
+			"global_position",
+			destino_pixeles,
+			calcular_duracion_paso(coste_paso)
+		)
 		await tween.finished
+
+		if procesar_salida.is_valid():
+			procesar_salida.call(origen, siguiente_coord, self)
 
 		if not confirmar_paso.call(origen, siguiente_coord, self):
 			cancelar_paso.call(siguiente_coord, self)
@@ -104,10 +171,18 @@ func mover_por_camino(
 
 		# El paso se vuelve definitivo solamente al llegar.
 		coordenada_mapa = siguiente_coord
-		energia_actual -= 1
+		energia_actual -= coste_paso
 		print("energia actual: ", energia_actual)
+		if procesar_entrada.is_valid():
+			procesar_entrada.call(origen, siguiente_coord, self)
 		paso_dado.emit(coordenada_mapa)
+		if interrupcion_solicitada:
+			fue_interrumpido = true
+			break
 
 	esta_moviendose = false
 	interrupcion_solicitada = false
 	movimiento_terminado.emit(fue_interrumpido)
+
+func calcular_duracion_paso(coste_paso: int) -> float:
+	return velocidad_paso * (2.0 if coste_paso > 1 else 1.0)
