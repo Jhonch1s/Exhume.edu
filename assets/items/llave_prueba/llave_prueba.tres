@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DefinicionLlave" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/interacciones/items/definicion_llave.gd" id="1_definicion"]
+[ext_resource type="Texture2D" path="res://assets/items/llave_prueba/llave_placeholder.svg" id="2_icono"]
+[ext_resource type="PackedScene" path="res://scenes/items/llave_suelo.tscn" id="3_escena"]
+
+[resource]
+script = ExtResource("1_definicion")
+patron_cerradura = &"cripta_simple"
+id_definicion = &"llave_prueba"
+nombre = "Llave de prueba"
+icono = ExtResource("2_icono")
+escena_mundo = ExtResource("3_escena")
+etiquetas = Array[StringName]([&"llave", &"solido"])
+apilable = false
+cantidad_maxima = 1

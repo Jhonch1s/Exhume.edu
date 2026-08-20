@@ -14,7 +14,7 @@ func inicializar(tablero_datos:Dictionary) -> void:
 		##Configuramos el costo de pasar por una selda
 		#si no es caminable (agua o tiene contenido), se desactiva
 		var celda: Celda = tablero_datos[coord]
-		if not celda.caminable:
+		if not celda.es_caminable_efectiva():
 			astar.set_point_disabled(id, true)
 		
 		else:
@@ -44,7 +44,11 @@ func calcular_camino(
 	# La ocupacion es dinamica: se evalua en cada consulta de ruta.
 	for coord in tablero_datos.keys():
 		var celda: Celda = tablero_datos[coord]
-		var bloqueada := not celda.caminable or celda.tiene_contenido() or celda.esta_reservada()
+		var bloqueada := (
+			not celda.es_caminable_efectiva()
+			or celda.tiene_contenido()
+			or celda.esta_reservada()
+		)
 		if coord == origen:
 			bloqueada = false
 		var id := _obtener_id_unico(coord)

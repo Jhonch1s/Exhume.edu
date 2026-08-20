@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/interacciones/interactuables/mecanismos/palanca_interactuable.gd" id="1_script"]
+
+[node name="PalancaInteractuable" type="Node2D" groups=["interactuables"]]
+script = ExtResource("1_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+region_enabled = true

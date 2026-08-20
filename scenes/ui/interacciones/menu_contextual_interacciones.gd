@@ -2,7 +2,8 @@ class_name MenuContextualInteracciones
 extends PanelContainer
 
 signal opcion_accion_elegida(opcion: OpcionAccion)
-signal objetivo_elegido(objetivo: Interactuable)
+signal objetivo_elegido(objetivo: Object)
+signal item_elegido(item: ItemInstancia)
 signal cancelado
 
 @export var separacion_opciones: int = 6
@@ -103,6 +104,7 @@ func _agregar_entrada(entrada: EntradaMenuContextual) -> void:
 	boton.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	boton.disabled = not entrada.habilitada
 	boton.text = entrada.texto
+	boton.icon = entrada.icono
 	if not entrada.habilitada and not entrada.motivo_bloqueo.is_empty():
 		boton.text += "\n" + entrada.motivo_bloqueo
 		boton.tooltip_text = entrada.motivo_bloqueo
@@ -116,6 +118,8 @@ func _on_entrada_pulsada(entrada: EntradaMenuContextual) -> void:
 			opcion_accion_elegida.emit(entrada.opcion_accion)
 		EntradaMenuContextual.TipoEntrada.OBJETIVO:
 			objetivo_elegido.emit(entrada.objetivo)
+		EntradaMenuContextual.TipoEntrada.ITEM:
+			item_elegido.emit(entrada.item)
 		EntradaMenuContextual.TipoEntrada.CANCELAR:
 			cancelado.emit()
 

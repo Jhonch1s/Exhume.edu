@@ -8,7 +8,7 @@ var objetivo_seleccionado: Object = null
 
 func iniciar(
 	coordenada: Vector2i,
-	objetivos: Array[Object]
+	objetivos: Array
 ) -> bool:
 	limpiar()
 	if objetivos.is_empty():
@@ -18,7 +18,7 @@ func iniciar(
 	if objetivos.size() == 1:
 		objetivo_seleccionado = objetivos[0]
 	else:
-		objetivos_pendientes = objetivos.duplicate()
+		objetivos_pendientes.assign(objetivos)
 	return true
 
 

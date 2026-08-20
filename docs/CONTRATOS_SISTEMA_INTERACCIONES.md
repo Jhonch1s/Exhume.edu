@@ -51,7 +51,8 @@ func construir_contexto_accion(
     opcion: OpcionAccion,
     actor: Object,
     origen: Vector2i,
-    celda_objetivo: Vector2i
+    celda_objetivo: Vector2i,
+    item_seleccionado: ItemInstancia = null
 ) -> ContextoAccion
 ```
 
@@ -445,11 +446,11 @@ cadena.
 
 ## Items e inventario mínimo
 
-`DefinicionItem` es un `Resource` compartido que declara únicamente
-`id_definicion`, `nombre`, etiquetas semánticas, si admite apilado y su cantidad
-máxima. Una definición no apilable exige cantidad máxima uno. Peso, capacidad de
-carga, presentación, cargas y durabilidad se incorporarán cuando exista una regla
-que los consuma.
+`DefinicionItem` es un `Resource` compartido que declara `id_definicion`, `nombre`,
+etiquetas semánticas, magnitudes, si admite apilado y su cantidad máxima. Una
+definición no apilable exige cantidad máxima uno. Las magnitudes deben ser finitas;
+solo `temperatura` admite valores negativos. Peso, capacidad de carga, cargas y
+durabilidad se incorporarán cuando exista una regla que los consuma.
 
 `ItemInstancia` representa una pila lógica con `id_instancia`, definición y
 cantidad. La pila posee la identidad; sus unidades internas no tienen IDs
@@ -545,6 +546,92 @@ origen registrado en la celda; un soltado parcial mantiene el origen en inventar
 y registra únicamente la nueva instancia en el suelo. Ante un fallo de registro,
 el inventario vuelve a agregar y combinar explícitamente la porción para recomponer
 la cantidad e identidad originales.
+
+### Usar item — incremento 8.1
+
+`ConstructorContextoAccion` recibe opcionalmente la instancia seleccionada. Para
+`USAR_ITEM`, el objetivo construye un contexto que conserva esa misma referencia,
+copia `DefinicionItem.etiquetas` y `DefinicionItem.magnitudes`, declara una unidad,
+alcance Manhattan uno y línea de efecto `NINGUNA`.
+
+El receptor revalida inmediatamente antes de resolver que la misma referencia siga
+registrada bajo su ID en el inventario del actor y que las capacidades del contexto
+coincidan con la definición. `GestorAcciones` no conoce inventarios ni combinaciones.
+En 8.1 el item siempre se conserva; consumo, cargas y durabilidad quedan fuera hasta
+que exista su contrato atómico.
+
+### Selector provisional de item — incremento 8.2
+
+Un `Interactuable` publica `Usar item…` cuando el actor expone un inventario no
+vacío. Elegirla reutiliza `MenuContextualInteracciones` para mostrar todas las pilas
+en el orden estable del inventario, con nombre, cantidad cuando supera uno e icono
+opcional tomado de `DefinicionItem`. No se filtran compatibilidades: el receptor
+decide la reacción después de la selección.
+
+La vista continúa definida por su escena y por el `Theme` normal de Godot; los
+botones heredan ese estilo y aceptan las texturas de contenido sin introducir una
+UI definitiva de inventario. Cancelar cierra el flujo modal completo. En 8.2 no se
+elige cantidad ni se consume el item; el futuro consumo reutilizará esta misma
+instancia seleccionada.
+
+### Palanca y origen de Lanzar — ajuste tras 8.2
+
+`PalancaInteractuable` publica `INTERACTUAR` con `id_accion = &"accionar"` y
+alcance Manhattan uno. Cualquier actor adyacente puede alternar su estado sin item.
+Su definición declara la textura y dos regiones de `64×64`; la instancia conserva
+únicamente `activada` y actualiza la región visible.
+
+La palanca no publica `Usar item…` ni `Lanzar item…`. En la futura Fase 9, lanzar
+nace al seleccionar una instancia `arrojable` desde el inventario. Después se elige
+la celda o trayectoria; el objetivo alcanzado recibe `IMPACTAR` y reacciona a las
+etiquetas y magnitudes reales del impacto. Así un receptor nunca ofrece acciones
+basándose en items que todavía permanecen en posesión del actor.
+
+### Puerta y llave compatible — incremento 8.4
+
+`DefinicionLlave` añade un `patron_cerradura` estable y exige la etiqueta `&"llave"`.
+`DefinicionPuerta` declara el patrón aceptado y dos regiones visuales de `64×96`.
+El patrón no es una etiqueta: representa compatibilidad de contenido y evita crear
+etiquetas específicas por cada pareja de llave y puerta.
+
+Una puerta bloqueada publica `Abrir` deshabilitado y conserva el `Usar item…`
+heredado. `PuertaInteractuable` primero reutiliza la validación estructural de
+`USAR_ITEM`; al resolver, un item que no sea llave o una llave con otro patrón
+devuelven `FALLO` sin modificar estado. Una llave compatible cambia únicamente
+`bloqueada` a falso, devuelve `EXITO` y se conserva en el inventario. Abrir o cerrar
+son acciones `INTERACTUAR` posteriores, adyacentes e independientes.
+
+En 8.4 una puerta ocupa una celda. Cerrada hace que esa celda no sea caminable
+efectivamente y bloquee visión; abierta libera ambos aspectos sin modificar las
+propiedades base del terreno. `Celda` consulta los aportes de sus interactuables,
+por lo que dos obstáculos superpuestos no pueden habilitarse accidentalmente entre
+sí.
+
+`Interactuable.presencia_cambiada` invalida la presencia dinámica en `TableroGrid`.
+El pathfinding ya reevalúa las celdas en cada cálculo y `FOVManager` vuelve a
+proyectar visión y luz al recibir el cambio. La huella multicelda para portones de
+dos hojas queda pendiente hasta implementar el registro de un mismo interactuable
+en varias celdas; no se representa mediante dos puertas independientes.
+
+### Destino del item después de una acción — decisión pendiente de implementación
+
+No existe una propiedad global `consumible`: el mismo item puede sobrevivir o
+desaparecer según la reacción concreta. El resultado de una acción con item deberá
+declarar exactamente uno de estos destinos cuando exista el primer consumidor real:
+
+- `CONSERVAR_EN_INVENTARIO`: mantiene la misma instancia, como una llave o herramienta.
+- `CONSUMIR`: retira la cantidad usada sin crear un `ItemSuelo`.
+- `DEJAR_EN_CELDA`: la cantidad usada sobrevive como `ItemSuelo` en la celda final.
+
+Un `BLOQUEO` o un fallo anterior a la resolución no modifica el inventario. Cuando
+se use una unidad de una pila, la pila origen conserva su identidad y la unidad
+separada recibe una nueva si debe sobrevivir fuera del inventario. La transferencia
+se confirmará atómicamente mediante `TransferidorItems`; `GestorAcciones` seguirá
+sin conocer reglas de consumo, lanzamiento ni combinaciones.
+
+Para una roca lanzada, el destino normal será `DEJAR_EN_CELDA`. Una reacción podrá
+elegir `CONSUMIR` si el impacto la rompe, absorbe o destruye. Este vocabulario se
+incorporará al código junto con el primer flujo `LANZAR_ITEM`, no antes.
 
 ## `OpcionAccion`
 
@@ -832,4 +919,8 @@ Tras confirmar ocupación se crea `ENTRAR` con origen, destino y ficha. La tramp
 
 ### Item arrojado
 
-`LANZAR_ITEM` valida actor, item, coste y trayectoria. Al terminar la representación del vuelo se crea `IMPACTAR` con el item, celda real, etiquetas (`impacto`, por ejemplo) y magnitudes como `fuerza_impacto`. Los receptores reaccionan por propiedades; ninguno necesita conocer la definición concreta del item.
+Seleccionar un item `arrojable` en el inventario publica `LANZAR_ITEM`; el receptor
+potencial no origina esa opción. La acción valida actor, item, coste y trayectoria.
+Al terminar la representación del vuelo se crea `IMPACTAR` con el item, celda real,
+etiquetas (`impacto`, por ejemplo) y magnitudes como `fuerza_impacto`. Los receptores
+reaccionan por propiedades; ninguno necesita conocer la definición concreta del item.

@@ -95,6 +95,9 @@ func _ejecutar_pruebas() -> void:
 
 	_probar_panel_resultado_modal(escenario)
 	_probar_examen_otras_fuentes(escenario)
+	_probar_seleccion_item(escenario, fuente, origen_adyacente)
+	_probar_palanca(escenario)
+	_probar_puerta_con_llave(escenario)
 
 	_probar_multiples_objetivos(escenario, fuente)
 	escenario.free()
@@ -218,6 +221,172 @@ func _probar_bloqueo_distancia(
 		"Los bloqueos del gestor deben presentarse con un motivo comprensible."
 	)
 	escenario.panel_resultado_accion.ocultar()
+
+
+func _probar_seleccion_item(
+	escenario: Variant,
+	objetivo: FuenteLuzInteractuable,
+	origen_adyacente: Vector2i
+) -> void:
+	var definicion := DefinicionItem.new()
+	definicion.id_definicion = &"herramienta_integracion"
+	definicion.nombre = "Martillo"
+	definicion.etiquetas = [&"herramienta"]
+	definicion.magnitudes = {&"potencia": 2.0}
+	definicion.apilable = true
+	definicion.cantidad_maxima = 10
+	var item := ItemInstancia.new(&"martillos_integracion", definicion, 2)
+	escenario.ficha_jugador.inventario.agregar(item)
+	escenario.ficha_jugador.coordenada_mapa = origen_adyacente
+	escenario.tablero.obtener_celda(objetivo.coordenada_mapa).visibilidad = (
+		Celda.EstadoVisibilidad.VISIBLE
+	)
+	escenario._manejar_clic_izquierdo(objetivo.coordenada_mapa)
+	var botones: Array[Button] = escenario.menu_contextual.obtener_botones()
+	_comprobar(
+		botones.size() == 4 and botones[1].text == "Usar item…",
+		"Un objetivo debe ofrecer Usar item cuando el inventario no está vacío."
+	)
+	botones[1].pressed.emit()
+	botones = escenario.menu_contextual.obtener_botones()
+	_comprobar(
+		escenario.menu_contextual.etiqueta_titulo.text == "¿Qué item quieres usar?"
+		and botones.size() == 2
+		and botones[0].text == "Martillo ×2",
+		"Usar item debe reutilizar el menú para seleccionar una pila."
+	)
+	botones[0].pressed.emit()
+	_comprobar(
+		escenario.ultimo_contexto_contextual != null
+		and escenario.ultimo_contexto_contextual.tipo == TiposInteraccion.TipoAccion.USAR_ITEM
+		and escenario.ultimo_contexto_contextual.item == item
+		and escenario.ultimo_resultado_contextual.motivo == &"reaccion_item_no_implementada",
+		"La selección debe construir y resolver USAR_ITEM mediante GestorAcciones."
+	)
+	_comprobar(
+		escenario.ficha_jugador.inventario.obtener_por_id(item.id_instancia) == item,
+		"8.2 no debe consumir la pila seleccionada."
+	)
+	escenario.panel_resultado_accion.ocultar()
+	escenario.ficha_jugador.inventario.retirar(item.id_instancia)
+
+
+func _probar_palanca(escenario: Variant) -> void:
+	var palanca := escenario.tablero.obtener_interactuable(
+		&"zona1_palanca_03_m03"
+	) as PalancaInteractuable
+	_comprobar(palanca != null, "Zona1 debe registrar la palanca de 8.3.")
+	if palanca == null:
+		return
+	escenario.ficha_jugador.coordenada_mapa = _buscar_origen_adyacente(
+		escenario, palanca.coordenada_mapa
+	)
+	escenario.tablero.obtener_celda(palanca.coordenada_mapa).visibilidad = (
+		Celda.EstadoVisibilidad.VISIBLE
+	)
+	escenario._manejar_clic_izquierdo(palanca.coordenada_mapa)
+	var botones: Array[Button] = escenario.menu_contextual.obtener_botones()
+	_comprobar(
+		botones.size() == 3 and botones[1].text == "Accionar",
+		"La palanca debe publicar Examinar, Accionar y Cancelar."
+	)
+	botones[1].pressed.emit()
+	_comprobar(
+		escenario.ultimo_resultado_contextual.exitosa
+		and palanca.activada
+		and escenario.ultimo_contexto_contextual.item == null,
+		"Un actor adyacente debe accionar la palanca sin seleccionar un item."
+	)
+	escenario.panel_resultado_accion.ocultar()
+
+
+func _probar_puerta_con_llave(escenario: Variant) -> void:
+	var puerta := escenario.tablero.obtener_interactuable(
+		&"zona1_puerta_04_m03"
+	) as PuertaInteractuable
+	var llave_suelo := escenario.tablero.obtener_item_suelo(&"zona1_llave_prueba") as ItemSuelo
+	_comprobar(
+		puerta != null and llave_suelo != null,
+		"Zona1 debe registrar la puerta y la llave de prueba."
+	)
+	if puerta == null or llave_suelo == null:
+		return
+	var celda_puerta: Celda = escenario.tablero.obtener_celda(puerta.coordenada_mapa)
+	_comprobar(
+		not escenario.tablero.puede_entrar(puerta.coordenada_mapa)
+		and celda_puerta.bloquea_vision_efectiva(),
+		"La puerta real cerrada debe bloquear paso y visión."
+	)
+
+	escenario.ficha_jugador.coordenada_mapa = llave_suelo.coordenada_mapa
+	var opcion_recoger := llave_suelo.obtener_opciones_accion(escenario.ficha_jugador)[0]
+	var contexto_recoger: ContextoAccion = llave_suelo.construir_contexto_accion(
+		opcion_recoger,
+		escenario.ficha_jugador,
+		llave_suelo.coordenada_mapa,
+		llave_suelo.coordenada_mapa
+	)
+	var recogida: ResultadoAccion = escenario.gestor_acciones.procesar_accion(contexto_recoger)
+	var llave: ItemInstancia = escenario.ficha_jugador.inventario.obtener_por_id(
+		&"zona1_llave_prueba"
+	)
+	_comprobar(
+		recogida.exitosa and llave != null,
+		"La llave lógica del suelo debe poder llegar al inventario."
+	)
+	if llave == null:
+		return
+
+	escenario.ficha_jugador.coordenada_mapa = _buscar_origen_adyacente(
+		escenario, puerta.coordenada_mapa
+	)
+	escenario.tablero.obtener_celda(puerta.coordenada_mapa).visibilidad = (
+		Celda.EstadoVisibilidad.VISIBLE
+	)
+	escenario._manejar_clic_izquierdo(puerta.coordenada_mapa)
+	var botones: Array[Button] = escenario.menu_contextual.obtener_botones()
+	_comprobar(
+		botones.size() == 4
+		and botones[1].text == "Usar item…"
+		and botones[2].disabled
+		and botones[2].text.begins_with("Abrir"),
+		"La puerta bloqueada debe ofrecer la llave y mostrar Abrir deshabilitado."
+	)
+	botones[1].pressed.emit()
+	botones = escenario.menu_contextual.obtener_botones()
+	_comprobar(
+		botones.size() == 2 and botones[0].text == "Llave de prueba",
+		"El selector provisional debe mostrar la llave recogida."
+	)
+	botones[0].pressed.emit()
+	_comprobar(
+		escenario.ultimo_resultado_contextual.exitosa
+		and not puerta.bloqueada
+		and not puerta.abierta
+		and escenario.ficha_jugador.inventario.obtener_por_id(llave.id_instancia) == llave,
+		"USAR_ITEM debe desbloquear la puerta sin consumir ni abrir automáticamente."
+	)
+	escenario.panel_resultado_accion.ocultar()
+
+	escenario.tablero.obtener_celda(puerta.coordenada_mapa).visibilidad = (
+		Celda.EstadoVisibilidad.VISIBLE
+	)
+	escenario._manejar_clic_izquierdo(puerta.coordenada_mapa)
+	botones = escenario.menu_contextual.obtener_botones()
+	_comprobar(
+		botones.size() == 3 and botones[1].text == "Abrir",
+		"Tras desbloquear, la puerta debe ofrecer Abrir sin Usar item."
+	)
+	botones[1].pressed.emit()
+	_comprobar(
+		escenario.ultimo_resultado_contextual.exitosa
+		and puerta.abierta
+		and escenario.tablero.puede_entrar(puerta.coordenada_mapa)
+		and not celda_puerta.bloquea_vision_efectiva(),
+		"Abrir debe liberar paso y visión como interacción manual independiente."
+	)
+	escenario.panel_resultado_accion.ocultar()
+	escenario.ficha_jugador.inventario.retirar(llave.id_instancia)
 
 
 func _probar_examen_otras_fuentes(escenario: Variant) -> void:

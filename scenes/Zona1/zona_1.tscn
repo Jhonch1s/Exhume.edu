@@ -13,6 +13,10 @@
 [ext_resource type="Resource" uid="uid://bpvm3w36ob568" path="res://assets/interactuables/luces/antorcha_pared_derecha.tres" id="11_pared_der"]
 [ext_resource type="PackedScene" uid="uid://cul4jkns6vh72" path="res://scenes/efectos_superficie/HumoVeneno.tscn" id="12_humo_veneno"]
 [ext_resource type="PackedScene" path="res://scenes/interactuables/trampas/TrampaSuperficie.tscn" id="13_trampa_superficie"]
+[ext_resource type="PackedScene" path="res://scenes/interactuables/mecanismos/palanca_interactuable.tscn" id="14_palanca"]
+[ext_resource type="Resource" path="res://assets/interactuables/mecanismos/palanca/palanca.tres" id="15_palanca_def"]
+[ext_resource type="PackedScene" path="res://scenes/interactuables/puertas/puerta_interactuable.tscn" id="16_puerta"]
+[ext_resource type="Resource" path="res://assets/interactuables/puertas/puerta/puerta.tres" id="17_puerta_def"]
 
 [node name="Zona1" type="Node2D" unique_id=1662731053]
 y_sort_enabled = true
@@ -102,6 +106,22 @@ definicion = ExtResource("11_pared_der")
 position = Vector2(2240, -704)
 id_instancia = &"zona1_antorcha_pared_der_57_12"
 definicion = ExtResource("11_pared_der")
+
+[node name="Mecanismos" type="Node2D" parent="Interactuables"]
+y_sort_enabled = true
+
+[node name="Palanca_03_m03" parent="Interactuables/Mecanismos" instance=ExtResource("14_palanca")]
+position = Vector2(192, 0)
+id_instancia = &"zona1_palanca_03_m03"
+definicion = ExtResource("15_palanca_def")
+
+[node name="Puertas" type="Node2D" parent="Interactuables"]
+y_sort_enabled = true
+
+[node name="Puerta_04_m03" parent="Interactuables/Puertas" instance=ExtResource("16_puerta")]
+position = Vector2(224, 16)
+id_instancia = &"zona1_puerta_04_m03"
+definicion = ExtResource("17_puerta_def")
 
 [node name="Trampas" type="Node2D" parent="Interactuables"]
 y_sort_enabled = true

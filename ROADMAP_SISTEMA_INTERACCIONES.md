@@ -6,10 +6,10 @@
 
 ## Estado general
 
-- Estado actual: Fase 6 — Sistema de efectos completada.
-- Próximo paso: Fase 7 — items e inventario mínimo.
+- Estado actual: Fase 8 — incrementos 8.1, 8.2 y 8.4 completados; 8.3 quedó como ajuste de la palanca.
+- Próximo paso: definir el contrato atómico de consumo, cargas y transformación de items.
 - Última vertical slice: entrar en la lava real de Zona1 produce daño mediante el mismo aplicador usado por trampas e impactos.
-- Última actualización de este registro: 18 de agosto de 2026.
+- Última actualización de este registro: 19 de agosto de 2026.
 
 ### Progreso por fases
 
@@ -20,8 +20,8 @@
 - [x] Fase 4 — Menú contextual obligatorio. *(completada el 17 de agosto de 2026)*
 - [x] Fase 5 — Reacciones automáticas al movimiento. *(completada el 17 de agosto de 2026)*
 - [x] Fase 6 — Sistema de efectos. *(completada el 18 de agosto de 2026)*
-- [ ] Fase 7 — Items e inventario mínimo.
-- [ ] Fase 8 — Usar items sobre objetivos.
+- [x] Fase 7 — Items e inventario mínimo. *(implementada el 18 de agosto de 2026; cierre de regresión con deuda registrada)*
+- [ ] Fase 8 — Usar items sobre objetivos. *(iniciada el 19 de agosto de 2026)*
 - [ ] Fase 9 — Lanzamiento, trayectoria e impacto.
 - [ ] Fase 10 — Relaciones y mecanismos.
 - [ ] Fase 11 — Turnos y efectos persistentes.
@@ -828,11 +828,97 @@ Los casos anteriores se resuelven mediante etiquetas, magnitudes y componentes r
 
 ### Registro de implementación
 
-- Estado: pendiente.
-- Decisiones nuevas: —
-- Archivos modificados: —
-- Pruebas: —
-- Pendientes: —
+- Estado: incrementos 8.1, 8.2 y 8.4 completados; la puerta es el primer caso real de `USAR_ITEM`.
+- Decisiones nuevas de 8.1: `ConstructorContextoAccion` recibe opcionalmente la
+  instancia elegida; `USAR_ITEM` transporta la misma referencia, copia etiquetas y
+  magnitudes de su definición, usa una unidad, alcance Manhattan uno y ninguna
+  línea de efecto; el receptor revalida propiedad y capacidades; el item se
+  conserva y `GestorAcciones` permanece ajeno a inventarios y combinaciones.
+- Archivos modificados en 8.1:
+  [`scripts/interacciones/items/definicion_item.gd`](scripts/interacciones/items/definicion_item.gd),
+  [`scripts/interacciones/constructor_contexto_accion.gd`](scripts/interacciones/constructor_contexto_accion.gd),
+  [`scripts/interacciones/interactuables/interactuable.gd`](scripts/interacciones/interactuables/interactuable.gd),
+  [`scripts/interacciones/items/item_suelo.gd`](scripts/interacciones/items/item_suelo.gd),
+  [`tests/interacciones/prueba_usar_item_contexto.gd`](tests/interacciones/prueba_usar_item_contexto.gd),
+  contratos y este roadmap.
+- Pruebas: `prueba_usar_item_contexto.gd` valida construcción y resolución lógica,
+  conservación de pila, revalidación de propiedad y rechazo de capacidades
+  adulteradas; ocho pruebas directamente afectadas quedaron limpias. La regresión
+  completa dejó 34 de 41 scripts sin `SCRIPT ERROR` ni `ERROR:`. Los dos errores de
+  arrays invariantes detectados al cerrar Fase 7 quedaron corregidos; siete pruebas
+  de escenas aún informan recursos o RID sin liberar al salir pese a devolver cero.
+- Pendientes al cerrar 8.1: selector provisional de inventario, consumo atómico,
+  cargas, durabilidad y casos de contenido reales.
+- Decisiones nuevas de 8.2: `Interactuable` publica `Usar item…` solo con inventario
+  no vacío; el selector reutiliza el menú contextual y muestra todas las pilas sin
+  filtrar, ordenadas por ID, con nombre, cantidad e icono opcional de la definición;
+  la escena y su `Theme` siguen siendo los puntos de personalización visual;
+  seleccionar devuelve la misma instancia y cancelar cierra el flujo completo.
+- Archivos añadidos o modificados en 8.2:
+  [`scripts/interacciones/presentacion/entrada_menu_contextual.gd`](scripts/interacciones/presentacion/entrada_menu_contextual.gd),
+  [`scripts/interacciones/presentacion/adaptador_menu_contextual.gd`](scripts/interacciones/presentacion/adaptador_menu_contextual.gd),
+  [`scripts/interacciones/items/definicion_item.gd`](scripts/interacciones/items/definicion_item.gd),
+  [`scripts/interacciones/interactuables/interactuable.gd`](scripts/interacciones/interactuables/interactuable.gd),
+  [`scripts/interacciones/interactuables/fuentes_luz/fuente_luz_interactuable.gd`](scripts/interacciones/interactuables/fuentes_luz/fuente_luz_interactuable.gd),
+  [`scenes/ui/interacciones/menu_contextual_interacciones.gd`](scenes/ui/interacciones/menu_contextual_interacciones.gd),
+  [`scenes/escenario_base/escenario_base.gd`](scenes/escenario_base/escenario_base.gd),
+  [`assets/interactuables/mensajes_interacciones.tres`](assets/interactuables/mensajes_interacciones.tres),
+  [`tests/interacciones/prueba_selector_item_menu.gd`](tests/interacciones/prueba_selector_item_menu.gd),
+  [`tests/interacciones/prueba_integracion_menu_contextual.gd`](tests/interacciones/prueba_integracion_menu_contextual.gd),
+  contratos y este roadmap.
+- Pruebas de 8.2: selector lógico y vista limpios; integración completa correcta
+  desde `Usar item…` hasta `ResultadoAccion`, conservando la pila. La prueba de
+  integración mantiene los avisos ya conocidos de RID y recursos al cerrar.
+- Pendientes tras 8.2: primera reacción real, consumo atómico, cargas y durabilidad.
+- Ajuste de diseño posterior a 8.2: la palanca es una interacción manual adyacente
+  `INTERACTUAR/accionar`, no un caso de `USAR_ITEM`. Lanzar una piedra se originará
+  desde la instancia seleccionada en el inventario durante Fase 9; la palanca solo
+  podrá reaccionar más adelante al `IMPACTAR` resultante.
+- Archivos añadidos o modificados en 8.3:
+  [`scripts/interacciones/interactuables/mecanismos/definicion_palanca.gd`](scripts/interacciones/interactuables/mecanismos/definicion_palanca.gd),
+  [`scripts/interacciones/interactuables/mecanismos/palanca_interactuable.gd`](scripts/interacciones/interactuables/mecanismos/palanca_interactuable.gd),
+  [`scenes/interactuables/mecanismos/palanca_interactuable.tscn`](scenes/interactuables/mecanismos/palanca_interactuable.tscn),
+  [`assets/interactuables/mecanismos/palanca/palanca.tres`](assets/interactuables/mecanismos/palanca/palanca.tres),
+  [`assets/items/piedra/piedra.tres`](assets/items/piedra/piedra.tres),
+  [`scenes/Zona1/zona_1.tscn`](scenes/Zona1/zona_1.tscn),
+  [`tests/interacciones/prueba_palanca_interactuar.gd`](tests/interacciones/prueba_palanca_interactuar.gd),
+  contratos y este roadmap.
+- Pruebas del ajuste: acción manual, alcance adyacente, segundo frame e integración
+  real en Zona1 desde el menú contextual.
+- Incremento 8.4: `DefinicionLlave` y `DefinicionPuerta` comparten un
+  `patron_cerradura`; la etiqueta `&"llave"` expresa la capacidad y el patrón la
+  compatibilidad concreta sin crear etiquetas por pareja. Una puerta bloqueada
+  muestra `Abrir` deshabilitado; una llave incorrecta falla sin cambiar estado y
+  una compatible desbloquea sin consumirse ni abrir automáticamente. Abrir y
+  cerrar permanecen como `INTERACTUAR` adyacente. `GestorAcciones` no recibió
+  lógica de puertas, llaves ni inventario.
+- Contenido de 8.4: puerta cerrada/abierta `64×96` con placeholder reemplazable,
+  llave lógica recogible con icono provisional y ambas instancias integradas en
+  Zona1.
+- Refinamiento de presencia de 8.4: la puerta actual ocupa una celda; cerrada
+  bloquea movimiento, pathfinding, visión y propagación de luz, mientras abierta
+  libera esos aspectos. `Celda` calcula presencia efectiva sin sobrescribir el
+  terreno, y `Interactuable.presencia_cambiada` fuerza la reproyección del FOV.
+- Archivos principales de 8.4:
+  [`scripts/interacciones/items/definicion_llave.gd`](scripts/interacciones/items/definicion_llave.gd),
+  [`scripts/interacciones/interactuables/puertas/definicion_puerta.gd`](scripts/interacciones/interactuables/puertas/definicion_puerta.gd),
+  [`scripts/interacciones/interactuables/puertas/puerta_interactuable.gd`](scripts/interacciones/interactuables/puertas/puerta_interactuable.gd),
+  [`scenes/interactuables/puertas/puerta_interactuable.tscn`](scenes/interactuables/puertas/puerta_interactuable.tscn),
+  [`assets/interactuables/puertas/puerta/puerta.tres`](assets/interactuables/puertas/puerta/puerta.tres),
+  [`assets/items/llave_prueba/llave_prueba.tres`](assets/items/llave_prueba/llave_prueba.tres),
+  [`tests/interacciones/prueba_puerta_usar_llave.gd`](tests/interacciones/prueba_puerta_usar_llave.gd)
+  e integración contextual.
+- Pruebas de 8.4: seis casos aislados limpios y flujo real de recoger, seleccionar,
+  desbloquear y abrir correcto. La regresión completa dejó los 44 scripts correctos
+  y sin `SCRIPT ERROR`. Siete pruebas de escenas conservan únicamente sus avisos ya
+  conocidos de RID o recursos al cerrar.
+- Pendientes: consumo atómico, cargas, durabilidad, huellas multicelda para
+  portones y casos restantes de agua, herramientas y elementos inflamables.
+- Decisión para el siguiente consumidor de items: el destino depende del resultado,
+  no de un booleano `consumible`. Los destinos mínimos serán conservar en
+  inventario, consumir o dejar en la celda final; una roca lanzada caerá normalmente
+  al suelo y solo desaparecerá cuando una reacción lo indique. El código se añadirá
+  con el primer `LANZAR_ITEM` para probar reserva, separación y confirmación atómica.
 
 ## Fase 9 — Lanzamiento, trayectoria e impacto
 
@@ -843,8 +929,8 @@ Extender el sistema de acciones a interacciones a distancia utilizando los mismo
 ### Flujo previsto
 
 ```text
-Seleccionar LANZAR_ITEM
-→ seleccionar item
+Seleccionar un item en inventario
+→ elegir LANZAR_ITEM
 → calcular rango y trayectoria
 → previsualizar destino
 → reservar o retirar item

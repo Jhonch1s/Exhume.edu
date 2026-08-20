@@ -70,7 +70,8 @@ func construir_contexto_accion(
 	opcion: OpcionAccion,
 	actor: Object,
 	origen: Vector2i,
-	celda_objetivo: Vector2i
+	celda_objetivo: Vector2i,
+	_item_seleccionado: ItemInstancia = null
 ) -> ContextoAccion:
 	if (
 		opcion == null

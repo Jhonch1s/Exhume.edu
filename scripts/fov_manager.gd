@@ -36,6 +36,12 @@ func inicializar(_capa: TileMapLayer, origen_datos: Variant) -> void:
 			tablero.efecto_superficie_registrado.connect(_on_superficie_cambiada)
 		if not tablero.efecto_superficie_retirado.is_connected(_on_superficie_cambiada):
 			tablero.efecto_superficie_retirado.connect(_on_superficie_cambiada)
+		if not tablero.presencia_interactuable_cambiada.is_connected(
+			_on_presencia_interactuable_cambiada
+		):
+			tablero.presencia_interactuable_cambiada.connect(
+				_on_presencia_interactuable_cambiada
+			)
 	else:
 		datos_tablero = origen_datos
 	
@@ -82,6 +88,10 @@ func _on_iluminacion_cambiada(_coord: Vector2i) -> void:
 		actualizar_vision(ultimo_centro_jugador, ultimo_radio_jugador)
 
 func _on_superficie_cambiada(_coord: Vector2i, _efecto: Object) -> void:
+	if tiene_vision_calculada:
+		actualizar_vision(ultimo_centro_jugador, ultimo_radio_jugador)
+
+func _on_presencia_interactuable_cambiada(_coord: Vector2i) -> void:
 	if tiene_vision_calculada:
 		actualizar_vision(ultimo_centro_jugador, ultimo_radio_jugador)
 

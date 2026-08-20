@@ -23,6 +23,7 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 
 const ESCENA_FICHA = preload("res://scenes/ficha/ficha.tscn")
 const DEFINICION_PIEDRA = preload("res://assets/items/piedra/piedra.tres")
+const DEFINICION_LLAVE_PRUEBA = preload("res://assets/items/llave_prueba/llave_prueba.tres")
 
 @export var catalogo_mensajes: CatalogoMensajesInteraccion
 
@@ -43,6 +44,7 @@ var objetivos_hover: Array[Object] = []
 var objetivo_hover: Object = null
 var objetivo_resaltado: Object = null
 var ultima_opcion_contextual_seleccionada: OpcionAccion = null
+var opcion_uso_item_pendiente: OpcionAccion = null
 var ultimo_contexto_contextual: ContextoAccion = null
 var ultimo_resultado_contextual: ResultadoAccion = null
 var interaccion_modal_activa: bool = false
@@ -63,6 +65,7 @@ var ultimo_resultado_entrar: ResultadoReacciones
 func _ready() -> void:
 	menu_contextual.opcion_accion_elegida.connect(_on_opcion_contextual_elegida)
 	menu_contextual.objetivo_elegido.connect(_on_objetivo_contextual_elegido)
+	menu_contextual.item_elegido.connect(_on_item_contextual_elegido)
 	menu_contextual.cancelado.connect(_on_menu_contextual_cancelado)
 	panel_resultado_accion.resultado_presentado.connect(_on_resultado_accion_presentado)
 	panel_resultado_accion.cerrado.connect(_on_panel_resultado_cerrado)
@@ -84,6 +87,7 @@ func _ready() -> void:
 	spawnear_ficha_inicial()
 	if ficha_jugador:
 		_colocar_piedra_prueba()
+		_colocar_llave_prueba()
 		_actualizar_luz_jugador(ficha_jugador.coordenada_mapa)
 
 func _process(_delta: float) -> void:
@@ -382,10 +386,28 @@ func _on_objetivo_contextual_elegido(objetivo: Object) -> void:
 func _on_opcion_contextual_elegida(opcion: OpcionAccion) -> void:
 	ultima_opcion_contextual_seleccionada = opcion
 	opcion_contextual_seleccionada.emit(opcion)
+	if opcion != null and opcion.tipo == TiposInteraccion.TipoAccion.USAR_ITEM:
+		opcion_uso_item_pendiente = opcion
+		menu_contextual.mostrar(
+			catalogo_mensajes.resolver(&"interaccion.seleccionar_item"),
+			adaptador_menu_contextual.construir_entradas_items(
+				ficha_jugador.inventario.obtener_contenido(),
+				catalogo_mensajes
+			),
+			menu_contextual.position
+		)
+		return
 	_ejecutar_opcion_contextual(opcion)
 
 
-func _ejecutar_opcion_contextual(opcion: OpcionAccion) -> void:
+func _on_item_contextual_elegido(item: ItemInstancia) -> void:
+	_ejecutar_opcion_contextual(opcion_uso_item_pendiente, item)
+
+
+func _ejecutar_opcion_contextual(
+	opcion: OpcionAccion,
+	item_seleccionado: ItemInstancia = null
+) -> void:
 	var contexto: ContextoAccion = null
 	var resultado: ResultadoAccion
 	if opcion == null or not opcion.habilitada:
@@ -402,7 +424,8 @@ func _ejecutar_opcion_contextual(opcion: OpcionAccion) -> void:
 			opcion,
 			ficha_jugador,
 			ficha_jugador.coordenada_mapa,
-			coordenada_objetivo
+			coordenada_objetivo,
+			item_seleccionado
 		)
 		if construccion is ContextoAccion:
 			contexto = construccion
@@ -413,6 +436,7 @@ func _ejecutar_opcion_contextual(opcion: OpcionAccion) -> void:
 
 	ultimo_contexto_contextual = contexto
 	ultimo_resultado_contextual = resultado
+	opcion_uso_item_pendiente = null
 	var titulo_resultado := _obtener_titulo_resultado_contextual(opcion)
 	menu_contextual.ocultar()
 	panel_resultado_accion.mostrar_resultado(
@@ -431,6 +455,7 @@ func _cerrar_menu_contextual() -> void:
 	if is_instance_valid(menu_contextual):
 		menu_contextual.ocultar()
 	ultima_opcion_contextual_seleccionada = null
+	opcion_uso_item_pendiente = null
 	_limpiar_seleccion_interaccion()
 	ultima_coordenada_hover = Vector2i(-999, -999)
 	_actualizar_estado_modal_interaccion()
@@ -466,6 +491,24 @@ func _colocar_piedra_prueba() -> void:
 		var piedra := ItemSuelo.new(ItemInstancia.new(&"zona1_piedra_prueba", DEFINICION_PIEDRA, 1))
 		piedra.configurar_transferidor_items(transferidor_items)
 		tablero.registrar_item_suelo(coord, piedra)
+		return
+
+
+func _colocar_llave_prueba() -> void:
+	var direcciones: Array[Vector2i] = [Vector2i.LEFT, Vector2i.UP, Vector2i.DOWN, Vector2i.RIGHT]
+	for direccion in direcciones:
+		var coord := ficha_jugador.coordenada_mapa + direccion
+		if tablero.validar_colocacion_item_suelo(coord, ficha_jugador) != &"":
+			continue
+		if not tablero.obtener_celda(coord).items_suelo.is_empty():
+			continue
+		var llave := ItemSuelo.new(ItemInstancia.new(
+			&"zona1_llave_prueba",
+			DEFINICION_LLAVE_PRUEBA,
+			1
+		))
+		llave.configurar_transferidor_items(transferidor_items)
+		tablero.registrar_item_suelo(coord, llave)
 		return
 
 

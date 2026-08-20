@@ -8,6 +8,9 @@ script = ExtResource("1")
 id_definicion = &"piedra"
 nombre = "Piedra"
 escena_mundo = ExtResource("2")
-etiquetas = Array[StringName]([&"mineral"])
+etiquetas = Array[StringName]([&"mineral", &"solido", &"contundente", &"arrojable"])
+magnitudes = {
+&"peso": 3.0
+}
 apilable = true
 cantidad_maxima = 99

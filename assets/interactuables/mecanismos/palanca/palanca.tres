@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="DefinicionPalanca" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/interacciones/interactuables/mecanismos/definicion_palanca.gd" id="1_definicion"]
+[ext_resource type="Texture2D" path="res://assets/interactuables/mecanismos/palanca/palanca_dos_posiciones.png" id="2_textura"]
+[ext_resource type="Script" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="3_fragmento"]
+[ext_resource type="Script" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="4_perfil"]
+
+[sub_resource type="Resource" id="Resource_identidad"]
+script = ExtResource("3_fragmento")
+id_fragmento = &"identidad"
+nivel = 1
+id_mensaje = &"examen.palanca.basico"
+
+[sub_resource type="Resource" id="Resource_perfil"]
+script = ExtResource("4_perfil")
+
+[resource]
+script = ExtResource("1_definicion")
+altura = 1
+textura = ExtResource("2_textura")
+region_desactivada = Rect2(0, 0, 64, 64)
+region_activada = Rect2(64, 0, 64, 64)
+desplazamiento_sprite = Vector2(0, -16)
+id_definicion = &"palanca"
+nombre = "Palanca"
+descripcion_base = "Una palanca de mecanismo con dos posiciones estables."
+etiquetas = Array[StringName]([&"mecanismo"])
+fragmentos_informacion = Array[ExtResource("3_fragmento")]([SubResource("Resource_identidad")])
+perfil_observacion = SubResource("Resource_perfil")

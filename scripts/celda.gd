@@ -76,9 +76,36 @@ func calcular_coste_movimiento(actor: Object = null) -> int:
 func calcular_peso_ruta(actor: Object = null) -> float:
 	return float(calcular_coste_movimiento(actor)) + maxf(0.0, penalizacion_peligro_ruta)
 
+func es_caminable_efectiva() -> bool:
+	if not caminable:
+		return false
+	for interactuable in interactuables.duplicate():
+		if (
+			interactuable == null
+			or not is_instance_valid(interactuable)
+			or not interactuable.has_method(&"permite_caminar_interactuable")
+		):
+			continue
+		var permite: Variant = interactuable.call(&"permite_caminar_interactuable")
+		if permite is bool and not permite:
+			return false
+	return true
+
 func bloquea_vision_efectiva() -> bool:
 	if bloquea_vision:
 		return true
+	for interactuable in interactuables.duplicate():
+		if (
+			interactuable == null
+			or not is_instance_valid(interactuable)
+			or not interactuable.has_method(&"bloquea_vision_interactuable")
+		):
+			continue
+		var bloquea_interactuable: Variant = interactuable.call(
+			&"bloquea_vision_interactuable"
+		)
+		if bloquea_interactuable is bool and bloquea_interactuable:
+			return true
 	for efecto in efectos_superficie.duplicate():
 		if (
 			efecto == null

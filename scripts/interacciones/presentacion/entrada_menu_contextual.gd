@@ -4,6 +4,7 @@ extends RefCounted
 enum TipoEntrada {
 	ACCION,
 	OBJETIVO,
+	ITEM,
 	CANCELAR,
 }
 
@@ -12,7 +13,9 @@ var texto: String
 var habilitada: bool
 var motivo_bloqueo: String
 var opcion_accion: OpcionAccion
-var objetivo: Interactuable
+var objetivo: Object
+var item: ItemInstancia
+var icono: Texture2D
 
 
 func _init(
@@ -21,7 +24,9 @@ func _init(
 	habilitada_inicial: bool = true,
 	motivo_bloqueo_inicial: String = "",
 	opcion_inicial: OpcionAccion = null,
-	objetivo_inicial: Interactuable = null
+	objetivo_inicial: Object = null,
+	item_inicial: ItemInstancia = null,
+	icono_inicial: Texture2D = null
 ) -> void:
 	tipo = tipo_inicial
 	texto = texto_inicial
@@ -29,6 +34,8 @@ func _init(
 	motivo_bloqueo = motivo_bloqueo_inicial
 	opcion_accion = opcion_inicial
 	objetivo = objetivo_inicial
+	item = item_inicial
+	icono = icono_inicial
 
 
 static func desde_opcion(
@@ -46,7 +53,7 @@ static func desde_opcion(
 
 
 static func desde_objetivo(
-	objetivo_inicial: Interactuable,
+	objetivo_inicial: Object,
 	texto_resuelto: String
 ) -> EntradaMenuContextual:
 	return EntradaMenuContextual.new(
@@ -56,6 +63,22 @@ static func desde_objetivo(
 		"",
 		null,
 		objetivo_inicial
+	)
+
+
+static func desde_item(
+	item_inicial: ItemInstancia,
+	texto_resuelto: String
+) -> EntradaMenuContextual:
+	return EntradaMenuContextual.new(
+		TipoEntrada.ITEM,
+		texto_resuelto,
+		true,
+		"",
+		null,
+		null,
+		item_inicial,
+		item_inicial.definicion.icono
 	)
 
 

@@ -69,7 +69,10 @@ func obtener_alcance_maximo_opcion(opcion: OpcionAccion) -> float:
 func validar_accion(contexto: ContextoAccion) -> StringName:
 	if contexto == null or contexto.objetivo != self:
 		return &"objetivo_invalido"
-	if contexto.tipo == TiposInteraccion.TipoAccion.EXAMINAR:
+	if contexto.tipo in [
+		TiposInteraccion.TipoAccion.EXAMINAR,
+		TiposInteraccion.TipoAccion.USAR_ITEM,
+	]:
 		return super.validar_accion(contexto)
 	if contexto.tipo != TiposInteraccion.TipoAccion.INTERACTUAR:
 		return &"tipo_accion_no_admitido"
@@ -81,7 +84,10 @@ func validar_accion(contexto: ContextoAccion) -> StringName:
 
 
 func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
-	if contexto != null and contexto.tipo == TiposInteraccion.TipoAccion.EXAMINAR:
+	if contexto != null and contexto.tipo in [
+		TiposInteraccion.TipoAccion.EXAMINAR,
+		TiposInteraccion.TipoAccion.USAR_ITEM,
+	]:
 		return super.resolver_accion(contexto)
 	var motivo := validar_accion(contexto)
 	if motivo != &"":

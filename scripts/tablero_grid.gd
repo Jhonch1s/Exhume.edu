@@ -18,6 +18,7 @@ signal celda_ocupada(coord: Vector2i, contenido: Object)
 signal celda_desocupada(coord: Vector2i, contenido: Object)
 signal interactuable_registrado(coord: Vector2i, interactuable: Interactuable)
 signal interactuable_retirado(coord: Vector2i, interactuable: Interactuable)
+signal presencia_interactuable_cambiada(coord: Vector2i)
 signal efecto_superficie_registrado(coord: Vector2i, efecto: Object)
 signal efecto_superficie_retirado(coord: Vector2i, efecto: Object)
 signal item_suelo_registrado(coord: Vector2i, item_suelo: ItemSuelo)
@@ -160,7 +161,7 @@ func es_celda_valida(coord: Vector2i) -> bool:
 	return datos.has(coord)
 
 func es_caminable(coord: Vector2i) -> bool:
-	return datos.has(coord) and datos[coord].caminable
+	return datos.has(coord) and datos[coord].es_caminable_efectiva()
 
 func puede_entrar(coord: Vector2i, contenido: Object = null) -> bool:
 	if not es_caminable(coord):
@@ -224,6 +225,9 @@ func registrar_interactuable(coord: Vector2i, interactuable: Interactuable) -> b
 	interactuables_por_id[interactuable.id_instancia] = interactuable
 	datos[coord].interactuables.append(interactuable)
 	interactuable.configurar_registro(self, coord)
+	var cambio_presencia := _on_presencia_interactuable_cambiada.bind(interactuable)
+	if not interactuable.presencia_cambiada.is_connected(cambio_presencia):
+		interactuable.presencia_cambiada.connect(cambio_presencia)
 	if servicio_examen != null:
 		interactuable.configurar_servicio_examen(servicio_examen)
 	if interactuable is FuenteLuzInteractuable:
@@ -253,8 +257,20 @@ func retirar_interactuable(interactuable: Interactuable) -> void:
 		datos[coord].interactuables.erase(interactuable)
 		if interactuable is FuenteLuzInteractuable:
 			eliminar_luz(coord, interactuable)
+	var cambio_presencia := _on_presencia_interactuable_cambiada.bind(interactuable)
+	if interactuable.presencia_cambiada.is_connected(cambio_presencia):
+		interactuable.presencia_cambiada.disconnect(cambio_presencia)
 	interactuables_por_id.erase(interactuable.id_instancia)
 	interactuable_retirado.emit(coord, interactuable)
+
+func _on_presencia_interactuable_cambiada(interactuable: Interactuable) -> void:
+	if (
+		interactuable == null
+		or not is_instance_valid(interactuable)
+		or interactuables_por_id.get(interactuable.id_instancia) != interactuable
+	):
+		return
+	presencia_interactuable_cambiada.emit(interactuable.coordenada_mapa)
 
 func obtener_interactuable(id_instancia: StringName) -> Interactuable:
 	return interactuables_por_id.get(id_instancia) as Interactuable
@@ -324,7 +340,7 @@ func validar_colocacion_item_suelo(coord: Vector2i, actor: Object = null) -> Str
 	if not datos.has(coord):
 		return &"celda_invalida"
 	var celda: Celda = datos[coord]
-	if not celda.caminable:
+	if not celda.es_caminable_efectiva():
 		return &"celda_no_caminable"
 	for ocupante in celda.ocupantes:
 		if ocupante != actor:

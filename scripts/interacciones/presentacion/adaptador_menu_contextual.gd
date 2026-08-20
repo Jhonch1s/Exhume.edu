@@ -30,7 +30,7 @@ func construir_entradas_acciones(
 
 
 func construir_entradas_objetivos(
-	objetivos: Array[Object],
+	objetivos: Array,
 	catalogo: CatalogoMensajesInteraccion
 ) -> Array[EntradaMenuContextual]:
 	var objetivos_validos: Array[Object] = []
@@ -50,6 +50,24 @@ func construir_entradas_objetivos(
 			objetivo,
 			objetivo.call(&"obtener_nombre_interaccion")
 		))
+	entradas.append(EntradaMenuContextual.cancelar(
+		_resolver(catalogo, &"interaccion.cancelar")
+	))
+	return entradas
+
+
+func construir_entradas_items(
+	items: Array[ItemInstancia],
+	catalogo: CatalogoMensajesInteraccion
+) -> Array[EntradaMenuContextual]:
+	var entradas: Array[EntradaMenuContextual] = []
+	for item in items:
+		if item == null or not item.es_valida():
+			continue
+		var texto := item.definicion.nombre
+		if item.cantidad > 1:
+			texto += " ×%d" % item.cantidad
+		entradas.append(EntradaMenuContextual.desde_item(item, texto))
 	entradas.append(EntradaMenuContextual.cancelar(
 		_resolver(catalogo, &"interaccion.cancelar")
 	))
