@@ -97,6 +97,7 @@ func _probar_presencia_cerrada(
 	_comprobar(
 		not tablero.puede_entrar(Vector2i.RIGHT)
 		and celda.bloquea_vision_efectiva()
+		and celda.bloquea_proyectiles_efectiva()
 		and camino.is_empty(),
 		"La puerta cerrada debe bloquear paso, visión y pathfinding."
 	)
@@ -155,6 +156,7 @@ func _probar_abrir_y_cerrar(
 		and puerta.sprite.region_rect == Rect2(64, 0, 64, 96)
 		and tablero.puede_entrar(Vector2i.RIGHT)
 		and not tablero.obtener_celda(Vector2i.RIGHT).bloquea_vision_efectiva()
+		and not tablero.obtener_celda(Vector2i.RIGHT).bloquea_proyectiles_efectiva()
 		and Vector2i.RIGHT in camino_abierto,
 		"Abrir debe cambiar la imagen y liberar paso, visión y pathfinding."
 	)
@@ -170,6 +172,7 @@ func _probar_abrir_y_cerrar(
 		and puerta.sprite.region_rect == Rect2(0, 0, 64, 96)
 		and not tablero.puede_entrar(Vector2i.RIGHT)
 		and tablero.obtener_celda(Vector2i.RIGHT).bloquea_vision_efectiva()
+		and tablero.obtener_celda(Vector2i.RIGHT).bloquea_proyectiles_efectiva()
 		and camino_cerrado.is_empty()
 		and cambios_presencia == [Vector2i.RIGHT, Vector2i.RIGHT],
 		"Cerrar debe restaurar presencia y notificar ambos cambios."

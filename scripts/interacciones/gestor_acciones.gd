@@ -41,7 +41,7 @@ func procesar_accion(contexto: ContextoAccion) -> ResultadoAccion:
 				contexto,
 				ResultadoAccion.crear_bloqueo(&"coordenadas_incompletas")
 			)
-		if _calcular_distancia(contexto.origen, contexto.celda_objetivo) > contexto.alcance_maximo:
+		if _calcular_distancia(contexto) > contexto.alcance_maximo:
 			return _finalizar(
 				contexto,
 				ResultadoAccion.crear_bloqueo(&"fuera_de_alcance")
@@ -179,8 +179,11 @@ func _consumir_costes(
 	return resultado.con_costes_consumidos(costes_tipados)
 
 
-func _calcular_distancia(origen: Vector2i, destino: Vector2i) -> float:
-	return float(abs(destino.x - origen.x) + abs(destino.y - origen.y))
+func _calcular_distancia(contexto: ContextoAccion) -> float:
+	var delta: Vector2i = contexto.celda_objetivo - contexto.origen
+	if contexto.metrica_alcance == TiposInteraccion.MetricaAlcance.CUADRICULA:
+		return float(maxi(abs(delta.x), abs(delta.y)))
+	return float(abs(delta.x) + abs(delta.y))
 
 
 func _finalizar(

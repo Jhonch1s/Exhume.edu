@@ -6,10 +6,10 @@
 
 ## Estado general
 
-- Estado actual: Fase 8 — incrementos 8.1, 8.2 y 8.4 completados; 8.3 quedó como ajuste de la palanca.
-- Próximo paso: definir el contrato atómico de consumo, cargas y transformación de items.
-- Última vertical slice: entrar en la lava real de Zona1 produce daño mediante el mismo aplicador usado por trampas e impactos.
-- Última actualización de este registro: 19 de agosto de 2026.
+- Estado actual: Fase 10 — incrementos 10.1 y 10.2 implementados.
+- Próximo paso: ajustar la colocación visual de las puertas y revisar el cierre de 10.2.
+- Última vertical slice: una palanca real de Zona1 abre y cierra dos puertas exclusivas de mecanismo mediante IDs estables.
+- Última actualización de este registro: 21 de agosto de 2026.
 
 ### Progreso por fases
 
@@ -22,8 +22,8 @@
 - [x] Fase 6 — Sistema de efectos. *(completada el 18 de agosto de 2026)*
 - [x] Fase 7 — Items e inventario mínimo. *(implementada el 18 de agosto de 2026; cierre de regresión con deuda registrada)*
 - [ ] Fase 8 — Usar items sobre objetivos. *(iniciada el 19 de agosto de 2026)*
-- [ ] Fase 9 — Lanzamiento, trayectoria e impacto.
-- [ ] Fase 10 — Relaciones y mecanismos.
+- [ ] Fase 9 — Lanzamiento, trayectoria e impacto. *(iniciada el 21 de agosto de 2026)*
+- [ ] Fase 10 — Relaciones y mecanismos. *(iniciada el 21 de agosto de 2026)*
 - [ ] Fase 11 — Turnos y efectos persistentes.
 - [ ] Fase 12 — Persistencia.
 - [ ] Fase 13 — Herramientas de diseño y depuración.
@@ -965,11 +965,109 @@ La trayectoria visual coincide con la resolución lógica y ningún item desapar
 
 ### Registro de implementación
 
-- Estado: pendiente.
-- Decisiones nuevas: —
-- Archivos modificados: —
-- Pruebas: —
-- Pendientes: —
+- Estado: incremento 9.1 implementado el 21 de agosto de 2026.
+- Decisiones nuevas de 9.1: `LANZAR_ITEM` nace de una `ItemInstancia` del
+  inventario y usa `TransferidorItems` como receptor lógico. Transporta una unidad,
+  las capacidades reales del item y la etiqueta `impacto`; el objetivo directo es
+  opcional y `null` representa elegir el piso. `IMPACTAR` reutiliza la consulta y
+  resolución ordenada de la celda, adelantando únicamente el objetivo directo y
+  sin procesarlo dos veces. El primer destino explícito de una reacción prevalece;
+  sin destino explícito la unidad usa `DEJAR_EN_CELDA`.
+- Atomicidad de 9.1: `CONSERVAR_EN_INVENTARIO` no modifica la pila, `CONSUMIR`
+  retira una unidad y `DEJAR_EN_CELDA` separa y registra un `ItemSuelo`. Una pila
+  parcial conserva el ID de origen y exige un ID nuevo explícito. Un bloqueo previo
+  no muta inventario y un fallo de registro recompone la pila mediante el rollback
+  existente. `GestorAcciones` no conoce ninguna regla de items.
+- Archivos modificados: contratos de contexto y resultado, tipos de interacción,
+  consulta y resolución de reacciones, `TransferidorItems`, configuración del
+  escenario y [`tests/interacciones/prueba_lanzar_item_logico.gd`](tests/interacciones/prueba_lanzar_item_logico.gd).
+- Pruebas: la prueba lógica cubre elegir piso aunque exista un objetivo, prioridad
+  del objetivo elegido, consumo, conservación, separación con identidad nueva,
+  rechazo de un item no arrojable y rollback ante fallo de registro. Regresión
+  completa funcional 45/45 fuera del sandbox y sin `SCRIPT ERROR`; las mismas
+  siete pruebas de escenas conservan avisos conocidos de RID o recursos al cerrar.
+  La prueba de columnas sufrió un crash nativo aislado al final del lote y pasó al
+  repetirla individualmente.
+- Pendientes al cerrar 9.1: 9.2 conectará selección de item y elección entre piso y objetivos;
+  trayectoria física, colisión real, visualización y contenido de pociones quedan
+  fuera de 9.1.
+- Incremento 9.2: `L` abre provisionalmente el menú existente con las pilas
+  `arrojable`; elegir una habilita selección de una celda visible dentro de cinco
+  celdas Manhattan. Una celda sin objetivos `IMPACTAR` identificables resuelve el
+  piso automáticamente. Con uno o más objetivos siempre muestra `Piso`, cada
+  objetivo válido y `Cancelar`.
+- La integración genera únicamente cuando hace falta un ID de separación no usado
+  por el inventario ni el suelo, construye `LANZAR_ITEM` mediante
+  `TransferidorItems` y presenta el `ResultadoAccion` en el panel existente. El
+  menú, su escena, iconos y `Theme` siguen siendo los puntos de personalización;
+  no se añadió una UI de inventario ni apuntado definitiva.
+- Pruebas de 9.2: la regresión lógica de 9.1 permanece limpia y la integración del
+  menú prueba selección de item, elección entre piso y un objetivo, separación de
+  una unidad de la pila, activación de una trampa real y caída automática posterior.
+  Ambas pruebas pasan; la integración conserva
+  solo sus avisos conocidos de RID y recursos al cerrar.
+- Primer receptor real de impacto: `TrampaSuperficie` admite `IMPACTAR` en toda su
+  celda, incluso cuando está oculta y el jugador eligió el piso. Reutiliza la misma
+  activación, despliegue de superficie y cadena cardinal que `ENTRAR`; no decide el
+  destino del proyectil, por lo que una piedra activa la cadena y después cae.
+- Incremento 9.3: `GeometriaGrid.trazar_linea()` alimenta una única trayectoria
+  discreta compartida por la previsualización y `TransferidorItems`. Las celdas de
+  altura 2 o superior y los interactuables que lo declaran bloquean proyectiles;
+  una puerta cerrada bloquea y una abierta no. La primera colisión recibe
+  `IMPACTAR`; si la unidad sobrevive, queda como `ItemSuelo` en la última celda
+  libre anterior. Sin colisión alcanza la celda elegida.
+- La selección provisional dibuja un `Line2D` desde el actor hasta la celda real
+  de impacto o fin: verde si llega despejada y naranja si colisiona o el cursor
+  supera el alcance. El selector existente marca esa celda real. Un objetivo
+  elegido para una celda posterior nunca recibe el impacto si algo intercepta
+  antes.
+- Pruebas puntuales de 9.3: trayectoria física y primera colisión; destino lógico
+  y separación de pila; puerta abierta/cerrada como obstáculo; y previsualización
+  integrada en Zona1. Las cuatro pasan funcionalmente; la escena integrada conserva
+  los avisos conocidos de RID y recursos al cerrar.
+- Las reacciones `IMPACTAR` distinguen automáticas de celda y dirigidas. Una trampa
+  sigue reaccionando aunque se elija `Piso`; una palanca aparece como objetivo pero
+  sólo cambia de posición si se la elige expresamente. Ambos comportamientos viven
+  en sus receptores y `LANZAR_ITEM` permanece genérico.
+- Incremento 9.4: la escena instancia temporalmente `escena_mundo` del item y la
+  desplaza con un `Tween` por el mismo recorrido discreto de 9.3. Durante el vuelo
+  el escenario permanece modal y la pila no cambia. Al terminar se oculta la
+  representación temporal y recién entonces se procesa `LANZAR_ITEM`, se resuelven
+  `IMPACTAR` y el destino atómico de la unidad, y se presenta el resultado.
+- La duración por celda queda exportada en la escena. Si una definición carece de
+  `escena_mundo`, la resolución continúa inmediatamente sin inventar una apariencia.
+- Prueba puntual de 9.4: la integración de Zona1 verifica representación visible,
+  bloqueo modal, inventario intacto durante el vuelo, resolución posterior, limpieza
+  de la representación y los casos de trampa, piso y palanca. Pasa funcionalmente y
+  conserva únicamente los avisos conocidos de RID y recursos al cerrar.
+- Pendientes tras 9.4: sustituir el alcance provisional por reglas de actor/item.
+  Rebotes, arcos y desviación siguen fuera de alcance hasta que una mecánica concreta
+  los necesite.
+- Corrección posterior de alcance: `ContextoAccion` permite declarar métrica Manhattan
+  o de cuadrícula. Lanzar usa `max(abs(dx), abs(dy))`, por lo que el radio provisional
+  de cinco celdas es igual en cardinal y diagonal; las demás acciones mantienen
+  Manhattan. Previsualización, validación genérica y trayectoria comparten el criterio.
+- Incremento 9.5: desaparece el alcance fijo. `Ficha` expone su `FUE` mediante
+  `obtener_fuerza()` y `TransferidorItems` calcula `max(2, 1 + FUE)`. Ese mismo valor
+  alimenta selección, previsualización, contexto, validación genérica y trayectoria;
+  el transferidor lo revalida antes de resolver para impedir contextos incoherentes.
+  Con la ficha actual (`FUE = 3`) el alcance es cuatro celdas rectas o diagonales;
+  incluso `FUE = 0` conserva un mínimo de dos.
+- Pruebas puntuales de 9.5: alcance cuatro con `FUE = 3`, mínimo dos con `FUE = 0`,
+  conservación de rollback y vertical slice animada en Zona1. Ambas pruebas pasan;
+  la escena mantiene sólo los avisos conocidos de RID y recursos al cerrar.
+- Incremento 9.6: `DefinicionItem.reaccion_impacto` permite que una definición
+  resuelva una consecuencia propia después de las reacciones de la celda, sin casos
+  especiales en `GestorAcciones`. La primera implementación despliega una escena de
+  efecto de superficie en la celda real de caída y declara `CONSUMIR`.
+- La bomba de humo de Zona1 es `arrojable`, usa su sprite como representación en
+  suelo y vuelo, se rompe al impactar y crea una superficie neutral `Humo` durante
+  diez turnos declarados. El humo usa el atlas de cuatro cuadros proporcionado,
+  bloquea visión y no bloquea proyectiles. No se añadió icono ni UI específica.
+- Pruebas puntuales de 9.6: la integración recoge y lanza la bomba real, verifica
+  consumo sin `ItemSuelo`, mensaje, despliegue y opacidad; la regresión lógica de
+  lanzamiento conserva sus seis casos. Ambas pasan. La escena mantiene únicamente
+  los avisos conocidos de RID y recursos al cerrar, sin `SCRIPT ERROR`.
 
 ## Fase 10 — Relaciones y mecanismos
 
@@ -998,11 +1096,46 @@ Los mecanismos conectados funcionan después de reorganizar nodos o reinstanciar
 
 ### Registro de implementación
 
-- Estado: pendiente.
-- Decisiones nuevas: —
-- Archivos modificados: —
-- Pruebas: —
-- Pendientes: —
+- Estado: incremento 10.1 implementado el 21 de agosto de 2026.
+- Decisiones de 10.1: una palanca puede declarar un único receptor mediante su
+  `id_instancia`; lo resuelve en el índice existente de `TableroGrid` y valida el
+  receptor antes de mutar. La señal transporta el estado booleano neutral deseado,
+  no órdenes específicas de puerta ni alternancia del receptor. La puerta decide
+  cómo aplicar ese estado. `DefinicionPuerta.ModoControl` separa las puertas
+  manuales con cerradura de las exclusivas de mecanismo; estas últimas no publican
+  acciones manuales ni de item. `GestorAcciones` permanece sin cambios.
+- Contenido de 10.1: la palanca real `zona1_palanca_03_m03` controla por ID la nueva
+  `zona1_puerta_mecanismo_05_m03`. El atlas aportado usa `64×96` para cerrada y
+  `72×96` para la primera orientación abierta; su colocación queda ajustable desde
+  Zona1 y el `Resource`.
+- Archivos añadidos o modificados: definición, receptor y emisor de puerta/palanca,
+  recurso `puerta_madera_mecanismo.tres`, Zona1,
+  `prueba_relacion_palanca_puerta.gd`, contratos y este roadmap.
+- Pruebas: relación real reversible, exclusividad de acciones y referencia
+  inexistente sin mutación parcial: cuatro grupos correctos. Regresiones directas
+  `PalancaInteractuar`, `PuertaUsarLlave` e `IntegracionMenuContextual`: correctas.
+  No hubo `SCRIPT ERROR`; la integración conserva los errores conocidos de RID y
+  recursos al cerrar.
+- Pendientes: ajustar visualmente la posición y orientación abierta del nuevo
+  asset; varios receptores, varios emisores, inversión, retardos y herramientas de
+  diagnóstico quedan fuera de 10.1.
+- Incremento 10.2: la relación exportada pasa a
+  `ids_receptores_mecanismo: Array[StringName]`. Una lista vacía conserva una
+  palanca autónoma; una lista configurada se copia y ordena por ID antes de resolver.
+  IDs vacíos, repetidos, inexistentes, receptores incompatibles y contratos inválidos
+  se rechazan durante una prevalidación completa, antes de mutar el emisor o cualquier
+  receptor. Después se aplica sincrónicamente el mismo estado neutral a cada receptor
+  y se agregan sus mensajes y cambios al resultado de la palanca.
+- Contenido de 10.2: la palanca real controla dos puertas. La segunda reutiliza el
+  mismo atlas con la orientación abierta situada en `Rect2(0, 192, 72, 96)` mediante
+  un `Resource` separado, sin añadir lógica de orientación al receptor.
+- Pruebas de 10.2: cinco grupos correctos de registro real, exclusividad, apertura y
+  cierre conjuntos, recorte de `72×96`, referencia inexistente y duplicado sin estado
+  parcial. `PalancaInteractuar` e `IntegracionMenuContextual` también pasan; no hubo
+  `SCRIPT ERROR` y la integración conserva únicamente sus errores conocidos de cierre.
+- Pendientes tras 10.2: varios emisores sobre un receptor, inversión y otros tipos de
+  receptor requieren casos propios. Retardos y temporizadores permanecen fuera de
+  Fase 10 hasta existir una necesidad concreta.
 
 ## Fase 11 — Turnos y efectos persistentes
 

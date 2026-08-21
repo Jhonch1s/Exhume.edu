@@ -41,6 +41,9 @@ func obtener_id_observador() -> StringName:
 func obtener_inventario() -> Inventario:
 	return inventario
 
+func obtener_fuerza() -> int:
+	return fue
+
 func recibir_danio(cantidad: int, _fuente: Object = null) -> int:
 	if cantidad <= 0:
 		return 0

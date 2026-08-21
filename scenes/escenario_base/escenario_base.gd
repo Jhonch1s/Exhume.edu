@@ -18,18 +18,21 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 )
 @onready var camera_2d: Camera2D = $Camera2D
 @onready var capa_camino: TileMapLayer = $CapaCamino
+@onready var trayectoria_lanzamiento: Line2D = $TrayectoriaLanzamiento
 @onready var gestor_vision: FOVManager = $GestorVision
 @onready var capa_oscuridad: TileMapLayer = $Zona1/CapaOscuridad
 
 const ESCENA_FICHA = preload("res://scenes/ficha/ficha.tscn")
 const DEFINICION_PIEDRA = preload("res://assets/items/piedra/piedra.tres")
 const DEFINICION_LLAVE_PRUEBA = preload("res://assets/items/llave_prueba/llave_prueba.tres")
-
+const DEFINICION_BOMBA_HUMO = preload("res://assets/items/bomba_humo/bomba_humo.tres")
 @export var catalogo_mensajes: CatalogoMensajesInteraccion
+@export_range(0.02, 0.5, 0.01) var duracion_paso_lanzamiento: float = 0.08
 
 var tablero: TableroGrid = TableroGrid.new()
 var pathfinding: PathFindingManager = PathFindingManager.new()
 var gestor_acciones: GestorAcciones = GestorAcciones.new()
+var validador_espacial: ValidadorEspacialTablero
 var consultor_reacciones: ConsultorReaccionesCelda = ConsultorReaccionesCelda.new()
 var resolver_reacciones: ResolverReaccionesCelda
 var registro_conocimiento: RegistroConocimiento = RegistroConocimiento.new()
@@ -45,6 +48,12 @@ var objetivo_hover: Object = null
 var objetivo_resaltado: Object = null
 var ultima_opcion_contextual_seleccionada: OpcionAccion = null
 var opcion_uso_item_pendiente: OpcionAccion = null
+var seleccionando_item_lanzamiento: bool = false
+var item_lanzamiento_pendiente: ItemInstancia = null
+var celda_lanzamiento_pendiente: Variant = null
+var secuencia_items_lanzados: int = 0
+var lanzamiento_en_vuelo: bool = false
+var representacion_lanzamiento: Node2D = null
 var ultimo_contexto_contextual: ContextoAccion = null
 var ultimo_resultado_contextual: ResultadoAccion = null
 var interaccion_modal_activa: bool = false
@@ -66,18 +75,20 @@ func _ready() -> void:
 	menu_contextual.opcion_accion_elegida.connect(_on_opcion_contextual_elegida)
 	menu_contextual.objetivo_elegido.connect(_on_objetivo_contextual_elegido)
 	menu_contextual.item_elegido.connect(_on_item_contextual_elegido)
+	menu_contextual.impacto_elegido.connect(_on_impacto_contextual_elegido)
 	menu_contextual.cancelado.connect(_on_menu_contextual_cancelado)
 	panel_resultado_accion.resultado_presentado.connect(_on_resultado_accion_presentado)
 	panel_resultado_accion.cerrado.connect(_on_panel_resultado_cerrado)
 	add_child(gestor_acciones)
 	resolver_reacciones = ResolverReaccionesCelda.new(gestor_acciones)
 	tablero.generar_desde_zona(zona_actual)
-	transferidor_items = TransferidorItems.new(tablero)
+	validador_espacial = ValidadorEspacialTablero.new(tablero)
+	transferidor_items = TransferidorItems.new(tablero, gestor_acciones)
 	tablero.item_suelo_registrado.connect(_on_item_suelo_registrado)
 	tablero.item_suelo_retirado.connect(_on_item_suelo_retirado)
 	servicio_examen = ServicioExamen.new(tablero, registro_conocimiento)
 	tablero.configurar_servicio_examen(servicio_examen)
-	gestor_acciones.configurar_validador_espacial(ValidadorEspacialTablero.new(tablero))
+	gestor_acciones.configurar_validador_espacial(validador_espacial)
 	var capa_suelo: TileMapLayer = zona_actual.get_node_or_null("CapaSuelo")
 	if capa_suelo:
 		tablero.registrar_interactuables_desde_zona(zona_actual, capa_suelo)
@@ -88,11 +99,13 @@ func _ready() -> void:
 	if ficha_jugador:
 		_colocar_piedra_prueba()
 		_colocar_llave_prueba()
+		_colocar_bomba_humo_prueba()
 		_actualizar_luz_jugador(ficha_jugador.coordenada_mapa)
 
 func _process(_delta: float) -> void:
 	centrar_camara_en_ficha()
 	if ficha_jugador and ficha_jugador.esta_moviendose:
+		trayectoria_lanzamiento.clear_points()
 		capa_selector.clear()
 		capa_camino.clear()
 		_limpiar_hover_interaccion()
@@ -108,6 +121,11 @@ func _process(_delta: float) -> void:
 	if not capa_suelo or not ficha_jugador:
 		return
 	var coord_actual := capa_suelo.local_to_map(get_global_mouse_position())
+	if item_lanzamiento_pendiente != null:
+		if coord_actual != ultima_coordenada_hover:
+			_actualizar_previsualizacion_lanzamiento(coord_actual)
+			ultima_coordenada_hover = coord_actual
+		return
 	if coord_actual == ultima_coordenada_hover:
 		return
 	_actualizar_hover_interaccion(coord_actual)
@@ -127,6 +145,10 @@ func _process(_delta: float) -> void:
 	ultima_coordenada_hover = coord_actual
 
 func _unhandled_input(event: InputEvent) -> void:
+	if item_lanzamiento_pendiente != null and event.is_action_pressed(&"ui_cancel"):
+		_cancelar_lanzamiento()
+		get_viewport().set_input_as_handled()
+		return
 	if interaccion_modal_activa:
 		if event.is_action_pressed(&"ui_cancel"):
 			if is_instance_valid(menu_contextual) and menu_contextual.visible:
@@ -136,6 +158,10 @@ func _unhandled_input(event: InputEvent) -> void:
 				and panel_resultado_accion.visible
 			):
 				panel_resultado_accion.ocultar()
+		get_viewport().set_input_as_handled()
+		return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_L:
+		_abrir_selector_item_lanzamiento()
 		get_viewport().set_input_as_handled()
 		return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_G:
@@ -160,6 +186,9 @@ func _manejar_clic_izquierdo(coord: Vector2i) -> void:
 		or interaccion_modal_activa
 	):
 		return
+	if item_lanzamiento_pendiente != null:
+		_seleccionar_celda_lanzamiento(coord)
+		return
 	if not _solicitar_interaccion_en_celda(coord):
 		_cerrar_menu_contextual()
 		return
@@ -167,6 +196,8 @@ func _manejar_clic_izquierdo(coord: Vector2i) -> void:
 
 func _manejar_clic_derecho(coord: Vector2i) -> void:
 	if not ficha_jugador:
+		return
+	if item_lanzamiento_pendiente != null:
 		return
 	if interaccion_modal_activa:
 		return
@@ -401,7 +432,18 @@ func _on_opcion_contextual_elegida(opcion: OpcionAccion) -> void:
 
 
 func _on_item_contextual_elegido(item: ItemInstancia) -> void:
+	if seleccionando_item_lanzamiento:
+		seleccionando_item_lanzamiento = false
+		item_lanzamiento_pendiente = item
+		ultima_coordenada_hover = Vector2i(-999, -999)
+		menu_contextual.ocultar()
+		_actualizar_estado_modal_interaccion()
+		return
 	_ejecutar_opcion_contextual(opcion_uso_item_pendiente, item)
+
+
+func _on_impacto_contextual_elegido(objetivo: Object) -> void:
+	_ejecutar_lanzamiento(objetivo)
 
 
 func _ejecutar_opcion_contextual(
@@ -456,6 +498,10 @@ func _cerrar_menu_contextual() -> void:
 		menu_contextual.ocultar()
 	ultima_opcion_contextual_seleccionada = null
 	opcion_uso_item_pendiente = null
+	seleccionando_item_lanzamiento = false
+	item_lanzamiento_pendiente = null
+	celda_lanzamiento_pendiente = null
+	trayectoria_lanzamiento.clear_points()
 	_limpiar_seleccion_interaccion()
 	ultima_coordenada_hover = Vector2i(-999, -999)
 	_actualizar_estado_modal_interaccion()
@@ -512,6 +558,24 @@ func _colocar_llave_prueba() -> void:
 		return
 
 
+func _colocar_bomba_humo_prueba() -> void:
+	var direcciones: Array[Vector2i] = [Vector2i.ZERO, Vector2i.DOWN, Vector2i.RIGHT, Vector2i.UP, Vector2i.LEFT]
+	for direccion in direcciones:
+		var coord := ficha_jugador.coordenada_mapa + direccion
+		if tablero.validar_colocacion_item_suelo(coord, ficha_jugador) != &"":
+			continue
+		if not tablero.obtener_celda(coord).items_suelo.is_empty():
+			continue
+		var bomba := ItemSuelo.new(ItemInstancia.new(
+			&"zona1_bomba_humo",
+			DEFINICION_BOMBA_HUMO,
+			1
+		))
+		bomba.configurar_transferidor_items(transferidor_items)
+		tablero.registrar_item_suelo(coord, bomba)
+		return
+
+
 func _on_item_suelo_registrado(coord: Vector2i, item_suelo: ItemSuelo) -> void:
 	if item_suelo.item.definicion.escena_mundo == null:
 		return
@@ -530,7 +594,11 @@ func _on_item_suelo_retirado(_coord: Vector2i, item_suelo: ItemSuelo) -> void:
 
 
 func _soltar_unico_item_prueba() -> void:
-	if ficha_jugador == null or interaccion_modal_activa:
+	if (
+		ficha_jugador == null
+		or interaccion_modal_activa
+		or item_lanzamiento_pendiente != null
+	):
 		return
 	var contenido := ficha_jugador.inventario.obtener_contenido()
 	if contenido.size() != 1:
@@ -544,9 +612,270 @@ func _soltar_unico_item_prueba() -> void:
 	gestor_acciones.procesar_accion(contexto)
 
 
+func _abrir_selector_item_lanzamiento() -> void:
+	if (
+		ficha_jugador == null
+		or ficha_jugador.esta_moviendose
+		or interaccion_modal_activa
+		or item_lanzamiento_pendiente != null
+	):
+		return
+	var arrojables: Array[ItemInstancia] = []
+	for item in ficha_jugador.inventario.obtener_contenido():
+		if &"arrojable" in item.definicion.etiquetas:
+			arrojables.append(item)
+	if arrojables.is_empty():
+		return
+	seleccionando_item_lanzamiento = true
+	menu_contextual.mostrar(
+		catalogo_mensajes.resolver(&"interaccion.lanzar_item"),
+		adaptador_menu_contextual.construir_entradas_items(
+			arrojables,
+			catalogo_mensajes
+		),
+		get_viewport().get_mouse_position()
+	)
+	_actualizar_estado_modal_interaccion()
+
+
+func _seleccionar_celda_lanzamiento(coordenada: Vector2i) -> void:
+	if not _es_celda_lanzamiento_valida(coordenada):
+		return
+	celda_lanzamiento_pendiente = coordenada
+	var trayectoria := validador_espacial.resolver_trayectoria_lanzamiento(
+		ficha_jugador.coordenada_mapa,
+		coordenada,
+		_obtener_alcance_lanzamiento_actual()
+	)
+	if trayectoria.is_empty() or trayectoria[&"celda_impacto"] != coordenada:
+		_ejecutar_lanzamiento(null)
+		return
+	var objetivos := _obtener_objetivos_impacto(coordenada)
+	if objetivos.is_empty():
+		_ejecutar_lanzamiento(null)
+		return
+	menu_contextual.mostrar(
+		catalogo_mensajes.resolver(&"interaccion.seleccionar_impacto"),
+		adaptador_menu_contextual.construir_entradas_impacto(
+			objetivos,
+			catalogo_mensajes
+		),
+		get_viewport().get_mouse_position()
+	)
+	_actualizar_estado_modal_interaccion()
+
+
+func _obtener_objetivos_impacto(coordenada: Vector2i) -> Array[Object]:
+	var objetivos: Array[Object] = []
+	var celda := tablero.obtener_celda(coordenada)
+	for reaccion in consultor_reacciones.obtener_reacciones(
+		celda,
+		TiposInteraccion.TipoAccion.IMPACTAR,
+		ficha_jugador,
+		null,
+		true
+	):
+		var receptor := reaccion.receptor
+		var perceptible := true
+		var pertenece_a_celda := true
+		if receptor.has_method(&"es_objetivo_impacto_perceptible"):
+			var valor: Variant = receptor.call(&"es_objetivo_impacto_perceptible")
+			perceptible = valor is bool and valor
+		if receptor.has_method(&"obtener_coordenada_reaccion"):
+			pertenece_a_celda = receptor.call(&"obtener_coordenada_reaccion") == coordenada
+		if (
+			reaccion.categoria != TiposInteraccion.CategoriaReaccion.TERRENO
+			and receptor not in objetivos
+			and receptor.has_method(&"obtener_nombre_interaccion")
+			and perceptible
+			and pertenece_a_celda
+		):
+			objetivos.append(receptor)
+	return objetivos
+
+
+func _es_celda_lanzamiento_valida(coordenada: Vector2i) -> bool:
+	if ficha_jugador == null or not tablero.es_celda_valida(coordenada):
+		return false
+	var celda := tablero.obtener_celda(coordenada)
+	return (
+		celda.visibilidad == Celda.EstadoVisibilidad.VISIBLE
+		and float(maxi(
+			abs(coordenada.x - ficha_jugador.coordenada_mapa.x),
+			abs(coordenada.y - ficha_jugador.coordenada_mapa.y)
+		)) <= _obtener_alcance_lanzamiento_actual()
+	)
+
+
+func _obtener_alcance_lanzamiento_actual() -> float:
+	if transferidor_items == null or ficha_jugador == null:
+		return -1.0
+	return transferidor_items.calcular_alcance_lanzamiento(ficha_jugador)
+
+
+func _actualizar_previsualizacion_lanzamiento(coordenada: Vector2i) -> void:
+	trayectoria_lanzamiento.clear_points()
+	capa_selector.clear()
+	capa_camino.clear()
+	camino_actual_tentativo.clear()
+	if ficha_jugador == null or not tablero.es_celda_valida(coordenada):
+		return
+	var celda := tablero.obtener_celda(coordenada)
+	if celda.visibilidad != Celda.EstadoVisibilidad.VISIBLE:
+		return
+	var trayectoria := validador_espacial.resolver_trayectoria_lanzamiento(
+		ficha_jugador.coordenada_mapa,
+		coordenada,
+		_obtener_alcance_lanzamiento_actual()
+	)
+	if trayectoria.is_empty():
+		return
+	var coordenada_impacto: Vector2i = trayectoria[&"celda_impacto"]
+	capa_selector.set_cell(coordenada_impacto, 0, Vector2i(1, 1))
+	var capa_suelo: TileMapLayer = zona_actual.get_node_or_null("CapaSuelo")
+	if capa_suelo == null:
+		return
+	trayectoria_lanzamiento.points = PackedVector2Array([
+		trayectoria_lanzamiento.to_local(
+			capa_suelo.to_global(capa_suelo.map_to_local(ficha_jugador.coordenada_mapa))
+		),
+		trayectoria_lanzamiento.to_local(
+			capa_suelo.to_global(capa_suelo.map_to_local(coordenada_impacto))
+		),
+	])
+	trayectoria_lanzamiento.default_color = (
+		Color(0.3, 1.0, 0.4, 0.9)
+		if trayectoria[&"destino_alcanzado"] and not trayectoria[&"hubo_colision"]
+		else Color(1.0, 0.35, 0.15, 0.9)
+	)
+
+
+func _ejecutar_lanzamiento(objetivo_impacto: Object) -> void:
+	if lanzamiento_en_vuelo:
+		return
+	var item := item_lanzamiento_pendiente
+	if (
+		item == null
+		or not celda_lanzamiento_pendiente is Vector2i
+	):
+		_cancelar_lanzamiento()
+		return
+	var id_resultante := _crear_id_item_lanzado(item)
+	var contexto := transferidor_items.construir_contexto_lanzar(
+		ficha_jugador,
+		item,
+		ficha_jugador.coordenada_mapa,
+		celda_lanzamiento_pendiente,
+		id_resultante,
+		objetivo_impacto
+	)
+	menu_contextual.ocultar()
+	trayectoria_lanzamiento.clear_points()
+	seleccionando_item_lanzamiento = false
+	item_lanzamiento_pendiente = null
+	celda_lanzamiento_pendiente = null
+	lanzamiento_en_vuelo = true
+	_actualizar_estado_modal_interaccion()
+	_animar_lanzamiento(contexto, item)
+
+
+func _animar_lanzamiento(contexto: ContextoAccion, item: ItemInstancia) -> void:
+	var trayectoria := validador_espacial.resolver_trayectoria_lanzamiento(
+		contexto.origen,
+		contexto.celda_objetivo,
+		contexto.alcance_maximo
+	)
+	if trayectoria.is_empty():
+		_finalizar_lanzamiento(contexto, item)
+		return
+	representacion_lanzamiento = _crear_representacion_lanzamiento(item, contexto.origen)
+	var recorrido: Array = trayectoria[&"recorrido"]
+	if representacion_lanzamiento == null or recorrido.size() < 2:
+		_finalizar_lanzamiento(contexto, item)
+		return
+	var capa_suelo: TileMapLayer = zona_actual.get_node_or_null("CapaSuelo")
+	if capa_suelo == null:
+		_finalizar_lanzamiento(contexto, item)
+		return
+	var tween := create_tween()
+	for coordenada in recorrido.slice(1):
+		tween.tween_property(
+			representacion_lanzamiento,
+			^"global_position",
+			capa_suelo.to_global(capa_suelo.map_to_local(coordenada)),
+			duracion_paso_lanzamiento
+		).set_trans(Tween.TRANS_LINEAR)
+	tween.finished.connect(
+		_finalizar_lanzamiento.bind(contexto, item),
+		CONNECT_ONE_SHOT
+	)
+
+
+func _crear_representacion_lanzamiento(
+	item: ItemInstancia,
+	origen: Vector2i
+) -> Node2D:
+	if item.definicion.escena_mundo == null:
+		return null
+	var representacion := item.definicion.escena_mundo.instantiate() as Node2D
+	var capa_suelo: TileMapLayer = zona_actual.get_node_or_null("CapaSuelo")
+	if representacion == null or capa_suelo == null:
+		if representacion != null:
+			representacion.free()
+		return null
+	zona_actual.add_child(representacion)
+	representacion.global_position = capa_suelo.to_global(
+		capa_suelo.map_to_local(origen)
+	)
+	representacion.z_index = 100
+	return representacion
+
+
+func _finalizar_lanzamiento(contexto: ContextoAccion, item: ItemInstancia) -> void:
+	if is_instance_valid(representacion_lanzamiento):
+		representacion_lanzamiento.visible = false
+		representacion_lanzamiento.queue_free()
+	representacion_lanzamiento = null
+	var resultado := gestor_acciones.procesar_accion(contexto)
+	ultimo_contexto_contextual = contexto
+	ultimo_resultado_contextual = resultado
+	lanzamiento_en_vuelo = false
+	panel_resultado_accion.mostrar_resultado(item.definicion.nombre, resultado, catalogo_mensajes)
+	accion_contextual_finalizada.emit(null, contexto, resultado)
+
+
+func _crear_id_item_lanzado(item: ItemInstancia) -> StringName:
+	if item.cantidad == 1:
+		return &""
+	while true:
+		secuencia_items_lanzados += 1
+		var candidato := StringName("%s_lanzado_%d" % [
+			item.id_instancia,
+			secuencia_items_lanzados,
+		])
+		if (
+			ficha_jugador.inventario.obtener_por_id(candidato) == null
+			and not tablero.items_suelo_por_id.has(candidato)
+		):
+			return candidato
+	return &""
+
+
+func _cancelar_lanzamiento() -> void:
+	seleccionando_item_lanzamiento = false
+	item_lanzamiento_pendiente = null
+	celda_lanzamiento_pendiente = null
+	trayectoria_lanzamiento.clear_points()
+	if is_instance_valid(menu_contextual):
+		menu_contextual.ocultar()
+	ultima_coordenada_hover = Vector2i(-999, -999)
+	_actualizar_estado_modal_interaccion()
+
+
 func _actualizar_estado_modal_interaccion() -> void:
 	var siguiente := (
-		(is_instance_valid(menu_contextual) and menu_contextual.visible)
+		lanzamiento_en_vuelo
+		or (is_instance_valid(menu_contextual) and menu_contextual.visible)
 		or (
 			is_instance_valid(panel_resultado_accion)
 			and panel_resultado_accion.visible

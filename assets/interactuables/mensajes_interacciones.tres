@@ -5,6 +5,7 @@
 [resource]
 script = ExtResource("1_catalogo")
 mensajes = {
+&"bomba_humo.activada": "La bomba se rompe y libera una nube de humo.",
 &"examen.antorcha_pie.basico_apagada": "Es una antorcha de pie. Está apagada y apenas queda calor en su extremo.",
 &"examen.antorcha_pie.basico_encendida": "Es una antorcha de pie cuya llama ilumina el entorno cercano.",
 &"examen.antorcha_pie.construccion": "El soporte de piedra está ennegrecido por un uso prolongado.",
@@ -23,7 +24,10 @@ mensajes = {
 &"interaccion.cancelar": "Cancelar",
 &"interaccion.encender": "Encender",
 &"interaccion.examinar": "Examinar",
+&"interaccion.impactar_piso": "Piso",
+&"interaccion.lanzar_item": "¿Qué item quieres lanzar?",
 &"interaccion.recoger": "Recoger",
+&"interaccion.seleccionar_impacto": "¿Contra qué quieres lanzarlo?",
 &"interaccion.seleccionar_objetivo": "¿Qué quieres seleccionar?",
 &"interaccion.seleccionar_item": "¿Qué item quieres usar?",
 &"interaccion.usar_item": "Usar item…",

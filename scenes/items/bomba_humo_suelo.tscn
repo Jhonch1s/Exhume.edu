@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://cl0uxlkjhbodp"]
+
+[ext_resource type="Script" uid="uid://c8gabgtcsdkbt" path="res://scripts/interacciones/items/representacion_item_suelo.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://7rftg7lepxrn" path="res://assets/items/bomba_humo/sprites/bomba_humo_isometric1.png" id="2_textura"]
+
+[node name="BombaHumoSuelo" type="Node2D" unique_id=1120780746]
+script = ExtResource("1_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1057868232]
+texture_filter = 1
+texture = ExtResource("2_textura")

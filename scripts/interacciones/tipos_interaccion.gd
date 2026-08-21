@@ -20,6 +20,12 @@ enum EstadoResolucion {
 	BLOQUEO,
 }
 
+enum DestinoItem {
+	CONSERVAR_EN_INVENTARIO,
+	CONSUMIR,
+	DEJAR_EN_CELDA,
+}
+
 enum NivelInformacion {
 	VISIBLE,
 	BASICO,
@@ -31,6 +37,11 @@ enum TipoLineaEfecto {
 	NINGUNA,
 	VISUAL,
 	FISICA,
+}
+
+enum MetricaAlcance {
+	MANHATTAN,
+	CUADRICULA,
 }
 
 enum PoliticaCobro {

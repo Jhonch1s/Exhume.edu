@@ -1,6 +1,14 @@
 class_name DefinicionPuerta
 extends DefinicionInteractuable
 
+enum ModoControl {
+	MANUAL_CON_CERRADURA,
+	MECANISMO,
+}
+
+@export_category("Control")
+@export var modo_control: ModoControl = ModoControl.MANUAL_CON_CERRADURA
+
 @export_category("Cerradura")
 @export var patron_cerradura: StringName = &""
 
@@ -14,8 +22,13 @@ extends DefinicionInteractuable
 func es_valida() -> bool:
 	return (
 		super.es_valida()
-		and patron_cerradura != &""
+		and (
+			modo_control == ModoControl.MECANISMO
+			or patron_cerradura != &""
+		)
 		and textura != null
-		and region_cerrada.size == Vector2(64, 96)
-		and region_abierta.size == Vector2(64, 96)
+		and region_cerrada.size.x > 0.0
+		and region_cerrada.size.y > 0.0
+		and region_abierta.size.x > 0.0
+		and region_abierta.size.y > 0.0
 	)

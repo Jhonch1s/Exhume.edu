@@ -104,6 +104,10 @@ func reacciona_automaticamente(_tipo: TiposInteraccion.TipoAccion) -> bool:
 	return false
 
 
+func admite_reaccion_dirigida(_tipo: TiposInteraccion.TipoAccion) -> bool:
+	return false
+
+
 func obtener_id_reaccion() -> StringName:
 	return id_instancia
 
@@ -121,6 +125,10 @@ func permite_caminar_interactuable() -> bool:
 
 
 func bloquea_vision_interactuable() -> bool:
+	return false
+
+
+func bloquea_proyectiles_interactuable() -> bool:
 	return false
 
 

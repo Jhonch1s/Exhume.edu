@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="DefinicionItem" format=3 uid="uid://duimmx1272hjc"]
+
+[ext_resource type="Script" uid="uid://brbgghxl8rc0q" path="res://scripts/interacciones/items/definicion_item.gd" id="1_definicion"]
+[ext_resource type="PackedScene" uid="uid://cl0uxlkjhbodp" path="res://scenes/items/bomba_humo_suelo.tscn" id="2_mundo"]
+[ext_resource type="Script" uid="uid://dbu8xn81o5vnr" path="res://scripts/interacciones/items/reaccion_impacto_superficie.gd" id="3_reaccion"]
+[ext_resource type="PackedScene" path="res://scenes/efectos_superficie/Humo.tscn" id="4_humo"]
+
+[sub_resource type="Resource" id="Resource_reaccion_impacto"]
+script = ExtResource("3_reaccion")
+escena_superficie = ExtResource("4_humo")
+radio = 2
+id_mensaje = &"bomba_humo.activada"
+
+[resource]
+script = ExtResource("1_definicion")
+id_definicion = &"bomba_humo"
+nombre = "Bomba de humo"
+escena_mundo = ExtResource("2_mundo")
+etiquetas = Array[StringName]([&"arrojable", &"fragil", &"humo"])
+magnitudes = Dictionary[StringName, float]({
+&"peso": 1.0
+})
+reaccion_impacto = SubResource("Resource_reaccion_impacto")
+apilable = true
+cantidad_maxima = 10

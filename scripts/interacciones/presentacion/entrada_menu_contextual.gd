@@ -5,6 +5,7 @@ enum TipoEntrada {
 	ACCION,
 	OBJETIVO,
 	ITEM,
+	IMPACTO,
 	CANCELAR,
 }
 
@@ -79,6 +80,20 @@ static func desde_item(
 		null,
 		item_inicial,
 		item_inicial.definicion.icono
+	)
+
+
+static func desde_impacto(
+	objetivo_inicial: Object,
+	texto_resuelto: String
+) -> EntradaMenuContextual:
+	return EntradaMenuContextual.new(
+		TipoEntrada.IMPACTO,
+		texto_resuelto,
+		true,
+		"",
+		null,
+		objetivo_inicial
 	)
 
 

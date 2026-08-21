@@ -79,7 +79,7 @@ protocolo y nunca construye contexto.
 
 `GestorAcciones` procesa la lógica de forma síncrona y emite, en ese orden, `accion_iniciada`, `accion_resuelta` y `accion_finalizada`. Un contexto nulo se bloquea antes de iniciar el ciclo porque no existe un objeto válido que transportar en las señales. Para cualquier contexto existente, tanto el éxito como el fallo o bloqueo producen exactamente una resolución y una finalización.
 
-Las validaciones iniciales comprueban actor, objetivo, coordenadas requeridas, alcance y contrato del receptor. El alcance espacial se mide mediante distancia Manhattan para coincidir con las cuatro direcciones conectadas por el movimiento actual. Costes disponibles y agregación de varios receptores se incorporarán mediante contratos específicos antes de cerrar la Fase 1.
+Las validaciones iniciales comprueban actor, objetivo, coordenadas requeridas, alcance y contrato del receptor. La métrica predeterminada es Manhattan para coincidir con las cuatro direcciones conectadas por el movimiento; cada contexto puede declarar otra métrica cuando su geometría lo requiere. Costes disponibles y agregación de varios receptores se incorporarán mediante contratos específicos antes de cerrar la Fase 1.
 
 ## Ciclo seguro de un paso
 
@@ -224,6 +224,7 @@ Objeto inmutable desde que comienza la resolución.
 | `id_evento` | `StringName` | Identifica el lote automático compartido; puede estar vacío cuando la acción no solicita efectos. |
 | `cantidad_item` | `int` | Cantidad explícita para transferencias; `-1` significa la pila completa. |
 | `id_item_resultante` | `StringName` | ID obligatorio de la nueva pila en una transferencia parcial; vacío para transferencias completas. |
+| `objetivo_impacto` | `Object` o `null` | Receptor elegido para un impacto directo; `null` significa impactar contra el piso de la celda. |
 
 El contexto se construye con copias de etiquetas, magnitudes y metadatos. Los receptores no deben modificarlo.
 
@@ -240,6 +241,7 @@ El contexto se construye con copias de etiquetas, magnitudes y metadatos. Los re
 | `costes_consumidos` | `Dictionary[StringName, float]` | Energía, acciones, turnos, cargas o cantidad realmente cobrados. |
 | `interrumpe_movimiento` | `bool` | Solicita detener la ruta tras el paso confirmado. |
 | `terminal` | `bool` | Impide resolver reacciones posteriores del mismo evento sin revertir resultados previos. |
+| `destino_item` | `DestinoItem` o `null` | Destino explícito solicitado por una reacción; `null` cuando el resultado no decide sobre una unidad. |
 
 Las propiedades derivadas `exitosa`, `consumio_accion` y `consumio_turno` se calculan desde `estado` y `costes_consumidos`; no se almacenan como fuentes de verdad duplicadas.
 
@@ -422,6 +424,13 @@ la coloca bajo `EfectosSuperficie` y la registra en la celda correspondiente. El
 resultado informa esos cambios e interrumpe la ruta después de que la ficha haya
 terminado el tween y confirmado su ocupación.
 
+Desde 9.2 una trampa armada también publica reacción automática a `IMPACTAR` cuando
+el contexto transporta un item con la etiqueta `&"impacto"`. Esto se aplica aunque
+la trampa esté oculta y se haya elegido el piso: el impacto pertenece a toda la
+celda. Reutiliza sin duplicación el mismo despliegue de superficie y la misma cadena
+cardinal de `ENTRAR`. La trampa no declara `destino_item`; la unidad lanzada conserva
+por defecto `DEJAR_EN_CELDA`.
+
 La consulta de reacciones usa una instantánea: el humo creado sobre la celda de
 la trampa no se ejecuta retroactivamente en el mismo evento `ENTRAR`. Sí modifica
 el coste y reacciona en entradas posteriores. Una explosión instantánea permanece
@@ -581,8 +590,8 @@ alcance Manhattan uno. Cualquier actor adyacente puede alternar su estado sin it
 Su definición declara la textura y dos regiones de `64×64`; la instancia conserva
 únicamente `activada` y actualiza la región visible.
 
-La palanca no publica `Usar item…` ni `Lanzar item…`. En la futura Fase 9, lanzar
-nace al seleccionar una instancia `arrojable` desde el inventario. Después se elige
+La palanca no publica `Usar item…` ni `Lanzar item…`. Lanzar nace al seleccionar
+una instancia `arrojable` desde el inventario. Después se elige
 la celda o trayectoria; el objetivo alcanzado recibe `IMPACTAR` y reacciona a las
 etiquetas y magnitudes reales del impacto. Así un receptor nunca ofrece acciones
 basándose en items que todavía permanecen en posesión del actor.
@@ -613,7 +622,7 @@ proyectar visión y luz al recibir el cambio. La huella multicelda para portones
 dos hojas queda pendiente hasta implementar el registro de un mismo interactuable
 en varias celdas; no se representa mediante dos puertas independientes.
 
-### Destino del item después de una acción — decisión pendiente de implementación
+### Destino del item después de una acción — implementado en 9.1
 
 No existe una propiedad global `consumible`: el mismo item puede sobrevivir o
 desaparecer según la reacción concreta. El resultado de una acción con item deberá
@@ -629,9 +638,204 @@ separada recibe una nueva si debe sobrevivir fuera del inventario. La transferen
 se confirmará atómicamente mediante `TransferidorItems`; `GestorAcciones` seguirá
 sin conocer reglas de consumo, lanzamiento ni combinaciones.
 
-Para una roca lanzada, el destino normal será `DEJAR_EN_CELDA`. Una reacción podrá
-elegir `CONSUMIR` si el impacto la rompe, absorbe o destruye. Este vocabulario se
-incorporará al código junto con el primer flujo `LANZAR_ITEM`, no antes.
+Para una roca lanzada, el destino normal es `DEJAR_EN_CELDA`. Una reacción puede
+elegir `CONSUMIR` si el impacto la rompe, absorbe o destruye.
+
+### Lanzamiento lógico — incremento 9.1
+
+`TransferidorItems` recibe `LANZAR_ITEM`, revalida que la misma instancia continúe
+en el inventario y exige la etiqueta `&"arrojable"`. El contexto transporta una
+unidad, copia las etiquetas y magnitudes de la definición y agrega `&"impacto"`.
+En 9.1 el alcance provisional se recibió como Manhattan; trayectoria y línea física
+todavía no formaban parte de ese incremento. La corrección posterior descrita en 9.4
+lo sustituyó por métrica de cuadrícula para los lanzamientos.
+
+La celda destino debe existir. `objetivo_impacto = null` representa elegir el piso;
+un objetivo explícito debe pertenecer a las reacciones `IMPACTAR` de esa celda. El
+objetivo directo se resuelve primero y las restantes fuentes conservan después su
+orden contractual. Ningún receptor se procesa dos veces.
+
+`DestinoItem` contiene `CONSERVAR_EN_INVENTARIO`, `CONSUMIR` y
+`DEJAR_EN_CELDA`. El primer destino explícito según el orden de resolución
+prevalece; si ninguna reacción declara uno, lanzar usa `DEJAR_EN_CELDA`. Una pila
+de varias unidades conserva su identidad y exige `id_item_resultante` para la
+unidad separada. Una pila de una unidad puede trasladar la misma instancia.
+
+La confirmación ocurre después de resolver el impacto. Un bloqueo previo mantiene
+el inventario intacto. Para dejar caer, el transferidor retira primero la unidad y
+registra después el `ItemSuelo`; si el registro falla, recompone cantidad e
+identidad mediante el mismo rollback de las transferencias parciales. No existe
+rollback general de cambios arbitrarios producidos por las reacciones.
+
+### Selección provisional de lanzamiento — incremento 9.2
+
+La tecla provisional `L` reutiliza `MenuContextualInteracciones` y muestra solo
+pilas cuya definición contiene `&"arrojable"`. Tras elegir una pila, el menú se
+cierra y una celda es seleccionable si está visible, existe y queda dentro del
+alcance provisional de cinco celdas. Desde la corrección posterior a 9.4, ese radio
+usa métrica de cuadrícula y no penaliza dos veces los pasos diagonales.
+
+Si la celda no contiene receptores `IMPACTAR` con nombre presentable, el flujo elige
+el piso automáticamente. Si contiene uno o más, el menú muestra siempre `Piso`,
+cada receptor en el orden de reacción y `Cancelar`; por tanto, incluso un único
+objetivo nunca se selecciona automáticamente. Cancelar abandona el flujo completo
+sin construir un contexto.
+
+La integración proporciona un ID nuevo únicamente para separar una pila de varias
+unidades y comprueba que no exista en el inventario ni en el suelo. La vista sigue
+definida por la escena, los iconos y el `Theme` existentes. Inventario definitivo,
+trayectoria, previsualización y animación quedan fuera de 9.2.
+
+### Trayectoria y primera colisión — incremento 9.3
+
+`ValidadorEspacialTablero.resolver_trayectoria_lanzamiento()` recorre la línea
+discreta de `GeometriaGrid` y es la única fuente para la previsualización y la
+resolución de `LANZAR_ITEM`. Mantiene separados cuatro datos: si se alcanzó la
+celda solicitada, si hubo colisión, la celda que recibe `IMPACTAR` y la celda donde
+queda una unidad superviviente.
+
+Una celda bloquea proyectiles si su altura es 2 o superior o si alguno de sus
+interactuables declara `bloquea_proyectiles_interactuable()`. La puerta devuelve
+`true` cerrada y `false` abierta. Los efectos de superficie no bloquean por defecto:
+humo, agua o lava sólo cambiarán esta regla si una mecánica concreta lo requiere.
+
+La primera celda bloqueante recibe las reacciones `IMPACTAR`. Si el resultado es
+`DEJAR_EN_CELDA`, la unidad se registra en la última celda libre anterior; si no hay
+obstáculo, impacto y caída coinciden con el destino solicitado. Un objetivo directo
+seleccionado sólo conserva prioridad cuando esa misma celda es la alcanzada; una
+colisión anterior lo descarta. `CONSUMIR` y `CONSERVAR_EN_INVENTARIO` mantienen sus
+contratos de 9.1.
+
+Las reacciones de impacto distinguen dos admisiones. `reacciona_automaticamente()`
+describe consecuencias de celda que ocurren incluso al elegir el piso, como una
+trampa oculta. `admite_reaccion_dirigida()` describe receptores que sólo participan
+si fueron elegidos, como una palanca. La UI puede descubrir ambos, pero el consultor
+sólo incorpora una reacción dirigida a la resolución cuando ese receptor es el
+`objetivo_impacto`. La palanca reutiliza el mismo cambio de estado de su interacción
+manual y una piedra que sobreviva cae normalmente.
+
+La escena provisional dibuja un `Line2D` recto entre los centros isométricos del
+actor y la celda real devuelta por ese cálculo. Verde indica llegada despejada;
+naranja indica colisión o truncamiento por alcance. El selector existente marca la
+celda real. Esta línea no representa todavía tiempo de vuelo ni anima un proyectil.
+
+### Representación temporal del vuelo — incremento 9.4
+
+Al confirmar el objetivo, la escena conserva el `ContextoAccion` sin procesarlo e
+instancia temporalmente `DefinicionItem.escena_mundo`. Un `Tween` desplaza esa
+representación por las celdas del `recorrido` calculado por 9.3; la duración por
+celda es una propiedad exportada de la escena. No existe una segunda trayectoria
+visual ni se recalculan obstáculos desde la animación.
+
+Mientras el vuelo está activo, el escenario mantiene el estado modal y la instancia
+permanece sin cambios en el inventario. Al finalizar se oculta y libera la
+representación temporal y recién entonces `GestorAcciones` procesa el contexto. Por
+lo tanto, cualquier bloqueo o fallo tardío conserva la pila, y un éxito aplica una
+sola vez `IMPACTAR` y el destino final de la unidad. La representación persistente
+de un eventual `ItemSuelo` continúa naciendo exclusivamente del registro lógico del
+tablero.
+
+Si el item no declara `escena_mundo`, el contexto se procesa inmediatamente: la
+ausencia de un asset visual no cambia la mecánica. Este incremento no incorpora
+parábolas, rebotes, rotación, desviación ni efectos particulares por definición.
+
+El alcance de lanzamiento usa `MetricaAlcance.CUADRICULA`: la distancia es
+`max(abs(dx), abs(dy))`, de modo que avanzar una celda diagonal o cardinal consume
+un paso. `ContextoAccion` declara la métrica y `GestorAcciones` la aplica sin conocer
+el tipo concreto de acción. Las interacciones existentes conservan Manhattan por
+defecto, por lo que una palanca manual continúa exigiendo adyacencia cardinal.
+
+### Alcance según fuerza — incremento 9.5
+
+Un actor capaz de lanzar expone `obtener_fuerza()` como entero no negativo. El
+alcance máximo se calcula una sola vez mediante `max(2, 1 + fuerza)` y usa la métrica
+de cuadrícula de 9.4. `TransferidorItems.construir_contexto_lanzar()` obtiene el dato
+del actor; los llamadores ya no proporcionan un alcance arbitrario.
+
+El escenario consulta al mismo transferidor para validar la celda y dibujar la
+previsualización. Antes de resolver, el transferidor recalcula la fuerza y exige que
+coincida con el valor inmutable del contexto. Un actor sin el contrato, con un valor
+no entero o negativo produce `actor_sin_fuerza`; una discrepancia produce
+`alcance_lanzamiento_incoherente`, siempre antes de retirar la unidad.
+
+El peso del item continúa transportándose como magnitud del impacto, pero no altera
+el alcance en este incremento. Su interacción con fuerza se definirá únicamente si
+el diseño necesita diferenciar objetos arrojables por masa.
+
+### Consecuencia propia del item — incremento 9.6
+
+`DefinicionItem.reaccion_impacto` es opcional. Si existe, debe ofrecer
+`validar_impacto()` y `resolver_impacto()`; `TransferidorItems` las invoca sobre la
+celda real de caída después de resolver `IMPACTAR`. La ausencia de reacción mantiene
+el comportamiento anterior. `GestorAcciones` permanece ajeno a definiciones concretas.
+
+`ReaccionImpactoSuperficie` valida primero tablero, contenedor, celda caminable e ID
+de efecto. Al resolver reutiliza `TableroGrid.desplegar_efecto_superficie()` y declara
+`CONSUMIR`. Como se agrega después de las reacciones de la celda, conserva la regla
+general de 9.1: un destino explícito anterior prevalece.
+
+La definición `bomba_humo` configura esta reacción con radio cero y la escena neutral
+`Humo`. Por tanto, una unidad se rompe y despliega una nube en su celda de caída; no
+queda `ItemSuelo`. La nube pertenece a la familia `&"humo"`, bloquea visión, declara
+diez turnos de duración y no bloquea trayectoria de proyectiles. Su atlas visual tiene
+cuatro cuadros de `64×64`; la definición todavía no requiere icono de inventario.
+
+## Relaciones de mecanismo — incremento 10.1
+
+Una relación inicial conecta una palanca con un único interactuable mediante el
+`id_instancia` estable del receptor. La resolución reutiliza
+`TableroGrid.obtener_interactuable()`; no guarda `NodePath`, no busca por nombre de
+nodo y no introduce un bus global.
+
+La palanca transmite el nuevo estado lógico deseado como `bool`. Es una operación
+idempotente para el receptor: no significa «alternar» ni contiene órdenes como
+«abrir puerta». Antes de cambiar su propio estado, la palanca exige que el receptor
+exista y cumpla por comportamiento:
+
+```gdscript
+func validar_cambio_mecanismo(id_emisor: StringName, activa: bool) -> StringName
+func aplicar_cambio_mecanismo(
+	id_emisor: StringName,
+	activa: bool
+) -> ResultadoAccion
+```
+
+La primera puerta receptora interpreta `activa` como `abierta`. Su definición usa
+`ModoControl.MECANISMO`, por lo que no publica `Abrir`, `Cerrar` ni `Usar item…` y
+rechaza esas acciones aunque exista una llave compatible. Las puertas existentes
+con `ModoControl.MANUAL_CON_CERRADURA` conservan el flujo de llave y apertura manual
+y rechazan señales de mecanismo.
+
+Una referencia vacía mantiene una palanca autónoma. Una referencia no vacía pero
+inexistente, un receptor incompatible o un contrato inválido bloquean la acción
+antes de modificar palanca o puerta. Al tener éxito, el `ResultadoAccion` agrega los
+cambios de ambas instancias. `GestorAcciones` solo procesa la acción original y no
+conoce la relación ni las clases concretas.
+
+10.1 no define listas de receptores, combinación de emisores, inversión, retardos,
+temporizadores ni persistencia adicional. Esas capacidades requieren casos e
+incrementos propios.
+
+### Varios receptores — incremento 10.2
+
+Una palanca declara `ids_receptores_mecanismo: Array[StringName]`. La lista vacía
+mantiene el comportamiento autónomo. Para una lista configurada, la palanca trabaja
+sobre una copia ordenada por ID estable y rechaza antes de cualquier mutación:
+
+- IDs vacíos o repetidos.
+- IDs inexistentes en `TableroGrid`.
+- Receptores sin ambos métodos del protocolo.
+- Validaciones que no devuelven `StringName` o devuelven un motivo.
+
+Solo después de prevalidar el lote completo se aplica sincrónicamente el mismo estado
+neutral a cada receptor. Los mensajes y cambios se agregan en el orden estable de los
+IDs; el cambio de la palanca se presenta primero. La aplicación posterior a una
+validación correcta forma parte del contrato del receptor y no introduce un protocolo
+genérico de rollback mientras la resolución permanezca síncrona.
+
+Dos orientaciones visuales de una puerta pueden usar definiciones distintas con el
+mismo receptor lógico. La orientación pertenece al `Resource` y no modifica la señal
+ni el código de la puerta.
 
 ## `OpcionAccion`
 

@@ -29,15 +29,25 @@ func obtener_opciones_accion(_actor: Object = null) -> Array[OpcionAccion]:
 	return []
 
 
+func es_objetivo_impacto_perceptible() -> bool:
+	return presentacion != Presentacion.OCULTA
+
+
 func reacciona_automaticamente(tipo: TiposInteraccion.TipoAccion) -> bool:
-	return tipo == TiposInteraccion.TipoAccion.ENTRAR and not activada
+	return tipo in [
+		TiposInteraccion.TipoAccion.ENTRAR,
+		TiposInteraccion.TipoAccion.IMPACTAR,
+	] and not activada
 
 
 func obtener_reacciones_encadenadas(
 	tipo: TiposInteraccion.TipoAccion
 ) -> Array[Object]:
 	var trampas: Array[Object] = []
-	if tipo != TiposInteraccion.TipoAccion.ENTRAR or tablero == null:
+	if tipo not in [
+		TiposInteraccion.TipoAccion.ENTRAR,
+		TiposInteraccion.TipoAccion.IMPACTAR,
+	] or tablero == null:
 		return trampas
 	for direccion in [Vector2i.UP, Vector2i.LEFT, Vector2i.RIGHT, Vector2i.DOWN]:
 		var celda := tablero.obtener_celda(coordenada_mapa + direccion)
@@ -53,8 +63,14 @@ func obtener_reacciones_encadenadas(
 func validar_accion(contexto: ContextoAccion) -> StringName:
 	if contexto == null or contexto.objetivo != self:
 		return &"objetivo_no_coincide"
-	if contexto.tipo != TiposInteraccion.TipoAccion.ENTRAR:
+	if contexto.tipo not in [
+		TiposInteraccion.TipoAccion.ENTRAR,
+		TiposInteraccion.TipoAccion.IMPACTAR,
+	]:
 		return &"accion_no_admitida"
+	if contexto.tipo == TiposInteraccion.TipoAccion.IMPACTAR:
+		if contexto.item == null or &"impacto" not in contexto.etiquetas:
+			return &"impacto_incoherente"
 	if contexto.celda_objetivo != coordenada_mapa:
 		return &"celda_objetivo_invalida"
 	if tablero == null or escena_superficie == null:

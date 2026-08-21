@@ -155,22 +155,38 @@ func _probar_reaccion_en_cadena(tablero: TableroGrid) -> void:
 	tablero.registrar_interactuable(Vector2i(7, 1), diagonal)
 
 	var actor := RefCounted.new()
+	trampas[0].presentacion = TrampaSuperficie.Presentacion.OCULTA
 	var reacciones := ConsultorReaccionesCelda.new().obtener_reacciones(
 		tablero.obtener_celda(Vector2i(8, 0)),
-		TiposInteraccion.TipoAccion.ENTRAR,
+		TiposInteraccion.TipoAccion.IMPACTAR,
 		actor
 	)
-	_comprobar(reacciones.size() == 3, "La consulta debe encadenar las tres trampas cardinales.")
+	_comprobar(
+		reacciones.size() == 3,
+		"Un impacto en una trampa oculta debe encadenar las tres trampas cardinales."
+	)
 	var gestor := GestorAcciones.new()
 	root.add_child(gestor)
+	var definicion_item := DefinicionItem.new()
+	definicion_item.id_definicion = &"piedra_prueba_impacto"
+	definicion_item.nombre = "Piedra"
+	var item := ItemInstancia.new(&"piedra_prueba_impacto", definicion_item)
 	var resultado := ResolverReaccionesCelda.new(gestor).resolver(
-		TiposInteraccion.TipoAccion.ENTRAR,
+		TiposInteraccion.TipoAccion.IMPACTAR,
 		actor,
 		Vector2i(7, 0),
 		Vector2i(8, 0),
-		reacciones
+		reacciones,
+		item,
+		[&"impacto"],
+		{},
+		1,
+		null
 	)
-	_comprobar(resultado.resultados.size() == 3, "Cada trampa encadenada debe resolverse una vez.")
+	_comprobar(
+		resultado.resultados.size() == 3,
+		"Cada trampa encadenada por el impacto debe resolverse una vez."
+	)
 	_comprobar(
 		resultado.resultados.all(func(item): return not item.cambios_estado.is_empty()),
 		"Cada trampa encadenada debe desplegar al menos una superficie caminable."

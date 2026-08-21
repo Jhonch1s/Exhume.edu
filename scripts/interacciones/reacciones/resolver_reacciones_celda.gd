@@ -19,7 +19,12 @@ func resolver(
 	actor: Object,
 	origen: Vector2i,
 	destino: Vector2i,
-	reacciones: Array[ReaccionCelda]
+	reacciones: Array[ReaccionCelda],
+	item: Object = null,
+	etiquetas: Array[StringName] = [],
+	magnitudes: Dictionary[StringName, float] = {},
+	cantidad_item: int = -1,
+	objetivo_impacto: Object = null
 ) -> ResultadoReacciones:
 	var agregado := ResultadoReacciones.new()
 	if gestor_acciones == null or not is_instance_valid(gestor_acciones):
@@ -46,17 +51,20 @@ func resolver(
 			origen,
 			celda_objetivo,
 			reaccion.receptor,
-			null,
+			item,
 			&"",
-			[],
-			{},
+			etiquetas,
+			magnitudes,
 			-1.0,
 			{},
 			TiposInteraccion.TipoLineaEfecto.NINGUNA,
 			{},
 			TiposInteraccion.PoliticaCobro.SOLO_EXITO,
 			null,
-			id_evento
+			id_evento,
+			cantidad_item,
+			&"",
+			objetivo_impacto
 		)
 		agregado.agregar(gestor_acciones.procesar_accion(contexto))
 		if agregado.terminal:

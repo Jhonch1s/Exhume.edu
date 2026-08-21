@@ -126,20 +126,45 @@ func _probar_configuracion_y_linea_fisica() -> void:
 		TiposInteraccion.TipoAccion.IMPACTAR,
 		RefCounted.new(),
 		Vector2i.ZERO,
-		Vector2i(1, 0),
+		Vector2i(2, 0),
 		RefCounted.new(),
 		null,
 		&"",
 		[],
 		{},
-		1.0,
+		3.0,
 		{},
 		TiposInteraccion.TipoLineaEfecto.FISICA
 	)
 	_comprobar(
-		sin_tablero.validar_linea_efecto(contexto_fisico) == &"linea_fisica_no_implementada",
-		"La línea física debe bloquearse explícitamente hasta definir sus obstáculos."
+		sin_tablero.validar_linea_efecto(contexto_fisico) == &"tablero_espacial_no_configurado",
+		"La línea física también debe exigir un tablero."
 	)
+	var tablero := _crear_tablero_lineal(3)
+	tablero.obtener_celda(Vector2i.RIGHT).altura = 2
+	var validador := ValidadorEspacialTablero.new(tablero)
+	var trayectoria := validador.resolver_trayectoria_lanzamiento(
+		Vector2i.ZERO, Vector2i(2, 0), 3.0
+	)
+	_comprobar(
+		validador.validar_linea_efecto(contexto_fisico) == &"linea_de_efecto_bloqueada",
+		"El obstáculo intermedio debe bloquear la línea física."
+	)
+	_comprobar(
+		trayectoria[&"hubo_colision"]
+		and trayectoria[&"celda_impacto"] == Vector2i.RIGHT,
+		"El primer obstáculo físico debe recibir el impacto."
+	)
+	_comprobar(
+		trayectoria[&"celda_caida"] == Vector2i.ZERO,
+		"La unidad debe caer en la celda anterior al obstáculo."
+	)
+	tablero.obtener_celda(Vector2i.RIGHT).altura = 0
+	_comprobar(
+		validador.validar_linea_efecto(contexto_fisico) == &"",
+		"Una línea física despejada debe aceptarse."
+	)
+	tablero.free()
 
 
 func _probar_integracion_con_gestor() -> void:

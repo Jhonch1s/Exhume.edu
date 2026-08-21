@@ -1,3 +1,4 @@
+@tool
 class_name PuertaInteractuable
 extends Interactuable
 
@@ -8,13 +9,16 @@ extends Interactuable
 
 
 func _ready() -> void:
-	if abierta:
+	if abierta or _es_controlada_por_mecanismo():
 		bloqueada = false
 	_actualizar_representacion()
 
 
 func obtener_opciones_accion(actor: Object = null) -> Array[OpcionAccion]:
 	var opciones := super.obtener_opciones_accion(actor)
+	if _es_controlada_por_mecanismo():
+		_eliminar_uso_item(opciones)
+		return opciones
 	if not bloqueada:
 		_eliminar_uso_item(opciones)
 	var id_accion: StringName = &"cerrar" if abierta else &"abrir"
@@ -55,6 +59,10 @@ func bloquea_vision_interactuable() -> bool:
 	return not abierta
 
 
+func bloquea_proyectiles_interactuable() -> bool:
+	return not abierta
+
+
 func validar_accion(contexto: ContextoAccion) -> StringName:
 	if contexto != null and contexto.tipo == TiposInteraccion.TipoAccion.EXAMINAR:
 		return super.validar_accion(contexto)
@@ -65,6 +73,8 @@ func validar_accion(contexto: ContextoAccion) -> StringName:
 	var datos := definicion as DefinicionPuerta
 	if datos == null or not datos.es_valida():
 		return &"puerta_no_configurada"
+	if datos.modo_control == DefinicionPuerta.ModoControl.MECANISMO:
+		return &"puerta_controlada_por_mecanismo"
 	if contexto.tipo == TiposInteraccion.TipoAccion.USAR_ITEM:
 		var motivo_item := super.validar_accion(contexto)
 		if motivo_item != &"":
@@ -127,10 +137,54 @@ func _resolver_uso_item(contexto: ContextoAccion) -> ResultadoAccion:
 	)
 
 
+func validar_cambio_mecanismo(id_emisor: StringName, _activa: bool) -> StringName:
+	if id_emisor == &"":
+		return &"emisor_mecanismo_invalido"
+	var datos := definicion as DefinicionPuerta
+	if datos == null or not datos.es_valida():
+		return &"puerta_no_configurada"
+	if datos.modo_control != DefinicionPuerta.ModoControl.MECANISMO:
+		return &"puerta_no_admite_mecanismo"
+	return &""
+
+
+func aplicar_cambio_mecanismo(
+	id_emisor: StringName,
+	activa: bool
+) -> ResultadoAccion:
+	var motivo := validar_cambio_mecanismo(id_emisor, activa)
+	if motivo != &"":
+		return ResultadoAccion.crear_bloqueo(motivo)
+	var estado_anterior := abierta
+	abierta = activa
+	_actualizar_representacion()
+	if estado_anterior != abierta:
+		presencia_cambiada.emit()
+	return ResultadoAccion.crear_exito(
+		[&"puerta.abierta" if abierta else &"puerta.cerrada"],
+		[],
+		[{
+			&"objetivo_id": id_instancia,
+			&"propiedad": &"abierta",
+			&"anterior": estado_anterior,
+			&"nueva": abierta,
+			&"emisor_id": id_emisor,
+		}]
+	)
+
+
 func _eliminar_uso_item(opciones: Array[OpcionAccion]) -> void:
 	for indice in range(opciones.size() - 1, -1, -1):
 		if opciones[indice].tipo == TiposInteraccion.TipoAccion.USAR_ITEM:
 			opciones.remove_at(indice)
+
+
+func _es_controlada_por_mecanismo() -> bool:
+	var datos := definicion as DefinicionPuerta
+	return (
+		datos != null
+		and datos.modo_control == DefinicionPuerta.ModoControl.MECANISMO
+	)
 
 
 func _actualizar_representacion() -> void:

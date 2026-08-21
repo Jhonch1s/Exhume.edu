@@ -14,9 +14,11 @@
 [ext_resource type="PackedScene" uid="uid://cul4jkns6vh72" path="res://scenes/efectos_superficie/HumoVeneno.tscn" id="12_humo_veneno"]
 [ext_resource type="PackedScene" path="res://scenes/interactuables/trampas/TrampaSuperficie.tscn" id="13_trampa_superficie"]
 [ext_resource type="PackedScene" path="res://scenes/interactuables/mecanismos/palanca_interactuable.tscn" id="14_palanca"]
-[ext_resource type="Resource" path="res://assets/interactuables/mecanismos/palanca/palanca.tres" id="15_palanca_def"]
+[ext_resource type="Resource" uid="uid://blo5r1ln54gjo" path="res://assets/interactuables/mecanismos/palanca/palanca.tres" id="15_palanca_def"]
 [ext_resource type="PackedScene" path="res://scenes/interactuables/puertas/puerta_interactuable.tscn" id="16_puerta"]
-[ext_resource type="Resource" path="res://assets/interactuables/puertas/puerta/puerta.tres" id="17_puerta_def"]
+[ext_resource type="Resource" uid="uid://2lts1rw4c3bs" path="res://assets/interactuables/puertas/puerta/puerta.tres" id="17_puerta_def"]
+[ext_resource type="Resource" uid="uid://c2ge1trl7usdx" path="res://assets/interactuables/puertas/puerta_madera_mecanismo/puerta_madera_mecanismo.tres" id="18_puerta_mecanismo_def"]
+[ext_resource type="Resource" path="res://assets/interactuables/puertas/puerta_madera_mecanismo/puerta_madera_mecanismo_derecha.tres" id="19_puerta_mecanismo_der_def"]
 
 [node name="Zona1" type="Node2D" unique_id=1662731053]
 y_sort_enabled = true
@@ -107,31 +109,46 @@ position = Vector2(2240, -704)
 id_instancia = &"zona1_antorcha_pared_der_57_12"
 definicion = ExtResource("11_pared_der")
 
-[node name="Mecanismos" type="Node2D" parent="Interactuables"]
+[node name="Mecanismos" type="Node2D" parent="Interactuables" unique_id=320316507]
 y_sort_enabled = true
 
-[node name="Palanca_03_m03" parent="Interactuables/Mecanismos" instance=ExtResource("14_palanca")]
+[node name="Palanca_03_m03" parent="Interactuables/Mecanismos" unique_id=2127276942 instance=ExtResource("14_palanca")]
 position = Vector2(192, 0)
+ids_receptores_mecanismo = Array[StringName]([&"zona1_puerta_mecanismo_05_m03", &"zona1_puerta_mecanismo_06_m03"])
 id_instancia = &"zona1_palanca_03_m03"
 definicion = ExtResource("15_palanca_def")
 
-[node name="Puertas" type="Node2D" parent="Interactuables"]
+[node name="Puertas" type="Node2D" parent="Interactuables" unique_id=244669734]
 y_sort_enabled = true
 
-[node name="Puerta_04_m03" parent="Interactuables/Puertas" instance=ExtResource("16_puerta")]
+[node name="Puerta_04_m03" parent="Interactuables/Puertas" unique_id=1662422723 instance=ExtResource("16_puerta")]
 position = Vector2(224, 16)
 id_instancia = &"zona1_puerta_04_m03"
 definicion = ExtResource("17_puerta_def")
 
-[node name="Trampas" type="Node2D" parent="Interactuables"]
+[node name="PuertaMecanismo_05_m03" parent="Interactuables/Puertas" unique_id=847474802 instance=ExtResource("16_puerta")]
+position = Vector2(256, 32)
+bloqueada = false
+id_instancia = &"zona1_puerta_mecanismo_05_m03"
+definicion = ExtResource("18_puerta_mecanismo_def")
+
+[node name="PuertaMecanismo_06_m03" parent="Interactuables/Puertas" instance=ExtResource("16_puerta")]
+position = Vector2(288, 48)
+bloqueada = false
+id_instancia = &"zona1_puerta_mecanismo_06_m03"
+definicion = ExtResource("19_puerta_mecanismo_der_def")
+
+[node name="Trampas" type="Node2D" parent="Interactuables" unique_id=1893528667]
 y_sort_enabled = true
 
-[node name="TrampaHumo_04_03" parent="Interactuables/Trampas" instance=ExtResource("13_trampa_superficie")]
+[node name="TrampaHumo_04_03" parent="Interactuables/Trampas" unique_id=1983383903 instance=ExtResource("13_trampa_superficie")]
 position = Vector2(256, 0)
+opacidad_indicio = 0.45
 id_instancia = &"zona1_trampa_humo_04_03"
 
-[node name="TrampaHumo_05_03" parent="Interactuables/Trampas" instance=ExtResource("13_trampa_superficie")]
+[node name="TrampaHumo_05_03" parent="Interactuables/Trampas" unique_id=1636911757 instance=ExtResource("13_trampa_superficie")]
 position = Vector2(288, -16)
+opacidad_indicio = 0.45
 id_instancia = &"zona1_trampa_humo_05_03"
 
 [node name="EfectosSuperficie" type="Node2D" parent="." unique_id=378389863]

@@ -73,6 +73,14 @@ var id_item_resultante: StringName:
 	get:
 		return _id_item_resultante
 
+var objetivo_impacto: Object:
+	get:
+		return _objetivo_impacto
+
+var metrica_alcance: TiposInteraccion.MetricaAlcance:
+	get:
+		return _metrica_alcance
+
 var _tipo: TiposInteraccion.TipoAccion
 var _id_accion: StringName
 var _actor: Object
@@ -91,6 +99,8 @@ var _solicitud_examen: SolicitudExamen
 var _id_evento: StringName
 var _cantidad_item: int
 var _id_item_resultante: StringName
+var _objetivo_impacto: Object
+var _metrica_alcance: TiposInteraccion.MetricaAlcance
 
 
 func _init(
@@ -115,7 +125,11 @@ func _init(
 	solicitud_examen_inicial: SolicitudExamen = null,
 	id_evento_inicial: StringName = &"",
 	cantidad_item_inicial: int = -1,
-	id_item_resultante_inicial: StringName = &""
+	id_item_resultante_inicial: StringName = &"",
+	objetivo_impacto_inicial: Object = null,
+	metrica_alcance_inicial: TiposInteraccion.MetricaAlcance = (
+		TiposInteraccion.MetricaAlcance.MANHATTAN
+	)
 ) -> void:
 	_tipo = tipo_inicial
 	_actor = actor_inicial
@@ -135,6 +149,8 @@ func _init(
 	_id_evento = id_evento_inicial
 	_cantidad_item = cantidad_item_inicial
 	_id_item_resultante = id_item_resultante_inicial
+	_objetivo_impacto = objetivo_impacto_inicial
+	_metrica_alcance = metrica_alcance_inicial
 
 
 func tiene_origen() -> bool:

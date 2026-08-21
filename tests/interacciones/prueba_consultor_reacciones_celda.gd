@@ -4,18 +4,24 @@ class FuenteReaccionPrueba extends RefCounted:
 	var id_reaccion: StringName
 	var prioridad: int
 	var tipos: Array[TiposInteraccion.TipoAccion]
+	var tipos_dirigidos: Array[TiposInteraccion.TipoAccion]
 
 	func _init(
 		id_inicial: StringName,
 		prioridad_inicial: int,
-		tipos_iniciales: Array[TiposInteraccion.TipoAccion]
+		tipos_iniciales: Array[TiposInteraccion.TipoAccion],
+		tipos_dirigidos_iniciales: Array[TiposInteraccion.TipoAccion] = []
 	) -> void:
 		id_reaccion = id_inicial
 		prioridad = prioridad_inicial
 		tipos = tipos_iniciales
+		tipos_dirigidos = tipos_dirigidos_iniciales
 
 	func reacciona_automaticamente(tipo: TiposInteraccion.TipoAccion) -> bool:
 		return tipo in tipos
+
+	func admite_reaccion_dirigida(tipo: TiposInteraccion.TipoAccion) -> bool:
+		return tipo in tipos_dirigidos
 
 	func obtener_id_reaccion() -> StringName:
 		return id_reaccion
@@ -111,6 +117,32 @@ func _probar_consulta_ordenada() -> void:
 	_comprobar(
 		reacciones[1].categoria == TiposInteraccion.CategoriaReaccion.EFECTO_SUPERFICIE,
 		"El humo venenoso debe conservar la categoría de superficie."
+	)
+	var dirigida := FuenteReaccionPrueba.new(
+		&"palanca",
+		0,
+		[],
+		[TiposInteraccion.TipoAccion.IMPACTAR]
+	)
+	celda.interactuables.append(dirigida)
+	var consultor := ConsultorReaccionesCelda.new()
+	_comprobar(
+		consultor.obtener_reacciones(
+			celda, TiposInteraccion.TipoAccion.IMPACTAR, actor
+		).is_empty(),
+		"Una reacción dirigida no debe ejecutarse al elegir el piso."
+	)
+	_comprobar(
+		consultor.obtener_reacciones(
+			celda, TiposInteraccion.TipoAccion.IMPACTAR, actor, dirigida
+		)[0].receptor == dirigida,
+		"El objetivo dirigido elegido debe incorporarse a la resolución."
+	)
+	_comprobar(
+		consultor.obtener_reacciones(
+			celda, TiposInteraccion.TipoAccion.IMPACTAR, actor, null, true
+		)[0].receptor == dirigida,
+		"La UI debe poder descubrir receptores dirigidos sin ejecutarlos."
 	)
 
 

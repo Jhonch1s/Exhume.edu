@@ -74,6 +74,28 @@ func construir_entradas_items(
 	return entradas
 
 
+func construir_entradas_impacto(
+	objetivos: Array[Object],
+	catalogo: CatalogoMensajesInteraccion
+) -> Array[EntradaMenuContextual]:
+	var entradas: Array[EntradaMenuContextual] = [
+		EntradaMenuContextual.desde_impacto(
+			null,
+			_resolver(catalogo, &"interaccion.impactar_piso")
+		)
+	]
+	for objetivo in objetivos:
+		if objetivo != null and objetivo.has_method(&"obtener_nombre_interaccion"):
+			entradas.append(EntradaMenuContextual.desde_impacto(
+				objetivo,
+				objetivo.call(&"obtener_nombre_interaccion")
+			))
+	entradas.append(EntradaMenuContextual.cancelar(
+		_resolver(catalogo, &"interaccion.cancelar")
+	))
+	return entradas
+
+
 func _ordenar_opciones(izquierda: OpcionAccion, derecha: OpcionAccion) -> bool:
 	if izquierda.prioridad != derecha.prioridad:
 		return izquierda.prioridad < derecha.prioridad

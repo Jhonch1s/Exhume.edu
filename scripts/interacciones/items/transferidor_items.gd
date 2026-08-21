@@ -2,10 +2,21 @@ class_name TransferidorItems
 extends RefCounted
 
 var tablero: TableroGrid
+var gestor_acciones: GestorAcciones
+var consultor_reacciones := ConsultorReaccionesCelda.new()
+var resolver_reacciones: ResolverReaccionesCelda
+var validador_trayectoria: ValidadorEspacialTablero
 
 
-func _init(tablero_inicial: TableroGrid) -> void:
+func _init(
+	tablero_inicial: TableroGrid,
+	gestor_inicial: GestorAcciones = null
+) -> void:
 	tablero = tablero_inicial
+	gestor_acciones = gestor_inicial
+	validador_trayectoria = ValidadorEspacialTablero.new(tablero)
+	if gestor_acciones != null:
+		resolver_reacciones = ResolverReaccionesCelda.new(gestor_acciones)
 
 
 func construir_contexto_recoger(
@@ -132,7 +143,61 @@ func construir_contexto_soltar(
 	)
 
 
+func construir_contexto_lanzar(
+	actor: Object,
+	item: ItemInstancia,
+	origen: Vector2i,
+	destino: Vector2i,
+	id_resultante: StringName = &"",
+	objetivo_impacto: Object = null
+) -> ContextoAccion:
+	var etiquetas: Array[StringName] = []
+	var magnitudes: Dictionary[StringName, float] = {}
+	if item != null and item.definicion != null:
+		etiquetas = item.definicion.etiquetas.duplicate()
+		if &"impacto" not in etiquetas:
+			etiquetas.append(&"impacto")
+		magnitudes = item.definicion.magnitudes.duplicate()
+	return ContextoAccion.new(
+		TiposInteraccion.TipoAccion.LANZAR_ITEM,
+		actor,
+		origen,
+		destino,
+		self,
+		item,
+		&"",
+		etiquetas,
+		magnitudes,
+		calcular_alcance_lanzamiento(actor),
+		{},
+		TiposInteraccion.TipoLineaEfecto.NINGUNA,
+		{},
+		TiposInteraccion.PoliticaCobro.SOLO_EXITO,
+		null,
+		&"",
+		1,
+		id_resultante,
+		objetivo_impacto,
+		TiposInteraccion.MetricaAlcance.CUADRICULA
+	)
+
+
+func calcular_alcance_lanzamiento(actor: Object) -> float:
+	if (
+		actor == null
+		or not is_instance_valid(actor)
+		or not actor.has_method(&"obtener_fuerza")
+	):
+		return -1.0
+	var fuerza: Variant = actor.call(&"obtener_fuerza")
+	if not fuerza is int or fuerza < 0:
+		return -1.0
+	return float(maxi(2, 1 + fuerza))
+
+
 func validar_accion(contexto: ContextoAccion) -> StringName:
+	if contexto != null and contexto.tipo == TiposInteraccion.TipoAccion.LANZAR_ITEM:
+		return _validar_lanzar(contexto)
 	if contexto == null or contexto.tipo != TiposInteraccion.TipoAccion.SOLTAR:
 		return &"accion_no_admitida"
 	if contexto.objetivo != self or not contexto.item is ItemInstancia:
@@ -173,6 +238,8 @@ func validar_accion(contexto: ContextoAccion) -> StringName:
 
 
 func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
+	if contexto != null and contexto.tipo == TiposInteraccion.TipoAccion.LANZAR_ITEM:
+		return _lanzar(contexto)
 	var motivo := validar_accion(contexto)
 	if motivo != &"":
 		return ResultadoAccion.crear_bloqueo(motivo)
@@ -216,6 +283,229 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 		&"coordenada_destino": contexto.celda_objetivo,
 	}]
 	return ResultadoAccion.crear_exito([&"item.soltado"], [], cambios)
+
+
+func _validar_lanzar(contexto: ContextoAccion) -> StringName:
+	if contexto.objetivo != self or not contexto.item is ItemInstancia:
+		return &"contexto_lanzar_invalido"
+	if contexto.actor == null or not contexto.actor.has_method(&"obtener_inventario"):
+		return &"actor_sin_inventario"
+	var inventario: Variant = contexto.actor.call(&"obtener_inventario")
+	if not inventario is Inventario:
+		return &"actor_sin_inventario"
+	var item := contexto.item as ItemInstancia
+	if inventario.obtener_por_id(item.id_instancia) != item:
+		return &"item_no_pertenece_inventario"
+	if &"arrojable" not in item.definicion.etiquetas:
+		return &"item_no_arrojable"
+	var alcance_esperado := calcular_alcance_lanzamiento(contexto.actor)
+	if alcance_esperado < 0.0:
+		return &"actor_sin_fuerza"
+	if contexto.alcance_maximo != alcance_esperado:
+		return &"alcance_lanzamiento_incoherente"
+	var etiquetas_esperadas := item.definicion.etiquetas.duplicate()
+	if &"impacto" not in etiquetas_esperadas:
+		etiquetas_esperadas.append(&"impacto")
+	if (
+		contexto.cantidad_item != 1
+		or contexto.etiquetas != etiquetas_esperadas
+		or contexto.magnitudes != item.definicion.magnitudes
+	):
+		return &"capacidades_item_incoherentes"
+	if tablero == null or not contexto.tiene_celda_objetivo():
+		return &"celda_objetivo_invalida"
+	var celda := tablero.obtener_celda(contexto.celda_objetivo)
+	if celda == null:
+		return &"celda_objetivo_invalida"
+	if item.cantidad > 1:
+		if contexto.id_item_resultante == &"":
+			return &"id_item_nuevo_vacio"
+		if (
+			inventario.obtener_por_id(contexto.id_item_resultante) != null
+			or tablero.items_suelo_por_id.has(contexto.id_item_resultante)
+		):
+			return &"id_item_duplicado"
+	elif contexto.id_item_resultante != &"":
+		return &"id_item_resultante_inesperado"
+	if contexto.objetivo_impacto != null:
+		var reacciones := consultor_reacciones.obtener_reacciones(
+			celda,
+			TiposInteraccion.TipoAccion.IMPACTAR,
+			contexto.actor,
+			contexto.objetivo_impacto
+		)
+		if reacciones.is_empty() or reacciones[0].receptor != contexto.objetivo_impacto:
+			return &"objetivo_impacto_invalido"
+	if gestor_acciones == null or resolver_reacciones == null:
+		return &"resolver_impacto_no_configurado"
+	var trayectoria := validador_trayectoria.resolver_trayectoria_lanzamiento(
+		contexto.origen,
+		contexto.celda_objetivo,
+		contexto.alcance_maximo
+	)
+	if trayectoria.is_empty():
+		return &"trayectoria_lanzamiento_invalida"
+	var motivo_reaccion := _validar_reaccion_impacto_item(
+		contexto,
+		trayectoria[&"celda_caida"]
+	)
+	if motivo_reaccion != &"":
+		return motivo_reaccion
+	return &""
+
+
+func _lanzar(contexto: ContextoAccion) -> ResultadoAccion:
+	var motivo := _validar_lanzar(contexto)
+	if motivo != &"":
+		return ResultadoAccion.crear_bloqueo(motivo)
+	var trayectoria := validador_trayectoria.resolver_trayectoria_lanzamiento(
+		contexto.origen,
+		contexto.celda_objetivo,
+		contexto.alcance_maximo
+	)
+	if trayectoria.is_empty():
+		return ResultadoAccion.crear_fallo(&"trayectoria_lanzamiento_invalida")
+	var coordenada_impacto: Vector2i = trayectoria[&"celda_impacto"]
+	var coordenada_caida: Vector2i = trayectoria[&"celda_caida"]
+	var objetivo_impacto := contexto.objetivo_impacto
+	if coordenada_impacto != contexto.celda_objetivo:
+		objetivo_impacto = null
+	var celda := tablero.obtener_celda(coordenada_impacto)
+	var reacciones := consultor_reacciones.obtener_reacciones(
+		celda,
+		TiposInteraccion.TipoAccion.IMPACTAR,
+		contexto.actor,
+		objetivo_impacto
+	)
+	var impacto := resolver_reacciones.resolver(
+		TiposInteraccion.TipoAccion.IMPACTAR,
+		contexto.actor,
+		contexto.origen,
+		coordenada_impacto,
+		reacciones,
+		contexto.item,
+		contexto.etiquetas,
+		contexto.magnitudes,
+		1,
+		objetivo_impacto
+	)
+	if not impacto.solicitudes_validas:
+		return ResultadoAccion.crear_fallo(impacto.motivo_solicitudes)
+	if not impacto.efectos_validos:
+		return ResultadoAccion.crear_fallo(impacto.motivo_efectos)
+	var reaccion_item := _resolver_reaccion_impacto_item(contexto, coordenada_caida)
+	if reaccion_item != null:
+		if not reaccion_item.exitosa:
+			return reaccion_item
+		impacto.agregar(reaccion_item)
+	var destino: Variant = impacto.destino_item
+	if destino == null:
+		destino = TiposInteraccion.DestinoItem.DEJAR_EN_CELDA
+	if destino not in TiposInteraccion.DestinoItem.values():
+		return ResultadoAccion.crear_fallo(&"destino_item_invalido")
+	var motivo_destino := _confirmar_destino_lanzamiento(
+		contexto,
+		destino,
+		coordenada_caida
+	)
+	if motivo_destino != &"":
+		return ResultadoAccion.crear_fallo(motivo_destino)
+	var cambios := impacto.cambios_estado
+	cambios.append({
+		&"tipo": &"item_lanzado",
+		&"id_origen": contexto.item.id_instancia,
+		&"coordenada_solicitada": contexto.celda_objetivo,
+		&"coordenada_impacto": coordenada_impacto,
+		&"coordenada_destino": coordenada_caida,
+		&"hubo_colision": trayectoria[&"hubo_colision"],
+		&"destino_item": destino,
+	})
+	return ResultadoAccion.crear_exito(
+		impacto.mensajes,
+		impacto.efectos_aplicados,
+		cambios,
+		impacto.costes_consumidos,
+		impacto.interrumpe_movimiento,
+		impacto.terminal,
+		[],
+		destino
+	)
+
+
+func _confirmar_destino_lanzamiento(
+	contexto: ContextoAccion,
+	destino: TiposInteraccion.DestinoItem,
+	coordenada_caida: Vector2i
+) -> StringName:
+	var inventario := contexto.actor.call(&"obtener_inventario") as Inventario
+	var item := contexto.item as ItemInstancia
+	if inventario.obtener_por_id(item.id_instancia) != item:
+		return &"item_no_pertenece_inventario"
+	if destino == TiposInteraccion.DestinoItem.CONSERVAR_EN_INVENTARIO:
+		return &""
+	var id_resultante := contexto.id_item_resultante if item.cantidad > 1 else &""
+	var retirado := inventario.retirar(item.id_instancia, 1, id_resultante)
+	if not retirado.exitosa:
+		return &"retiro_inventario_fallido"
+	if destino == TiposInteraccion.DestinoItem.CONSUMIR:
+		return &""
+	var item_suelo := ItemSuelo.new(retirado.item)
+	item_suelo.configurar_transferidor_items(self)
+	if tablero.registrar_item_suelo(coordenada_caida, item_suelo):
+		return &""
+	if not _revertir_retiro(inventario, item, retirado.item):
+		return &"rollback_inventario_fallido"
+	return &"registro_item_suelo_fallido"
+
+
+func _validar_reaccion_impacto_item(
+	contexto: ContextoAccion,
+	coordenada: Vector2i
+) -> StringName:
+	var reaccion: Resource = contexto.item.definicion.reaccion_impacto
+	if reaccion == null:
+		return &""
+	if (
+		not reaccion.has_method(&"validar_impacto")
+		or not reaccion.has_method(&"resolver_impacto")
+	):
+		return &"contrato_reaccion_impacto_item_invalido"
+	var motivo: Variant = reaccion.call(
+		&"validar_impacto",
+		tablero,
+		contexto,
+		coordenada,
+		_obtener_prefijo_efecto_impacto(contexto)
+	)
+	return motivo if motivo is StringName else &"contrato_reaccion_impacto_item_invalido"
+
+
+func _resolver_reaccion_impacto_item(
+	contexto: ContextoAccion,
+	coordenada: Vector2i
+) -> ResultadoAccion:
+	var reaccion: Resource = contexto.item.definicion.reaccion_impacto
+	if reaccion == null:
+		return null
+	var resultado: Variant = reaccion.call(
+		&"resolver_impacto",
+		tablero,
+		contexto,
+		coordenada,
+		_obtener_prefijo_efecto_impacto(contexto)
+	)
+	return resultado if resultado is ResultadoAccion else ResultadoAccion.crear_fallo(
+		&"resultado_reaccion_impacto_item_invalido"
+	)
+
+
+func _obtener_prefijo_efecto_impacto(contexto: ContextoAccion) -> StringName:
+	var id_unidad: StringName = (
+		contexto.id_item_resultante
+		if contexto.item.cantidad > 1
+		else contexto.item.id_instancia
+	)
+	return StringName("%s_impacto" % id_unidad)
 
 
 func _recoger_parcial(

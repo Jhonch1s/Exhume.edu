@@ -4,6 +4,7 @@ extends PanelContainer
 signal opcion_accion_elegida(opcion: OpcionAccion)
 signal objetivo_elegido(objetivo: Object)
 signal item_elegido(item: ItemInstancia)
+signal impacto_elegido(objetivo: Object)
 signal cancelado
 
 @export var separacion_opciones: int = 6
@@ -120,6 +121,8 @@ func _on_entrada_pulsada(entrada: EntradaMenuContextual) -> void:
 			objetivo_elegido.emit(entrada.objetivo)
 		EntradaMenuContextual.TipoEntrada.ITEM:
 			item_elegido.emit(entrada.item)
+		EntradaMenuContextual.TipoEntrada.IMPACTO:
+			impacto_elegido.emit(entrada.objetivo)
 		EntradaMenuContextual.TipoEntrada.CANCELAR:
 			cancelado.emit()
 

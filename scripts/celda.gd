@@ -118,6 +118,21 @@ func bloquea_vision_efectiva() -> bool:
 			return true
 	return false
 
+func bloquea_proyectiles_efectiva() -> bool:
+	if altura >= 2:
+		return true
+	for interactuable in interactuables.duplicate():
+		if (
+			interactuable == null
+			or not is_instance_valid(interactuable)
+			or not interactuable.has_method(&"bloquea_proyectiles_interactuable")
+		):
+			continue
+		var bloquea: Variant = interactuable.call(&"bloquea_proyectiles_interactuable")
+		if bloquea is bool and bloquea:
+			return true
+	return false
+
 func configurar_fog(familia: StringName, coordenada_atlas: Vector2i) -> void:
 	familia_fog = familia
 	coordenada_fog = coordenada_atlas

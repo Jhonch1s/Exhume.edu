@@ -5,7 +5,9 @@ extends RefCounted
 func obtener_reacciones(
 	celda: Celda,
 	tipo: TiposInteraccion.TipoAccion,
-	actor: Object = null
+	actor: Object = null,
+	objetivo_prioritario: Object = null,
+	incluir_dirigidas: bool = false
 ) -> Array[ReaccionCelda]:
 	if celda == null:
 		return []
@@ -15,25 +17,33 @@ func obtener_reacciones(
 		reacciones,
 		celda.reaccion_terreno,
 		TiposInteraccion.CategoriaReaccion.TERRENO,
-		tipo
+		tipo,
+		objetivo_prioritario,
+		incluir_dirigidas
 	)
 	_agregar_coleccion(
 		reacciones,
 		celda.efectos_superficie,
 		TiposInteraccion.CategoriaReaccion.EFECTO_SUPERFICIE,
-		tipo
+		tipo,
+		objetivo_prioritario,
+		incluir_dirigidas
 	)
 	_agregar_coleccion(
 		reacciones,
 		celda.interactuables,
 		TiposInteraccion.CategoriaReaccion.INTERACTUABLE,
-		tipo
+		tipo,
+		objetivo_prioritario,
+		incluir_dirigidas
 	)
 	_agregar_coleccion(
 		reacciones,
 		celda.items_suelo,
 		TiposInteraccion.CategoriaReaccion.ITEM_SUELO,
-		tipo
+		tipo,
+		objetivo_prioritario,
+		incluir_dirigidas
 	)
 	for ocupante in celda.ocupantes.duplicate():
 		if ocupante != actor:
@@ -41,7 +51,9 @@ func obtener_reacciones(
 				reacciones,
 				ocupante,
 				TiposInteraccion.CategoriaReaccion.OCUPANTE,
-				tipo
+				tipo,
+				objetivo_prioritario,
+				incluir_dirigidas
 			)
 
 	var fuentes_encadenadas_visitadas: Dictionary[int, bool] = {}
@@ -54,6 +66,11 @@ func obtener_reacciones(
 		)
 
 	reacciones.sort_custom(_comparar_reacciones)
+	if objetivo_prioritario != null:
+		for indice in reacciones.size():
+			if reacciones[indice].receptor == objetivo_prioritario:
+				reacciones.push_front(reacciones.pop_at(indice))
+				break
 	return reacciones
 
 
@@ -61,17 +78,28 @@ func _agregar_coleccion(
 	destino: Array[ReaccionCelda],
 	fuentes: Array[Object],
 	categoria: TiposInteraccion.CategoriaReaccion,
-	tipo: TiposInteraccion.TipoAccion
+	tipo: TiposInteraccion.TipoAccion,
+	objetivo_dirigido: Object = null,
+	incluir_dirigidas: bool = false
 ) -> void:
 	for fuente in fuentes.duplicate():
-		_agregar_fuente(destino, fuente, categoria, tipo)
+		_agregar_fuente(
+			destino,
+			fuente,
+			categoria,
+			tipo,
+			objetivo_dirigido,
+			incluir_dirigidas
+		)
 
 
 func _agregar_fuente(
 	destino: Array[ReaccionCelda],
 	fuente: Object,
 	categoria: TiposInteraccion.CategoriaReaccion,
-	tipo: TiposInteraccion.TipoAccion
+	tipo: TiposInteraccion.TipoAccion,
+	objetivo_dirigido: Object = null,
+	incluir_dirigidas: bool = false
 ) -> void:
 	if fuente == null or not is_instance_valid(fuente):
 		return
@@ -84,11 +112,21 @@ func _agregar_fuente(
 	):
 		return
 	var admite: Variant = fuente.call(&"reacciona_automaticamente", tipo)
+	var admite_dirigida := false
+	if fuente.has_method(&"admite_reaccion_dirigida"):
+		var valor: Variant = fuente.call(&"admite_reaccion_dirigida", tipo)
+		admite_dirigida = valor is bool and valor
 	var id_reaccion: Variant = fuente.call(&"obtener_id_reaccion")
 	var prioridad: Variant = fuente.call(&"obtener_prioridad_reaccion", tipo)
 	if (
 		not admite is bool
-		or not admite
+		or (
+			not admite
+			and not (
+				admite_dirigida
+				and (incluir_dirigidas or fuente == objetivo_dirigido)
+			)
+		)
 		or not id_reaccion is StringName
 		or id_reaccion == &""
 		or not prioridad is int

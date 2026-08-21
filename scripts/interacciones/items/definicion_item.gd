@@ -10,6 +10,7 @@ extends Resource
 @export_category("Semantica")
 @export var etiquetas: Array[StringName] = []
 @export var magnitudes: Dictionary[StringName, float] = {}
+@export var reaccion_impacto: Resource
 
 @export_category("Apilado")
 @export var apilable: bool = false

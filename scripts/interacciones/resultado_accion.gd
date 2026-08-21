@@ -37,6 +37,10 @@ var terminal: bool:
 	get:
 		return _terminal
 
+var destino_item: Variant:
+	get:
+		return _destino_item
+
 var exitosa: bool:
 	get:
 		return _estado == TiposInteraccion.EstadoResolucion.EXITO
@@ -50,6 +54,7 @@ var _cambios_estado: Array[Dictionary]
 var _costes_consumidos: Dictionary[StringName, float]
 var _interrumpe_movimiento: bool
 var _terminal: bool
+var _destino_item: Variant
 
 
 func _init(
@@ -61,7 +66,8 @@ func _init(
 	costes_iniciales: Dictionary[StringName, float] = {},
 	interrumpe_movimiento_inicial: bool = false,
 	terminal_inicial: bool = false,
-	solicitudes_iniciales: Array[SolicitudEfecto] = []
+	solicitudes_iniciales: Array[SolicitudEfecto] = [],
+	destino_item_inicial: Variant = null
 ) -> void:
 	_estado = estado_inicial
 	if _estado == TiposInteraccion.EstadoResolucion.EXITO:
@@ -79,6 +85,7 @@ func _init(
 		_costes_consumidos = {}
 		_interrumpe_movimiento = false
 		_terminal = false
+		_destino_item = null
 		return
 
 	_efectos_aplicados = efectos_iniciales.duplicate(true)
@@ -87,6 +94,7 @@ func _init(
 	_costes_consumidos = costes_iniciales.duplicate()
 	_interrumpe_movimiento = interrumpe_movimiento_inicial
 	_terminal = terminal_inicial
+	_destino_item = destino_item_inicial
 
 
 static func crear_exito(
@@ -96,7 +104,8 @@ static func crear_exito(
 	costes_iniciales: Dictionary[StringName, float] = {},
 	interrumpe_movimiento_inicial: bool = false,
 	terminal_inicial: bool = false,
-	solicitudes_iniciales: Array[SolicitudEfecto] = []
+	solicitudes_iniciales: Array[SolicitudEfecto] = [],
+	destino_item_inicial: Variant = null
 ) -> ResultadoAccion:
 	return ResultadoAccion.new(
 		TiposInteraccion.EstadoResolucion.EXITO,
@@ -107,7 +116,8 @@ static func crear_exito(
 		costes_iniciales,
 		interrumpe_movimiento_inicial,
 		terminal_inicial,
-		solicitudes_iniciales
+		solicitudes_iniciales,
+		destino_item_inicial
 	)
 
 
@@ -119,7 +129,8 @@ static func crear_fallo(
 	costes_iniciales: Dictionary[StringName, float] = {},
 	interrumpe_movimiento_inicial: bool = false,
 	terminal_inicial: bool = false,
-	solicitudes_iniciales: Array[SolicitudEfecto] = []
+	solicitudes_iniciales: Array[SolicitudEfecto] = [],
+	destino_item_inicial: Variant = null
 ) -> ResultadoAccion:
 	return ResultadoAccion.new(
 		TiposInteraccion.EstadoResolucion.FALLO,
@@ -130,7 +141,8 @@ static func crear_fallo(
 		costes_iniciales,
 		interrumpe_movimiento_inicial,
 		terminal_inicial,
-		solicitudes_iniciales
+		solicitudes_iniciales,
+		destino_item_inicial
 	)
 
 
@@ -165,5 +177,6 @@ func con_costes_consumidos(
 		nuevos_costes,
 		_interrumpe_movimiento,
 		_terminal,
-		_solicitudes_efecto
+		_solicitudes_efecto,
+		_destino_item
 	)

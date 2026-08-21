@@ -37,6 +37,9 @@ var interrumpe_movimiento: bool:
 var terminal: bool:
 	get:
 		return _terminal
+var destino_item: Variant:
+	get:
+		return _destino_item
 
 var _resultados: Array[ResultadoAccion] = []
 var _mensajes: Array[StringName] = []
@@ -51,6 +54,7 @@ var _cambios_estado: Array[Dictionary] = []
 var _costes_consumidos: Dictionary[StringName, float] = {}
 var _interrumpe_movimiento: bool = false
 var _terminal: bool = false
+var _destino_item: Variant = null
 
 
 func agregar(resultado: ResultadoAccion) -> void:
@@ -70,6 +74,8 @@ func agregar(resultado: ResultadoAccion) -> void:
 		_interrumpe_movimiento or resultado.interrumpe_movimiento
 	)
 	_terminal = _terminal or resultado.terminal
+	if _destino_item == null and resultado.destino_item != null:
+		_destino_item = resultado.destino_item
 
 
 func finalizar_solicitudes() -> void:
