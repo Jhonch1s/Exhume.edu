@@ -42,15 +42,20 @@ func _ejecutar_prueba() -> void:
 		reacciones
 	)
 	_comprobar(resultado.efectos_aplicados.size() == 2, "Cada familia debe aplicar una consecuencia.")
-	_comprobar(ficha.pv_actual == ficha.pv_max - 2, "Veneno y fuego deben causar un daño inmediato cada uno.")
+	_comprobar(ficha.pv_actual == ficha.pv_max - 1, "Sólo el fuego debe causar daño inmediato.")
 	_comprobar(
 		resultado.mensajes == [&"estado.quemado", &"estado.envenenado"],
 		"Los mensajes deben conservar el orden determinista de las superficies."
 	)
 	var quemado := ficha.obtener_estado(&"quemado")
+	var veneno := ficha.obtener_estado(&"veneno")
 	_comprobar(
 		quemado != null and quemado.duracion_total == 3 and quemado.ticks_pendientes == 2,
 		"Quemado debe tener tres ticks totales y dos pendientes."
+	)
+	_comprobar(
+		veneno != null and veneno.duracion_total == 2 and veneno.ticks_pendientes == 2,
+		"Veneno debe reservar sus dos daños para fines de turno."
 	)
 	_comprobar((superficies[1] as Fuego).obtener_duracion_superficie() == 7, "El fuego debe declarar siete turnos de superficie.")
 	var vida_tras_entrada := ficha.pv_actual

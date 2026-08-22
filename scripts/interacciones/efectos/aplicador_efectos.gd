@@ -59,19 +59,20 @@ func aplicar(solicitud: SolicitudEfecto) -> Variant:
 
 
 func _aplicar_estado(solicitud: SolicitudEfecto) -> Variant:
+	var aplica_dano_inmediato := solicitud.clave == &"quemado"
 	var cambio: Variant = solicitud.objetivo.call(
 		&"aplicar_o_renovar_estado",
 		solicitud.clave,
 		solicitud.magnitud,
 		solicitud.duracion,
-		solicitud.duracion - 1,
+		solicitud.duracion - (1 if aplica_dano_inmediato else 0),
 		solicitud.fuente
 	)
 	if not cambio is Dictionary or cambio.is_empty() or not cambio.has(&"creado"):
 		return &"resultado_estado_invalido"
 	var creado: bool = cambio[&"creado"]
 	var dano_inmediato := 0
-	if creado:
+	if creado and aplica_dano_inmediato:
 		var aplicado: Variant = solicitud.objetivo.call(
 			&"recibir_danio", int(solicitud.magnitud), solicitud.fuente
 		)

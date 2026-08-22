@@ -10,13 +10,18 @@ func validar_costes(contexto: ContextoAccion) -> StringName:
 		return &"actor_no_es_ficha"
 
 	for clave in contexto.costes_solicitados:
-		if clave != COSTE_ENERGIA:
-			return &"coste_no_soportado"
 		var cantidad := contexto.costes_solicitados[clave]
 		if not is_equal_approx(cantidad, floorf(cantidad)):
-			return &"coste_energia_no_entero"
-		if cantidad > float(ficha.energia_actual):
-			return &"costes_insuficientes"
+			return &"coste_energia_no_entero" if clave == COSTE_ENERGIA else &"coste_no_entero"
+		if clave == COSTE_ENERGIA:
+			if cantidad > float(ficha.energia_actual):
+				return &"costes_insuficientes"
+			continue
+		var motivo := ficha.validar_coste_turno(clave, roundi(cantidad))
+		if motivo == &"recurso_turno_no_soportado":
+			return &"coste_no_soportado"
+		if motivo != &"":
+			return motivo
 
 	return &""
 
@@ -27,11 +32,13 @@ func consumir_costes(contexto: ContextoAccion) -> Variant:
 		return motivo
 
 	var ficha := contexto.actor as Ficha
-	var energia_solicitada: float = contexto.costes_solicitados.get(COSTE_ENERGIA, 0.0)
-	var unidades_energia: int = roundi(energia_solicitada)
-	ficha.energia_actual -= unidades_energia
-
 	var costes_consumidos: Dictionary[StringName, float] = {}
-	if energia_solicitada > 0.0:
-		costes_consumidos[COSTE_ENERGIA] = float(unidades_energia)
+	for clave in contexto.costes_solicitados:
+		var unidades := roundi(contexto.costes_solicitados[clave])
+		if clave == COSTE_ENERGIA:
+			ficha.energia_actual -= unidades
+		elif not ficha.consumir_recurso_turno(clave, unidades):
+			return &"consumo_costes_invalido"
+		if unidades > 0:
+			costes_consumidos[clave] = float(unidades)
 	return costes_consumidos

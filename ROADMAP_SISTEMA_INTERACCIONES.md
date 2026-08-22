@@ -1161,11 +1161,68 @@ Una misma secuencia de acciones y turnos siempre produce el mismo resultado, inc
 
 ### Registro de implementación
 
-- Estado: pendiente.
-- Decisiones nuevas: —
-- Archivos modificados: —
-- Pruebas: —
-- Pendientes: —
+- Estado: incrementos 11.1 a 11.4 implementados; 11.4 cerrado el 21 de agosto de 2026.
+- Decisiones nuevas de 11.1: `ServicioTurnos` es la fuente explícita de avance y
+  envía `FIN_TURNO` mediante el `GestorAcciones` genérico. El primer daño de
+  `quemado` continúa siendo inmediato; cada avance posterior aplica un tick. La
+  única fuente del contador restante es `EstadoActor.ticks_pendientes`;
+  `duracion_total` queda descriptiva. El estado expira al llegar a cero incluso si
+  el actor ya no tiene vida. Un turno sin `quemado` tiene éxito vacío.
+- Archivos modificados: [`scripts/interacciones/efectos/servicio_turnos.gd`](scripts/interacciones/efectos/servicio_turnos.gd),
+  [`scripts/interacciones/efectos/estado_actor.gd`](scripts/interacciones/efectos/estado_actor.gd),
+  [`scenes/ficha/ficha.gd`](scenes/ficha/ficha.gd),
+  [`tests/interacciones/prueba_turno_quemado.gd`](tests/interacciones/prueba_turno_quemado.gd),
+  contratos y este roadmap.
+- Pruebas: `TurnoQuemado` correcta en Godot 4.7; verificó daño inmediato, dos ticks
+  mediante `FIN_TURNO`, contador `2 → 1 → 0`, expiración estructurada y un tercer
+  turno exitoso sin efectos. No hubo `SCRIPT ERROR` ni `ERROR:`.
+- Decisiones nuevas de 11.2: un actor publica copias de sus claves de estado en
+  orden léxico estable. `ServicioTurnos` prevalida el lote completo y procesa
+  `quemado` y `veneno` en ese orden, con contadores y expiraciones independientes.
+  Una clave desconocida bloquea antes de producir mutaciones parciales.
+- Pruebas de 11.2: `TurnosPersistentes` correcta en Godot 4.7; verificó orden
+  `quemado → veneno`, daño y expiración de ambos y rechazo atómico de una clave no
+  admitida. No hubo `SCRIPT ERROR` ni `ERROR:`.
+- Decisiones nuevas de 11.3: cada ficha posee reservas separadas de `movimiento`,
+  `accion_principal`, `accion_adicional` y `reaccion`, inicialmente `7/1/1/1` y
+  configurables. Los pasos cobran movimiento y energía persistente por el coste real
+  de la celda. Exploración encadena `FIN_TURNO` y repone recursos para continuar una
+  ruta; combate detiene la ruta y limita su proyección al movimiento restante. El
+  veneno deja de causar daño inmediato y conserva todos sus ticks para fin de turno;
+  quemado mantiene el daño inicial.
+- Archivos añadidos o modificados en 11.3:
+  [`scripts/interacciones/turnos/recursos_turno_actor.gd`](scripts/interacciones/turnos/recursos_turno_actor.gd),
+  [`scripts/interacciones/proveedor_costes_ficha.gd`](scripts/interacciones/proveedor_costes_ficha.gd),
+  [`scripts/interacciones/efectos/aplicador_efectos.gd`](scripts/interacciones/efectos/aplicador_efectos.gd),
+  [`scripts/pathfinding_manager.gd`](scripts/pathfinding_manager.gd),
+  [`scenes/ficha/ficha.gd`](scenes/ficha/ficha.gd),
+  [`scenes/escenario_base/escenario_base.gd`](scenes/escenario_base/escenario_base.gd),
+  pruebas afectadas, contratos y este roadmap.
+- Pruebas de 11.3: correctas `RecursosTurnoMovimiento`, `CostesMovimiento`,
+  `ProveedorCostesFicha`, `TurnosPersistentes`, `HumoVenenoSuperficie`,
+  `FuegoYCombinacionEfectos` e `IntegracionMenuContextual`. No hubo errores de
+  script; la integración conserva sólo sus errores conocidos de cierre. El cierre
+  añadió una ruta real de nueve celdas con veneno: exploración ejecuta exactamente
+  un `FIN_TURNO` al agotar siete puntos, mientras combate se detiene sin avanzar el
+  estado.
+- Decisiones nuevas de 11.4: `Ficha.id_actor` separa identidad mecánica de identidad
+  de observación. `GestorRondas` ordena iniciativa descendente y desempata por ID,
+  mantiene un actor activo, repone sus recursos, procesa su `FIN_TURNO`, omite
+  actores sin vida y aumenta la ronda al volver al inicio. Cada transición devuelve
+  `ResultadoAvanceTurno`; un fallo conserva el actor activo.
+- Archivos añadidos o modificados en 11.4:
+  [`scripts/interacciones/turnos/gestor_rondas.gd`](scripts/interacciones/turnos/gestor_rondas.gd),
+  [`scripts/interacciones/turnos/resultado_avance_turno.gd`](scripts/interacciones/turnos/resultado_avance_turno.gd),
+  [`scenes/ficha/ficha.gd`](scenes/ficha/ficha.gd),
+  [`tests/interacciones/prueba_gestor_rondas.gd`](tests/interacciones/prueba_gestor_rondas.gd),
+  contratos y este roadmap.
+- Pruebas de 11.4: `GestorRondas`, `RecursosTurnoMovimiento` y
+  `TurnosPersistentes` correctas; sin `SCRIPT ERROR` ni `ERROR:`. Cubren orden y
+  empate estable, reposición, veneno del actor finalizado, salto de muertos, nueva
+  ronda e IDs duplicados sin inicio parcial.
+- Pendientes: IA, UI, sorpresa, retrasar turno y participantes dinámicos requieren
+  casos concretos. Destrabarse, descansos, usos especiales, duración de superficies
+  y activación real del modo combate pertenecen a incrementos posteriores.
 
 ## Fase 12 — Persistencia
 

@@ -97,6 +97,27 @@ func dibujar_trayectoria (camino: Array[Vector2i], capa_camino:TileMapLayer)-> v
 			var tile_linea= _obtener_tile_camino(direccion_entrada, direccion_salida)
 			capa_camino.set_cell(actual, 0, tile_linea)
 
+func limitar_camino_por_movimiento(
+	camino: Array[Vector2i],
+	tablero_datos: Dictionary,
+	actor: Object,
+	movimiento_disponible: int
+) -> Array[Vector2i]:
+	if camino.is_empty():
+		return []
+	var limitado: Array[Vector2i] = [camino[0]]
+	var gastado := 0
+	for indice in range(1, camino.size()):
+		var celda: Celda = tablero_datos.get(camino[indice]) as Celda
+		if celda == null:
+			break
+		var coste := celda.calcular_coste_movimiento(actor)
+		if gastado + coste > movimiento_disponible:
+			break
+		gastado += coste
+		limitado.append(camino[indice])
+	return limitado
+
 func _obtener_tile_flecha(dir: Vector2i)-> Vector2i:
 	match dir: ##tremendo el match, ahorra buen laburo
 		Vector2i(1,0): return Vector2i(0,2) 

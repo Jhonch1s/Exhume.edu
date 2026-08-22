@@ -35,6 +35,7 @@ var gestor_acciones: GestorAcciones = GestorAcciones.new()
 var validador_espacial: ValidadorEspacialTablero
 var consultor_reacciones: ConsultorReaccionesCelda = ConsultorReaccionesCelda.new()
 var resolver_reacciones: ResolverReaccionesCelda
+var servicio_turnos: ServicioTurnos
 var registro_conocimiento: RegistroConocimiento = RegistroConocimiento.new()
 var servicio_examen: ServicioExamen
 var ficha_jugador: Ficha = null
@@ -70,6 +71,7 @@ var celda_seleccionada: Variant:
 var camino_actual_tentativo: Array[Vector2i] = []
 var ultimo_resultado_salir: ResultadoReacciones
 var ultimo_resultado_entrar: ResultadoReacciones
+var en_combate: bool = false
 
 func _ready() -> void:
 	menu_contextual.opcion_accion_elegida.connect(_on_opcion_contextual_elegida)
@@ -81,6 +83,7 @@ func _ready() -> void:
 	panel_resultado_accion.cerrado.connect(_on_panel_resultado_cerrado)
 	add_child(gestor_acciones)
 	resolver_reacciones = ResolverReaccionesCelda.new(gestor_acciones)
+	servicio_turnos = ServicioTurnos.new(gestor_acciones)
 	tablero.generar_desde_zona(zona_actual)
 	validador_espacial = ValidadorEspacialTablero.new(tablero)
 	transferidor_items = TransferidorItems.new(tablero, gestor_acciones)
@@ -89,6 +92,7 @@ func _ready() -> void:
 	servicio_examen = ServicioExamen.new(tablero, registro_conocimiento)
 	tablero.configurar_servicio_examen(servicio_examen)
 	gestor_acciones.configurar_validador_espacial(validador_espacial)
+	gestor_acciones.configurar_proveedor_costes(ProveedorCostesFicha.new())
 	var capa_suelo: TileMapLayer = zona_actual.get_node_or_null("CapaSuelo")
 	if capa_suelo:
 		tablero.registrar_interactuables_desde_zona(zona_actual, capa_suelo)
@@ -138,6 +142,13 @@ func _process(_delta: float) -> void:
 			tablero.datos,
 			ficha_jugador
 		)
+		if en_combate:
+			camino_actual_tentativo = pathfinding.limitar_camino_por_movimiento(
+				camino_actual_tentativo,
+				tablero.datos,
+				ficha_jugador,
+				ficha_jugador.obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO)
+			)
 		pathfinding.dibujar_trayectoria(camino_actual_tentativo, capa_camino)
 	else:
 		camino_actual_tentativo.clear()
@@ -216,6 +227,13 @@ func _manejar_clic_derecho(coord: Vector2i) -> void:
 		tablero.datos,
 		ficha_jugador
 	)
+	if en_combate:
+		camino_confirmado = pathfinding.limitar_camino_por_movimiento(
+			camino_confirmado,
+			tablero.datos,
+			ficha_jugador,
+			ficha_jugador.obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO)
+		)
 	if camino_confirmado.size() <= 1:
 		print("No te puedes mover ahi")
 		return
@@ -228,8 +246,17 @@ func _manejar_clic_derecho(coord: Vector2i) -> void:
 		_cancelar_paso_ficha,
 		_procesar_salida_paso_ficha,
 		_procesar_entrada_paso_ficha,
-		_calcular_coste_paso_ficha
+		_calcular_coste_paso_ficha,
+		_avanzar_turno_exploracion,
+		en_combate
 	)
+
+func _avanzar_turno_exploracion(ficha: Ficha) -> bool:
+	var resultado := servicio_turnos.avanzar_turno(ficha)
+	if not resultado.exitosa or ficha.pv_actual <= 0:
+		return false
+	ficha.iniciar_turno()
+	return true
 
 func _preparar_paso_ficha(_origen: Vector2i, destino: Vector2i, ficha: Ficha) -> bool:
 	return tablero.reservar_celda(destino, ficha)

@@ -32,3 +32,8 @@ func renovar(magnitud_nueva: float, duracion_nueva: int, ticks_nuevos: int) -> v
 	_magnitud = maxf(_magnitud, magnitud_nueva)
 	_duracion_total = maxi(_duracion_total, duracion_nueva)
 	_ticks_pendientes = maxi(_ticks_pendientes, ticks_nuevos)
+
+
+func consumir_tick() -> int:
+	_ticks_pendientes = maxi(0, _ticks_pendientes - 1)
+	return _ticks_pendientes

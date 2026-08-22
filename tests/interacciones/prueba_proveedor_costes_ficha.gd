@@ -13,9 +13,10 @@ func _init() -> void:
 	_probar_energia_fraccionaria()
 	_probar_energia_insuficiente()
 	_probar_integracion_y_cobro_exacto()
+	_probar_recurso_turno()
 
 	if _fallos.is_empty():
-		print("ProveedorCostesFicha: 5 pruebas correctas.")
+		print("ProveedorCostesFicha: 6 pruebas correctas.")
 		quit()
 		return
 
@@ -100,6 +101,32 @@ func _probar_integracion_y_cobro_exacto() -> void:
 	_comprobar(
 		resultado.costes_consumidos[&"energia"] == 2.0,
 		"El resultado final debe registrar la energía cobrada."
+	)
+	gestor.free()
+	ficha.free()
+
+
+func _probar_recurso_turno() -> void:
+	var ficha := Ficha.new()
+	var gestor := _crear_gestor()
+	var resultado := gestor.procesar_accion(_crear_contexto(
+		ficha,
+		ReceptorAccionesPrueba.new(),
+		{&"accion_principal": 1.0}
+	))
+	_comprobar(resultado.exitosa, "La acción principal disponible debe cobrarse.")
+	_comprobar(
+		ficha.obtener_recurso_turno(&"accion_principal") == 0,
+		"Debe descontar el recurso de turno exacto."
+	)
+	var bloqueo := gestor.procesar_accion(_crear_contexto(
+		ficha,
+		ReceptorAccionesPrueba.new(),
+		{&"accion_principal": 1.0}
+	))
+	_comprobar(
+		bloqueo.motivo == &"recursos_turno_insuficientes",
+		"No debe permitir gastar dos veces la acción principal."
 	)
 	gestor.free()
 	ficha.free()

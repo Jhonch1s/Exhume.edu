@@ -309,18 +309,39 @@ ya no conserva un diccionario provisional de daño.
 ticks pendientes. `Ficha.aplicar_o_renovar_estado()` crea o renueva mediante máximos
 y emite `estado_cambiado`; no avanza turnos ni expira estados.
 
-La configuración inicial de `&"veneno"` es magnitud `1` y dos ticks totales. Al crear
-el estado, `AplicadorEfectos` aplica inmediatamente el primer punto de daño y registra
-un tick pendiente. Renovar conserva una única instancia y restaura ese tick pendiente
-sin repetir el daño inmediato. El descuento del tick y la expiración quedan para la
-fuente de verdad de turnos de Fase 11. El debuff adicional todavía no forma parte del
-contrato.
+La configuración inicial de `&"veneno"` es magnitud `1` y dos ticks. Crearlo o
+renovarlo no causa daño inmediato: conserva ambos ticks para futuros `FIN_TURNO`.
+`&"quemado"` mantiene su daño inicial al prenderse y registra únicamente los ticks
+posteriores. El debuff adicional todavía no forma parte del contrato.
 
 Una aplicación confirmada de estado agrega su mensaje y cambio descriptivo a
 `ResultadoReacciones`; como las solicitudes se deduplican antes, superficies
 superpuestas no duplican el estado, el daño inicial ni el mensaje. `&"quemado"`
 usa el mismo contrato: tres ticks totales de un punto, el primero inmediato y dos
 pendientes; renovar no repite el daño inmediato.
+
+### Fin de turno y expiración de quemado
+
+`ServicioTurnos.avanzar_turno()` es la fuente explícita inicial de avance lógico.
+Construye un `ContextoAccion` automático `FIN_TURNO` y lo procesa mediante
+`GestorAcciones`; el gestor permanece ajeno a estados concretos. En 11.1 procesa
+únicamente `quemado` sobre el actor recibido.
+
+`EstadoActor.ticks_pendientes` es el único contador operativo. `duracion_total`
+permanece como dato descriptivo y no se decrementa. Cada fin de turno prevalida el
+daño, lo aplica mediante `AplicadorEfectos`, consume un tick y elimina el estado de
+`Ficha` al llegar a cero. Llegar a cero puntos de vida no detiene ese consumo.
+
+El `ResultadoAccion` incluye el `ResultadoEfectoAplicado` confirmado y un cambio
+`estado_tick` con clave, ticks restantes y marca de expiración. Finalizar un turno
+sin `quemado` es un éxito vacío. La UI, las superficies y el tiempo real no forman
+parte de este flujo.
+
+Desde 11.2 el actor expone copias de sus claves de estado ordenadas léxicamente y
+el servicio procesa `quemado` y `veneno` en ese orden estable. Prevalida todas las
+claves, estados y solicitudes de daño antes de aplicar el primer efecto; una clave
+desconocida bloquea el lote sin daño ni consumo de ticks. Cada estado conserva su
+propio contador y expira independientemente dentro del mismo `ResultadoAccion`.
 
 ### Resolución y agregación de reacciones
 
@@ -408,6 +429,43 @@ interrumpe nunca una animación entre celdas.
 sin cobrar energía: la lava conserva un peso total alto mientras su daño se aplica
 por separado como reacción de terreno. Veneno, quemado y otros estados tampoco se
 modelan como costes de desplazamiento.
+
+### Recursos separados del turno
+
+`RecursosTurnoActor` conserva para una `Ficha` cuatro reservas independientes:
+`movimiento`, `accion_principal`, `accion_adicional` y `reaccion`. Sus valores
+iniciales configurables son `7`, `1`, `1` y `1`; reponer el turno restaura máximos,
+no energía persistente ni usos por descanso. `ProveedorCostesFicha` valida y cobra
+estas claves mediante el mismo diccionario de costes ya usado por `GestorAcciones`.
+
+Cada paso confirmado consume de `movimiento` el coste real de la celda y continúa
+consumiendo `energia_actual` según la regla histórica. Fuera de combate, una ruta
+que agota movimiento ejecuta un `FIN_TURNO`, repone recursos y continúa sólo si el
+actor sigue vivo. En combate la ruta se detiene y no inicia otro turno.
+
+La previsualización de combate recorta la ruta por la suma de costes reales, no por
+cantidad de celdas. En exploración muestra la ruta completa que podrá encadenar
+turnos. El modo combate permanece como estado explícito del escenario; su activación
+jugable, destrabarse, descansos y usos especiales todavía no se implementan.
+
+### Iniciativa y rondas
+
+Cada `Ficha` declara un `id_actor` estable separado de `id_observador` y una
+`iniciativa_base` entera. `GestorRondas` prevalida la lista completa, rechaza IDs
+vacíos o duplicados y ordena por iniciativa descendente, desempatando por el texto
+del ID estable. La lista no cambia durante la ronda inicial.
+
+Al comenzar, el primer actor vivo repone sus recursos. Finalizar el turno procesa
+sus estados mediante `ServicioTurnos`, selecciona el siguiente actor vivo y repone
+únicamente los recursos de éste. Pasar desde el final del orden al principio aumenta
+la ronda; los actores sin vida se omiten sin reordenar a los restantes. Si ninguno
+puede actuar, no queda actor activo.
+
+Cada transición devuelve `ResultadoAvanceTurno` con ronda, actor finalizado, actor
+activo siguiente, marca de nueva ronda y el `ResultadoAccion` de `FIN_TURNO`.
+Un fallo al procesar estados conserva el actor activo y no avanza el orden. IA, UI
+de iniciativa, sorpresa, retrasar turno e incorporación o salida dinámica quedan
+fuera de 11.4.
 
 ### Trampas que despliegan superficies
 

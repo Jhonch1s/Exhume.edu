@@ -71,13 +71,13 @@ func _ejecutar_prueba() -> void:
 				resultado.efectos_aplicados.size() == 1,
 				"Debe aplicar una sola instancia lógica de veneno."
 			)
-			_comprobar(ficha.pv_actual == vida_inicial - 1, "El primer tick debe causar un daño.")
+			_comprobar(ficha.pv_actual == vida_inicial, "El veneno no debe causar daño inmediato.")
 			var estado := ficha.obtener_estado(&"veneno")
 			_comprobar(
 				estado != null
 				and estado.duracion_total == 2
-				and estado.ticks_pendientes == 1,
-				"Veneno debe conservar dos ticks totales con uno pendiente."
+				and estado.ticks_pendientes == 2,
+				"Veneno debe conservar sus dos ticks pendientes."
 			)
 			var renovacion := resolver.resolver(
 				TiposInteraccion.TipoAccion.ENTRAR,
@@ -86,7 +86,7 @@ func _ejecutar_prueba() -> void:
 				humo.coordenada_mapa,
 				reacciones
 			)
-			_comprobar(ficha.pv_actual == vida_inicial - 1, "Renovar no debe repetir el daño inmediato.")
+			_comprobar(ficha.pv_actual == vida_inicial, "Renovar no debe aplicar daño inmediato.")
 			_comprobar(
 				renovacion.mensajes == [&"estado.veneno_renovado"],
 				"La renovación debe producir un solo mensaje."

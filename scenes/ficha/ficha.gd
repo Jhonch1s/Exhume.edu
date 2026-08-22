@@ -4,12 +4,19 @@ class_name Ficha
 @export var nombre: String = "Heroe Jr."
 @export var titulo: String = "El come cebolla"
 @export var id_observador: StringName = &"jugador_principal"
+@export var id_actor: StringName = &"jugador_principal"
+@export var iniciativa_base: int = 0
 
 var fue: int = 3
 var des: int = 4
 var vol: int = 2
 var energia_maxima: int = 200
 var energia_actual: int = 200
+@export_range(0, 99, 1) var movimiento_por_turno: int = 7
+@export_range(0, 9, 1) var acciones_principales_por_turno: int = 1
+@export_range(0, 9, 1) var acciones_adicionales_por_turno: int = 1
+@export_range(0, 9, 1) var reacciones_por_turno: int = 1
+var recursos_turno: RecursosTurnoActor
 
 var pv_max: int
 var pv_actual: int
@@ -33,10 +40,20 @@ signal paso_dado(nueva_coordenada: Vector2i)
 signal movimiento_terminado(interrumpido: bool)
 signal puntos_vida_cambiados(actual: int, maximo: int)
 signal estado_cambiado(clave: StringName, estado: EstadoActor)
+signal recursos_turno_cambiados(recursos: RecursosTurnoActor)
 
 
 func obtener_id_observador() -> StringName:
 	return id_observador
+
+func obtener_id_actor() -> StringName:
+	return id_actor
+
+func obtener_iniciativa() -> int:
+	return iniciativa_base
+
+func puede_actuar() -> bool:
+	return pv_actual > 0
 
 func obtener_inventario() -> Inventario:
 	return inventario
@@ -57,6 +74,12 @@ func recibir_danio(cantidad: int, _fuente: Object = null) -> int:
 
 func obtener_estado(clave: StringName) -> EstadoActor:
 	return _estados.get(clave) as EstadoActor
+
+func obtener_claves_estado() -> Array[StringName]:
+	var claves: Array[StringName] = []
+	claves.assign(_estados.keys())
+	claves.sort_custom(func(a, b): return String(a) < String(b))
+	return claves
 
 func aplicar_o_renovar_estado(
 	clave: StringName,
@@ -82,9 +105,56 @@ func aplicar_o_renovar_estado(
 		&"ticks_pendientes": estado.ticks_pendientes,
 	}
 
+func consumir_tick_estado(clave: StringName) -> Dictionary:
+	var estado := obtener_estado(clave)
+	if estado == null or estado.ticks_pendientes <= 0:
+		return {}
+	var restantes := estado.consumir_tick()
+	var expirado := restantes == 0
+	if expirado:
+		_estados.erase(clave)
+	estado_cambiado.emit(clave, estado)
+	return {
+		&"tipo": &"estado_tick",
+		&"clave": clave,
+		&"ticks_restantes": restantes,
+		&"expirado": expirado,
+	}
+
+func iniciar_turno() -> void:
+	if recursos_turno == null:
+		recursos_turno = RecursosTurnoActor.new(
+			movimiento_por_turno,
+			acciones_principales_por_turno,
+			acciones_adicionales_por_turno,
+			reacciones_por_turno
+		)
+	else:
+		recursos_turno.reponer()
+	recursos_turno_cambiados.emit(recursos_turno)
+
+func obtener_recurso_turno(clave: StringName) -> int:
+	if recursos_turno == null:
+		iniciar_turno()
+	return recursos_turno.obtener(clave)
+
+func validar_coste_turno(clave: StringName, cantidad: int) -> StringName:
+	if recursos_turno == null:
+		iniciar_turno()
+	return recursos_turno.validar_consumo(clave, cantidad)
+
+func consumir_recurso_turno(clave: StringName, cantidad: int) -> bool:
+	if recursos_turno == null:
+		iniciar_turno()
+	if not recursos_turno.consumir(clave, cantidad):
+		return false
+	recursos_turno_cambiados.emit(recursos_turno)
+	return true
+
 func _ready() -> void:
 	pv_max = fue + des + vol
 	pv_actual = pv_max
+	iniciar_turno()
 
 func inicializar(coordenada_inicial: Vector2i, capa: TileMapLayer) -> void:
 	capa_referencia = capa
@@ -115,7 +185,9 @@ func mover_por_camino(
 	cancelar_paso: Callable,
 	procesar_salida: Callable = Callable(),
 	procesar_entrada: Callable = Callable(),
-	calcular_coste_paso: Callable = Callable()
+	calcular_coste_paso: Callable = Callable(),
+	avanzar_turno: Callable = Callable(),
+	en_combate: bool = false
 ) -> void:
 	if camino.is_empty() or esta_moviendose or not capa_referencia:
 		return
@@ -147,6 +219,13 @@ func mover_por_camino(
 			print("sin energia para caminar mas")
 			fue_interrumpido = true
 			break
+		if coste_paso > movimiento_por_turno:
+			fue_interrumpido = true
+			break
+		if validar_coste_turno(RecursosTurnoActor.MOVIMIENTO, coste_paso) != &"":
+			if en_combate or not avanzar_turno.is_valid() or not avanzar_turno.call(self):
+				fue_interrumpido = true
+				break
 
 		# La ruta puede quedar obsoleta; reservamos cada destino antes de usarlo.
 		if not preparar_paso.call(origen, siguiente_coord, self):
@@ -175,6 +254,7 @@ func mover_por_camino(
 		# El paso se vuelve definitivo solamente al llegar.
 		coordenada_mapa = siguiente_coord
 		energia_actual -= coste_paso
+		consumir_recurso_turno(RecursosTurnoActor.MOVIMIENTO, coste_paso)
 		print("energia actual: ", energia_actual)
 		if procesar_entrada.is_valid():
 			procesar_entrada.call(origen, siguiente_coord, self)
