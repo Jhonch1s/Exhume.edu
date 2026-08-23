@@ -63,6 +63,35 @@ func bloquea_proyectiles_interactuable() -> bool:
 	return not abierta
 
 
+func obtener_estado_persistente() -> Dictionary:
+	return {"abierta": abierta, "bloqueada": bloqueada}
+
+
+func validar_estado_persistente(estado: Dictionary) -> StringName:
+	if estado.size() != 2 or not estado.has("abierta") or not estado.has("bloqueada"):
+		return &"estado_puerta_invalido"
+	if not estado["abierta"] is bool or not estado["bloqueada"] is bool:
+		return &"estado_puerta_invalido"
+	if estado["abierta"] and estado["bloqueada"]:
+		return &"estado_puerta_incoherente"
+	return &""
+
+
+func restaurar_estado_persistente(estado: Dictionary) -> StringName:
+	var motivo := validar_estado_persistente(estado)
+	if motivo != &"":
+		return motivo
+	var apertura_nueva: bool = estado["abierta"]
+	var bloqueo_nuevo: bool = estado["bloqueada"]
+	var apertura_cambio: bool = abierta != apertura_nueva
+	abierta = apertura_nueva
+	bloqueada = bloqueo_nuevo
+	_actualizar_representacion()
+	if apertura_cambio:
+		presencia_cambiada.emit()
+	return &""
+
+
 func validar_accion(contexto: ContextoAccion) -> StringName:
 	if contexto != null and contexto.tipo == TiposInteraccion.TipoAccion.EXAMINAR:
 		return super.validar_accion(contexto)

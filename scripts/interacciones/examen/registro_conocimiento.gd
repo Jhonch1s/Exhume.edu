@@ -76,3 +76,70 @@ func obtener_ids_conocidos(
 			return String(a) < String(b)
 	)
 	return ids
+
+
+func obtener_estado_persistente() -> Array[Dictionary]:
+	var entradas: Array[Dictionary] = []
+	var observadores: Array[StringName] = []
+	observadores.assign(_descubrimientos.keys())
+	observadores.sort_custom(func(a, b): return String(a) < String(b))
+	for id_observador in observadores:
+		var objetivos: Array[StringName] = []
+		objetivos.assign((_descubrimientos[id_observador] as Dictionary).keys())
+		objetivos.sort_custom(func(a, b): return String(a) < String(b))
+		for id_objetivo in objetivos:
+			var fragmentos: Array[String] = []
+			for id_fragmento in obtener_ids_conocidos(id_observador, id_objetivo):
+				fragmentos.append(String(id_fragmento))
+			entradas.append({
+				"observador_id": String(id_observador),
+				"objetivo_id": String(id_objetivo),
+				"fragmentos": fragmentos,
+			})
+	return entradas
+
+
+func validar_estado_persistente(entradas: Variant) -> StringName:
+	if not entradas is Array:
+		return &"conocimiento_guardado_invalido"
+	var pares: Dictionary[String, bool] = {}
+	for entrada: Variant in entradas:
+		if not entrada is Dictionary:
+			return &"conocimiento_guardado_invalido"
+		var observador: Variant = entrada.get("observador_id")
+		var objetivo: Variant = entrada.get("objetivo_id")
+		var fragmentos: Variant = entrada.get("fragmentos")
+		if (
+			not observador is String or observador.is_empty()
+			or not objetivo is String or objetivo.is_empty()
+			or not fragmentos is Array or fragmentos.is_empty()
+		):
+			return &"conocimiento_guardado_invalido"
+		var par := "%s\n%s" % [observador, objetivo]
+		if pares.has(par):
+			return &"conocimiento_guardado_duplicado"
+		pares[par] = true
+		var vistos: Dictionary[String, bool] = {}
+		for fragmento: Variant in fragmentos:
+			if not fragmento is String or fragmento.is_empty() or vistos.has(fragmento):
+				return &"conocimiento_guardado_invalido"
+			vistos[fragmento] = true
+	return &""
+
+
+func restaurar_estado_persistente(entradas: Variant) -> StringName:
+	var motivo := validar_estado_persistente(entradas)
+	if motivo != &"":
+		return motivo
+	var restaurados: Dictionary[StringName, Dictionary] = {}
+	for entrada: Dictionary in entradas:
+		var id_observador := StringName(entrada["observador_id"])
+		var id_objetivo := StringName(entrada["objetivo_id"])
+		var por_objetivo: Dictionary = restaurados.get(id_observador, {})
+		var conocidos: Dictionary[StringName, bool] = {}
+		for fragmento: String in entrada["fragmentos"]:
+			conocidos[StringName(fragmento)] = true
+		por_objetivo[id_objetivo] = conocidos
+		restaurados[id_observador] = por_objetivo
+	_descubrimientos = restaurados
+	return &""

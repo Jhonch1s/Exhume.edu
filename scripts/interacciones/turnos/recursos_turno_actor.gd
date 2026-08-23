@@ -37,6 +37,33 @@ func obtener_maximo(clave: StringName) -> int:
 	return _maximos.get(clave, -1)
 
 
+func obtener_restantes() -> Dictionary:
+	return _restantes.duplicate()
+
+
+func validar_restauracion(restantes: Dictionary) -> StringName:
+	if restantes.size() != _maximos.size():
+		return &"recursos_turno_guardados_invalidos"
+	for clave in _maximos:
+		if (
+			not restantes.has(String(clave))
+			or not _es_numero_entero(restantes[String(clave)])
+			or restantes[String(clave)] < 0
+			or restantes[String(clave)] > _maximos[clave]
+		):
+			return &"recursos_turno_guardados_invalidos"
+	return &""
+
+
+func restaurar(restantes: Dictionary) -> StringName:
+	var motivo := validar_restauracion(restantes)
+	if motivo != &"":
+		return motivo
+	for clave in _maximos:
+		_restantes[clave] = int(restantes[String(clave)])
+	return &""
+
+
 func validar_consumo(clave: StringName, cantidad: int) -> StringName:
 	if not _restantes.has(clave):
 		return &"recurso_turno_no_soportado"
@@ -52,3 +79,7 @@ func consumir(clave: StringName, cantidad: int) -> bool:
 		return false
 	_restantes[clave] -= cantidad
 	return true
+
+
+func _es_numero_entero(valor: Variant) -> bool:
+	return valor is int or (valor is float and is_equal_approx(valor, roundf(valor)))

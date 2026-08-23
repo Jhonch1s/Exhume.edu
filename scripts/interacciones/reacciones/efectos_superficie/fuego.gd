@@ -11,6 +11,7 @@ extends Node2D
 
 var tablero: TableroGrid
 var coordenada_mapa: Vector2i
+var _turnos_restantes: int = -1
 
 
 func configurar_id_instancia(nuevo_id: StringName) -> void:
@@ -20,6 +21,8 @@ func configurar_id_instancia(nuevo_id: StringName) -> void:
 func configurar_registro(tablero_inicial: TableroGrid, coordenada: Vector2i) -> void:
 	tablero = tablero_inicial
 	coordenada_mapa = coordenada
+	if _turnos_restantes < 0:
+		_turnos_restantes = duracion_superficie
 
 
 func reacciona_automaticamente(tipo: TiposInteraccion.TipoAccion) -> bool:
@@ -48,6 +51,26 @@ func obtener_familia_superficie() -> StringName:
 
 func obtener_duracion_superficie() -> int:
 	return duracion_superficie
+
+
+func obtener_turnos_restantes_superficie() -> int:
+	return _turnos_restantes
+
+
+func consumir_turno_superficie() -> int:
+	_turnos_restantes = maxi(0, _turnos_restantes - 1)
+	return _turnos_restantes
+
+
+func restaurar_turnos_restantes_superficie(turnos: int) -> StringName:
+	if turnos <= 0 or turnos > duracion_superficie:
+		return &"duracion_superficie_guardada_invalida"
+	_turnos_restantes = turnos
+	return &""
+
+
+func obtener_escena_al_expirar() -> PackedScene:
+	return preload("res://scenes/efectos_superficie/Humo.tscn")
 
 
 func validar_accion(contexto: ContextoAccion) -> StringName:

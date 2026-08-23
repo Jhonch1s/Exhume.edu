@@ -43,6 +43,23 @@ func admite_reaccion_dirigida(tipo: TiposInteraccion.TipoAccion) -> bool:
 	return tipo == TiposInteraccion.TipoAccion.IMPACTAR
 
 
+func obtener_estado_persistente() -> Dictionary:
+	return {"activada": activada}
+
+
+func validar_estado_persistente(estado: Dictionary) -> StringName:
+	if estado.size() != 1 or not estado.has("activada") or not estado["activada"] is bool:
+		return &"estado_palanca_invalido"
+	return &""
+
+
+func restaurar_estado_persistente(estado: Dictionary) -> StringName:
+	var motivo := validar_estado_persistente(estado)
+	if motivo == &"":
+		activada = estado["activada"]
+	return motivo
+
+
 func validar_accion(contexto: ContextoAccion) -> StringName:
 	if contexto != null and contexto.tipo == TiposInteraccion.TipoAccion.EXAMINAR:
 		return super.validar_accion(contexto)

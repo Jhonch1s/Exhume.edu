@@ -16,9 +16,10 @@ var _fallos: Array[String] = []
 func _init() -> void:
 	_probar_registro_de_accion_exitosa()
 	_probar_desconexion_y_limpieza()
+	_probar_filtros()
 
 	if _fallos.is_empty():
-		print("RegistroAccionesDesarrollo: 2 pruebas correctas.")
+		print("RegistroAccionesDesarrollo: 3 pruebas correctas.")
 		quit()
 		return
 
@@ -44,12 +45,12 @@ func _probar_registro_de_accion_exitosa() -> void:
 	if registro.entradas.size() == 3:
 		_comprobar(
 			registro.entradas[0]
-			== "[ACCION][INICIO] tipo=EXAMINAR origen=(0,0) destino=(1,0)",
+			== "[ACCION][INICIO] tipo=EXAMINAR actor=RefCounted objetivo=RefCounted origen=(0,0) destino=(1,0)",
 			"La entrada de inicio debe describir el contexto."
 		)
 		_comprobar(
 			registro.entradas[1]
-			== "[ACCION][RESUELTA] estado=EXITO motivo=-",
+			== "[ACCION][RESUELTA] estado=EXITO motivo=- solicitudes=0 efectos=0 cambios=1",
 			"La entrada resuelta debe describir el resultado del receptor."
 		)
 		_comprobar(
@@ -58,6 +59,36 @@ func _probar_registro_de_accion_exitosa() -> void:
 			"La entrada final debe incluir el coste confirmado."
 		)
 
+	registro.free()
+	gestor.free()
+
+
+func _probar_filtros() -> void:
+	var gestor := GestorAcciones.new()
+	var registro := RegistroAccionesDesarrolloScript.new()
+	registro.imprimir_en_consola = false
+	root.add_child(gestor)
+	root.add_child(registro)
+	registro.observar_gestor(gestor)
+	registro.configurar_filtros(
+		&"",
+		Vector2i(1, 0),
+		TiposInteraccion.TipoAccion.EXAMINAR
+	)
+	gestor.procesar_accion(_crear_contexto(ReceptorAccionesPrueba.new()))
+	gestor.procesar_accion(ContextoAccion.new(
+		TiposInteraccion.TipoAccion.INTERACTUAR,
+		RefCounted.new(),
+		Vector2i.ZERO,
+		Vector2i(2, 0),
+		ReceptorAccionesPrueba.new(),
+		null,
+		&"accionar"
+	))
+	_comprobar(registro.entradas.size() == 3, "Los filtros deben omitir el ciclo no coincidente.")
+	registro.limpiar_filtros()
+	gestor.procesar_accion(_crear_contexto(ReceptorAccionesPrueba.new()))
+	_comprobar(registro.entradas.size() == 6, "Limpiar filtros debe restaurar el registro.")
 	registro.free()
 	gestor.free()
 

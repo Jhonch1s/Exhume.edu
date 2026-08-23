@@ -24,6 +24,23 @@ func obtener_definicion_luz() -> DefinicionFuenteLuz:
 	return definicion as DefinicionFuenteLuz
 
 
+func obtener_estado_persistente() -> Dictionary:
+	return {"encendida": encendida}
+
+
+func validar_estado_persistente(estado: Dictionary) -> StringName:
+	if estado.size() != 1 or not estado.has("encendida") or not estado["encendida"] is bool:
+		return &"estado_fuente_luz_invalido"
+	return &""
+
+
+func restaurar_estado_persistente(estado: Dictionary) -> StringName:
+	var motivo := validar_estado_persistente(estado)
+	if motivo == &"":
+		encendida = estado["encendida"]
+	return motivo
+
+
 func obtener_opciones_accion(_actor: Object = null) -> Array[OpcionAccion]:
 	var opciones := super.obtener_opciones_accion(_actor)
 	var id_accion: StringName = &"apagar" if encendida else &"encender"

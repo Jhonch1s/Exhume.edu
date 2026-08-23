@@ -151,6 +151,154 @@ func consumir_recurso_turno(clave: StringName, cantidad: int) -> bool:
 	recursos_turno_cambiados.emit(recursos_turno)
 	return true
 
+
+func obtener_estado_persistente() -> Dictionary:
+	var estados: Array[Dictionary] = []
+	for clave in obtener_claves_estado():
+		var estado := obtener_estado(clave)
+		estados.append({
+			"clave": String(clave),
+			"magnitud": estado.magnitud,
+			"duracion_total": estado.duracion_total,
+			"ticks_pendientes": estado.ticks_pendientes,
+		})
+	var items: Array[Dictionary] = []
+	for item in inventario.obtener_contenido():
+		items.append({
+			"id": String(item.id_instancia),
+			"definicion_id": String(item.definicion.id_definicion),
+			"definicion_path": item.definicion.resource_path,
+			"cantidad": item.cantidad,
+		})
+	return {
+		"id_actor": String(id_actor),
+		"id_observador": String(id_observador),
+		"coordenada": [coordenada_mapa.x, coordenada_mapa.y],
+		"pv_actual": pv_actual,
+		"energia_actual": energia_actual,
+		"recursos_turno": recursos_turno.obtener_restantes(),
+		"estados": estados,
+		"inventario": items,
+	}
+
+
+func validar_estado_persistente(estado: Variant) -> StringName:
+	if not estado is Dictionary:
+		return &"estado_ficha_invalido"
+	if estado.get("id_actor") != String(id_actor):
+		return &"id_actor_guardado_no_coincide"
+	if estado.get("id_observador") != String(id_observador):
+		return &"id_observador_guardado_no_coincide"
+	var coordenada: Variant = estado.get("coordenada")
+	if (
+		not coordenada is Array or coordenada.size() != 2
+		or not _es_numero_entero(coordenada[0])
+		or not _es_numero_entero(coordenada[1])
+	):
+		return &"coordenada_ficha_guardada_invalida"
+	if (
+		not _es_numero_entero(estado.get("pv_actual"))
+		or estado["pv_actual"] < 0 or estado["pv_actual"] > pv_max
+		or not _es_numero_entero(estado.get("energia_actual"))
+		or estado["energia_actual"] < 0 or estado["energia_actual"] > energia_maxima
+	):
+		return &"recursos_ficha_guardados_invalidos"
+	if not estado.get("recursos_turno") is Dictionary:
+		return &"recursos_turno_guardados_invalidos"
+	var motivo := recursos_turno.validar_restauracion(estado["recursos_turno"])
+	if motivo != &"":
+		return motivo
+	motivo = _validar_estados_guardados(estado.get("estados"))
+	if motivo != &"":
+		return motivo
+	return _validar_inventario_guardado(estado.get("inventario"))
+
+
+func restaurar_estado_persistente(estado: Variant) -> StringName:
+	var motivo := validar_estado_persistente(estado)
+	if motivo != &"":
+		return motivo
+	var inventario_nuevo := Inventario.new()
+	for datos: Dictionary in estado["inventario"]:
+		var definicion := ResourceLoader.load(datos["definicion_path"]) as DefinicionItem
+		inventario_nuevo.agregar(ItemInstancia.new(
+			StringName(datos["id"]), definicion, int(datos["cantidad"])
+		))
+	var estados_nuevos: Dictionary[StringName, EstadoActor] = {}
+	for datos: Dictionary in estado["estados"]:
+		var clave := StringName(datos["clave"])
+		estados_nuevos[clave] = EstadoActor.new(
+			clave,
+			float(datos["magnitud"]),
+			int(datos["duracion_total"]),
+			int(datos["ticks_pendientes"])
+		)
+	coordenada_mapa = Vector2i(estado["coordenada"][0], estado["coordenada"][1])
+	if capa_referencia != null:
+		global_position = capa_referencia.map_to_local(coordenada_mapa)
+	pv_actual = int(estado["pv_actual"])
+	energia_actual = int(estado["energia_actual"])
+	recursos_turno.restaurar(estado["recursos_turno"])
+	inventario = inventario_nuevo
+	_estados = estados_nuevos
+	puntos_vida_cambiados.emit(pv_actual, pv_max)
+	recursos_turno_cambiados.emit(recursos_turno)
+	for clave in obtener_claves_estado():
+		estado_cambiado.emit(clave, _estados[clave])
+	return &""
+
+
+func _validar_estados_guardados(datos_estados: Variant) -> StringName:
+	if not datos_estados is Array:
+		return &"estados_ficha_guardados_invalidos"
+	var claves: Dictionary[String, bool] = {}
+	for datos: Variant in datos_estados:
+		if not datos is Dictionary:
+			return &"estados_ficha_guardados_invalidos"
+		var clave: Variant = datos.get("clave")
+		var magnitud: Variant = datos.get("magnitud")
+		if (
+			not clave is String or clave.is_empty() or claves.has(clave)
+			or not (magnitud is int or magnitud is float)
+			or not is_finite(float(magnitud)) or magnitud < 0.0
+			or not _es_numero_entero(datos.get("duracion_total"))
+			or datos["duracion_total"] <= 0
+			or not _es_numero_entero(datos.get("ticks_pendientes"))
+			or datos["ticks_pendientes"] < 0
+		):
+			return &"estados_ficha_guardados_invalidos"
+		claves[clave] = true
+	return &""
+
+
+func _validar_inventario_guardado(datos_items: Variant) -> StringName:
+	if not datos_items is Array:
+		return &"inventario_guardado_invalido"
+	var ids: Dictionary[String, bool] = {}
+	for datos: Variant in datos_items:
+		if not datos is Dictionary:
+			return &"inventario_guardado_invalido"
+		var id_item: Variant = datos.get("id")
+		var id_definicion: Variant = datos.get("definicion_id")
+		var ruta: Variant = datos.get("definicion_path")
+		if (
+			not id_item is String or id_item.is_empty() or ids.has(id_item)
+			or not id_definicion is String or id_definicion.is_empty()
+			or not ruta is String or ruta.is_empty() or not ResourceLoader.exists(ruta)
+			or not _es_numero_entero(datos.get("cantidad"))
+		):
+			return &"inventario_guardado_invalido"
+		var definicion := ResourceLoader.load(ruta) as DefinicionItem
+		var item := ItemInstancia.new(StringName(id_item), definicion, int(datos["cantidad"]))
+		if definicion == null or String(definicion.id_definicion) != id_definicion or not item.es_valida():
+			return &"definicion_item_guardada_invalida"
+		ids[id_item] = true
+	return &""
+
+
+func _es_numero_entero(valor: Variant) -> bool:
+	return valor is int or (valor is float and is_equal_approx(valor, roundf(valor)))
+
 func _ready() -> void:
 	pv_max = fue + des + vol
 	pv_actual = pv_max

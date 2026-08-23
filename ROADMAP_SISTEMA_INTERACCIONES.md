@@ -6,10 +6,11 @@
 
 ## Estado general
 
-- Estado actual: Fase 10 — incrementos 10.1 y 10.2 implementados.
-- Próximo paso: ajustar la colocación visual de las puertas y revisar el cierre de 10.2.
-- Última vertical slice: una palanca real de Zona1 abre y cierra dos puertas exclusivas de mecanismo mediante IDs estables.
-- Última actualización de este registro: 21 de agosto de 2026.
+- Estado actual: Fase 13 — completada el 22 de agosto de 2026.
+- Próximo paso: ampliar contenido jugable usando las herramientas de autoría y diagnóstico.
+- Última vertical slice: interactuables, ficha, inventario, estados temporales y
+  conocimiento restauran su estado desde un snapshot compatible con JSON.
+- Última actualización de este registro: 22 de agosto de 2026.
 
 ### Progreso por fases
 
@@ -21,12 +22,12 @@
 - [x] Fase 5 — Reacciones automáticas al movimiento. *(completada el 17 de agosto de 2026)*
 - [x] Fase 6 — Sistema de efectos. *(completada el 18 de agosto de 2026)*
 - [x] Fase 7 — Items e inventario mínimo. *(implementada el 18 de agosto de 2026; cierre de regresión con deuda registrada)*
-- [ ] Fase 8 — Usar items sobre objetivos. *(iniciada el 19 de agosto de 2026)*
-- [ ] Fase 9 — Lanzamiento, trayectoria e impacto. *(iniciada el 21 de agosto de 2026)*
-- [ ] Fase 10 — Relaciones y mecanismos. *(iniciada el 21 de agosto de 2026)*
-- [ ] Fase 11 — Turnos y efectos persistentes.
-- [ ] Fase 12 — Persistencia.
-- [ ] Fase 13 — Herramientas de diseño y depuración.
+- [x] Fase 8 — Usar items sobre objetivos. *(implementada el 19 de agosto de 2026)*
+- [x] Fase 9 — Lanzamiento, trayectoria e impacto. *(implementada el 21 de agosto de 2026)*
+- [x] Fase 10 — Relaciones y mecanismos. *(implementada el 21 de agosto de 2026)*
+- [x] Fase 11 — Turnos y efectos persistentes. *(implementada el 21 de agosto de 2026)*
+- [x] Fase 12 — Persistencia. *(completada el 22 de agosto de 2026)*
+- [x] Fase 13 — Herramientas de diseño y depuración. *(completada el 22 de agosto de 2026)*
 
 Cuando una fase comience, se debe cambiar su casilla y registrar debajo de ella:
 
@@ -1161,7 +1162,7 @@ Una misma secuencia de acciones y turnos siempre produce el mismo resultado, inc
 
 ### Registro de implementación
 
-- Estado: incrementos 11.1 a 11.4 implementados; 11.4 cerrado el 21 de agosto de 2026.
+- Estado: incrementos 11.1 a 11.5 implementados; 11.5 cerrado el 21 de agosto de 2026.
 - Decisiones nuevas de 11.1: `ServicioTurnos` es la fuente explícita de avance y
   envía `FIN_TURNO` mediante el `GestorAcciones` genérico. El primer daño de
   `quemado` continúa siendo inmediato; cada avance posterior aplica un tick. La
@@ -1220,9 +1221,27 @@ Una misma secuencia de acciones y turnos siempre produce el mismo resultado, inc
   `TurnosPersistentes` correctas; sin `SCRIPT ERROR` ni `ERROR:`. Cubren orden y
   empate estable, reposición, veneno del actor finalizado, salto de muertos, nueva
   ronda e IDs duplicados sin inicio parcial.
+- Decisiones nuevas de 11.5: cada superficie conserva sus rondas restantes y
+  `ProcesadorSuperficies` las prevalida y procesa por ID estable una sola vez al
+  comenzar una ronda. Humo y humo venenoso desaparecen al expirar; fuego se reemplaza
+  por humo completo en la misma celda. `ResultadoAvanceTurno` transporta el resultado
+  estructurado de superficies separado del `FIN_TURNO` del actor.
+- Archivos añadidos o modificados en 11.5:
+  [`scripts/interacciones/turnos/procesador_superficies.gd`](scripts/interacciones/turnos/procesador_superficies.gd),
+  [`scripts/interacciones/turnos/gestor_rondas.gd`](scripts/interacciones/turnos/gestor_rondas.gd),
+  [`scripts/interacciones/turnos/resultado_avance_turno.gd`](scripts/interacciones/turnos/resultado_avance_turno.gd),
+  las tres superficies existentes,
+  [`tests/interacciones/prueba_duracion_superficies.gd`](tests/interacciones/prueba_duracion_superficies.gd),
+  pruebas de rondas, contratos y este roadmap.
+- Pruebas de 11.5: `DuracionSuperficies`, `GestorRondas`, `HumoBloqueaVision` y
+  `FuegoYCombinacionEfectos` correctas; sin `SCRIPT ERROR` ni `ERROR:`. Cubren orden,
+  avance exclusivo por ronda, expiración, reemplazo `Fuego → Humo`, duración completa
+  del reemplazo y bloqueo visual. El cierre posterior conectó el mismo procesador a
+  cada `FIN_TURNO` automático de exploración y añadió una regresión con humo venenoso
+  que expira al cruzar la primera frontera de movimiento.
 - Pendientes: IA, UI, sorpresa, retrasar turno y participantes dinámicos requieren
-  casos concretos. Destrabarse, descansos, usos especiales, duración de superficies
-  y activación real del modo combate pertenecen a incrementos posteriores.
+  casos concretos. Destrabarse, descansos, usos especiales, combinaciones de
+  superficies y activación real del modo combate pertenecen a incrementos posteriores.
 
 ## Fase 12 — Persistencia
 
@@ -1259,11 +1278,67 @@ Una partida con puertas, palancas, items, conocimiento y efectos activos se guar
 
 ### Registro de implementación
 
-- Estado: pendiente.
-- Decisiones nuevas: —
-- Archivos modificados: —
-- Pruebas: —
-- Pendientes: —
+- Estado: completada el 22 de agosto de 2026 mediante incrementos 12.1 a 12.4.
+- Decisiones nuevas: el primer snapshot es un `Dictionary` versión 1 compatible
+  con JSON. La escena de zona conserva autoridad sobre existencia, definición,
+  coordenada y relaciones; la carga resuelve interactuables colocados mediante su
+  ID estable y exige coincidencia completa antes de mutar. Cada interactuable
+  valida y restaura su estado por comportamiento. Restaurar no ejecuta acciones.
+- Archivos añadidos o modificados en 12.1:
+  [`scripts/interacciones/persistencia/persistencia_interactuables.gd`](scripts/interacciones/persistencia/persistencia_interactuables.gd),
+  la base y las implementaciones de puerta, palanca, trampa y fuente de luz,
+  [`tests/interacciones/prueba_persistencia_interactuables.gd`](tests/interacciones/prueba_persistencia_interactuables.gd),
+  contratos y este roadmap.
+- Pruebas de 12.1: ida y vuelta en memoria y mediante JSON, restauración de puerta,
+  palanca, trampa y luz, y rechazo atómico de una definición incompatible.
+- Decisiones nuevas de 12.2: `PersistenciaPartida` compone el snapshot sin duplicar
+  el canal de interactuables. La ficha guarda posición, vida, energía, recursos de
+  turno, estados e inventario. Cada item conserva IDs, cantidad y ruta de Resource;
+  la carga resuelve la definición con `ResourceLoader` y verifica su ID. El
+  conocimiento guarda únicamente IDs de observador, objetivo y fragmentos.
+- Archivos añadidos o modificados en 12.2:
+  [`scripts/interacciones/persistencia/persistencia_partida.gd`](scripts/interacciones/persistencia/persistencia_partida.gd),
+  [`scenes/ficha/ficha.gd`](scenes/ficha/ficha.gd),
+  [`scripts/interacciones/turnos/recursos_turno_actor.gd`](scripts/interacciones/turnos/recursos_turno_actor.gd),
+  [`scripts/interacciones/examen/registro_conocimiento.gd`](scripts/interacciones/examen/registro_conocimiento.gd),
+  [`tests/interacciones/prueba_persistencia_ficha_conocimiento.gd`](tests/interacciones/prueba_persistencia_ficha_conocimiento.gd),
+  contratos y este roadmap.
+- Pruebas de 12.2: ida y vuelta directa y mediante JSON de posición, vida, energía,
+  recursos de turno, veneno activo, pila de items y conocimiento; rechazo atómico
+  de una definición de item incompatible.
+- Decisiones nuevas de 12.3: el snapshot reemplaza exactamente items de suelo y
+  superficies, incluidos los colocados inicialmente. Los items reutilizan ID, ruta
+  e ID de definición y cantidad, con unicidad global frente al inventario. Las
+  superficies guardan escena, ID, coordenada y turnos restantes; el contador se
+  restaura directamente sin simular ticks ni conservar historial de transformación.
+- Archivos añadidos o modificados en 12.3:
+  [`scripts/interacciones/persistencia/persistencia_contenido_dinamico.gd`](scripts/interacciones/persistencia/persistencia_contenido_dinamico.gd),
+  [`scripts/interacciones/persistencia/persistencia_partida.gd`](scripts/interacciones/persistencia/persistencia_partida.gd),
+  las tres superficies temporales,
+  [`tests/interacciones/prueba_persistencia_contenido_dinamico.gd`](tests/interacciones/prueba_persistencia_contenido_dinamico.gd),
+  contratos y este roadmap.
+- Pruebas de 12.3: ida y vuelta JSON de item en suelo y humo venenoso con duración
+  reducida, eliminación de una superficie extra y rechazo atómico de un ID de item
+  duplicado entre inventario y suelo.
+- Decisiones nuevas de 12.4: `ArchivoPartida` escribe un temporal validado y protege
+  el slot anterior mediante respaldo y rollback. `GestorRondas` conserva ronda,
+  orden y actor activo sin avanzar turno ni reponer recursos. El bloque es opcional
+  en exploración. `EscenarioBase` expone un único slot predeterminado y rechaza
+  guardar o cargar durante movimiento o interacción modal. Solo se admite versión 1.
+- Archivos añadidos o modificados en 12.4:
+  [`scripts/interacciones/persistencia/archivo_partida.gd`](scripts/interacciones/persistencia/archivo_partida.gd),
+  [`scripts/interacciones/persistencia/persistencia_partida.gd`](scripts/interacciones/persistencia/persistencia_partida.gd),
+  [`scripts/interacciones/turnos/gestor_rondas.gd`](scripts/interacciones/turnos/gestor_rondas.gd),
+  [`scenes/escenario_base/escenario_base.gd`](scenes/escenario_base/escenario_base.gd),
+  [`tests/interacciones/prueba_persistencia_partida_archivo.gd`](tests/interacciones/prueba_persistencia_partida_archivo.gd),
+  prueba de rondas, contratos y este roadmap.
+- Pruebas de 12.4: vertical completa en archivo real con puerta, palanca, ficha,
+  inventario, items de suelo, conocimiento, estado activo y superficie temporal;
+  regresiones correctas de 12.1 a 12.3 y restauración de ronda activa.
+- Cierre: una partida reactiva se guarda y restaura en estado funcionalmente
+  equivalente sin serializar escenas completas ni referencias directas a nodos.
+- Pendientes: múltiples slots, UI, autoguardado, migraciones y combate integrado se
+  incorporarán cuando exista un caso jugable concreto.
 
 ## Fase 13 — Herramientas de diseño y depuración
 
@@ -1290,11 +1365,54 @@ Una persona puede crear un interactuable común, colocarlo, conectarlo y diagnos
 
 ### Registro de implementación
 
-- Estado: pendiente.
-- Decisiones nuevas: —
-- Archivos modificados: —
-- Pruebas: —
-- Pendientes: —
+- Estado: completada el 22 de agosto de 2026 mediante incrementos 13.1 a 13.3.
+- Responsable: sesión Codex del 22 de agosto de 2026.
+- Decisiones nuevas: `ValidadorContenidoZona` inspecciona la zona instanciada después
+  de generar sus celdas y antes de registrar contenido. Devuelve errores legibles y
+  ordenados sin modificar tablero ni escena. Valida IDs, definiciones, coordenadas,
+  contratos de superficies y relaciones de palancas. Si encuentra errores,
+  `EscenarioBase` informa todos y evita el registro parcial. No se añadió un plugin
+  de editor ni una jerarquía de resultados de diagnóstico.
+- Archivos modificados en 13.1:
+  [`scripts/interacciones/debug/validador_contenido_zona.gd`](scripts/interacciones/debug/validador_contenido_zona.gd),
+  [`scenes/escenario_base/escenario_base.gd`](scenes/escenario_base/escenario_base.gd),
+  [`tests/interacciones/prueba_validador_contenido_zona.gd`](tests/interacciones/prueba_validador_contenido_zona.gd),
+  contratos y este roadmap.
+- Pruebas de 13.1: Zona1 válida; ID de interactuable duplicado; definición ausente;
+  receptor de mecanismo inexistente; superficie sin ID. Los cinco grupos pasan con
+  Godot 4.7.
+- Incremento 13.2: `InspectorCeldaDesarrollo` compone un resumen textual estable de
+  terreno, altura, visibilidad, presencia efectiva, costes, ocupantes, reservas,
+  interactuables, items, superficies, iluminación y reacción de terreno. Las
+  colecciones se muestran por IDs ordenados y las superficies incluyen sus turnos
+  restantes cuando están disponibles. `F3` imprime bajo demanda la celda situada
+  bajo el cursor sin abrir UI ni modificar el estado del juego.
+- Archivos añadidos o modificados en 13.2:
+  [`scripts/interacciones/debug/inspector_celda_desarrollo.gd`](scripts/interacciones/debug/inspector_celda_desarrollo.gd),
+  [`scenes/escenario_base/escenario_base.gd`](scenes/escenario_base/escenario_base.gd),
+  [`tests/interacciones/prueba_inspector_celda_desarrollo.gd`](tests/interacciones/prueba_inspector_celda_desarrollo.gd),
+  contratos y este roadmap.
+- Pruebas de 13.2: seis comprobaciones headless de datos generales, categorías,
+  duración de superficie, reacción de terreno y celda inexistente; escaneo de clases
+  globales correcto con Godot 4.7.
+- Incremento 13.3: el registro existente añade actor, objetivo y cantidades de
+  solicitudes, efectos y cambios sin modificar `GestorAcciones`. Puede filtrar por
+  ID de actor, celda objetivo y tipo de acción. La guía de autoría usa puertas,
+  palancas, trampas y superficies existentes como plantillas y documenta colocación,
+  conexión, prevalidación, inspección y prueba headless.
+- Archivos añadidos o modificados en 13.3:
+  [`scripts/interacciones/debug/registro_acciones_desarrollo.gd`](scripts/interacciones/debug/registro_acciones_desarrollo.gd),
+  [`tests/interacciones/prueba_registro_acciones_desarrollo.gd`](tests/interacciones/prueba_registro_acciones_desarrollo.gd),
+  [`docs/GUIA_CREAR_CONTENIDO_INTERACCIONES.md`](docs/GUIA_CREAR_CONTENIDO_INTERACCIONES.md),
+  contratos y este roadmap.
+- Pruebas de 13.3: formato enriquecido, desconexión, limpieza, filtros combinados y
+  restauración del registro completo; tres grupos correctos con Godot 4.7.
+- Cierre: una persona puede duplicar contenido real, asignar IDs, colocarlo,
+  conectar una palanca, prevalidar la zona, inspeccionar la celda y seguir acciones
+  sin modificar `GestorAcciones`.
+- Pendientes no bloqueantes: plantilla de contenedor y generación desde marcadores
+  requieren casos jugables reales. Una UI de depuración se añadirá solo si consola
+  y `F3` resultan insuficientes.
 
 ---
 

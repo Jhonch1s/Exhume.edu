@@ -24,6 +24,12 @@ func _probar_ruta_encadena_turnos() -> void:
 	var entorno := _crear_entorno(9)
 	var ficha: Ficha = entorno.ficha
 	var aplicador := AplicadorEfectos.new()
+	var humo_veneno := HumoVeneno.new()
+	humo_veneno.id_instancia = &"humo_veneno_exploracion"
+	humo_veneno.duracion_superficie = 1
+	root.add_child(humo_veneno)
+	entorno.tablero.registrar_efecto_superficie(Vector2i.ZERO, humo_veneno)
+	var procesador_superficies := ProcesadorSuperficies.new(entorno.tablero)
 	aplicador.aplicar(SolicitudEfecto.new(
 		&"veneno", &"estado", ficha, &"veneno_ruta", 1.0, 2
 	))
@@ -40,9 +46,12 @@ func _probar_ruta_encadena_turnos() -> void:
 		func(actor):
 			avances[0] += 1
 			var resultado: ResultadoAccion = entorno.servicio_turnos.avanzar_turno(actor)
-			if resultado.exitosa:
+			if not resultado.exitosa:
+				return false
+			var superficies := procesador_superficies.procesar_fin_ronda()
+			if superficies.exitosa:
 				actor.iniciar_turno()
-			return resultado.exitosa
+			return superficies.exitosa
 	)
 	var interrumpido: bool = await ficha.movimiento_terminado
 	_comprobar(not interrumpido and avances[0] == 1, "Exploración debe encadenar un turno.")
@@ -55,6 +64,10 @@ func _probar_ruta_encadena_turnos() -> void:
 		ficha.pv_actual == vida_inicial - 1
 		and ficha.obtener_estado(&"veneno").ticks_pendientes == 1,
 		"La ruta larga debe producir exactamente un tick de veneno."
+	)
+	_comprobar(
+		not entorno.tablero.efectos_superficie_por_id.has(&"humo_veneno_exploracion"),
+		"La frontera de exploración debe expirar superficies."
 	)
 	(entorno.liberar as Callable).call()
 	await process_frame

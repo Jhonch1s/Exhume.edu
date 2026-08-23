@@ -33,6 +33,34 @@ func es_objetivo_impacto_perceptible() -> bool:
 	return presentacion != Presentacion.OCULTA
 
 
+func obtener_estado_persistente() -> Dictionary:
+	return {"activada": activada, "presentacion": presentacion}
+
+
+func validar_estado_persistente(estado: Dictionary) -> StringName:
+	if estado.size() != 2 or not estado.has("activada") or not estado.has("presentacion"):
+		return &"estado_trampa_invalido"
+	if (
+		not estado["activada"] is bool
+		or not (estado["presentacion"] is int or estado["presentacion"] is float)
+	):
+		return &"estado_trampa_invalido"
+	var valor_presentacion := int(estado["presentacion"])
+	if valor_presentacion < Presentacion.OCULTA or valor_presentacion > Presentacion.VISIBLE:
+		return &"estado_trampa_invalido"
+	return &""
+
+
+func restaurar_estado_persistente(estado: Dictionary) -> StringName:
+	var motivo := validar_estado_persistente(estado)
+	if motivo != &"":
+		return motivo
+	activada = estado["activada"]
+	presentacion = int(estado["presentacion"])
+	_actualizar_presentacion()
+	return &""
+
+
 func reacciona_automaticamente(tipo: TiposInteraccion.TipoAccion) -> bool:
 	return tipo in [
 		TiposInteraccion.TipoAccion.ENTRAR,

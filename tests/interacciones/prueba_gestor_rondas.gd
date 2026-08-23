@@ -21,8 +21,21 @@ func _ejecutar_pruebas() -> void:
 
 func _probar_orden_avance_y_ronda() -> void:
 	var gestor_acciones := GestorAcciones.new()
+	var tablero := TableroGrid.new()
+	var contenedor := Node2D.new()
 	root.add_child(gestor_acciones)
-	var gestor := GestorRondas.new(ServicioTurnos.new(gestor_acciones))
+	root.add_child(tablero)
+	root.add_child(contenedor)
+	tablero.datos[Vector2i.ZERO] = Celda.new()
+	var humo := Humo.new()
+	humo.id_instancia = &"humo_ronda"
+	humo.duracion_superficie = 2
+	contenedor.add_child(humo)
+	tablero.registrar_efecto_superficie(Vector2i.ZERO, humo)
+	var gestor := GestorRondas.new(
+		ServicioTurnos.new(gestor_acciones),
+		ProcesadorSuperficies.new(tablero)
+	)
 	var actor_a := _crear_actor(&"a", 10)
 	var actor_b := _crear_actor(&"b", 10)
 	var actor_c := _crear_actor(&"c", 5)
@@ -39,7 +52,9 @@ func _probar_orden_avance_y_ronda() -> void:
 	_comprobar(
 		avance_b.id_actor_finalizado == &"a"
 		and avance_b.id_actor_activo == &"b"
-		and not avance_b.nueva_ronda,
+		and not avance_b.nueva_ronda
+		and avance_b.resultado_superficies == null
+		and humo.obtener_turnos_restantes_superficie() == 2,
 		"Debe avanzar al siguiente actor de la misma ronda."
 	)
 	AplicadorEfectos.new().aplicar(SolicitudEfecto.new(
@@ -61,10 +76,26 @@ func _probar_orden_avance_y_ronda() -> void:
 		"FIN_TURNO debe procesar sólo los estados del actor finalizado."
 	)
 	_comprobar(
+		avance_ronda.resultado_superficies != null
+		and humo.obtener_turnos_restantes_superficie() == 1,
+		"Las superficies deben avanzar una sola vez al comenzar la ronda."
+	)
+	_comprobar(
 		actor_a.obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO) == 7,
 		"El actor que comienza la nueva ronda debe reponer sus recursos."
 	)
+	var estado_guardado: Variant = gestor.obtener_estado_persistente()
+	gestor.ronda_actual = 99
+	gestor.actor_activo = actor_b
+	_comprobar(
+		gestor.restaurar_estado_persistente(estado_guardado) == &""
+		and gestor.ronda_actual == 2
+		and gestor.actor_activo == actor_a,
+		"Restaurar rondas no debe avanzar turnos ni reponer recursos."
+	)
 	_liberar([actor_a, actor_b, actor_c], gestor_acciones)
+	tablero.queue_free()
+	contenedor.queue_free()
 	await process_frame
 
 

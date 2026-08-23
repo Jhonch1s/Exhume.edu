@@ -120,6 +120,18 @@ func obtener_prioridad_reaccion(_tipo: TiposInteraccion.TipoAccion) -> int:
 	return 0
 
 
+func obtener_estado_persistente() -> Dictionary:
+	return {}
+
+
+func validar_estado_persistente(estado: Dictionary) -> StringName:
+	return &"" if estado.is_empty() else &"estado_persistente_no_admitido"
+
+
+func restaurar_estado_persistente(estado: Dictionary) -> StringName:
+	return validar_estado_persistente(estado)
+
+
 func permite_caminar_interactuable() -> bool:
 	return true
 

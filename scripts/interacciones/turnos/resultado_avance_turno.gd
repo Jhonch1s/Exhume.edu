@@ -8,6 +8,7 @@ var id_actor_finalizado: StringName
 var id_actor_activo: StringName
 var nueva_ronda: bool
 var resultado_turno: ResultadoAccion
+var resultado_superficies: ResultadoAccion
 
 
 func _init(
@@ -17,7 +18,8 @@ func _init(
 	id_finalizado_inicial: StringName = &"",
 	id_activo_inicial: StringName = &"",
 	nueva_ronda_inicial: bool = false,
-	resultado_inicial: ResultadoAccion = null
+	resultado_inicial: ResultadoAccion = null,
+	resultado_superficies_inicial: ResultadoAccion = null
 ) -> void:
 	exitoso = exitoso_inicial
 	motivo = &"" if exitoso else motivo_inicial
@@ -26,3 +28,4 @@ func _init(
 	id_actor_activo = id_activo_inicial
 	nueva_ronda = nueva_ronda_inicial
 	resultado_turno = resultado_inicial
+	resultado_superficies = resultado_superficies_inicial

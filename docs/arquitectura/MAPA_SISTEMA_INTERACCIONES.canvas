@@ -1,0 +1,32 @@
+{
+	"nodes":[
+		{"id":"gestor","type":"text","text":"## GestorAcciones\nValida estructura, espacio, receptor y costes. Coordina; no conoce contenido concreto.","x":-235,"y":-355,"width":440,"height":220,"color":"3"},
+		{"id":"contexto","type":"text","text":"## ContextoAccion\nActor · objetivo · celda\nitem · etiquetas · magnitudes\nalcance · costes · evento","x":-735,"y":-355,"width":300,"height":190,"color":"5"},
+		{"id":"entrada","type":"text","text":"## Entradas\n- Menú contextual\n- Movimiento\n- Usar / lanzar item\n- Fin de turno","x":-1210,"y":-60,"width":280,"height":190,"color":"4"},
+		{"id":"receptores","type":"text","text":"## Receptores ordenados\n1. Terreno\n2. Superficies\n3. Interactuables\n4. Items del suelo\n5. Ocupantes","x":460,"y":-335,"width":310,"height":220,"color":"2"},
+		{"id":"resultado","type":"text","text":"## ResultadoAccion\nEstado · motivo · mensajes\nsolicitudes · efectos · cambios\ncostes · interrupción · destino item","x":945,"y":-135,"width":330,"height":190,"color":"6"},
+		{"id":"pruebas","type":"file","file":"pruebas/PRUEBAS.md","x":945,"y":245,"width":330,"height":250},
+		{"id":"estado","type":"text","text":"## Estado del mundo\nTablero y celdas · inventario\nestados y superficies · rondas\nconocimiento · persistencia JSON","x":-140,"y":475,"width":360,"height":190},
+		{"id":"debug","type":"text","text":"## Herramientas\nPrevalidación de zona\nF3: inspección de celda\nRegistro filtrable de acciones\nPruebas headless","x":-125,"y":810,"width":330,"height":170,"color":"1"},
+		{"id":"autoria","type":"file","file":"GUIA_CREAR_CONTENIDO_INTERACCIONES.md","x":-1060,"y":360,"width":390,"height":260},
+		{"id":"contenido","type":"file","file":"contenido/CONTENIDO.md","x":-1540,"y":370,"width":330,"height":240},
+		{"id":"ejemplo_palanca","type":"text","text":"### Ejemplo: mecanismo\nPalanca → IDs de receptores → dos puertas\nPrevalidación completa antes de mutar","x":-1360,"y":760,"width":330,"height":150},
+		{"id":"ejemplo_trampa","type":"text","text":"### Ejemplo: reacción automática\nENTRAR → trampa → humo venenoso\n→ veneno + interrupción","x":-930,"y":760,"width":330,"height":150},
+		{"id":"ejemplo_item","type":"text","text":"### Ejemplo: lanzamiento\nItem → trayectoria → IMPACTAR\n→ consumir o dejar en celda","x":-1260,"y":980,"width":330,"height":150},
+		{"id":"ejemplo_guardado","type":"text","text":"### Ejemplo: persistencia\nSnapshot → JSON → restaurar por IDs\nSin serializar nodos ni escenas completas","x":-845,"y":980,"width":350,"height":150},
+		{"id":"titulo","type":"text","text":"# Sistema de interacciones\nMapa maestro de arquitectura, contenido y diagnóstico","x":-235,"y":-640,"width":440,"height":120},
+		{"id":"contratos","type":"file","file":"CONTRATOS_SISTEMA_INTERACCIONES.md","x":-210,"y":40,"width":390,"height":260}
+	],
+	"edges":[
+		{"id":"e1","fromNode":"entrada","fromSide":"right","toNode":"contexto","toSide":"left","label":"construye"},
+		{"id":"e2","fromNode":"contexto","fromSide":"right","toNode":"gestor","toSide":"left","label":"procesa"},
+		{"id":"e3","fromNode":"gestor","fromSide":"right","toNode":"receptores","toSide":"left","label":"valida y dirige"},
+		{"id":"e4","fromNode":"receptores","fromSide":"right","toNode":"resultado","toSide":"left","label":"resuelven"},
+		{"id":"e5","fromNode":"resultado","fromSide":"bottom","toNode":"estado","toSide":"top","label":"confirma"},
+		{"id":"e6","fromNode":"estado","fromSide":"left","toNode":"entrada","toSide":"right","label":"nuevo estado"},
+		{"id":"e7","fromNode":"contratos","fromSide":"top","toNode":"gestor","toSide":"bottom","label":"define"},
+		{"id":"e8","fromNode":"autoria","fromSide":"left","toNode":"contenido","toSide":"right","label":"guía"},
+		{"id":"e9","fromNode":"pruebas","fromSide":"top","toNode":"resultado","toSide":"bottom","label":"verifica"},
+		{"id":"e10","fromNode":"debug","fromSide":"top","toNode":"estado","toSide":"bottom","label":"inspecciona"}
+	]
+}

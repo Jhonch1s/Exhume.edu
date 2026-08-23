@@ -26,6 +26,7 @@ const ESCENA_FICHA = preload("res://scenes/ficha/ficha.tscn")
 const DEFINICION_PIEDRA = preload("res://assets/items/piedra/piedra.tres")
 const DEFINICION_LLAVE_PRUEBA = preload("res://assets/items/llave_prueba/llave_prueba.tres")
 const DEFINICION_BOMBA_HUMO = preload("res://assets/items/bomba_humo/bomba_humo.tres")
+const RUTA_GUARDADO := "user://partida.json"
 @export var catalogo_mensajes: CatalogoMensajesInteraccion
 @export_range(0.02, 0.5, 0.01) var duracion_paso_lanzamiento: float = 0.08
 
@@ -36,6 +37,7 @@ var validador_espacial: ValidadorEspacialTablero
 var consultor_reacciones: ConsultorReaccionesCelda = ConsultorReaccionesCelda.new()
 var resolver_reacciones: ResolverReaccionesCelda
 var servicio_turnos: ServicioTurnos
+var procesador_superficies: ProcesadorSuperficies
 var registro_conocimiento: RegistroConocimiento = RegistroConocimiento.new()
 var servicio_examen: ServicioExamen
 var ficha_jugador: Ficha = null
@@ -72,6 +74,7 @@ var camino_actual_tentativo: Array[Vector2i] = []
 var ultimo_resultado_salir: ResultadoReacciones
 var ultimo_resultado_entrar: ResultadoReacciones
 var en_combate: bool = false
+var persistencia_partida := PersistenciaPartida.new()
 
 func _ready() -> void:
 	menu_contextual.opcion_accion_elegida.connect(_on_opcion_contextual_elegida)
@@ -84,6 +87,7 @@ func _ready() -> void:
 	add_child(gestor_acciones)
 	resolver_reacciones = ResolverReaccionesCelda.new(gestor_acciones)
 	servicio_turnos = ServicioTurnos.new(gestor_acciones)
+	procesador_superficies = ProcesadorSuperficies.new(tablero)
 	tablero.generar_desde_zona(zona_actual)
 	validador_espacial = ValidadorEspacialTablero.new(tablero)
 	transferidor_items = TransferidorItems.new(tablero, gestor_acciones)
@@ -95,8 +99,15 @@ func _ready() -> void:
 	gestor_acciones.configurar_proveedor_costes(ProveedorCostesFicha.new())
 	var capa_suelo: TileMapLayer = zona_actual.get_node_or_null("CapaSuelo")
 	if capa_suelo:
-		tablero.registrar_interactuables_desde_zona(zona_actual, capa_suelo)
-		tablero.registrar_efectos_superficie_desde_zona(zona_actual, capa_suelo)
+		var errores_contenido := ValidadorContenidoZona.new().validar(
+			zona_actual, tablero, capa_suelo
+		)
+		if errores_contenido.is_empty():
+			tablero.registrar_interactuables_desde_zona(zona_actual, capa_suelo)
+			tablero.registrar_efectos_superficie_desde_zona(zona_actual, capa_suelo)
+		else:
+			for error in errores_contenido:
+				push_error("Contenido de zona invalido: %s" % error)
 	pathfinding.inicializar(tablero.datos)
 	gestor_vision.inicializar(capa_oscuridad, tablero)
 	spawnear_ficha_inicial()
@@ -171,6 +182,10 @@ func _unhandled_input(event: InputEvent) -> void:
 				panel_resultado_accion.ocultar()
 		get_viewport().set_input_as_handled()
 		return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F3:
+		_imprimir_celda_bajo_cursor()
+		get_viewport().set_input_as_handled()
+		return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_L:
 		_abrir_selector_item_lanzamiento()
 		get_viewport().set_input_as_handled()
@@ -189,6 +204,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		_manejar_clic_izquierdo(coord_clic)
 	elif event.button_index == MOUSE_BUTTON_RIGHT:
 		_manejar_clic_derecho(coord_clic)
+
+
+func _imprimir_celda_bajo_cursor() -> void:
+	var capa_suelo: TileMapLayer = zona_actual.get_node_or_null("CapaSuelo")
+	if capa_suelo != null:
+		var coordenada := capa_suelo.local_to_map(get_global_mouse_position())
+		print(InspectorCeldaDesarrollo.new().describir(tablero, coordenada))
 
 func _manejar_clic_izquierdo(coord: Vector2i) -> void:
 	if (
@@ -253,10 +275,36 @@ func _manejar_clic_derecho(coord: Vector2i) -> void:
 
 func _avanzar_turno_exploracion(ficha: Ficha) -> bool:
 	var resultado := servicio_turnos.avanzar_turno(ficha)
-	if not resultado.exitosa or ficha.pv_actual <= 0:
+	if not resultado.exitosa:
+		return false
+	var resultado_superficies := procesador_superficies.procesar_fin_ronda()
+	if not resultado_superficies.exitosa or ficha.pv_actual <= 0:
 		return false
 	ficha.iniciar_turno()
 	return true
+
+
+func guardar_partida(ruta: String = RUTA_GUARDADO) -> StringName:
+	if ficha_jugador == null or ficha_jugador.esta_moviendose or interaccion_modal_activa:
+		return &"partida_no_disponible_para_guardar"
+	return persistencia_partida.guardar_archivo(
+		ruta, tablero, &"zona1", ficha_jugador, registro_conocimiento
+	)
+
+
+func cargar_partida(ruta: String = RUTA_GUARDADO) -> StringName:
+	if ficha_jugador == null or ficha_jugador.esta_moviendose or interaccion_modal_activa:
+		return &"partida_no_disponible_para_cargar"
+	var motivo := persistencia_partida.cargar_archivo(
+		ruta, tablero, &"zona1", ficha_jugador, registro_conocimiento
+	)
+	if motivo != &"":
+		return motivo
+	pathfinding.inicializar(tablero.datos)
+	_actualizar_luz_jugador(ficha_jugador.coordenada_mapa)
+	camino_actual_tentativo.clear()
+	capa_camino.clear()
+	return &""
 
 func _preparar_paso_ficha(_origen: Vector2i, destino: Vector2i, ficha: Ficha) -> bool:
 	return tablero.reservar_celda(destino, ficha)
