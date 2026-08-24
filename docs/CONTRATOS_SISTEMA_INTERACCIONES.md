@@ -35,6 +35,7 @@ contenido técnico original, dividido por dominio.
 - [[contratos/16B_CONOCIMIENTO_Y_SERVICIO_DE_EXAMEN|Conocimiento y servicio de examen]].
 - [[contratos/16C_PRESENTACION_DE_EXAMEN|Presentación de examen]].
 - [[contratos/17_FLUJOS_DE_REFERENCIA|Flujos de referencia]].
+- [[contratos/18_SISTEMA_DE_TIRADAS|Sistema de tiradas]].
 
 ## Documentos relacionados
 
