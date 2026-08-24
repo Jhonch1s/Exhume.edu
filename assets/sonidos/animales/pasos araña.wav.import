@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://d3xf2dnivrv0v"
+path="res://.godot/imported/pasos araña.wav-2991951e1e5780d918d78aa021547d94.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/animales/pasos araña.wav"
+dest_files=["res://.godot/imported/pasos araña.wav-2991951e1e5780d918d78aa021547d94.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

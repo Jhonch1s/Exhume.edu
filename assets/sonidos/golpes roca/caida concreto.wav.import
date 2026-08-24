@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://bbe0wklmk5hfk"
+path="res://.godot/imported/caida concreto.wav-e7f376c7262baa55969c4483338f1eb5.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/golpes roca/caida concreto.wav"
+dest_files=["res://.godot/imported/caida concreto.wav-e7f376c7262baa55969c4483338f1eb5.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

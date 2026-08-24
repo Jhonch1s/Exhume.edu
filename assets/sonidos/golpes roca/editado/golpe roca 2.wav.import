@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://c00230uopxms1"
+path="res://.godot/imported/golpe roca 2.wav-0e663f23334bc761e7c37c3b55651939.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/golpes roca/editado/golpe roca 2.wav"
+dest_files=["res://.godot/imported/golpe roca 2.wav-0e663f23334bc761e7c37c3b55651939.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

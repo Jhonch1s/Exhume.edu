@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://cbxo7cn7ob8ti"
+path="res://.godot/imported/romper botella.wav-98435b4f5dba18f830ee85ea021e683c.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/varios/romper botella.wav"
+dest_files=["res://.godot/imported/romper botella.wav-98435b4f5dba18f830ee85ea021e683c.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

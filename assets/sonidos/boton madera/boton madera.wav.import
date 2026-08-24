@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://w022ddvdbi6h"
+path="res://.godot/imported/boton madera.wav-f9d0af54be37b4c1d85bf1aca27b87b6.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/boton madera/boton madera.wav"
+dest_files=["res://.godot/imported/boton madera.wav-f9d0af54be37b4c1d85bf1aca27b87b6.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://k84ciq4bq5u7"
+path="res://.godot/imported/espadazos o golpes rapidos.wav-e2a9f72ad4d609af95e5a1a201998694.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/golpes pelea/espadazos o golpes rapidos.wav"
+dest_files=["res://.godot/imported/espadazos o golpes rapidos.wav-e2a9f72ad4d609af95e5a1a201998694.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

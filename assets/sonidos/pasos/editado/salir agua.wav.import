@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://nxkvw30p38oi"
+path="res://.godot/imported/salir agua.wav-5250d20d799b4724f850fdce71117ee6.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/pasos/editado/salir agua.wav"
+dest_files=["res://.godot/imported/salir agua.wav-5250d20d799b4724f850fdce71117ee6.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://cibqw6weiatbn"
+path="res://.godot/imported/varias toses.wav-12648f3504895384b9248c6be40bdfcf.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/toser/editado/varias toses.wav"
+dest_files=["res://.godot/imported/varias toses.wav-12648f3504895384b9248c6be40bdfcf.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

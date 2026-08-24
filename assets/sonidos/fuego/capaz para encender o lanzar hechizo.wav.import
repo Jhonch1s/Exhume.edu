@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://cvt2lxx7es2fy"
+path="res://.godot/imported/capaz para encender o lanzar hechizo.wav-c95ab3301b869f5fead517fdcbdd88cd.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/fuego/capaz para encender o lanzar hechizo.wav"
+dest_files=["res://.godot/imported/capaz para encender o lanzar hechizo.wav-c95ab3301b869f5fead517fdcbdd88cd.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

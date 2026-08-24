@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://b5v4lvfpp23ub"
+path="res://.godot/imported/bomba humo.wav-6a76855ca131d22b0b4c6a71945e2f3c.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/varios/editados/bomba humo.wav"
+dest_files=["res://.godot/imported/bomba humo.wav-6a76855ca131d22b0b4c6a71945e2f3c.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2
