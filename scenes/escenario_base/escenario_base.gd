@@ -40,6 +40,7 @@ const RUTA_GUARDADO := "user://partida.json"
 var tablero: TableroGrid = TableroGrid.new()
 var pathfinding: PathFindingManager = PathFindingManager.new()
 var gestor_acciones: GestorAcciones = GestorAcciones.new()
+var historial_tiradas: HistorialTiradas = HistorialTiradas.new()
 var validador_espacial: ValidadorEspacialTablero
 var consultor_reacciones: ConsultorReaccionesCelda = ConsultorReaccionesCelda.new()
 var resolver_reacciones: ResolverReaccionesCelda
@@ -101,6 +102,7 @@ func _ready() -> void:
 	menu_contextual.impacto_elegido.connect(_on_impacto_contextual_elegido)
 	menu_contextual.cancelado.connect(_on_menu_contextual_cancelado)
 	panel_resultado_accion.resultado_presentado.connect(_on_resultado_accion_presentado)
+	panel_resultado_accion.tirada_presentada.connect(_on_tirada_presentada)
 	panel_resultado_accion.cerrado.connect(_on_panel_resultado_cerrado)
 	add_child(gestor_acciones)
 	resolver_reacciones = ResolverReaccionesCelda.new(gestor_acciones)
@@ -756,12 +758,23 @@ func _ejecutar_opcion_contextual(
 	opcion_uso_item_pendiente = null
 	var titulo_resultado := _obtener_titulo_resultado_contextual(opcion)
 	menu_contextual.ocultar()
-	panel_resultado_accion.mostrar_resultado(
-		titulo_resultado,
-		resultado,
-		catalogo_mensajes
-	)
+	_presentar_resultado_contextual(titulo_resultado, resultado)
 	accion_contextual_finalizada.emit(opcion, contexto, resultado)
+
+
+func _presentar_resultado_contextual(titulo: String, resultado: ResultadoAccion) -> void:
+	if resultado.tirada == null:
+		panel_resultado_accion.mostrar_resultado(titulo, resultado, catalogo_mensajes)
+		return
+	historial_tiradas.registrar(resultado.tirada)
+	var mensajes: Array[String] = []
+	for id_mensaje in resultado.mensajes:
+		mensajes.append(
+			catalogo_mensajes.resolver(id_mensaje)
+			if catalogo_mensajes != null
+			else String(id_mensaje)
+		)
+	panel_resultado_accion.mostrar_tirada(titulo, resultado.tirada, mensajes)
 
 
 func _on_menu_contextual_cancelado() -> void:
@@ -783,6 +796,10 @@ func _cerrar_menu_contextual() -> void:
 
 
 func _on_resultado_accion_presentado(_resultado: ResultadoAccion) -> void:
+	_actualizar_estado_modal_interaccion()
+
+
+func _on_tirada_presentada(_resultado: Variant) -> void:
 	_actualizar_estado_modal_interaccion()
 
 

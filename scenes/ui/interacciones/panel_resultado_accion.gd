@@ -2,6 +2,7 @@ class_name PanelResultadoAccion
 extends PanelContainer
 
 signal resultado_presentado(resultado: ResultadoAccion)
+signal tirada_presentada(resultado: Variant)
 signal cerrado
 
 @export var texto_boton_cerrar: String = "Cerrar"
@@ -28,6 +29,31 @@ func mostrar_resultado(
 	visible = true
 	boton_cerrar.grab_focus()
 	resultado_presentado.emit(resultado)
+
+
+func mostrar_tirada(
+	titulo: String,
+	resultado: Variant,
+	mensajes: Array[String] = []
+) -> bool:
+	if (
+		(not resultado is ResultadoPrueba and not resultado is ResultadoTirada)
+		or not resultado.valida
+		or resultado.presentacion != TiposTirada.Presentacion.PRIMER_PLANO
+	):
+		return false
+	etiqueta_titulo.text = titulo
+	etiqueta_mensajes.text = (
+		_componer_prueba(resultado)
+		if resultado is ResultadoPrueba
+		else _componer_cantidad(resultado)
+	)
+	if not mensajes.is_empty():
+		etiqueta_mensajes.text += separador_mensajes + separador_mensajes.join(mensajes)
+	visible = true
+	boton_cerrar.grab_focus()
+	tirada_presentada.emit(resultado)
+	return true
 
 
 func ocultar() -> void:
@@ -57,3 +83,37 @@ func _componer_mensajes(
 		var texto := catalogo.resolver(id_mensaje) if catalogo != null else String(id_mensaje)
 		lineas.append(prefijo_mensaje + texto)
 	return separador_mensajes.join(lineas)
+
+
+func _componer_prueba(resultado: ResultadoPrueba) -> String:
+	return "Modo: %s\nDados: %s\nSeleccionado: %d\nAtributo: %d\n%s · %s" % [
+		String(ResultadoPrueba.Modo.keys()[resultado.modo]).capitalize(),
+		_formatear_dados(resultado.dados),
+		resultado.dado_seleccionado,
+		resultado.atributo,
+		String(ResultadoPrueba.Clasificacion.keys()[resultado.clasificacion]).capitalize(),
+		"Éxito" if resultado.exitosa else "Fallo",
+	]
+
+
+func _componer_cantidad(resultado: ResultadoTirada) -> String:
+	var terminos: Array[String] = []
+	for termino in resultado.terminos:
+		terminos.append("%s%dd%d: %s" % [
+			"+" if termino[&"signo"] > 0 else "-",
+			termino[&"cantidad"],
+			termino[&"caras"],
+			_formatear_dados(termino[&"resultados"]),
+		])
+	return "%s\nTotal: %d\nEfectivo: %d" % [
+		"\n".join(terminos),
+		resultado.total_calculado,
+		resultado.total_efectivo,
+	]
+
+
+func _formatear_dados(dados: Array[int]) -> String:
+	var textos: Array[String] = []
+	for dado in dados:
+		textos.append(str(dado))
+	return "[" + ", ".join(textos) + "]"

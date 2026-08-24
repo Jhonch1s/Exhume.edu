@@ -1,6 +1,7 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+docs/.obsidian/
 
 # Respaldos y autoguardados de editores graficos
 *~

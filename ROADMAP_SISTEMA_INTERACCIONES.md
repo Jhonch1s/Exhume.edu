@@ -6,11 +6,11 @@
 
 ## Estado general
 
-- Estado actual: Fase 13 — completada el 22 de agosto de 2026.
-- Próximo paso: ampliar contenido jugable usando las herramientas de autoría y diagnóstico.
-- Última vertical slice: interactuables, ficha, inventario, estados temporales y
-  conocimiento restauran su estado desde un snapshot compatible con JSON.
-- Última actualización de este registro: 22 de agosto de 2026.
+- Estado actual: Fase 14 — completada el 24 de agosto de 2026.
+- Próximo paso: ampliar contenido de exploración sobre el sistema de tiradas cerrado.
+- Última vertical slice: examinar la palanca de Zona 1 solicita una prueba de
+  Destreza, registra y presenta los dados y puede revelar conocimiento persistente.
+- Última actualización de este registro: 24 de agosto de 2026.
 
 ### Progreso por fases
 
@@ -28,6 +28,7 @@
 - [x] Fase 11 — Turnos y efectos persistentes. *(implementada el 21 de agosto de 2026)*
 - [x] Fase 12 — Persistencia. *(completada el 22 de agosto de 2026)*
 - [x] Fase 13 — Herramientas de diseño y depuración. *(completada el 22 de agosto de 2026)*
+- [x] Fase 14 — Sistema de tiradas. *(completada el 24 de agosto de 2026)*
 
 Cuando una fase comience, se debe cambiar su casilla y registrar debajo de ella:
 
@@ -277,7 +278,7 @@ Una acción artificial puede enviarse a un receptor de prueba y devuelve un resu
 - Estado: completada el 14 de agosto de 2026; iniciada el 11 de agosto de 2026.
 - Responsable: sesiones Codex del 11 y 14 de agosto de 2026.
 - Decisiones nuevas: vocabulario compartido agrupado en `TiposInteraccion`; los tres contratos son `RefCounted` inmutables después de construirse y devuelven copias defensivas de sus colecciones; los resultados se crean mediante fábricas de éxito, fallo y bloqueo; un bloqueo descarta siempre efectos, cambios, costes e interrupción; las opciones se crean mediante fábricas habilitada/bloqueada y mantienen separados disponibilidad, secreto y costes previstos; los receptores cumplen por comportamiento los métodos idempotentes `validar_accion()` y `resolver_accion()`, sin imponer herencia común; `GestorAcciones` resuelve sincrónicamente, mide alcance mediante distancia Manhattan y emite inicio, resolución y finalización exactamente una vez para todo contexto existente; línea de efecto y costes se integran como servicios separados; el `validador_espacial` usa `TipoLineaEfecto` (`NINGUNA`, `VISUAL`, `FISICA`); `ValidadorEspacialTablero` implementa `VISUAL` con Bresenham compartido con FOV, bloquea obstáculos intermedios y permite un destino opaco; `FISICA` permanece explícitamente no implementada; el `proveedor_costes` valida sin mutar, consume sincrónicamente antes de emitir las señales finales y respeta `PoliticaCobro` (`SOLO_EXITO`, `AL_INTENTAR`); `accion_resuelta` expone el resultado base y `accion_finalizada` el resultado definitivo; `ProveedorCostesFicha` resuelve el actor del contexto, soporta únicamente energía entera y rechaza claves desconocidas; el registro de desarrollo observa las señales sin modificar el gestor y conserva líneas deterministas consultables además de su salida opcional a consola.
-- Archivos modificados: [`scripts/interacciones/tipos_interaccion.gd`](scripts/interacciones/tipos_interaccion.gd), [`scripts/interacciones/contexto_accion.gd`](scripts/interacciones/contexto_accion.gd), [`scripts/interacciones/resultado_accion.gd`](scripts/interacciones/resultado_accion.gd), [`scripts/interacciones/opcion_accion.gd`](scripts/interacciones/opcion_accion.gd), [`scripts/interacciones/gestor_acciones.gd`](scripts/interacciones/gestor_acciones.gd), [`scripts/interacciones/validador_espacial_tablero.gd`](scripts/interacciones/validador_espacial_tablero.gd), [`scripts/interacciones/proveedor_costes_ficha.gd`](scripts/interacciones/proveedor_costes_ficha.gd), [`scripts/interacciones/debug/registro_acciones_desarrollo.gd`](scripts/interacciones/debug/registro_acciones_desarrollo.gd), [`scripts/geometria_grid.gd`](scripts/geometria_grid.gd), [`scripts/fov_manager.gd`](scripts/fov_manager.gd), [`scripts/tablero_grid.gd`](scripts/tablero_grid.gd), [`scenes/tests/EscenaPruebaAcciones.tscn`](scenes/tests/EscenaPruebaAcciones.tscn), [`scenes/tests/escena_prueba_acciones.gd`](scenes/tests/escena_prueba_acciones.gd), [`scenes/tests/objeto_examinable_prueba.gd`](scenes/tests/objeto_examinable_prueba.gd), [`assets/tile_sets/basics.tres`](assets/tile_sets/basics.tres), [`assets/tile_sets/structures/cave_columns.tres`](assets/tile_sets/structures/cave_columns.tres), [`docs/CONTRATOS_SISTEMA_INTERACCIONES.md`](docs/CONTRATOS_SISTEMA_INTERACCIONES.md) y este roadmap.
+- Archivos modificados: [`scripts/interacciones/tipos_interaccion.gd`](scripts/interacciones/tipos_interaccion.gd), [`scripts/interacciones/contexto_accion.gd`](scripts/interacciones/contexto_accion.gd), [`scripts/interacciones/resultado_accion.gd`](scripts/interacciones/resultado_accion.gd), [`scripts/interacciones/opcion_accion.gd`](scripts/interacciones/opcion_accion.gd), [`scripts/interacciones/gestor_acciones.gd`](scripts/interacciones/gestor_acciones.gd), [`scripts/interacciones/validador_espacial_tablero.gd`](scripts/interacciones/validador_espacial_tablero.gd), [`scripts/interacciones/proveedor_costes_ficha.gd`](scripts/interacciones/proveedor_costes_ficha.gd), [`scripts/interacciones/debug/registro_acciones_desarrollo.gd`](scripts/interacciones/debug/registro_acciones_desarrollo.gd), [`scripts/geometria_grid.gd`](scripts/geometria_grid.gd), [`scripts/fov_manager.gd`](scripts/fov_manager.gd), [`scripts/tablero_grid.gd`](scripts/tablero_grid.gd), las escenas técnicas posteriormente retiradas `EscenaPruebaAcciones.tscn`, `escena_prueba_acciones.gd` y `objeto_examinable_prueba.gd`, [`assets/tile_sets/basics.tres`](assets/tile_sets/basics.tres), [`assets/tile_sets/structures/cave_columns.tres`](assets/tile_sets/structures/cave_columns.tres), [`docs/CONTRATOS_SISTEMA_INTERACCIONES.md`](docs/CONTRATOS_SISTEMA_INTERACCIONES.md) y este roadmap.
 - Pruebas: reconocimiento de las clases globales durante el escaneo de Godot 4.7; [`tests/interacciones/prueba_resultado_accion.gd`](tests/interacciones/prueba_resultado_accion.gd) valida 3 casos de resultado; [`tests/interacciones/prueba_contexto_accion.gd`](tests/interacciones/prueba_contexto_accion.gd) valida 2 casos de contexto incluyendo requisitos espacial y económico; [`tests/interacciones/prueba_opcion_accion.gd`](tests/interacciones/prueba_opcion_accion.gd) valida 3 casos de opción incluyendo requisito espacial y política de cobro; [`tests/interacciones/prueba_contrato_receptor_acciones.gd`](tests/interacciones/prueba_contrato_receptor_acciones.gd) valida 2 casos del protocolo receptor; [`tests/interacciones/prueba_gestor_acciones.gd`](tests/interacciones/prueba_gestor_acciones.gd) valida 6 casos del ciclo, alcance, bloqueos, contratos y señales; [`tests/interacciones/prueba_servicio_espacial_acciones.gd`](tests/interacciones/prueba_servicio_espacial_acciones.gd) valida 4 casos del servicio espacial; [`tests/interacciones/prueba_servicio_costes_acciones.gd`](tests/interacciones/prueba_servicio_costes_acciones.gd) valida 7 casos del servicio de costes; [`tests/interacciones/prueba_proveedor_costes_ficha.gd`](tests/interacciones/prueba_proveedor_costes_ficha.gd) valida 5 casos de actor, claves, unidades, insuficiencia y cobro real; [`tests/interacciones/prueba_validador_espacial_tablero.gd`](tests/interacciones/prueba_validador_espacial_tablero.gd) valida 7 casos de geometría, tablero, obstáculos, extremos, modo físico e integración; [`tests/interacciones/prueba_registro_acciones_desarrollo.gd`](tests/interacciones/prueba_registro_acciones_desarrollo.gd) valida el formato de las tres etapas, el coste final, la desconexión y la limpieza; [`tests/interacciones/prueba_escena_acciones.gd`](tests/interacciones/prueba_escena_acciones.gd) valida la misma escena ejecutable mediante su modo automático de integración; [`tests/tablero/prueba_columnas_bloquean_vision.gd`](tests/tablero/prueba_columnas_bloquean_vision.gd) valida las dos variantes del TileSet y las columnas colocadas en `Zona1`; la escena técnica completó `EXAMINAR` con línea visual real, registro de las tres etapas, coste de energía `200 → 199` y cambio `fue_examinado: false → true`; en uso manual la escena espera `Espacio`/`Enter`, permite reiniciar con `R` y presenta el estado en pantalla; carga breve de la escena principal y de la escena técnica sin errores de GDScript; batería ejecutada correctamente con Godot 4.7; comprobación de formato mediante `git diff --check`.
 - Cierre: la escena técnica ejecuta desde `F6` un éxito mediante `Espacio`/`Enter` y un bloqueo determinista mediante `B`; el bloqueo devuelve `costes_insuficientes`, conserva energía `200 → 200`, mantiene `fue_examinado: false → false` y registra costes `{}`. La prueba automatizada reproduce ambos casos.
 - Pendientes/deuda no bloqueante: definir un proveedor compuesto cuando existan costes de turno, cargas o items; definir la línea `FISICA` cuando existan propiedades de obstáculos y alturas.
@@ -1413,6 +1414,133 @@ Una persona puede crear un interactuable común, colocarlo, conectarlo y diagnos
 - Pendientes no bloqueantes: plantilla de contenedor y generación desde marcadores
   requieren casos jugables reales. Una UI de depuración se añadirá solo si consola
   y `F3` resultan insuficientes.
+- Limpieza posterior: se retiraron `EscenaPruebaAcciones`, sus scripts auxiliares y
+  la prueba que solo envolvía esa escena. Las pruebas directas de contratos, registro
+  y escena principal sustituyen esa vertical técnica temprana.
+
+## Fase 14 — Sistema de tiradas
+
+### Estado
+
+- Completada el 24 de agosto de 2026 mediante incrementos 14.1 a 14.5.
+- Contrato acordado en
+  [`docs/contratos/18_SISTEMA_DE_TIRADAS.md`](docs/contratos/18_SISTEMA_DE_TIRADAS.md).
+
+### Objetivo
+
+Trasladar la prueba básica de Exhume a un motor digital independiente de combate,
+diálogo, contenido y `GestorAcciones`, con resultados estructurados y presentación
+desacoplada.
+
+### Incrementos previstos
+
+1. Motor mínimo para dados de cualquier cantidad de caras y términos de cantidad.
+2. Prueba `1d6 ≤ atributo`, ventaja, desventaja, crítico natural 1 y pifia natural 6.
+3. Tiradas solicitadas o automáticas, presentación en primer plano o sólo en log e
+   historial de sesión separado del registro de desarrollo.
+4. Presentación mínima de un resultado ya resuelto.
+5. Primera vertical de exploración en Zona 1, sin introducir combate.
+
+### Registro de implementación 14.1
+
+- Responsable: sesión Codex del 24 de agosto de 2026.
+- Decisiones: `MotorDados` es un `RefCounted` sin dependencias de nodos; recibe
+  términos directos `{cantidad, caras, signo}`, prevalida toda la expresión y el
+  mínimo antes de usar un `RandomNumberGenerator`, e inyecta el generador para
+  pruebas deterministas. `ResultadoTirada` expone copias defensivas de términos,
+  dados ordenados, subtotales y totales calculado y efectivo.
+- Archivos: [`scripts/tiradas/motor_dados.gd`](scripts/tiradas/motor_dados.gd),
+  [`scripts/tiradas/resultado_tirada.gd`](scripts/tiradas/resultado_tirada.gd),
+  [`tests/tiradas/prueba_motor_dados.gd`](tests/tiradas/prueba_motor_dados.gd),
+  contrato de tiradas y este roadmap.
+- Pruebas: `MotorDados` headless con Godot 4.7 cubre `d3`, semilla repetible,
+  términos positivos y negativos, total negativo limitado a cero, rechazo atómico
+  sin consumo aleatorio y copias defensivas; `git diff --check` correcto.
+- Pendiente al cerrar 14.1: incremento 14.2 y posteriores.
+
+### Registro de implementación 14.2
+
+- Responsable: sesión Codex del 24 de agosto de 2026.
+- Decisiones: `MotorDados.resolver_prueba()` recibe el atributo efectivo `1..5` y
+  fuentes identificadas de ventaja/desventaja. Cancela por balance, tira uno o dos
+  `d6`, selecciona menor o mayor y clasifica únicamente el seleccionado. El `1`
+  natural es crítico/éxito y el `6` natural pifia/fallo; fuera de extremos compara
+  `dado ≤ atributo`. Entradas inválidas no consumen azar.
+- Archivos: [`scripts/tiradas/motor_dados.gd`](scripts/tiradas/motor_dados.gd),
+  [`scripts/tiradas/resultado_prueba.gd`](scripts/tiradas/resultado_prueba.gd),
+  [`tests/tiradas/prueba_prueba_exhume.gd`](tests/tiradas/prueba_prueba_exhume.gd),
+  contrato de tiradas y este roadmap.
+- Pruebas: `PruebaExhume` headless con Godot 4.7 cubre comparación, extremos,
+  ventaja/desventaja sobre `[1, 6]`, cancelación, fuentes explicables, copias
+  defensivas y rechazo sin consumo aleatorio. Regresión 14.1 correcta.
+- Pendiente al cerrar 14.2: 14.3 y posteriores; no se integraron atributos de `Ficha`, acciones,
+  examen, UI, historial, persistencia ni combate.
+
+### Registro de implementación 14.3
+
+- Responsable: sesión Codex del 24 de agosto de 2026.
+- Decisiones: `TiposTirada` define origen `SOLICITADA/AUTOMATICA` y presentación
+  `PRIMER_PLANO/SOLO_LOG` como dimensiones independientes. Ambos resultados los
+  conservan y el motor los valida antes de consumir azar. `HistorialTiradas` es un
+  `RefCounted` de sesión separado del registro de desarrollo; acepta cantidades y
+  pruebas válidas y produce texto legible sin etapas de diagnóstico.
+- Archivos: [`scripts/tiradas/tipos_tirada.gd`](scripts/tiradas/tipos_tirada.gd),
+  [`scripts/tiradas/historial_tiradas.gd`](scripts/tiradas/historial_tiradas.gd),
+  resultados y motor existentes,
+  [`tests/tiradas/prueba_historial_tiradas.gd`](tests/tiradas/prueba_historial_tiradas.gd),
+  contrato de tiradas y este roadmap.
+- Pruebas: `HistorialTiradas` headless con Godot 4.7 cubre combinaciones ortogonales,
+  cantidades y pruebas, fuentes explicables, `SOLO_LOG`, copias defensivas y rechazo
+  de políticas inválidas sin consumo aleatorio. Regresiones 14.1 y 14.2 correctas.
+- Pendiente al cerrar 14.3: 14.4 y posteriores; no hay UI, animación, integración con contenido,
+  persistencia, consola ni `GestorAcciones`.
+
+### Registro de implementación 14.4
+
+- Responsable: sesión Codex del 24 de agosto de 2026.
+- Decisiones: se reutiliza `PanelResultadoAccion` mediante `mostrar_tirada()` en vez
+  de duplicar escena, foco y cierre. El panel acepta `ResultadoPrueba` y
+  `ResultadoTirada` válidos con `PRIMER_PLANO`, muestra sus datos ya resueltos y
+  emite una señal separada. `SOLO_LOG` no abre la vista. La presentación nunca
+  recibe `MotorDados` ni vuelve a tirar.
+- Archivos: [`scenes/ui/interacciones/panel_resultado_accion.gd`](scenes/ui/interacciones/panel_resultado_accion.gd),
+  [`tests/tiradas/prueba_presentacion_tirada.gd`](tests/tiradas/prueba_presentacion_tirada.gd),
+  contrato de tiradas y este roadmap.
+- Pruebas: `PresentacionTirada` headless con Godot 4.7 cubre prueba, cantidad,
+  política `SOLO_LOG`, señal y conservación del estado del RNG. Regresiones 14.1 a
+  14.3 correctas. `PresentacionExamen` conserva sus cuatro casos funcionales y sus
+  avisos conocidos de recursos/RID al cerrar.
+- Pendiente al cerrar 14.4: 14.5; no hay animación, integración con contenido, atributos de `Ficha`
+  ni disparador jugable de tiradas.
+
+### Registro de implementación 14.5
+
+- Responsable: sesión Codex del 24 de agosto de 2026.
+- Decisiones: la palanca real de Zona 1 solicita al examinar una prueba de Destreza
+  para revelar una muesca secundaria. La información básica se conserva al fallar;
+  el éxito aporta una pista al servicio de examen y registra el detalle como
+  conocimiento. Una vez conocido, se muestra sin otra tirada. `ResultadoAccion`
+  transporta la tirada resuelta; el escenario la registra y presenta junto con los
+  mensajes narrativos, sin añadir reglas a `GestorAcciones`.
+- Archivos: `Ficha`, `ResultadoAccion`, `ServicioExamen`, `PalancaInteractuable`,
+  panel y escenario existentes; definición y mensajes de la palanca;
+  [`tests/tiradas/prueba_vertical_tirada_exploracion.gd`](tests/tiradas/prueba_vertical_tirada_exploracion.gd),
+  decisiones, contrato de tiradas y este roadmap.
+- Pruebas: la vertical headless con Godot 4.7 carga la escena principal, examina la
+  palanca real, resuelve una tirada determinista, revela y recuerda el detalle,
+  registra historial, muestra panel modal con narrativa y evita repetir la tirada
+  al volver a examinar. Conserva los avisos conocidos de recursos/RID al cerrar la
+  escena principal. Regresiones directas de motor, prueba, historial, presentación,
+  `ResultadoAccion`, palanca y examen correctas.
+- Pendientes no bloqueantes: animación de dados, localización definitiva del texto
+  del panel y más contenido con tiradas requieren casos concretos; no bloquean el
+  cierre de la fase.
+
+### Criterio de cierre
+
+Un elemento de la primera zona solicita una prueba, recibe el resultado sin delegar
+consecuencias al motor, lo registra para el jugador y elige si mostrarlo en primer
+plano, sin modificar `GestorAcciones`.
 
 ---
 

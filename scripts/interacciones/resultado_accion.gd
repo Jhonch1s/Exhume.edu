@@ -41,6 +41,10 @@ var destino_item: Variant:
 	get:
 		return _destino_item
 
+var tirada: Variant:
+	get:
+		return _tirada
+
 var exitosa: bool:
 	get:
 		return _estado == TiposInteraccion.EstadoResolucion.EXITO
@@ -55,6 +59,7 @@ var _costes_consumidos: Dictionary[StringName, float]
 var _interrumpe_movimiento: bool
 var _terminal: bool
 var _destino_item: Variant
+var _tirada: Variant
 
 
 func _init(
@@ -67,7 +72,8 @@ func _init(
 	interrumpe_movimiento_inicial: bool = false,
 	terminal_inicial: bool = false,
 	solicitudes_iniciales: Array[SolicitudEfecto] = [],
-	destino_item_inicial: Variant = null
+	destino_item_inicial: Variant = null,
+	tirada_inicial: Variant = null
 ) -> void:
 	_estado = estado_inicial
 	if _estado == TiposInteraccion.EstadoResolucion.EXITO:
@@ -95,6 +101,7 @@ func _init(
 	_interrumpe_movimiento = interrumpe_movimiento_inicial
 	_terminal = terminal_inicial
 	_destino_item = destino_item_inicial
+	_tirada = tirada_inicial
 
 
 static func crear_exito(
@@ -178,5 +185,27 @@ func con_costes_consumidos(
 		_interrumpe_movimiento,
 		_terminal,
 		_solicitudes_efecto,
-		_destino_item
+		_destino_item,
+		_tirada
+	)
+
+
+func con_tirada(nueva_tirada: Variant) -> ResultadoAccion:
+	if (
+		(not nueva_tirada is ResultadoPrueba and not nueva_tirada is ResultadoTirada)
+		or not nueva_tirada.valida
+	):
+		return self
+	return ResultadoAccion.new(
+		_estado,
+		_motivo,
+		_mensajes,
+		_efectos_aplicados,
+		_cambios_estado,
+		_costes_consumidos,
+		_interrumpe_movimiento,
+		_terminal,
+		_solicitudes_efecto,
+		_destino_item,
+		nueva_tirada
 	)

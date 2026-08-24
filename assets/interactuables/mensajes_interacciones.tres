@@ -15,6 +15,7 @@ mensajes = {
 &"examen.fogata.basico_apagada": "Es una pequeña fogata apagada. Entre la leña quedan cenizas y brasas frías.",
 &"examen.fogata.basico_encendida": "Es una pequeña fogata alimentada con leña que ilumina el entorno cercano.",
 &"examen.palanca.basico": "Es una palanca robusta conectada a un mecanismo oculto.",
+&"examen.palanca.muesca_secundaria": "Al revisar el mecanismo distingues una muesca secundaria que limita su recorrido.",
 &"examen.puerta.basico": "Es una puerta robusta con una cerradura sencilla.",
 &"fuente_luz.apagada": "La fuente de luz queda apagada.",
 &"fuente_luz.encendida": "La fuente de luz queda encendida.",

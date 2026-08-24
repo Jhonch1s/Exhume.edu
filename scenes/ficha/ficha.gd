@@ -61,6 +61,9 @@ func obtener_inventario() -> Inventario:
 func obtener_fuerza() -> int:
 	return fue
 
+func obtener_destreza() -> int:
+	return des
+
 func recibir_danio(cantidad: int, _fuente: Object = null) -> int:
 	if cantidad <= 0:
 		return 0

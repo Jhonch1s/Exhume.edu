@@ -1,7 +1,6 @@
 class_name Interactuable
 extends Node2D
 
-#a futuro
 signal coordenada_cambiada(anterior: Vector2i, nueva: Vector2i)
 signal presencia_cambiada
 

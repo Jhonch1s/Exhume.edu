@@ -75,6 +75,15 @@ func _probar_exito_y_copias_defensivas() -> void:
 		terminal_con_coste.terminal,
 		"Confirmar costes no debe perder la terminalidad."
 	)
+	var generador := RandomNumberGenerator.new()
+	generador.seed = 145
+	var tirada := MotorDados.new(generador).resolver_prueba(3)
+	var con_tirada := resultado.con_tirada(tirada)
+	_comprobar(
+		con_tirada.tirada == tirada
+		and con_tirada.con_costes_consumidos({&"energia": 1.0}).tirada == tirada,
+		"Una tirada resuelta debe conservarse al confirmar costes."
+	)
 
 
 func _probar_fallo() -> void:

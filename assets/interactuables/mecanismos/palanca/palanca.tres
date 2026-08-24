@@ -13,6 +13,13 @@ id_fragmento = &"identidad"
 nivel = 1
 id_mensaje = &"examen.palanca.basico"
 
+[sub_resource type="Resource" id="Resource_muesca"]
+script = ExtResource("3_fragmento")
+id_fragmento = &"muesca_secundaria"
+nivel = 2
+id_mensaje = &"examen.palanca.muesca_secundaria"
+pistas_requeridas = Array[StringName]([&"tirada_destreza_exitosa"])
+
 [sub_resource type="Resource" id="Resource_perfil"]
 script = ExtResource("4_perfil")
 
@@ -25,5 +32,5 @@ id_definicion = &"palanca"
 nombre = "Palanca"
 descripcion_base = "Una palanca de mecanismo con dos posiciones estables."
 etiquetas = Array[StringName]([&"mecanismo"])
-fragmentos_informacion = Array[ExtResource("3_fragmento")]([SubResource("Resource_identidad")])
+fragmentos_informacion = Array[ExtResource("3_fragmento")]([SubResource("Resource_identidad"), SubResource("Resource_muesca")])
 perfil_observacion = SubResource("Resource_perfil")

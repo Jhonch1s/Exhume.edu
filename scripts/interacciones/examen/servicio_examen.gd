@@ -32,13 +32,14 @@ func validar_examen(
 
 func resolver_examen(
 	contexto: ContextoAccion,
-	objetivo: Interactuable
+	objetivo: Interactuable,
+	pistas_adicionales: Array[StringName] = []
 ) -> ResultadoAccion:
 	var motivo := _validar_contrato(contexto, objetivo)
 	if motivo != &"":
 		return ResultadoAccion.crear_bloqueo(motivo)
 
-	var evaluacion := _evaluar(contexto, objetivo)
+	var evaluacion := _evaluar(contexto, objetivo, pistas_adicionales)
 	if evaluacion.bloqueada:
 		return ResultadoAccion.crear_bloqueo(evaluacion.motivo)
 
@@ -97,7 +98,8 @@ func _validar_contrato(
 
 func _evaluar(
 	contexto: ContextoAccion,
-	objetivo: Interactuable
+	objetivo: Interactuable,
+	pistas_adicionales: Array[StringName] = []
 ) -> ResultadoEvaluacionInformacion:
 	var distancia := float(
 		abs(contexto.celda_objetivo.x - contexto.origen.x)
@@ -108,12 +110,16 @@ func _evaluar(
 		celda != null and celda.visibilidad == Celda.EstadoVisibilidad.VISIBLE
 	)
 	var linea_visual_valida := validador_espacial.validar_linea_efecto(contexto) == &""
+	var pistas := contexto.solicitud_examen.pistas
+	for pista in pistas_adicionales:
+		if pista != &"" and pista not in pistas:
+			pistas.append(pista)
 	var condiciones := CondicionesObservacion.new(
 		contexto.actor,
 		distancia,
 		objetivo_visible,
 		linea_visual_valida,
-		contexto.solicitud_examen.pistas
+		pistas
 	)
 	return evaluador.evaluar(
 		objetivo.obtener_fragmentos_informacion(),
