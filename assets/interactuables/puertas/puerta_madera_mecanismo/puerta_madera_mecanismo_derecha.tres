@@ -1,9 +1,11 @@
-[gd_resource type="Resource" script_class="DefinicionPuerta" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="DefinicionPuerta" load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/interacciones/interactuables/puertas/definicion_puerta.gd" id="1_definicion"]
 [ext_resource type="Texture2D" path="res://assets/interactuables/puertas/puerta_madera_mecanismo/puerta_madera_mecanismo.png" id="2_textura"]
 [ext_resource type="Script" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="3_fragmento"]
 [ext_resource type="Script" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="4_perfil"]
+[ext_resource type="AudioStream" path="res://assets/sonidos/puerta/puerta abierta.wav" id="5_sonido_abrir"]
+[ext_resource type="AudioStream" path="res://assets/sonidos/puerta/editado/puerta cerrada.wav" id="6_sonido_cerrar"]
 
 [sub_resource type="Resource" id="Resource_identidad"]
 script = ExtResource("3_fragmento")
@@ -20,6 +22,8 @@ modo_control = 1
 textura = ExtResource("2_textura")
 region_cerrada = Rect2(0, 0, 64, 96)
 region_abierta = Rect2(0, 192, 72, 96)
+sonido_abrir = ExtResource("5_sonido_abrir")
+sonido_cerrar = ExtResource("6_sonido_cerrar")
 id_definicion = &"puerta_madera_mecanismo_derecha"
 nombre = "Puerta de mecanismo"
 descripcion_base = "Una puerta de madera accionada por un mecanismo remoto."

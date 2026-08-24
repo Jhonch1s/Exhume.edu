@@ -11,6 +11,9 @@ extends Interactuable
 		_actualizar_representacion()
 
 @onready var sprite: Sprite2D = $Sprite2D
+@onready var reproductor_audio: AudioStreamPlayer2D = (
+	get_node_or_null(^"AudioStreamPlayer2D") as AudioStreamPlayer2D
+)
 
 
 func _ready() -> void:
@@ -112,6 +115,7 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 		mensajes.append_array(resultado_receptor.mensajes)
 		cambios.append_array(resultado_receptor.cambios_estado)
 	activada = nueva
+	_reproducir_sonido_accion()
 	mensajes.push_front(&"palanca.activada" if activada else &"palanca.desactivada")
 	cambios.push_front({
 		&"objetivo_id": id_instancia,
@@ -159,6 +163,17 @@ func _obtener_receptores_mecanismo(activa: bool) -> Variant:
 			return motivo_receptor
 		receptores.append(receptor)
 	return receptores
+
+
+func _reproducir_sonido_accion() -> void:
+	if Engine.is_editor_hint() or not is_instance_valid(reproductor_audio):
+		return
+	var datos := definicion as DefinicionPalanca
+	if datos == null:
+		return
+	reproductor_audio.stream = datos.sonido_activar if activada else datos.sonido_desactivar
+	if reproductor_audio.stream != null:
+		reproductor_audio.play()
 
 
 func _actualizar_representacion() -> void:

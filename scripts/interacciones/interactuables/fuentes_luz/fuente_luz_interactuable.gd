@@ -14,6 +14,9 @@ signal estado_luz_cambiado(encendida: bool)
 		estado_luz_cambiado.emit(encendida)
 
 @onready var sprite: Sprite2D = $Sprite2D
+@onready var reproductor_audio: AudioStreamPlayer2D = (
+	get_node_or_null(^"AudioStreamPlayer2D") as AudioStreamPlayer2D
+)
 
 
 func _ready() -> void:
@@ -112,6 +115,7 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 
 	var estado_anterior := encendida
 	encendida = contexto.id_accion == &"encender"
+	_reproducir_sonido_estado()
 	return ResultadoAccion.crear_exito(
 		[&"fuente_luz.encendida" if encendida else &"fuente_luz.apagada"],
 		[],
@@ -122,6 +126,24 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 			&"nueva": encendida,
 		}]
 	)
+
+
+func obtener_sonido_ambiente() -> AudioStream:
+	var datos := obtener_definicion_luz()
+	if datos == null or not encendida:
+		return null
+	return datos.sonido_ambiente
+
+
+func _reproducir_sonido_estado() -> void:
+	if Engine.is_editor_hint() or not is_instance_valid(reproductor_audio):
+		return
+	var datos := obtener_definicion_luz()
+	if datos == null:
+		return
+	reproductor_audio.stream = datos.sonido_encender if encendida else datos.sonido_apagar
+	if reproductor_audio.stream != null:
+		reproductor_audio.play()
 
 
 func _actualizar_representacion() -> void:

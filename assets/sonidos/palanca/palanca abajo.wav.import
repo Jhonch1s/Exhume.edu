@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://b07hox0kl60jv"
+path="res://.godot/imported/palanca abajo.wav-ed475e3f3e0b91e85713f382dd66bc4c.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/palanca/palanca abajo.wav"
+dest_files=["res://.godot/imported/palanca abajo.wav-ed475e3f3e0b91e85713f382dd66bc4c.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

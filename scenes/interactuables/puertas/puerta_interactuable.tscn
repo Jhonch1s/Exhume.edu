@@ -8,3 +8,5 @@ script = ExtResource("1_script")
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture_filter = 1
 region_enabled = true
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]

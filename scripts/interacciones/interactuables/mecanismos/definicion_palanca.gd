@@ -10,6 +10,10 @@ extends DefinicionInteractuable
 @export var region_activada: Rect2 = Rect2(64, 0, 64, 64)
 @export var desplazamiento_sprite: Vector2 = Vector2(0, -16)
 
+@export_category("Sonido")
+@export var sonido_activar: AudioStream
+@export var sonido_desactivar: AudioStream
+
 
 func es_valida() -> bool:
 	return (

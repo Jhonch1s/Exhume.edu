@@ -6,6 +6,9 @@ extends Interactuable
 @export var abierta: bool = false
 
 @onready var sprite: Sprite2D = $Sprite2D
+@onready var reproductor_audio: AudioStreamPlayer2D = (
+	get_node_or_null(^"AudioStreamPlayer2D") as AudioStreamPlayer2D
+)
 
 
 func _ready() -> void:
@@ -133,6 +136,7 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 	abierta = contexto.id_accion == &"abrir"
 	_actualizar_representacion()
 	presencia_cambiada.emit()
+	_reproducir_sonido_apertura()
 	return ResultadoAccion.crear_exito(
 		[&"puerta.abierta" if abierta else &"puerta.cerrada"],
 		[],
@@ -189,6 +193,7 @@ func aplicar_cambio_mecanismo(
 	_actualizar_representacion()
 	if estado_anterior != abierta:
 		presencia_cambiada.emit()
+		_reproducir_sonido_apertura()
 	return ResultadoAccion.crear_exito(
 		[&"puerta.abierta" if abierta else &"puerta.cerrada"],
 		[],
@@ -214,6 +219,17 @@ func _es_controlada_por_mecanismo() -> bool:
 		datos != null
 		and datos.modo_control == DefinicionPuerta.ModoControl.MECANISMO
 	)
+
+
+func _reproducir_sonido_apertura() -> void:
+	if Engine.is_editor_hint() or not is_instance_valid(reproductor_audio):
+		return
+	var datos := definicion as DefinicionPuerta
+	if datos == null:
+		return
+	reproductor_audio.stream = datos.sonido_abrir if abierta else datos.sonido_cerrar
+	if reproductor_audio.stream != null:
+		reproductor_audio.play()
 
 
 func _actualizar_representacion() -> void:

@@ -4,6 +4,9 @@
 [ext_resource type="Texture2D" uid="uid://c83kuwdscr0ds" path="res://assets/tiles/lighting/sources/lights_isometric.png" id="2_textura"]
 [ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="3_fragmento"]
 [ext_resource type="Script" uid="uid://bccqt6gfe8843" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="4_perfil"]
+[ext_resource type="AudioStream" path="res://assets/sonidos/fuego/fogata.wav" id="5_sonido_ambiente"]
+[ext_resource type="AudioStream" path="res://assets/sonidos/fuego/encender fuego fosforo.wav" id="6_sonido_encender"]
+[ext_resource type="AudioStream" path="res://assets/sonidos/fuego/apagar fuego.wav" id="7_sonido_apagar"]
 
 [sub_resource type="Resource" id="Resource_identidad_antorcha_pared_derecha"]
 script = ExtResource("3_fragmento")
@@ -23,6 +26,9 @@ region_encendida = Rect2(64, 0, 64, 96)
 region_apagada = Rect2(192, 0, 64, 96)
 mensaje_basico_encendida = &"examen.antorcha_pared.basico_encendida"
 mensaje_basico_apagada = &"examen.antorcha_pared.basico_apagada"
+sonido_ambiente = ExtResource("5_sonido_ambiente")
+sonido_encender = ExtResource("6_sonido_encender")
+sonido_apagar = ExtResource("7_sonido_apagar")
 id_definicion = &"antorcha_pared_derecha"
 nombre = "Antorcha de pared"
 descripcion_base = "Una antorcha fijada a la pared."

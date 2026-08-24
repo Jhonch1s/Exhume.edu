@@ -26,9 +26,16 @@ const ESCENA_FICHA = preload("res://scenes/ficha/ficha.tscn")
 const DEFINICION_PIEDRA = preload("res://assets/items/piedra/piedra.tres")
 const DEFINICION_LLAVE_PRUEBA = preload("res://assets/items/llave_prueba/llave_prueba.tres")
 const DEFINICION_BOMBA_HUMO = preload("res://assets/items/bomba_humo/bomba_humo.tres")
+const SONIDO_PASO_1 = preload("res://assets/sonidos/pasos/editado/pasos.wav")
+const SONIDO_PASO_2 = preload("res://assets/sonidos/pasos/editado/pasos 2.wav")
+const SONIDO_MONSTRUO_CADENAS = preload("res://assets/sonidos/enemigo/munstro con cadenas.wav")
+const SONIDO_GOTERA = preload("res://assets/sonidos/ambiente/gotera dos.wav")
+const SONIDO_LAVA = preload("res://assets/sonidos/ambiente/lava 2.wav")
 const RUTA_GUARDADO := "user://partida.json"
 @export var catalogo_mensajes: CatalogoMensajesInteraccion
 @export_range(0.02, 0.5, 0.01) var duracion_paso_lanzamiento: float = 0.08
+@export_range(1, 12, 1) var radio_audio_lava: int = 6
+@export_range(1, 12, 1) var radio_audio_fuego: int = 4
 
 var tablero: TableroGrid = TableroGrid.new()
 var pathfinding: PathFindingManager = PathFindingManager.new()
@@ -75,6 +82,17 @@ var ultimo_resultado_salir: ResultadoReacciones
 var ultimo_resultado_entrar: ResultadoReacciones
 var en_combate: bool = false
 var persistencia_partida := PersistenciaPartida.new()
+var reproductor_pasos: AudioStreamPlayer2D
+var reproductor_lava: AudioStreamPlayer2D
+var reproductor_fuego: AudioStreamPlayer2D
+var reproductor_monstruo: AudioStreamPlayer
+var reproductor_gotera: AudioStreamPlayer
+var temporizador_monstruo: Timer
+var temporizador_gotera: Timer
+var generador_azar_audio := RandomNumberGenerator.new()
+var siguiente_paso_usa_variante_uno: bool = true
+var pasos_movimiento_actual: int = 0
+var longitud_movimiento_actual: int = 0
 
 func _ready() -> void:
 	menu_contextual.opcion_accion_elegida.connect(_on_opcion_contextual_elegida)
@@ -110,15 +128,18 @@ func _ready() -> void:
 				push_error("Contenido de zona invalido: %s" % error)
 	pathfinding.inicializar(tablero.datos)
 	gestor_vision.inicializar(capa_oscuridad, tablero)
+	_inicializar_audio_ambiente()
 	spawnear_ficha_inicial()
 	if ficha_jugador:
 		_colocar_piedra_prueba()
 		_colocar_llave_prueba()
 		_colocar_bomba_humo_prueba()
 		_actualizar_luz_jugador(ficha_jugador.coordenada_mapa)
+		_actualizar_audio_proximidad()
 
 func _process(_delta: float) -> void:
 	centrar_camara_en_ficha()
+	_actualizar_audio_proximidad()
 	if ficha_jugador and ficha_jugador.esta_moviendose:
 		trayectoria_lanzamiento.clear_points()
 		capa_selector.clear()
@@ -261,6 +282,8 @@ func _manejar_clic_derecho(coord: Vector2i) -> void:
 		return
 
 	capa_camino.clear()
+	longitud_movimiento_actual = camino_confirmado.size() - 1
+	pasos_movimiento_actual = 0
 	ficha_jugador.mover_por_camino(
 		camino_confirmado,
 		_preparar_paso_ficha,
@@ -385,6 +408,7 @@ func spawnear_ficha_inicial() -> void:
 	tablero.ocupar_celda(coord_inicio, ficha_jugador)
 
 func _on_ficha_paso_dado(nueva_coord: Vector2i) -> void:
+	_reproducir_sonido_paso()
 	ficha_jugador.pasos_antorcha_actual -= 1
 	if ficha_jugador.pasos_antorcha_actual <= 0:
 		var tiene_luz := ficha_jugador.consumir_o_recargar_antorcha()
@@ -401,6 +425,182 @@ func _actualizar_luz_jugador(coordenada: Vector2i) -> void:
 		var porcentaje_final := float(max(0, ficha_jugador.pasos_antorcha_actual)) / 10.0
 		radio_actual = max(1.0, porcentaje_final * 5.0)
 	gestor_vision.actualizar_vision(coordenada, int(radio_actual))
+
+func _inicializar_audio_ambiente() -> void:
+	generador_azar_audio.randomize()
+	_preparar_loop_audio(SONIDO_LAVA)
+
+	reproductor_pasos = _crear_reproductor_2d(&"AudioPasos", -18.0, 360.0)
+	reproductor_lava = _crear_reproductor_2d(&"AudioLava", -8.0, 10000.0)
+	reproductor_lava.stream = SONIDO_LAVA
+	reproductor_fuego = _crear_reproductor_2d(&"AudioFuegoCercano", -17.0, 520.0)
+
+	reproductor_monstruo = _crear_reproductor_global(&"AudioMonstruoCadenas", -25.0)
+	reproductor_monstruo.stream = SONIDO_MONSTRUO_CADENAS
+	reproductor_gotera = _crear_reproductor_global(&"AudioGotera", -33.0)
+	reproductor_gotera.stream = SONIDO_GOTERA
+
+	temporizador_monstruo = _crear_temporizador_audio(&"_on_temporizador_monstruo_timeout")
+	temporizador_gotera = _crear_temporizador_audio(&"_on_temporizador_gotera_timeout")
+	_programar_monstruo_ambiente()
+	_programar_gotera_ambiente()
+
+
+func _crear_reproductor_2d(
+	nombre: StringName,
+	volumen_db: float,
+	distancia_maxima: float
+) -> AudioStreamPlayer2D:
+	var reproductor := AudioStreamPlayer2D.new()
+	reproductor.name = String(nombre)
+	reproductor.volume_db = volumen_db
+	reproductor.max_distance = distancia_maxima
+	add_child(reproductor)
+	return reproductor
+
+
+func _crear_reproductor_global(nombre: StringName, volumen_db: float) -> AudioStreamPlayer:
+	var reproductor := AudioStreamPlayer.new()
+	reproductor.name = String(nombre)
+	reproductor.volume_db = volumen_db
+	add_child(reproductor)
+	return reproductor
+
+
+func _crear_temporizador_audio(metodo_timeout: StringName) -> Timer:
+	var temporizador := Timer.new()
+	temporizador.one_shot = true
+	temporizador.timeout.connect(Callable(self, metodo_timeout))
+	add_child(temporizador)
+	return temporizador
+
+
+func _programar_monstruo_ambiente() -> void:
+	if is_instance_valid(temporizador_monstruo):
+		temporizador_monstruo.start(generador_azar_audio.randf_range(18.0, 45.0))
+
+
+func _programar_gotera_ambiente() -> void:
+	if is_instance_valid(temporizador_gotera):
+		temporizador_gotera.start(generador_azar_audio.randf_range(7.0, 18.0))
+
+
+func _on_temporizador_monstruo_timeout() -> void:
+	if is_instance_valid(reproductor_monstruo) and not reproductor_monstruo.playing:
+		reproductor_monstruo.play()
+	_programar_monstruo_ambiente()
+
+
+func _on_temporizador_gotera_timeout() -> void:
+	if is_instance_valid(reproductor_gotera) and not reproductor_gotera.playing:
+		reproductor_gotera.play()
+	_programar_gotera_ambiente()
+
+
+func _reproducir_sonido_paso() -> void:
+	if not is_instance_valid(reproductor_pasos) or ficha_jugador == null:
+		return
+	pasos_movimiento_actual += 1
+	if longitud_movimiento_actual > 1 and pasos_movimiento_actual % 2 != 0:
+		return
+	reproductor_pasos.global_position = ficha_jugador.global_position
+	reproductor_pasos.stream = (
+		SONIDO_PASO_1 if siguiente_paso_usa_variante_uno else SONIDO_PASO_2
+	)
+	siguiente_paso_usa_variante_uno = not siguiente_paso_usa_variante_uno
+	reproductor_pasos.play()
+
+
+func _actualizar_audio_proximidad() -> void:
+	if ficha_jugador == null:
+		return
+	var fuente_lava := _buscar_fuente_lava_cercana()
+	_actualizar_reproductor_proximidad(reproductor_lava, SONIDO_LAVA, fuente_lava)
+
+	var fuente_fuego := _buscar_fuente_fuego_cercana()
+	var sonido_fuego: AudioStream = null
+	if fuente_fuego.has(&"sonido"):
+		sonido_fuego = fuente_fuego[&"sonido"] as AudioStream
+	_actualizar_reproductor_proximidad(reproductor_fuego, sonido_fuego, fuente_fuego)
+
+
+func _actualizar_reproductor_proximidad(
+	reproductor: AudioStreamPlayer2D,
+	sonido: AudioStream,
+	fuente: Dictionary
+) -> void:
+	if not is_instance_valid(reproductor):
+		return
+	if fuente.is_empty() or sonido == null:
+		if reproductor.playing:
+			reproductor.stop()
+		return
+	var posicion: Vector2 = fuente[&"posicion"]
+	reproductor.global_position = posicion
+	if reproductor.stream != sonido:
+		_preparar_loop_audio(sonido)
+		reproductor.stream = sonido
+	if not reproductor.playing:
+		reproductor.play()
+
+
+func _buscar_fuente_lava_cercana() -> Dictionary:
+	var capa_suelo := zona_actual.get_node_or_null("CapaSuelo") as TileMapLayer
+	if capa_suelo == null or ficha_jugador == null:
+		return {}
+	var mejor_distancia := INF
+	var mejor_coord := Vector2i.ZERO
+	for coord in tablero.datos:
+		var celda := tablero.obtener_celda(coord)
+		if celda == null or celda.zona != &"lava":
+			continue
+		var distancia := _distancia_cuadricula(ficha_jugador.coordenada_mapa, coord)
+		if distancia > radio_audio_lava or distancia >= mejor_distancia:
+			continue
+		mejor_distancia = distancia
+		mejor_coord = coord
+	if mejor_distancia == INF:
+		return {}
+	return {
+		&"posicion": capa_suelo.to_global(capa_suelo.map_to_local(mejor_coord)),
+	}
+
+
+func _buscar_fuente_fuego_cercana() -> Dictionary:
+	var mejor_distancia := INF
+	var mejor_fuente: FuenteLuzInteractuable = null
+	for celda_variant in tablero.datos.values():
+		var celda := celda_variant as Celda
+		if celda == null:
+			continue
+		for fuente in celda.iluminacion:
+			if not fuente is FuenteLuzInteractuable or not is_instance_valid(fuente):
+				continue
+			var distancia := _distancia_cuadricula(
+				ficha_jugador.coordenada_mapa,
+				fuente.coordenada_mapa
+			)
+			if distancia > radio_audio_fuego or distancia >= mejor_distancia:
+				continue
+			if fuente.obtener_sonido_ambiente() == null:
+				continue
+			mejor_distancia = distancia
+			mejor_fuente = fuente
+	if mejor_fuente == null:
+		return {}
+	return {
+		&"posicion": mejor_fuente.global_position,
+		&"sonido": mejor_fuente.obtener_sonido_ambiente(),
+	}
+
+
+func _distancia_cuadricula(a: Vector2i, b: Vector2i) -> int:
+	return maxi(abs(a.x - b.x), abs(a.y - b.y))
+
+
+func _preparar_loop_audio(sonido: AudioStream) -> void:
+	if sonido is AudioStreamWAV:
+		(sonido as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_FORWARD
 
 func centrar_camara_en_ficha() -> void:
 	if ficha_jugador and camera_2d:

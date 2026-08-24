@@ -1492,37 +1492,37 @@ El código puede copiarse en [Mermaid Live](https://mermaid.live/edit).
 
 ```mermaid
 flowchart TD
-    A["Jugador selecciona una celda"] --> B["Consultar terreno y contenido"]
-    B --> C["Construir opciones disponibles"]
-    C --> D["Abrir siempre el menú contextual"]
+	A["Jugador selecciona una celda"] --> B["Consultar terreno y contenido"]
+	B --> C["Construir opciones disponibles"]
+	C --> D["Abrir siempre el menú contextual"]
 
-    D --> E["Examinar"]
-    D --> F["Acción específica"]
-    D --> G["Usar item..."]
-    D --> H["Cancelar"]
+	D --> E["Examinar"]
+	D --> F["Acción específica"]
+	D --> G["Usar item..."]
+	D --> H["Cancelar"]
 
-    E --> I["Crear ContextoAccion"]
-    F --> I
-    G --> J["Seleccionar ItemInstance"]
-    J --> I
+	E --> I["Crear ContextoAccion"]
+	F --> I
+	G --> J["Seleccionar ItemInstance"]
+	J --> I
 
-    I --> K["GestorAcciones valida alcance, coste y requisitos"]
-    K -->|"Inválida"| L["ResultadoAccion con motivo"]
-    K -->|"Válida"| M["Resolver reacciones por prioridad"]
-    M --> N["Producir efectos reutilizables"]
-    N --> O["Agregar ResultadoAccion"]
-    O --> P["Aplicar costes y cambios persistentes"]
-    P --> Q["Actualizar tablero, UI y presentación"]
+	I --> K["GestorAcciones valida alcance, coste y requisitos"]
+	K -->|"Inválida"| L["ResultadoAccion con motivo"]
+	K -->|"Válida"| M["Resolver reacciones por prioridad"]
+	M --> N["Producir efectos reutilizables"]
+	N --> O["Agregar ResultadoAccion"]
+	O --> P["Aplicar costes y cambios persistentes"]
+	P --> Q["Actualizar tablero, UI y presentación"]
 
-    R["Movimiento confirmado"] --> S["SALIR en origen"]
-    S --> T["Actualizar ocupación"]
-    T --> U["ENTRAR en destino"]
-    U --> M
-    O --> V{"¿Interrumpe movimiento?"}
-    V -->|"Sí"| W["Detener ruta entre celdas"]
-    V -->|"No"| X["Continuar ruta"]
+	R["Movimiento confirmado"] --> S["SALIR en origen"]
+	S --> T["Actualizar ocupación"]
+	T --> U["ENTRAR en destino"]
+	U --> M
+	O --> V{"¿Interrumpe movimiento?"}
+	V -->|"Sí"| W["Detener ruta entre celdas"]
+	V -->|"No"| X["Continuar ruta"]
 
-    Y["Lanzar item"] --> Z["Calcular trayectoria"]
-    Z --> AA["IMPACTAR en celda o entidad"]
-    AA --> M
+	Y["Lanzar item"] --> Z["Calcular trayectoria"]
+	Z --> AA["IMPACTAR en celda o entidad"]
+	AA --> M
 ```

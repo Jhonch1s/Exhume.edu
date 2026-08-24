@@ -18,6 +18,10 @@ enum ModoControl {
 @export var region_abierta: Rect2 = Rect2(64, 0, 64, 96)
 @export var desplazamiento_sprite: Vector2 = Vector2(0, -32)
 
+@export_category("Sonido")
+@export var sonido_abrir: AudioStream
+@export var sonido_cerrar: AudioStream
+
 
 func es_valida() -> bool:
 	return (

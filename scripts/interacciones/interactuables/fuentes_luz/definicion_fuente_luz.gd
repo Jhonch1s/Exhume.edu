@@ -25,6 +25,11 @@ extends DefinicionInteractuable
 @export var mensaje_basico_encendida: StringName = &"fuente_luz.basico_encendida"
 @export var mensaje_basico_apagada: StringName = &"fuente_luz.basico_apagada"
 
+@export_category("Sonido")
+@export var sonido_ambiente: AudioStream
+@export var sonido_encender: AudioStream
+@export var sonido_apagar: AudioStream
+
 
 func es_valida() -> bool:
 	return (

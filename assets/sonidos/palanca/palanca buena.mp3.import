@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bmjo2ie163qh3"
+path="res://.godot/imported/palanca buena.mp3-7832dc00ff57479ca79fbc7f7acd388a.mp3str"
+
+[deps]
+
+source_file="res://assets/sonidos/palanca/palanca buena.mp3"
+dest_files=["res://.godot/imported/palanca buena.mp3-7832dc00ff57479ca79fbc7f7acd388a.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
