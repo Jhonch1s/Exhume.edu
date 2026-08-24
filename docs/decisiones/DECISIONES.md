@@ -19,6 +19,9 @@ Las decisiones vigentes están desarrolladas en
   clasifica como crítico o pifia.
 - El motor de dados devuelve resultados estructurados y el solicitante decide las
   consecuencias; `GestorAcciones` no contiene reglas de tiradas.
+- Una acción puede transportar una tirada ya resuelta en `ResultadoAccion`; el
+  receptor la solicita y decide sus consecuencias, y el escenario sólo la registra
+  y presenta.
 - El origen automático o solicitado es independiente de presentar la tirada en
   primer plano o únicamente en el historial de sesión.
 

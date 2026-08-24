@@ -82,12 +82,58 @@ el historial de la sesión informa que ocurrieron y cuál fue su resultado.
 La lógica resuelve primero el resultado y la presentación reproduce después la
 variante correspondiente; una animación, simulación 3D o vídeo nunca vuelve a tirar.
 
+Desde 14.3, tanto `ResultadoTirada` como `ResultadoPrueba` conservan `origen` y
+`presentacion` mediante los enums cerrados de `TiposTirada`. El motor valida ambos
+antes de consumir azar. Estas propiedades son independientes: una tirada automática
+puede usar `PRIMER_PLANO` y una solicitada puede usar `SOLO_LOG`.
+
+Desde 14.4, el panel reutilizable de resultados acepta también cantidades y pruebas
+ya resueltas mediante `mostrar_tirada()`. Para una prueba muestra modo, dados en orden,
+dado seleccionado, atributo, clasificación y éxito/fallo; para una cantidad muestra
+términos, dados, total y efectivo. Rechaza resultados inválidos y `SOLO_LOG` sin
+abrirse. Presentar no recibe un motor ni consume azar. No hay animación de dados ni
+integración con contenido hasta existir la vertical de 14.5.
+
+Desde 14.5, la palanca existente de Zona 1 contiene un detalle mecánico que exige
+una prueba solicitada y en primer plano contra la Destreza efectiva de `Ficha`.
+`PalancaInteractuable` solicita la tirada durante su resolución de `EXAMINAR`; un
+éxito aporta la pista que revela y recuerda la muesca secundaria, mientras un fallo
+conserva la información básica sin aplicar otra consecuencia. Una vez aprendido el
+detalle, exámenes posteriores lo muestran sin volver a tirar.
+
+`ResultadoAccion` puede transportar el resultado de tirada ya resuelto. El escenario
+lo registra en `HistorialTiradas` y presenta dados y mensajes narrativos en el panel
+existente. `GestorAcciones` continúa sin conocer reglas de dados, atributos, éxito,
+críticos, pifias ni consecuencias de la tirada.
+
 ## Resultado estructurado
 
-El contrato concreto se definirá al implementar el primer incremento, pero deberá
-conservar al menos los dados obtenidos, el dado seleccionado cuando corresponda,
-el valor objetivo, las fuentes de ventaja y desventaja, éxito o fallo, clasificación
-de crítico o pifia, origen y política de presentación.
+Desde 14.1, `MotorDados` recibe directamente una lista de términos con `cantidad`,
+`caras` y `signo` (`1` o `-1`). Prevalida la expresión completa y el mínimo efectivo
+antes de consumir el `RandomNumberGenerator`; un rechazo devuelve motivo estable,
+ningún término y no avanza el generador. Una resolución válida devuelve
+`ResultadoTirada`, que conserva copias defensivas de los términos resueltos, sus
+resultados individuales ordenados, subtotales, total calculado y total efectivo.
+
+El generador puede inyectarse ya configurado con una semilla para pruebas. El motor
+crea y aleatoriza uno propio cuando no se inyecta. No requiere nodos ni árbol activo.
+
+Desde 14.2, `MotorDados.resolver_prueba()` acepta un atributo efectivo entero entre
+1 y 5 y listas de IDs de fuentes de ventaja y desventaja. Conserva ambas listas y
+las cancela por cantidad: balance positivo tira `2d6` y selecciona el menor, balance
+negativo selecciona el mayor y balance cero tira `1d6`. Sólo el dado seleccionado
+se clasifica. Un `1` natural es crítico y éxito; un `6` natural es pifia y fallo;
+los demás tienen éxito cuando son menores o iguales al atributo.
+
+`ResultadoPrueba` conserva copias defensivas de los dados y fuentes, el atributo,
+modo, dado seleccionado, clasificación y éxito. Un atributo fuera de `1..5` o una
+fuente vacía se rechaza antes de consumir azar. El bloqueo de acciones imposibles y
+la resolución automática de triviales pertenecen al solicitante, no al motor.
+
+`HistorialTiradas` acepta resultados válidos de cantidad o prueba y guarda durante
+la sesión una línea explicable por resolución, incluidas las de `SOLO_LOG`. Expone
+copias defensivas, puede limpiarse y no observa `GestorAcciones`, imprime en consola,
+presenta UI ni persiste datos. Los resultados inválidos no se registran.
 
 Las pruebas contra atributos y las tiradas de cantidad comparten el generador, pero
 no necesitan una abstracción común adicional hasta que el código demuestre esa
@@ -115,4 +161,3 @@ críticos o pifias.
 3. Origen, política de presentación e historial de sesión separado del diagnóstico.
 4. Presentación mínima que consume un resultado ya resuelto.
 5. Una vertical no relacionada con combate en la primera zona.
-
