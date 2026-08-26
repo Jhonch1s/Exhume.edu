@@ -4,8 +4,8 @@
 [ext_resource type="Texture2D" uid="uid://do1vs60m1xsvn" path="res://assets/interactuables/puertas/puerta_madera_mecanismo/puerta_madera_mecanismo.png" id="2_textura"]
 [ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="3_fragmento"]
 [ext_resource type="Script" uid="uid://bccqt6gfe8843" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="4_perfil"]
-[ext_resource type="AudioStream" path="res://assets/sonidos/puerta/puerta abierta.wav" id="5_sonido_abrir"]
-[ext_resource type="AudioStream" path="res://assets/sonidos/puerta/editado/puerta cerrada.wav" id="6_sonido_cerrar"]
+[ext_resource type="AudioStream" uid="uid://bqhxoqqhgp5de" path="res://assets/sonidos/puerta/puerta abierta.wav" id="5_sonido_abrir"]
+[ext_resource type="AudioStream" uid="uid://cxenay2f6lyob" path="res://assets/sonidos/puerta/editado/puerta cerrada.wav" id="6_sonido_cerrar"]
 
 [sub_resource type="Resource" id="Resource_identidad"]
 script = ExtResource("3_fragmento")

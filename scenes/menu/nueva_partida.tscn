@@ -1,4 +1,33 @@
-[gd_scene format=3 uid="uid://xk23b4orfmmv"]
+[gd_scene load_steps=8 format=3 uid="uid://xk23b4orfmmv"]
+
+[ext_resource type="Script" path="res://scenes/menu/nueva_partida.gd" id="1_script"]
+[ext_resource type="FontFile" path="res://assets/ui/fonts/Amarante-Regular.ttf" id="2_font"]
+[ext_resource type="Texture2D" path="res://assets/ui/panels/main_menu/hanging_menu/chains/chain_vertical.png" id="3_chain"]
+[ext_resource type="Texture2D" path="res://assets/ui/panels/main_menu/hanging_menu/logo_sign/logo_sign_empty.png" id="4_title_board"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_tabla"]
+bg_color = Color(0.055, 0.052, 0.047, 0.95)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.76, 0.74, 0.67, 0.85)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_celda"]
+bg_color = Color(0.12, 0.115, 0.105, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.58, 0.56, 0.5, 0.8)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_tirada"]
+bg_color = Color(0.28, 0.035, 0.045, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.64, 0.38, 0.36, 0.85)
 
 [node name="NuevaPartida" type="Control" unique_id=1961532444]
 layout_mode = 3
@@ -7,3 +36,571 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 21
+script = ExtResource("1_script")
+
+[node name="RigIzquierdo" type="Control" parent="."]
+layout_mode = 0
+offset_left = 45.0
+offset_right = 555.0
+offset_bottom = 1080.0
+mouse_filter = 2
+
+[node name="Cadenas" type="Control" parent="RigIzquierdo"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="SuperiorIzquierda" type="TextureRect" parent="RigIzquierdo/Cadenas"]
+layout_mode = 0
+offset_left = 70.0
+offset_top = -100.0
+offset_right = 100.0
+offset_bottom = 60.0
+mouse_filter = 2
+texture = ExtResource("3_chain")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SuperiorDerecha" type="TextureRect" parent="RigIzquierdo/Cadenas"]
+layout_mode = 0
+offset_left = 410.0
+offset_top = -100.0
+offset_right = 440.0
+offset_bottom = 60.0
+mouse_filter = 2
+texture = ExtResource("3_chain")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EncabezadoAtributosIzquierda" type="TextureRect" parent="RigIzquierdo/Cadenas"]
+layout_mode = 0
+offset_left = 70.0
+offset_top = 185.0
+offset_right = 100.0
+offset_bottom = 270.0
+mouse_filter = 2
+texture = ExtResource("3_chain")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EncabezadoAtributosDerecha" type="TextureRect" parent="RigIzquierdo/Cadenas"]
+layout_mode = 0
+offset_left = 410.0
+offset_top = 185.0
+offset_right = 440.0
+offset_bottom = 270.0
+mouse_filter = 2
+texture = ExtResource("3_chain")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="AtributosVolverIzquierda" type="TextureRect" parent="RigIzquierdo/Cadenas"]
+layout_mode = 0
+offset_left = 70.0
+offset_top = 875.0
+offset_right = 100.0
+offset_bottom = 965.0
+mouse_filter = 2
+texture = ExtResource("3_chain")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="AtributosVolverDerecha" type="TextureRect" parent="RigIzquierdo/Cadenas"]
+layout_mode = 0
+offset_left = 410.0
+offset_top = 875.0
+offset_right = 440.0
+offset_bottom = 965.0
+mouse_filter = 2
+texture = ExtResource("3_chain")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Encabezado" type="TextureRect" parent="RigIzquierdo"]
+layout_mode = 0
+offset_top = 35.0
+offset_right = 510.0
+offset_bottom = 205.0
+mouse_filter = 2
+texture = ExtResource("4_title_board")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Contenido" type="VBoxContainer" parent="RigIzquierdo/Encabezado"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 35.0
+offset_top = 24.0
+offset_right = -35.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="Titulo" type="Label" parent="RigIzquierdo/Encabezado/Contenido"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "CREA TU AVENTURERO"
+horizontal_alignment = 1
+
+[node name="Subtitulo" type="Label" parent="RigIzquierdo/Encabezado/Contenido"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "Graba tu nombre antes de descender"
+horizontal_alignment = 1
+
+[node name="Atributos" type="PanelContainer" parent="RigIzquierdo"]
+layout_mode = 0
+offset_top = 245.0
+offset_right = 510.0
+offset_bottom = 895.0
+theme_override_styles/panel = SubResource("StyleBox_tabla")
+
+[node name="Margen" type="MarginContainer" parent="RigIzquierdo/Atributos"]
+layout_mode = 2
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 20
+
+[node name="Contenido" type="VBoxContainer" parent="RigIzquierdo/Atributos/Margen"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Titulo" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 29
+text = "I. ATRIBUTOS INICIALES"
+horizontal_alignment = 1
+
+[node name="Instruccion" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "Lanza 1d6 · repite únicamente los resultados 1 y 6"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Fuerza" type="HBoxContainer" parent="RigIzquierdo/Atributos/Margen/Contenido"]
+custom_minimum_size = Vector2(0, 62)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Nombre" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/Fuerza"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "FUERZA (FUE)"
+vertical_alignment = 1
+
+[node name="Valor" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/Fuerza"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "–"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Tirar" type="Button" parent="RigIzquierdo/Atributos/Margen/Contenido/Fuerza"]
+custom_minimum_size = Vector2(92, 0)
+layout_mode = 2
+text = "TIRAR"
+
+[node name="Destreza" type="HBoxContainer" parent="RigIzquierdo/Atributos/Margen/Contenido"]
+custom_minimum_size = Vector2(0, 62)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Nombre" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/Destreza"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "DESTREZA (DES)"
+vertical_alignment = 1
+
+[node name="Valor" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/Destreza"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "–"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Tirar" type="Button" parent="RigIzquierdo/Atributos/Margen/Contenido/Destreza"]
+custom_minimum_size = Vector2(92, 0)
+layout_mode = 2
+text = "TIRAR"
+
+[node name="Voluntad" type="HBoxContainer" parent="RigIzquierdo/Atributos/Margen/Contenido"]
+custom_minimum_size = Vector2(0, 62)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Nombre" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/Voluntad"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "VOLUNTAD (VOL)"
+vertical_alignment = 1
+
+[node name="Valor" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/Voluntad"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "–"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Tirar" type="Button" parent="RigIzquierdo/Atributos/Margen/Contenido/Voluntad"]
+custom_minimum_size = Vector2(92, 0)
+layout_mode = 2
+text = "TIRAR"
+
+[node name="ZonaTirada" type="PanelContainer" parent="RigIzquierdo/Atributos/Margen/Contenido"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBox_tirada")
+
+[node name="Texto" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/ZonaTirada"]
+layout_mode = 2
+text = "ZONA DE ANIMACIÓN DEL DADO"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Estado" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido"]
+layout_mode = 2
+text = "Ningún atributo resuelto"
+horizontal_alignment = 1
+
+[node name="Volver" type="PanelContainer" parent="RigIzquierdo"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 945.0
+offset_right = 300.0
+offset_bottom = 1040.0
+theme_override_styles/panel = SubResource("StyleBox_tabla")
+
+[node name="Boton" type="Button" parent="RigIzquierdo/Volver"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 27
+text = "← VOLVER"
+flat = true
+
+[node name="RigCentral" type="Control" parent="."]
+layout_mode = 0
+offset_left = 650.0
+offset_right = 1270.0
+offset_bottom = 1080.0
+mouse_filter = 2
+
+[node name="Cadenas" type="Control" parent="RigCentral"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="SuperiorIzquierda" type="TextureRect" parent="RigCentral/Cadenas"]
+layout_mode = 0
+offset_left = 105.0
+offset_top = -100.0
+offset_right = 135.0
+offset_bottom = 80.0
+mouse_filter = 2
+texture = ExtResource("3_chain")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SuperiorDerecha" type="TextureRect" parent="RigCentral/Cadenas"]
+layout_mode = 0
+offset_left = 485.0
+offset_top = -100.0
+offset_right = 515.0
+offset_bottom = 80.0
+mouse_filter = 2
+texture = ExtResource("3_chain")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Ficha" type="PanelContainer" parent="RigCentral"]
+layout_mode = 0
+offset_top = 55.0
+offset_right = 620.0
+offset_bottom = 1020.0
+theme_override_styles/panel = SubResource("StyleBox_tabla")
+
+[node name="Margen" type="MarginContainer" parent="RigCentral/Ficha"]
+layout_mode = 2
+theme_override_constants/margin_left = 26
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 26
+theme_override_constants/margin_bottom = 22
+
+[node name="Contenido" type="VBoxContainer" parent="RigCentral/Ficha/Margen"]
+layout_mode = 2
+theme_override_constants/separation = 11
+
+[node name="Titulo" type="Label" parent="RigCentral/Ficha/Margen/Contenido"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 31
+text = "FICHA DE AVENTURERO"
+horizontal_alignment = 1
+
+[node name="IlustracionClase" type="ColorRect" parent="RigCentral/Ficha/Margen/Contenido"]
+custom_minimum_size = Vector2(0, 440)
+layout_mode = 2
+color = Color(0.06, 0.44, 0.18, 0.88)
+
+[node name="Marcador" type="Label" parent="RigCentral/Ficha/Margen/Contenido/IlustracionClase"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "ILUSTRACIÓN DE CLASE\n[ SIN ARQUETIPO ]"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Nombre" type="LineEdit" parent="RigCentral/Ficha/Margen/Contenido"]
+layout_mode = 2
+placeholder_text = "Nombre del aventurero"
+max_length = 32
+
+[node name="TituloAventurero" type="LineEdit" parent="RigCentral/Ficha/Margen/Contenido"]
+layout_mode = 2
+placeholder_text = "Título"
+max_length = 40
+
+[node name="Resumen" type="HBoxContainer" parent="RigCentral/Ficha/Margen/Contenido"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PV" type="Label" parent="RigCentral/Ficha/Margen/Contenido/Resumen"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "PV MÁXIMOS: ––"
+horizontal_alignment = 1
+
+[node name="Clase" type="Label" parent="RigCentral/Ficha/Margen/Contenido/Resumen"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "CLASE: PENDIENTE"
+horizontal_alignment = 1
+
+[node name="Origen" type="Label" parent="RigCentral/Ficha/Margen/Contenido"]
+layout_mode = 2
+text = "ORIGEN: SIN DETERMINAR"
+horizontal_alignment = 1
+
+[node name="Equipo" type="Label" parent="RigCentral/Ficha/Margen/Contenido"]
+layout_mode = 2
+text = "EQUIPO: Daga Mellada · Farol de Sebo · Mapa Roto"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="EleccionEmpate" type="HBoxContainer" parent="RigCentral/Ficha/Margen/Contenido"]
+visible = false
+layout_mode = 2
+alignment = 1
+
+[node name="Guerrero" type="Button" parent="RigCentral/Ficha/Margen/Contenido/EleccionEmpate"]
+layout_mode = 2
+text = "GUERRERO"
+
+[node name="Ladron" type="Button" parent="RigCentral/Ficha/Margen/Contenido/EleccionEmpate"]
+layout_mode = 2
+text = "LADRÓN"
+
+[node name="Mago" type="Button" parent="RigCentral/Ficha/Margen/Contenido/EleccionEmpate"]
+layout_mode = 2
+text = "MAGO"
+
+[node name="RigDerecho" type="Control" parent="."]
+layout_mode = 0
+offset_left = 1365.0
+offset_right = 1875.0
+offset_bottom = 1080.0
+mouse_filter = 2
+
+[node name="Cadenas" type="Control" parent="RigDerecho"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="SuperiorIzquierda" type="TextureRect" parent="RigDerecho/Cadenas"]
+layout_mode = 0
+offset_left = 70.0
+offset_top = -100.0
+offset_right = 100.0
+offset_bottom = 80.0
+mouse_filter = 2
+texture = ExtResource("3_chain")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SuperiorDerecha" type="TextureRect" parent="RigDerecho/Cadenas"]
+layout_mode = 0
+offset_left = 410.0
+offset_top = -100.0
+offset_right = 440.0
+offset_bottom = 80.0
+mouse_filter = 2
+texture = ExtResource("3_chain")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="RitualComenzarIzquierda" type="TextureRect" parent="RigDerecho/Cadenas"]
+layout_mode = 0
+offset_left = 70.0
+offset_top = 770.0
+offset_right = 100.0
+offset_bottom = 900.0
+mouse_filter = 2
+texture = ExtResource("3_chain")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="RitualComenzarDerecha" type="TextureRect" parent="RigDerecho/Cadenas"]
+layout_mode = 0
+offset_left = 410.0
+offset_top = 770.0
+offset_right = 440.0
+offset_bottom = 900.0
+mouse_filter = 2
+texture = ExtResource("3_chain")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ComenzarRig" type="Control" parent="RigDerecho"]
+visible = false
+layout_mode = 0
+offset_top = 820.0
+offset_right = 510.0
+offset_bottom = 1025.0
+mouse_filter = 2
+
+[node name="Tabla" type="PanelContainer" parent="RigDerecho/ComenzarRig"]
+layout_mode = 0
+offset_top = 80.0
+offset_right = 510.0
+offset_bottom = 185.0
+theme_override_styles/panel = SubResource("StyleBox_tabla")
+
+[node name="Comenzar" type="Button" parent="RigDerecho/ComenzarRig/Tabla"]
+layout_mode = 2
+disabled = true
+theme_override_font_sizes/font_size = 28
+text = "COMENZAR EXCURSIÓN"
+flat = true
+
+[node name="Ritual" type="PanelContainer" parent="RigDerecho"]
+layout_mode = 0
+offset_top = 55.0
+offset_right = 510.0
+offset_bottom = 805.0
+theme_override_styles/panel = SubResource("StyleBox_tabla")
+
+[node name="Margen" type="MarginContainer" parent="RigDerecho/Ritual"]
+layout_mode = 2
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 22
+
+[node name="Contenido" type="VBoxContainer" parent="RigDerecho/Ritual/Margen"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Titulo" type="Label" parent="RigDerecho/Ritual/Margen/Contenido"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "II. RITUAL DE ORIGEN"
+horizontal_alignment = 1
+
+[node name="Instruccion" type="Label" parent="RigDerecho/Ritual/Margen/Contenido"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "Deja caer el relicario para desvelar la tierra de tus ancestros."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Origenes" type="GridContainer" parent="RigDerecho/Ritual/Margen/Contenido"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 2
+
+[node name="OrigenI" type="PanelContainer" parent="RigDerecho/Ritual/Margen/Contenido/Origenes"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBox_celda")
+
+[node name="Texto" type="Label" parent="RigDerecho/Ritual/Margen/Contenido/Origenes/OrigenI"]
+layout_mode = 2
+text = "ORIGEN I\nMina Ciénaga"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="OrigenII" type="PanelContainer" parent="RigDerecho/Ritual/Margen/Contenido/Origenes"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBox_celda")
+
+[node name="Texto" type="Label" parent="RigDerecho/Ritual/Margen/Contenido/Origenes/OrigenII"]
+layout_mode = 2
+text = "ORIGEN II\nBastión Solitario"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="OrigenIII" type="PanelContainer" parent="RigDerecho/Ritual/Margen/Contenido/Origenes"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBox_celda")
+
+[node name="Texto" type="Label" parent="RigDerecho/Ritual/Margen/Contenido/Origenes/OrigenIII"]
+layout_mode = 2
+text = "ORIGEN III\nCripta Apócrifa"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="OrigenIV" type="PanelContainer" parent="RigDerecho/Ritual/Margen/Contenido/Origenes"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBox_celda")
+
+[node name="Texto" type="Label" parent="RigDerecho/Ritual/Margen/Contenido/Origenes/OrigenIV"]
+layout_mode = 2
+text = "ORIGEN IV\nPáramo Ceniciento"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Relicario" type="Button" parent="RigDerecho/Ritual/Margen/Contenido"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+text = "DEJAR CAER RELICARIO"
+
+[node name="Estado" type="Label" parent="RigDerecho/Ritual/Margen/Contenido"]
+layout_mode = 2
+text = "Origen sin determinar"
+horizontal_alignment = 1
+
+[connection signal="pressed" from="RigIzquierdo/Volver/Boton" to="." method="_on_volver_pressed"]

@@ -4,8 +4,8 @@
 [ext_resource type="Texture2D" uid="uid://inyxj1hg0kmw" path="res://assets/interactuables/mecanismos/palanca/palanca_dos_posiciones.png" id="2_textura"]
 [ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="3_fragmento"]
 [ext_resource type="Script" uid="uid://bccqt6gfe8843" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="4_perfil"]
-[ext_resource type="AudioStream" path="res://assets/sonidos/palanca/palanca arriba.wav" id="5_sonido_activar"]
-[ext_resource type="AudioStream" path="res://assets/sonidos/palanca/palanca abajo.wav" id="6_sonido_desactivar"]
+[ext_resource type="AudioStream" uid="uid://q4dho2wbubox" path="res://assets/sonidos/palanca/palanca arriba.wav" id="5_sonido_activar"]
+[ext_resource type="AudioStream" uid="uid://b07hox0kl60jv" path="res://assets/sonidos/palanca/palanca abajo.wav" id="6_sonido_desactivar"]
 
 [sub_resource type="Resource" id="Resource_identidad"]
 script = ExtResource("3_fragmento")

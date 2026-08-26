@@ -11,6 +11,7 @@
 [ext_resource type="Shader" uid="uid://cx6preya72ij6" path="res://scenes/menu/vineta_menu.gdshader" id="9_vineta"]
 [ext_resource type="AudioStream" uid="uid://choev3ek0cmew" path="res://assets/music/menu/tema_menu_principal.mp3" id="10_musica_menu"]
 [ext_resource type="PackedScene" uid="uid://cgjdxbsbvqa7s" path="res://scenes/menu/componentes/menu_colgante.tscn" id="11_menu_colgante"]
+[ext_resource type="PackedScene" uid="uid://xk23b4orfmmv" path="res://scenes/menu/nueva_partida.tscn" id="12_nueva_partida"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_niebla"]
 shader = ExtResource("8_niebla")
@@ -164,7 +165,13 @@ offset_left = -650.0
 offset_right = -30.0
 grow_horizontal = 0
 
+[node name="NuevaPartida" parent="." instance=ExtResource("12_nueva_partida")]
+visible = false
+layout_mode = 1
+mouse_filter = 2
+
 [connection signal="continuar_presionado" from="MenuColgante" to="." method="_on_continuar_pressed"]
 [connection signal="nueva_excursion_presionada" from="MenuColgante" to="." method="_on_jugar_pressed"]
 [connection signal="opciones_presionadas" from="MenuColgante" to="." method="_on_opciones_pressed"]
 [connection signal="salir_presionado" from="MenuColgante" to="." method="_on_salir_pressed"]
+[connection signal="volver_solicitado" from="NuevaPartida" to="." method="_on_volver_nueva_partida"]
