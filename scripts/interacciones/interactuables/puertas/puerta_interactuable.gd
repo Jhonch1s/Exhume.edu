@@ -17,6 +17,7 @@ func _ready() -> void:
 	_actualizar_representacion()
 
 
+
 func obtener_opciones_accion(actor: Object = null) -> Array[OpcionAccion]:
 	var opciones := super.obtener_opciones_accion(actor)
 	if _es_controlada_por_mecanismo():

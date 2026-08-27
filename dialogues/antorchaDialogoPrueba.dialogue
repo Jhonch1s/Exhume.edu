@@ -1,0 +1,7 @@
+~ start
+Caballero: Es una antorcha, ¿La apago?
+- Si
+	Caballero: Se apago.
+- No
+	=> END
+=> END

@@ -1,0 +1,9 @@
+~ start
+Caballero: ¿Muevo esta palanca?
+- Si
+	Activada
+- No
+	[wait=2] No paso nada => END
+- Salir => END
+Caballero: se activaron las puertas
+=> END

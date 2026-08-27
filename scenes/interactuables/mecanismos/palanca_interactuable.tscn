@@ -1,12 +1,23 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3 uid="uid://c3kd5mb1jp31"]
 
-[ext_resource type="Script" path="res://scripts/interacciones/interactuables/mecanismos/palanca_interactuable.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://dp666toco0l52" path="res://scripts/interacciones/interactuables/mecanismos/palanca_interactuable.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/interacciones/dialogos/disparador_dialogo_area.gd" id="2_dialogo"]
 
-[node name="PalancaInteractuable" type="Node2D" groups=["interactuables"]]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_maugy"]
+size = Vector2(50, 50)
+
+[node name="PalancaInteractuable" type="Node2D" unique_id=13021088 groups=["interactuables"]]
 script = ExtResource("1_script")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1498839968]
+visible = false
 texture_filter = 1
 region_enabled = true
 
-[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="." unique_id=1384919810]
+
+[node name="Area2D" type="Area2D" parent="." unique_id=557791548]
+script = ExtResource("2_dialogo")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=59617389]
+shape = SubResource("RectangleShape2D_maugy")
