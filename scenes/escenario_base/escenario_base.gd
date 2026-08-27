@@ -404,6 +404,9 @@ func spawnear_ficha_inicial() -> void:
 	if coord_inicio == Vector2i(-999, -999):
 		return
 	ficha_jugador = ESCENA_FICHA.instantiate()
+	var datos_aventurero := EstadoPartida.consumir_aventurero()
+	if not datos_aventurero.is_empty() and not ficha_jugador.configurar_creacion(datos_aventurero):
+		push_error("La ficha se creó con valores por defecto: datos de aventurero inválidos.")
 	zona_actual.add_child(ficha_jugador)
 	ficha_jugador.inicializar(coord_inicio, capa_suelo)
 	ficha_jugador.paso_dado.connect(_on_ficha_paso_dado)

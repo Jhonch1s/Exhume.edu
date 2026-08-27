@@ -173,4 +173,5 @@ layout_mode = 1
 [connection signal="nueva_excursion_presionada" from="MenuColgante" to="." method="_on_jugar_pressed"]
 [connection signal="opciones_presionadas" from="MenuColgante" to="." method="_on_opciones_pressed"]
 [connection signal="salir_presionado" from="MenuColgante" to="." method="_on_salir_pressed"]
+[connection signal="excursion_solicitada" from="NuevaPartida" to="." method="_on_excursion_solicitada"]
 [connection signal="volver_solicitado" from="NuevaPartida" to="." method="_on_volver_nueva_partida"]

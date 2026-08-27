@@ -64,6 +64,7 @@ var atributos: Dictionary[StringName, int] = {}
 var clase := ""
 var origen := ""
 var marcador_relicario: Label
+var tweens_hover: Dictionary[Button, Tween] = {}
 
 
 func _ready() -> void:
@@ -79,14 +80,38 @@ func _ready() -> void:
 			cadena.pivot_offset = Vector2(cadena.size.x * 0.5, 0.0)
 			rotaciones_base[cadena] = cadena.rotation_degrees
 	for atributo: StringName in botones_tirada:
-		botones_tirada[atributo].pressed.connect(_tirar_atributo.bind(atributo))
+		var boton: Button = botones_tirada[atributo]
+		boton.add_theme_stylebox_override(&"disabled", boton.get_theme_stylebox(&"normal"))
+		boton.add_theme_color_override(&"font_disabled_color", Color.BLACK)
+		boton.pressed.connect(_tirar_atributo.bind(atributo))
 	for nombre_clase: String in botones_clase:
 		botones_clase[nombre_clase].pressed.connect(_elegir_clase.bind(nombre_clase))
 	nombre.text_changed.connect(func(_texto: String) -> void: _actualizar_comenzar())
 	relicario.pressed.connect(_sortear_origen)
 	comenzar.pressed.connect(_solicitar_excursion)
+	for nodo in find_children("*", "Button", true, false):
+		_activar_hover(nodo as Button)
 	retrato.texture = RETRATO_INICIAL
+	zona_dado.add_theme_color_override(&"font_color", Color.BLACK)
 	_actualizar_comenzar()
+
+
+func _activar_hover(boton: Button) -> void:
+	boton.pivot_offset = boton.size * 0.5
+	boton.resized.connect(func() -> void: boton.pivot_offset = boton.size * 0.5)
+	boton.mouse_entered.connect(_animar_hover.bind(boton, 1.06))
+	boton.mouse_exited.connect(_animar_hover.bind(boton, 1.0))
+
+
+func _animar_hover(boton: Button, escala: float) -> void:
+	var anterior: Tween = tweens_hover.get(boton)
+	if anterior != null and anterior.is_valid():
+		anterior.kill()
+	var tween := create_tween()
+	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tween.tween_property(boton, "scale", Vector2.ONE * escala, 0.12) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tweens_hover[boton] = tween
 
 
 func _tirar_atributo(atributo: StringName) -> void:
@@ -101,6 +126,10 @@ func _tirar_atributo(atributo: StringName) -> void:
 			await get_tree().create_timer(0.4).timeout
 	atributos[atributo] = resultado
 	valores[atributo].text = str(resultado)
+	botones_tirada[atributo].self_modulate = Color(0.62, 0.62, 0.62, 1.0)
+	botones_tirada[atributo].add_theme_color_override(&"font_disabled_color", Color.BLACK)
+	botones_tirada[atributo].add_theme_color_override(&"font_outline_color", Color.BLACK)
+	botones_tirada[atributo].add_theme_constant_override(&"outline_size", 1)
 	zona_dado.text = "PLACEHOLDER DADO\nRESULTADO: %d" % resultado
 	estado_atributos.text = "%d de 3 atributos resueltos" % atributos.size()
 	if atributos.size() == 3:
@@ -158,6 +187,7 @@ func _sortear_origen() -> void:
 	marcador_relicario.text = "●\nRELICARIO"
 	marcador_relicario.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	marcador_relicario.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	marcador_relicario.add_theme_color_override(&"font_color", Color.BLACK)
 	marcador_relicario.add_theme_font_size_override(&"font_size", 20)
 	marcador_relicario.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	marcador_relicario.z_index = 20

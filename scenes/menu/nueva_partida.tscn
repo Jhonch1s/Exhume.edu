@@ -58,8 +58,9 @@ script = ExtResource("1_script")
 [node name="RigIzquierdo" type="Control" parent="." unique_id=1087717479]
 anchors_preset = 0
 offset_left = 45.0
+offset_top = -19.0
 offset_right = 555.0
-offset_bottom = 1080.0
+offset_bottom = 1061.0
 mouse_filter = 2
 
 [node name="Cadenas" type="Control" parent="RigIzquierdo" unique_id=428788044]
@@ -397,8 +398,9 @@ flat = true
 [node name="RigCentral" type="Control" parent="." unique_id=1287837266]
 anchors_preset = 0
 offset_left = 650.0
+offset_top = -6.0
 offset_right = 1270.0
-offset_bottom = 1080.0
+offset_bottom = 1074.0
 mouse_filter = 2
 
 [node name="Cadenas" type="Control" parent="RigCentral" unique_id=436979344]
@@ -577,9 +579,9 @@ text = "MAGO"
 [node name="RigDerecho" type="Control" parent="." unique_id=380327509]
 anchors_preset = 0
 offset_left = 1365.0
-offset_top = -25.0
+offset_top = -31.0
 offset_right = 1875.0
-offset_bottom = 1055.0
+offset_bottom = 1049.0
 mouse_filter = 2
 
 [node name="Cadenas" type="Control" parent="RigDerecho" unique_id=1438297762]

@@ -1,6 +1,11 @@
 extends Node2D
 class_name Ficha
 
+const TEXTURA_FICHAS_CLASE = preload(
+	"res://assets/characters/player/class_tokens/sprites/player_class_tokens_isometric.png"
+)
+const FRAME_POR_CLASE := {"Guerrero": 3, "Ladrón": 0, "Mago": 6}
+
 @export var nombre: String = "Heroe Jr."
 @export var titulo: String = "El come cebolla"
 @export var id_observador: StringName = &"jugador_principal"
@@ -21,7 +26,8 @@ var recursos_turno: RecursosTurnoActor
 var pv_max: int
 var pv_actual: int
 var _estados: Dictionary[StringName, EstadoActor] = {}
-var clase: String = "Ladron"
+var clase: String = "Guerrero"
+var origen: String = ""
 
 var antorchas: int = 3
 var PASOS_MAX_ANTORCHA: int = 80
@@ -176,6 +182,13 @@ func obtener_estado_persistente() -> Dictionary:
 			"cantidad": item.cantidad,
 		})
 	return {
+		"nombre": nombre,
+		"titulo": titulo,
+		"fuerza": fue,
+		"destreza": des,
+		"voluntad": vol,
+		"clase": clase,
+		"origen": origen,
 		"id_actor": String(id_actor),
 		"id_observador": String(id_observador),
 		"coordenada": [coordenada_mapa.x, coordenada_mapa.y],
@@ -190,6 +203,16 @@ func obtener_estado_persistente() -> Dictionary:
 func validar_estado_persistente(estado: Variant) -> StringName:
 	if not estado is Dictionary:
 		return &"estado_ficha_invalido"
+	if (
+		not estado.get("nombre") is String or estado["nombre"].strip_edges().is_empty()
+		or not estado.get("titulo") is String
+		or not estado.get("clase") is String or not FRAME_POR_CLASE.has(estado["clase"])
+		or not estado.get("origen") is String
+	):
+		return &"identidad_ficha_guardada_invalida"
+	for atributo in ["fuerza", "destreza", "voluntad"]:
+		if not _es_numero_entero(estado.get(atributo)) or estado[atributo] < 2 or estado[atributo] > 5:
+			return &"atributos_ficha_guardados_invalidos"
 	if estado.get("id_actor") != String(id_actor):
 		return &"id_actor_guardado_no_coincide"
 	if estado.get("id_observador") != String(id_observador):
@@ -201,9 +224,10 @@ func validar_estado_persistente(estado: Variant) -> StringName:
 		or not _es_numero_entero(coordenada[1])
 	):
 		return &"coordenada_ficha_guardada_invalida"
+	var pv_maximo_guardado: int = estado["fuerza"] + estado["destreza"] + estado["voluntad"]
 	if (
 		not _es_numero_entero(estado.get("pv_actual"))
-		or estado["pv_actual"] < 0 or estado["pv_actual"] > pv_max
+		or estado["pv_actual"] < 0 or estado["pv_actual"] > pv_maximo_guardado
 		or not _es_numero_entero(estado.get("energia_actual"))
 		or estado["energia_actual"] < 0 or estado["energia_actual"] > energia_maxima
 	):
@@ -238,6 +262,15 @@ func restaurar_estado_persistente(estado: Variant) -> StringName:
 			int(datos["duracion_total"]),
 			int(datos["ticks_pendientes"])
 		)
+	nombre = estado["nombre"]
+	titulo = estado["titulo"]
+	fue = int(estado["fuerza"])
+	des = int(estado["destreza"])
+	vol = int(estado["voluntad"])
+	clase = estado["clase"]
+	origen = estado["origen"]
+	pv_max = fue + des + vol
+	_aplicar_visual_clase()
 	coordenada_mapa = Vector2i(estado["coordenada"][0], estado["coordenada"][1])
 	if capa_referencia != null:
 		global_position = capa_referencia.map_to_local(coordenada_mapa)
@@ -307,7 +340,34 @@ func _es_numero_entero(valor: Variant) -> bool:
 func _ready() -> void:
 	pv_max = fue + des + vol
 	pv_actual = pv_max
+	_aplicar_visual_clase()
 	iniciar_turno()
+
+
+func configurar_creacion(datos: Dictionary) -> bool:
+	if EstadoPartida.validar_aventurero(datos) != &"":
+		return false
+	nombre = datos["nombre"].strip_edges()
+	titulo = datos["titulo"].strip_edges()
+	fue = datos["fuerza"]
+	des = datos["destreza"]
+	vol = datos["voluntad"]
+	clase = datos["clase"]
+	origen = datos["origen"]
+	return true
+
+
+func _aplicar_visual_clase() -> void:
+	var sprite := get_node_or_null("Sprite2D") as Sprite2D
+	if sprite == null:
+		return
+	sprite.texture = TEXTURA_FICHAS_CLASE
+	sprite.hframes = 3
+	sprite.vframes = 4
+	sprite.frame = FRAME_POR_CLASE.get(clase, 0)
+	sprite.position = Vector2.ZERO
+	sprite.scale = Vector2.ONE
+	sprite.offset = Vector2.ZERO
 
 func inicializar(coordenada_inicial: Vector2i, capa: TileMapLayer) -> void:
 	capa_referencia = capa
@@ -422,4 +482,3 @@ func mover_por_camino(
 
 func calcular_duracion_paso(coste_paso: int) -> float:
 	return velocidad_paso * (2.0 if coste_paso > 1 else 1.0)
-	

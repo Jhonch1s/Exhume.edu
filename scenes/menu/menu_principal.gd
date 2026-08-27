@@ -48,6 +48,13 @@ func _on_volver_nueva_partida() -> void:
 	transicion_activa = false
 
 
+func _on_excursion_solicitada(datos: Dictionary) -> void:
+	if not EstadoPartida.establecer_aventurero(datos):
+		push_error("No se puede iniciar la excursión: datos de aventurero inválidos.")
+		return
+	get_tree().change_scene_to_file("res://scenes/escenario_base/escenario_base.tscn")
+
+
 func _on_continuar_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/menu/personajes.tscn")
 
