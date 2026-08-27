@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=18
+type="Resource"
+uid="uid://d2sugwrb0c022"
+path="res://.godot/imported/antorchaDialogoPrueba.dialogue-ae7ad46acb2a48e392c78d03ca70e70c.tres"
+
+[deps]
+
+source_file="res://dialogues/antorchaDialogoPrueba.dialogue"
+dest_files=["res://.godot/imported/antorchaDialogoPrueba.dialogue-ae7ad46acb2a48e392c78d03ca70e70c.tres"]
+
+[params]
+
+defaults=true

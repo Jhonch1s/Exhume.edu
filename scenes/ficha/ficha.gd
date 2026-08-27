@@ -34,6 +34,8 @@ var capa_referencia: TileMapLayer = null
 var esta_moviendose: bool = false
 var interrupcion_solicitada: bool = false
 
+var jugador_esta_cerca: bool = false
+
 @export var velocidad_paso: float = 0.2
 
 signal paso_dado(nueva_coordenada: Vector2i)
@@ -420,3 +422,4 @@ func mover_por_camino(
 
 func calcular_duracion_paso(coste_paso: int) -> float:
 	return velocidad_paso * (2.0 if coste_paso > 1 else 1.0)
+	

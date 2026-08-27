@@ -1,17 +1,17 @@
-[gd_resource type="Resource" script_class="CatalogoMensajesInteraccion" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="CatalogoMensajesInteraccion" format=3 uid="uid://fstyo5e070o6"]
 
-[ext_resource type="Script" path="res://scripts/interacciones/presentacion/catalogo_mensajes_interaccion.gd" id="1_catalogo"]
+[ext_resource type="Script" uid="uid://bb5t6icuabx0r" path="res://scripts/interacciones/presentacion/catalogo_mensajes_interaccion.gd" id="1_catalogo"]
 
 [resource]
 script = ExtResource("1_catalogo")
 mensajes = {
 &"bomba_humo.activada": "La bomba se rompe y libera una nube de humo.",
+&"examen.antorcha_pared.basico_apagada": "Es una antorcha fijada a la pared. Está apagada y su soporte conserva algo de hollín.",
+&"examen.antorcha_pared.basico_encendida": "Es una antorcha fijada a la pared cuya llama ilumina el pasadizo.",
 &"examen.antorcha_pie.basico_apagada": "Es una antorcha de pie. Está apagada y apenas queda calor en su extremo.",
 &"examen.antorcha_pie.basico_encendida": "Es una antorcha de pie cuya llama ilumina el entorno cercano.",
 &"examen.antorcha_pie.construccion": "El soporte de piedra está ennegrecido por un uso prolongado.",
 &"examen.antorcha_pie.marca_oculta": "Bajo el hollín se distingue una pequeña marca grabada.",
-&"examen.antorcha_pared.basico_apagada": "Es una antorcha fijada a la pared. Está apagada y su soporte conserva algo de hollín.",
-&"examen.antorcha_pared.basico_encendida": "Es una antorcha fijada a la pared cuya llama ilumina el pasadizo.",
 &"examen.fogata.basico_apagada": "Es una pequeña fogata apagada. Entre la leña quedan cenizas y brasas frías.",
 &"examen.fogata.basico_encendida": "Es una pequeña fogata alimentada con leña que ilumina el entorno cercano.",
 &"examen.palanca.basico": "Es una palanca robusta conectada a un mecanismo oculto.",
@@ -21,28 +21,28 @@ mensajes = {
 &"fuente_luz.encendida": "La fuente de luz queda encendida.",
 &"fuera_alcance_examen": "Está demasiado lejos para examinarlo.",
 &"fuera_de_alcance": "Debes estar junto al objetivo para realizar esa acción.",
+&"interaccion.abrir": "Abrir",
+&"interaccion.accionar": "Accionar",
 &"interaccion.apagar": "Apagar",
 &"interaccion.cancelar": "Cancelar",
+&"interaccion.cerrar": "Cerrar",
 &"interaccion.encender": "Encender",
 &"interaccion.examinar": "Examinar",
 &"interaccion.impactar_piso": "Piso",
 &"interaccion.lanzar_item": "¿Qué item quieres lanzar?",
 &"interaccion.recoger": "Recoger",
 &"interaccion.seleccionar_impacto": "¿Contra qué quieres lanzarlo?",
-&"interaccion.seleccionar_objetivo": "¿Qué quieres seleccionar?",
 &"interaccion.seleccionar_item": "¿Qué item quieres usar?",
+&"interaccion.seleccionar_objetivo": "¿Qué quieres seleccionar?",
 &"interaccion.usar_item": "Usar item…",
 &"item.recogido": "Guardas el item en el inventario.",
 &"item.soltado": "Dejas el item en el suelo.",
+&"item_no_es_llave": "Ese item no sirve como llave.",
 &"linea_visual_bloqueada": "Algo bloquea la visión del objetivo.",
+&"llave_incompatible": "La llave no corresponde a esta cerradura.",
 &"objetivo_no_visible": "No puedes examinar algo que no ves en este momento.",
-&"interaccion.accionar": "Accionar",
-&"interaccion.abrir": "Abrir",
-&"interaccion.cerrar": "Cerrar",
 &"palanca.activada": "La palanca cambia de posición.",
 &"palanca.desactivada": "La palanca vuelve a su posición anterior.",
-&"item_no_es_llave": "Ese item no sirve como llave.",
-&"llave_incompatible": "La llave no corresponde a esta cerradura.",
 &"puerta.abierta": "La puerta queda abierta.",
 &"puerta.cerrada": "La puerta queda cerrada.",
 &"puerta.desbloqueada": "La llave encaja y la cerradura queda desbloqueada.",
@@ -51,5 +51,5 @@ mensajes = {
 &"puerta_ya_cerrada": "La puerta ya está cerrada.",
 &"puerta_ya_desbloqueada": "La puerta ya está desbloqueada.",
 &"reaccion_item_no_implementada": "Ese item no produce ningún efecto sobre el objetivo.",
-&"sin_informacion_disponible": "No logras obtener información útil.",
+&"sin_informacion_disponible": "No logras obtener información útil."
 }

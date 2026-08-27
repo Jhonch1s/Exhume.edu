@@ -165,10 +165,9 @@ offset_left = -650.0
 offset_right = -30.0
 grow_horizontal = 0
 
-[node name="NuevaPartida" parent="." instance=ExtResource("12_nueva_partida")]
+[node name="NuevaPartida" parent="." unique_id=866725466 instance=ExtResource("12_nueva_partida")]
 visible = false
 layout_mode = 1
-mouse_filter = 2
 
 [connection signal="continuar_presionado" from="MenuColgante" to="." method="_on_continuar_pressed"]
 [connection signal="nueva_excursion_presionada" from="MenuColgante" to="." method="_on_jugar_pressed"]
