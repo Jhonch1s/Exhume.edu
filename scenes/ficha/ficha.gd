@@ -12,7 +12,7 @@ const FRAME_POR_CLASE := {"Guerrero": 3, "Ladrón": 0, "Mago": 6}
 @export var id_actor: StringName = &"jugador_principal"
 @export var iniciativa_base: int = 0
 
-var fue: int = 3
+var fue: int = 5
 var des: int = 4
 var vol: int = 2
 var energia_maxima: int = 200
