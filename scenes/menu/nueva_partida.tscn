@@ -1,33 +1,49 @@
-[gd_scene load_steps=8 format=3 uid="uid://xk23b4orfmmv"]
+[gd_scene format=3 uid="uid://xk23b4orfmmv"]
 
-[ext_resource type="Script" path="res://scenes/menu/nueva_partida.gd" id="1_script"]
-[ext_resource type="FontFile" path="res://assets/ui/fonts/Amarante-Regular.ttf" id="2_font"]
-[ext_resource type="Texture2D" path="res://assets/ui/panels/main_menu/hanging_menu/chains/chain_vertical.png" id="3_chain"]
-[ext_resource type="Texture2D" path="res://assets/ui/panels/main_menu/hanging_menu/logo_sign/logo_sign_empty.png" id="4_title_board"]
+[ext_resource type="Script" uid="uid://bd26oqtsw8vrf" path="res://scenes/menu/nueva_partida.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://cnw2bfdtqtu4t" path="res://assets/ui/panels/main_menu/hanging_menu/chains/chain_vertical.png" id="3_chain"]
+[ext_resource type="Texture2D" uid="uid://vghn7j7s38lm" path="res://assets/ui/panels/main_menu/hanging_menu/logo_sign/logo_sign_empty.png" id="4_title_board"]
+[ext_resource type="Texture2D" uid="uid://cvwiolisfhm77" path="res://assets/ui/panels/new_game/attributes/attributes_board.png" id="5_attributes_board"]
+[ext_resource type="Texture2D" uid="uid://d3bitxgpqtdlr" path="res://assets/ui/panels/new_game/character/character_sheet_board.png" id="6_character_board"]
+[ext_resource type="Texture2D" uid="uid://borr7k28m603b" path="res://assets/ui/panels/new_game/ritual/ritual_board.png" id="7_ritual_board"]
+[ext_resource type="Texture2D" uid="uid://bp72p2luyqlgn" path="res://assets/ui/panels/new_game/dice/dice_area_frame.png" id="8_dice_frame"]
+[ext_resource type="Texture2D" uid="uid://fchmjxxiw3lx" path="res://assets/ui/panels/new_game/buttons/back_board.png" id="9_back_board"]
+[ext_resource type="Texture2D" uid="uid://drdgi42lejtuk" path="res://assets/ui/panels/new_game/buttons/small_button.png" id="10_small_button"]
+[ext_resource type="Texture2D" uid="uid://f4wev484h5gw" path="res://assets/ui/panels/new_game/fields/name_field.png" id="11_name_field"]
+[ext_resource type="Texture2D" uid="uid://dgdpqwcjg6ub0" path="res://assets/ui/panels/new_game/knight.jpg" id="12_knight"]
+[ext_resource type="FontFile" uid="uid://c0l0sby5jy2p4" path="res://assets/ui/fonts/Amarante-Regular.ttf" id="13_font"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBox_tabla"]
-bg_color = Color(0.055, 0.052, 0.047, 0.95)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.76, 0.74, 0.67, 0.85)
+[sub_resource type="StyleBoxEmpty" id="StyleBox_vacio"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBox_boton_pequeno"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+texture = ExtResource("10_small_button")
+texture_margin_left = 18.0
+texture_margin_top = 12.0
+texture_margin_right = 18.0
+texture_margin_bottom = 12.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBox_campo_nombre"]
+content_margin_left = 24.0
+content_margin_top = 8.0
+content_margin_right = 24.0
+content_margin_bottom = 8.0
+texture = ExtResource("11_name_field")
+texture_margin_left = 24.0
+texture_margin_top = 10.0
+texture_margin_right = 24.0
+texture_margin_bottom = 10.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_celda"]
-bg_color = Color(0.12, 0.115, 0.105, 0.96)
+bg_color = Color(0.93, 0.92, 0.88, 0.9)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.58, 0.56, 0.5, 0.8)
-
-[sub_resource type="StyleBoxFlat" id="StyleBox_tirada"]
-bg_color = Color(0.28, 0.035, 0.045, 0.92)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.64, 0.38, 0.36, 0.85)
+border_color = Color(0.12, 0.11, 0.09, 0.8)
 
 [node name="NuevaPartida" type="Control" unique_id=1961532444]
 layout_mode = 3
@@ -37,18 +53,16 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 21
 script = ExtResource("1_script")
 
-[node name="RigIzquierdo" type="Control" parent="."]
-layout_mode = 0
+[node name="RigIzquierdo" type="Control" parent="." unique_id=1087717479]
+anchors_preset = 0
 offset_left = 45.0
 offset_right = 555.0
 offset_bottom = 1080.0
 mouse_filter = 2
 
-[node name="Cadenas" type="Control" parent="RigIzquierdo"]
+[node name="Cadenas" type="Control" parent="RigIzquierdo" unique_id=428788044]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -57,83 +71,84 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="SuperiorIzquierda" type="TextureRect" parent="RigIzquierdo/Cadenas"]
+[node name="SuperiorIzquierda" type="TextureRect" parent="RigIzquierdo/Cadenas" unique_id=413995085]
 layout_mode = 0
-offset_left = 70.0
-offset_top = -100.0
-offset_right = 100.0
-offset_bottom = 60.0
+offset_left = 95.0
+offset_top = -42.0
+offset_right = 125.0
+offset_bottom = 118.0
 mouse_filter = 2
 texture = ExtResource("3_chain")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="SuperiorDerecha" type="TextureRect" parent="RigIzquierdo/Cadenas"]
+[node name="SuperiorDerecha" type="TextureRect" parent="RigIzquierdo/Cadenas" unique_id=233780772]
 layout_mode = 0
-offset_left = 410.0
-offset_top = -100.0
-offset_right = 440.0
-offset_bottom = 60.0
+offset_left = 469.0
+offset_top = -33.0
+offset_right = 499.0
+offset_bottom = 127.0
 mouse_filter = 2
 texture = ExtResource("3_chain")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="EncabezadoAtributosIzquierda" type="TextureRect" parent="RigIzquierdo/Cadenas"]
+[node name="EncabezadoAtributosIzquierda" type="TextureRect" parent="RigIzquierdo/Cadenas" unique_id=1497451637]
 layout_mode = 0
-offset_left = 70.0
-offset_top = 185.0
-offset_right = 100.0
-offset_bottom = 270.0
+offset_left = 115.0
+offset_top = 159.0
+offset_right = 172.0
+offset_bottom = 272.0
 mouse_filter = 2
 texture = ExtResource("3_chain")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="EncabezadoAtributosDerecha" type="TextureRect" parent="RigIzquierdo/Cadenas"]
+[node name="EncabezadoAtributosDerecha" type="TextureRect" parent="RigIzquierdo/Cadenas" unique_id=706597481]
 layout_mode = 0
-offset_left = 410.0
-offset_top = 185.0
-offset_right = 440.0
-offset_bottom = 270.0
+offset_left = 434.0
+offset_top = 158.0
+offset_right = 479.0
+offset_bottom = 278.0
 mouse_filter = 2
 texture = ExtResource("3_chain")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="AtributosVolverIzquierda" type="TextureRect" parent="RigIzquierdo/Cadenas"]
+[node name="AtributosVolverIzquierda" type="TextureRect" parent="RigIzquierdo/Cadenas" unique_id=290213443]
 layout_mode = 0
-offset_left = 70.0
-offset_top = 875.0
-offset_right = 100.0
-offset_bottom = 965.0
+offset_left = 132.0
+offset_top = 910.0
+offset_right = 162.0
+offset_bottom = 1000.0
 mouse_filter = 2
 texture = ExtResource("3_chain")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="AtributosVolverDerecha" type="TextureRect" parent="RigIzquierdo/Cadenas"]
+[node name="AtributosVolverDerecha" type="TextureRect" parent="RigIzquierdo/Cadenas" unique_id=1522657848]
 layout_mode = 0
-offset_left = 410.0
-offset_top = 875.0
-offset_right = 440.0
-offset_bottom = 965.0
+offset_left = 280.0
+offset_top = 918.0
+offset_right = 310.0
+offset_bottom = 1008.0
 mouse_filter = 2
 texture = ExtResource("3_chain")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Encabezado" type="TextureRect" parent="RigIzquierdo"]
+[node name="Encabezado" type="TextureRect" parent="RigIzquierdo" unique_id=208911528]
 layout_mode = 0
-offset_top = 35.0
-offset_right = 510.0
-offset_bottom = 205.0
+offset_left = 46.0
+offset_top = 37.0
+offset_right = 556.0
+offset_bottom = 207.0
 mouse_filter = 2
 texture = ExtResource("4_title_board")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Contenido" type="VBoxContainer" parent="RigIzquierdo/Encabezado"]
+[node name="Contenido" type="VBoxContainer" parent="RigIzquierdo/Encabezado" unique_id=341448193]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -146,161 +161,247 @@ grow_horizontal = 2
 grow_vertical = 2
 alignment = 1
 
-[node name="Titulo" type="Label" parent="RigIzquierdo/Encabezado/Contenido"]
+[node name="Titulo" type="Label" parent="RigIzquierdo/Encabezado/Contenido" unique_id=1539059839]
 layout_mode = 2
-theme_override_font_sizes/font_size = 32
 theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("13_font")
+theme_override_font_sizes/font_size = 42
 text = "CREA TU AVENTURERO"
 horizontal_alignment = 1
 
-[node name="Subtitulo" type="Label" parent="RigIzquierdo/Encabezado/Contenido"]
+[node name="Subtitulo" type="Label" parent="RigIzquierdo/Encabezado/Contenido" unique_id=991927249]
 layout_mode = 2
-theme_override_font_sizes/font_size = 17
 theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("13_font")
+theme_override_font_sizes/font_size = 17
 text = "Graba tu nombre antes de descender"
 horizontal_alignment = 1
 
-[node name="Atributos" type="PanelContainer" parent="RigIzquierdo"]
+[node name="Atributos" type="PanelContainer" parent="RigIzquierdo" unique_id=832587853]
 layout_mode = 0
-offset_top = 245.0
-offset_right = 510.0
-offset_bottom = 895.0
-theme_override_styles/panel = SubResource("StyleBox_tabla")
+offset_top = 203.0
+offset_right = 600.0
+offset_bottom = 1003.0
+theme_override_styles/panel = SubResource("StyleBox_vacio")
 
-[node name="Margen" type="MarginContainer" parent="RigIzquierdo/Atributos"]
+[node name="Fondo" type="TextureRect" parent="RigIzquierdo/Atributos" unique_id=1557807571]
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("5_attributes_board")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Margen" type="MarginContainer" parent="RigIzquierdo/Atributos" unique_id=942371634]
 layout_mode = 2
 theme_override_constants/margin_left = 22
 theme_override_constants/margin_top = 20
 theme_override_constants/margin_right = 22
 theme_override_constants/margin_bottom = 20
 
-[node name="Contenido" type="VBoxContainer" parent="RigIzquierdo/Atributos/Margen"]
+[node name="Contenido" type="VBoxContainer" parent="RigIzquierdo/Atributos/Margen" unique_id=1505421260]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 16
+alignment = 1
 
-[node name="Titulo" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido"]
+[node name="Titulo" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido" unique_id=502192850]
 layout_mode = 2
-theme_override_font_sizes/font_size = 29
-text = "I. ATRIBUTOS INICIALES"
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("13_font")
+theme_override_font_sizes/font_size = 39
+text = "ATRIBUTOS INICIALES"
 horizontal_alignment = 1
 
-[node name="Instruccion" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido"]
+[node name="Instruccion" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido" unique_id=26172160]
+custom_maximum_size = Vector2(420, -1)
 layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 17
 text = "Lanza 1d6 · repite únicamente los resultados 1 y 6"
 horizontal_alignment = 1
 autowrap_mode = 2
 
-[node name="Fuerza" type="HBoxContainer" parent="RigIzquierdo/Atributos/Margen/Contenido"]
-custom_minimum_size = Vector2(0, 62)
+[node name="Fuerza" type="HBoxContainer" parent="RigIzquierdo/Atributos/Margen/Contenido" unique_id=63320874]
+custom_minimum_size = Vector2(410, 62)
 layout_mode = 2
+size_flags_horizontal = 4
 theme_override_constants/separation = 10
+alignment = 1
 
-[node name="Nombre" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/Fuerza"]
+[node name="Nombre" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/Fuerza" unique_id=1879247196]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("13_font")
+theme_override_font_sizes/font_size = 26
 text = "FUERZA (FUE)"
+horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Valor" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/Fuerza"]
+[node name="Valor" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/Fuerza" unique_id=581192953]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 30
 text = "–"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Tirar" type="Button" parent="RigIzquierdo/Atributos/Margen/Contenido/Fuerza"]
-custom_minimum_size = Vector2(92, 0)
+[node name="Tirar" type="Button" parent="RigIzquierdo/Atributos/Margen/Contenido/Fuerza" unique_id=1136236500]
+custom_minimum_size = Vector2(110, 56)
 layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_hover_color = Color(0.18, 0.05, 0.04, 1)
+theme_override_fonts/font = ExtResource("13_font")
+theme_override_styles/normal = SubResource("StyleBox_boton_pequeno")
+theme_override_styles/pressed = SubResource("StyleBox_boton_pequeno")
+theme_override_styles/hover = SubResource("StyleBox_boton_pequeno")
 text = "TIRAR"
 
-[node name="Destreza" type="HBoxContainer" parent="RigIzquierdo/Atributos/Margen/Contenido"]
-custom_minimum_size = Vector2(0, 62)
+[node name="Destreza" type="HBoxContainer" parent="RigIzquierdo/Atributos/Margen/Contenido" unique_id=744345442]
+custom_minimum_size = Vector2(410, 62)
 layout_mode = 2
+size_flags_horizontal = 4
 theme_override_constants/separation = 10
+alignment = 1
 
-[node name="Nombre" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/Destreza"]
+[node name="Nombre" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/Destreza" unique_id=838586143]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("13_font")
+theme_override_font_sizes/font_size = 26
 text = "DESTREZA (DES)"
+horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Valor" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/Destreza"]
+[node name="Valor" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/Destreza" unique_id=1548720174]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 30
 text = "–"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Tirar" type="Button" parent="RigIzquierdo/Atributos/Margen/Contenido/Destreza"]
-custom_minimum_size = Vector2(92, 0)
+[node name="Tirar" type="Button" parent="RigIzquierdo/Atributos/Margen/Contenido/Destreza" unique_id=249285583]
+custom_minimum_size = Vector2(110, 56)
 layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_hover_color = Color(0.18, 0.05, 0.04, 1)
+theme_override_fonts/font = ExtResource("13_font")
+theme_override_styles/normal = SubResource("StyleBox_boton_pequeno")
+theme_override_styles/pressed = SubResource("StyleBox_boton_pequeno")
+theme_override_styles/hover = SubResource("StyleBox_boton_pequeno")
 text = "TIRAR"
 
-[node name="Voluntad" type="HBoxContainer" parent="RigIzquierdo/Atributos/Margen/Contenido"]
-custom_minimum_size = Vector2(0, 62)
+[node name="Voluntad" type="HBoxContainer" parent="RigIzquierdo/Atributos/Margen/Contenido" unique_id=2100287757]
+custom_minimum_size = Vector2(410, 62)
 layout_mode = 2
+size_flags_horizontal = 4
 theme_override_constants/separation = 10
+alignment = 1
 
-[node name="Nombre" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/Voluntad"]
+[node name="Nombre" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/Voluntad" unique_id=917357295]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("13_font")
+theme_override_font_sizes/font_size = 26
 text = "VOLUNTAD (VOL)"
+horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Valor" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/Voluntad"]
+[node name="Valor" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/Voluntad" unique_id=1314258612]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 30
 text = "–"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Tirar" type="Button" parent="RigIzquierdo/Atributos/Margen/Contenido/Voluntad"]
-custom_minimum_size = Vector2(92, 0)
+[node name="Tirar" type="Button" parent="RigIzquierdo/Atributos/Margen/Contenido/Voluntad" unique_id=334067977]
+custom_minimum_size = Vector2(110, 56)
 layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_hover_color = Color(0.18, 0.05, 0.04, 1)
+theme_override_fonts/font = ExtResource("13_font")
+theme_override_styles/normal = SubResource("StyleBox_boton_pequeno")
+theme_override_styles/pressed = SubResource("StyleBox_boton_pequeno")
+theme_override_styles/hover = SubResource("StyleBox_boton_pequeno")
 text = "TIRAR"
 
-[node name="ZonaTirada" type="PanelContainer" parent="RigIzquierdo/Atributos/Margen/Contenido"]
+[node name="ZonaTirada" type="PanelContainer" parent="RigIzquierdo/Atributos/Margen/Contenido" unique_id=1396029259]
+custom_minimum_size = Vector2(440, 215)
 layout_mode = 2
-size_flags_vertical = 3
-theme_override_styles/panel = SubResource("StyleBox_tirada")
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBox_vacio")
 
-[node name="Texto" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/ZonaTirada"]
+[node name="MarginContainer" type="MarginContainer" parent="RigIzquierdo/Atributos/Margen/Contenido/ZonaTirada" unique_id=1574732804]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+
+[node name="Fondo" type="TextureRect" parent="RigIzquierdo/Atributos/Margen/Contenido/ZonaTirada/MarginContainer" unique_id=629388021]
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("8_dice_frame")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Texto" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/ZonaTirada/MarginContainer" unique_id=1778646343]
 layout_mode = 2
 text = "ZONA DE ANIMACIÓN DEL DADO"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Estado" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido"]
+[node name="Estado" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido" unique_id=966890178]
 layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("13_font")
 text = "Ningún atributo resuelto"
 horizontal_alignment = 1
 
-[node name="Volver" type="PanelContainer" parent="RigIzquierdo"]
+[node name="Volver" type="PanelContainer" parent="RigIzquierdo" unique_id=203182631]
 layout_mode = 0
-offset_left = 20.0
-offset_top = 945.0
-offset_right = 300.0
-offset_bottom = 1040.0
-theme_override_styles/panel = SubResource("StyleBox_tabla")
+offset_left = 76.0
+offset_top = 981.00006
+offset_right = 356.0
+offset_bottom = 1076.0
+rotation = -0.05235988
+theme_override_styles/panel = SubResource("StyleBox_vacio")
 
-[node name="Boton" type="Button" parent="RigIzquierdo/Volver"]
+[node name="Fondo" type="TextureRect" parent="RigIzquierdo/Volver" unique_id=1657178282]
 layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("9_back_board")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Boton" type="Button" parent="RigIzquierdo/Volver" unique_id=643066215]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_hover_color = Color(0.22, 0.04, 0.035, 1)
+theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 27
-text = "← VOLVER"
+text = "VOLVER"
 flat = true
 
-[node name="RigCentral" type="Control" parent="."]
-layout_mode = 0
+[node name="RigCentral" type="Control" parent="." unique_id=1287837266]
+anchors_preset = 0
 offset_left = 650.0
 offset_right = 1270.0
 offset_bottom = 1080.0
 mouse_filter = 2
 
-[node name="Cadenas" type="Control" parent="RigCentral"]
+[node name="Cadenas" type="Control" parent="RigCentral" unique_id=436979344]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -309,130 +410,179 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="SuperiorIzquierda" type="TextureRect" parent="RigCentral/Cadenas"]
+[node name="SuperiorIzquierda" type="TextureRect" parent="RigCentral/Cadenas" unique_id=575271279]
 layout_mode = 0
-offset_left = 105.0
-offset_top = -100.0
-offset_right = 135.0
-offset_bottom = 80.0
+offset_left = 108.0
+offset_top = -66.0
+offset_right = 138.0
+offset_bottom = 114.0
 mouse_filter = 2
 texture = ExtResource("3_chain")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="SuperiorDerecha" type="TextureRect" parent="RigCentral/Cadenas"]
+[node name="SuperiorDerecha" type="TextureRect" parent="RigCentral/Cadenas" unique_id=1321428443]
 layout_mode = 0
-offset_left = 485.0
-offset_top = -100.0
-offset_right = 515.0
-offset_bottom = 80.0
+offset_left = 488.0
+offset_top = -37.0
+offset_right = 518.0
+offset_bottom = 143.0
 mouse_filter = 2
 texture = ExtResource("3_chain")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Ficha" type="PanelContainer" parent="RigCentral"]
+[node name="Ficha" type="PanelContainer" parent="RigCentral" unique_id=1964467189]
 layout_mode = 0
 offset_top = 55.0
 offset_right = 620.0
 offset_bottom = 1020.0
-theme_override_styles/panel = SubResource("StyleBox_tabla")
+theme_override_styles/panel = SubResource("StyleBox_vacio")
 
-[node name="Margen" type="MarginContainer" parent="RigCentral/Ficha"]
+[node name="Fondo" type="TextureRect" parent="RigCentral/Ficha" unique_id=1974845669]
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("6_character_board")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Margen" type="MarginContainer" parent="RigCentral/Ficha" unique_id=1291162243]
 layout_mode = 2
 theme_override_constants/margin_left = 26
 theme_override_constants/margin_top = 22
 theme_override_constants/margin_right = 26
 theme_override_constants/margin_bottom = 22
 
-[node name="Contenido" type="VBoxContainer" parent="RigCentral/Ficha/Margen"]
+[node name="Contenido" type="VBoxContainer" parent="RigCentral/Ficha/Margen" unique_id=1267221285]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 11
+alignment = 1
 
-[node name="Titulo" type="Label" parent="RigCentral/Ficha/Margen/Contenido"]
+[node name="Titulo" type="Label" parent="RigCentral/Ficha/Margen/Contenido" unique_id=1560398483]
 layout_mode = 2
-theme_override_font_sizes/font_size = 31
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("13_font")
+theme_override_font_sizes/font_size = 39
 text = "FICHA DE AVENTURERO"
 horizontal_alignment = 1
 
-[node name="IlustracionClase" type="ColorRect" parent="RigCentral/Ficha/Margen/Contenido"]
-custom_minimum_size = Vector2(0, 440)
+[node name="IlustracionClase" type="TextureRect" parent="RigCentral/Ficha/Margen/Contenido" unique_id=1270863222]
+custom_minimum_size = Vector2(568, 440)
 layout_mode = 2
-color = Color(0.06, 0.44, 0.18, 0.88)
+size_flags_horizontal = 4
+mouse_filter = 2
+texture = ExtResource("12_knight")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="Marcador" type="Label" parent="RigCentral/Ficha/Margen/Contenido/IlustracionClase"]
+[node name="Marcador" type="Label" parent="RigCentral/Ficha/Margen/Contenido/IlustracionClase" unique_id=525443232]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "ILUSTRACIÓN DE CLASE\n[ SIN ARQUETIPO ]"
+text = "ILUSTRACIÓN DE CLASE
+[ SIN ARQUETIPO ]"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Nombre" type="LineEdit" parent="RigCentral/Ficha/Margen/Contenido"]
+[node name="Nombre" type="LineEdit" parent="RigCentral/Ficha/Margen/Contenido" unique_id=398178841]
+custom_minimum_size = Vector2(400, 58)
 layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_placeholder_color = Color(0.2, 0.18, 0.15, 0.65)
+theme_override_fonts/font = ExtResource("13_font")
+theme_override_styles/normal = SubResource("StyleBox_campo_nombre")
+theme_override_styles/focus = SubResource("StyleBox_campo_nombre")
 placeholder_text = "Nombre del aventurero"
 max_length = 32
 
-[node name="TituloAventurero" type="LineEdit" parent="RigCentral/Ficha/Margen/Contenido"]
+[node name="TituloAventurero" type="LineEdit" parent="RigCentral/Ficha/Margen/Contenido" unique_id=785318052]
+custom_minimum_size = Vector2(400, 58)
 layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_placeholder_color = Color(0.2, 0.18, 0.15, 0.65)
+theme_override_fonts/font = ExtResource("13_font")
+theme_override_styles/normal = SubResource("StyleBox_campo_nombre")
+theme_override_styles/focus = SubResource("StyleBox_campo_nombre")
 placeholder_text = "Título"
 max_length = 40
 
-[node name="Resumen" type="HBoxContainer" parent="RigCentral/Ficha/Margen/Contenido"]
+[node name="Resumen" type="HBoxContainer" parent="RigCentral/Ficha/Margen/Contenido" unique_id=1627329875]
+custom_minimum_size = Vector2(560, 0)
 layout_mode = 2
+size_flags_horizontal = 4
 theme_override_constants/separation = 12
+alignment = 1
 
-[node name="PV" type="Label" parent="RigCentral/Ficha/Margen/Contenido/Resumen"]
+[node name="PV" type="Label" parent="RigCentral/Ficha/Margen/Contenido/Resumen" unique_id=183391267]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("13_font")
 text = "PV MÁXIMOS: ––"
 horizontal_alignment = 1
 
-[node name="Clase" type="Label" parent="RigCentral/Ficha/Margen/Contenido/Resumen"]
+[node name="Clase" type="Label" parent="RigCentral/Ficha/Margen/Contenido/Resumen" unique_id=1873567418]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("13_font")
 text = "CLASE: PENDIENTE"
 horizontal_alignment = 1
 
-[node name="Origen" type="Label" parent="RigCentral/Ficha/Margen/Contenido"]
+[node name="Origen" type="Label" parent="RigCentral/Ficha/Margen/Contenido" unique_id=1659939203]
+custom_minimum_size = Vector2(560, 0)
 layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("13_font")
 text = "ORIGEN: SIN DETERMINAR"
 horizontal_alignment = 1
 
-[node name="Equipo" type="Label" parent="RigCentral/Ficha/Margen/Contenido"]
+[node name="Equipo" type="Label" parent="RigCentral/Ficha/Margen/Contenido" unique_id=1606517156]
+custom_minimum_size = Vector2(560, 0)
 layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("13_font")
 text = "EQUIPO: Daga Mellada · Farol de Sebo · Mapa Roto"
 horizontal_alignment = 1
 autowrap_mode = 2
 
-[node name="EleccionEmpate" type="HBoxContainer" parent="RigCentral/Ficha/Margen/Contenido"]
+[node name="EleccionEmpate" type="HBoxContainer" parent="RigCentral/Ficha/Margen/Contenido" unique_id=341265754]
 visible = false
 layout_mode = 2
+size_flags_horizontal = 4
 alignment = 1
 
-[node name="Guerrero" type="Button" parent="RigCentral/Ficha/Margen/Contenido/EleccionEmpate"]
+[node name="Guerrero" type="Button" parent="RigCentral/Ficha/Margen/Contenido/EleccionEmpate" unique_id=1955511936]
 layout_mode = 2
 text = "GUERRERO"
 
-[node name="Ladron" type="Button" parent="RigCentral/Ficha/Margen/Contenido/EleccionEmpate"]
+[node name="Ladron" type="Button" parent="RigCentral/Ficha/Margen/Contenido/EleccionEmpate" unique_id=1548870757]
 layout_mode = 2
 text = "LADRÓN"
 
-[node name="Mago" type="Button" parent="RigCentral/Ficha/Margen/Contenido/EleccionEmpate"]
+[node name="Mago" type="Button" parent="RigCentral/Ficha/Margen/Contenido/EleccionEmpate" unique_id=956026385]
 layout_mode = 2
 text = "MAGO"
 
-[node name="RigDerecho" type="Control" parent="."]
-layout_mode = 0
+[node name="RigDerecho" type="Control" parent="." unique_id=380327509]
+anchors_preset = 0
 offset_left = 1365.0
+offset_top = -25.0
 offset_right = 1875.0
-offset_bottom = 1080.0
+offset_bottom = 1055.0
 mouse_filter = 2
 
-[node name="Cadenas" type="Control" parent="RigDerecho"]
+[node name="Cadenas" type="Control" parent="RigDerecho" unique_id=1438297762]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -441,165 +591,218 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="SuperiorIzquierda" type="TextureRect" parent="RigDerecho/Cadenas"]
+[node name="SuperiorIzquierda" type="TextureRect" parent="RigDerecho/Cadenas" unique_id=1905901234]
 layout_mode = 0
-offset_left = 70.0
-offset_top = -100.0
-offset_right = 100.0
-offset_bottom = 80.0
+offset_left = 19.0
+offset_top = -49.0
+offset_right = 49.0
+offset_bottom = 131.0
 mouse_filter = 2
 texture = ExtResource("3_chain")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="SuperiorDerecha" type="TextureRect" parent="RigDerecho/Cadenas"]
+[node name="SuperiorDerecha" type="TextureRect" parent="RigDerecho/Cadenas" unique_id=191949892]
 layout_mode = 0
-offset_left = 410.0
-offset_top = -100.0
-offset_right = 440.0
-offset_bottom = 80.0
+offset_left = 363.0
+offset_top = -52.0
+offset_right = 393.0
+offset_bottom = 128.0
 mouse_filter = 2
 texture = ExtResource("3_chain")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="RitualComenzarIzquierda" type="TextureRect" parent="RigDerecho/Cadenas"]
+[node name="RitualComenzarIzquierda" type="TextureRect" parent="RigDerecho/Cadenas" unique_id=1573942067]
 layout_mode = 0
-offset_left = 70.0
-offset_top = 770.0
-offset_right = 100.0
-offset_bottom = 900.0
+offset_left = 30.0
+offset_top = 889.0
+offset_right = 60.0
+offset_bottom = 1019.0
 mouse_filter = 2
 texture = ExtResource("3_chain")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="RitualComenzarDerecha" type="TextureRect" parent="RigDerecho/Cadenas"]
+[node name="RitualComenzarDerecha" type="TextureRect" parent="RigDerecho/Cadenas" unique_id=365826582]
 layout_mode = 0
-offset_left = 410.0
-offset_top = 770.0
-offset_right = 440.0
-offset_bottom = 900.0
+offset_left = 371.0
+offset_top = 889.0
+offset_right = 401.0
+offset_bottom = 1019.0
 mouse_filter = 2
 texture = ExtResource("3_chain")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="ComenzarRig" type="Control" parent="RigDerecho"]
-visible = false
-layout_mode = 0
-offset_top = 820.0
+[node name="ComenzarRig" type="Control" parent="RigDerecho" unique_id=1001135514]
+anchors_preset = 0
+offset_top = 840.0
 offset_right = 510.0
-offset_bottom = 1025.0
+offset_bottom = 1045.0
 mouse_filter = 2
 
-[node name="Tabla" type="PanelContainer" parent="RigDerecho/ComenzarRig"]
+[node name="Tabla" type="PanelContainer" parent="RigDerecho/ComenzarRig" unique_id=1269364123]
 layout_mode = 0
-offset_top = 80.0
-offset_right = 510.0
-offset_bottom = 185.0
-theme_override_styles/panel = SubResource("StyleBox_tabla")
+offset_left = -35.0
+offset_top = 133.0
+offset_right = 475.0
+offset_bottom = 238.0
+theme_override_styles/panel = SubResource("StyleBox_vacio")
 
-[node name="Comenzar" type="Button" parent="RigDerecho/ComenzarRig/Tabla"]
+[node name="Fondo" type="TextureRect" parent="RigDerecho/ComenzarRig/Tabla" unique_id=135801763]
 layout_mode = 2
-disabled = true
+mouse_filter = 2
+texture = ExtResource("9_back_board")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Comenzar" type="Button" parent="RigDerecho/ComenzarRig/Tabla" unique_id=1225638852]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_disabled_color = Color(0.18, 0.16, 0.13, 0.55)
+theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 28
+disabled = true
 text = "COMENZAR EXCURSIÓN"
 flat = true
 
-[node name="Ritual" type="PanelContainer" parent="RigDerecho"]
+[node name="Ritual" type="PanelContainer" parent="RigDerecho" unique_id=274551503]
 layout_mode = 0
+offset_left = -82.0
 offset_top = 55.0
 offset_right = 510.0
-offset_bottom = 805.0
-theme_override_styles/panel = SubResource("StyleBox_tabla")
+offset_bottom = 954.0
+theme_override_styles/panel = SubResource("StyleBox_vacio")
 
-[node name="Margen" type="MarginContainer" parent="RigDerecho/Ritual"]
+[node name="Fondo" type="TextureRect" parent="RigDerecho/Ritual" unique_id=37388150]
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("7_ritual_board")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Margen" type="MarginContainer" parent="RigDerecho/Ritual" unique_id=782642393]
 layout_mode = 2
 theme_override_constants/margin_left = 22
 theme_override_constants/margin_top = 22
 theme_override_constants/margin_right = 22
 theme_override_constants/margin_bottom = 22
 
-[node name="Contenido" type="VBoxContainer" parent="RigDerecho/Ritual/Margen"]
+[node name="Contenido" type="VBoxContainer" parent="RigDerecho/Ritual/Margen" unique_id=776779647]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 16
+alignment = 1
 
-[node name="Titulo" type="Label" parent="RigDerecho/Ritual/Margen/Contenido"]
+[node name="Titulo" type="Label" parent="RigDerecho/Ritual/Margen/Contenido" unique_id=1524616384]
 layout_mode = 2
-theme_override_font_sizes/font_size = 30
-text = "II. RITUAL DE ORIGEN"
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("13_font")
+theme_override_font_sizes/font_size = 39
+text = "RITUAL DE ORIGEN"
 horizontal_alignment = 1
 
-[node name="Instruccion" type="Label" parent="RigDerecho/Ritual/Margen/Contenido"]
+[node name="Instruccion" type="Label" parent="RigDerecho/Ritual/Margen/Contenido" unique_id=844281518]
+custom_minimum_size = Vector2(440, 0)
 layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 17
 text = "Deja caer el relicario para desvelar la tierra de tus ancestros."
 horizontal_alignment = 1
 autowrap_mode = 2
 
-[node name="Origenes" type="GridContainer" parent="RigDerecho/Ritual/Margen/Contenido"]
+[node name="Origenes" type="GridContainer" parent="RigDerecho/Ritual/Margen/Contenido" unique_id=1493269711]
+custom_minimum_size = Vector2(440, 0)
 layout_mode = 2
-size_flags_vertical = 3
+size_flags_horizontal = 4
+size_flags_vertical = 4
 theme_override_constants/h_separation = 10
 theme_override_constants/v_separation = 10
 columns = 2
 
-[node name="OrigenI" type="PanelContainer" parent="RigDerecho/Ritual/Margen/Contenido/Origenes"]
+[node name="OrigenI" type="PanelContainer" parent="RigDerecho/Ritual/Margen/Contenido/Origenes" unique_id=1685691523]
+custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
 theme_override_styles/panel = SubResource("StyleBox_celda")
 
-[node name="Texto" type="Label" parent="RigDerecho/Ritual/Margen/Contenido/Origenes/OrigenI"]
+[node name="Texto" type="Label" parent="RigDerecho/Ritual/Margen/Contenido/Origenes/OrigenI" unique_id=1519627066]
 layout_mode = 2
-text = "ORIGEN I\nMina Ciénaga"
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("13_font")
+theme_override_font_sizes/font_size = 26
+text = "ORIGEN I
+Mina Ciénaga"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="OrigenII" type="PanelContainer" parent="RigDerecho/Ritual/Margen/Contenido/Origenes"]
+[node name="OrigenII" type="PanelContainer" parent="RigDerecho/Ritual/Margen/Contenido/Origenes" unique_id=2016654249]
+custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
 theme_override_styles/panel = SubResource("StyleBox_celda")
 
-[node name="Texto" type="Label" parent="RigDerecho/Ritual/Margen/Contenido/Origenes/OrigenII"]
+[node name="Texto" type="Label" parent="RigDerecho/Ritual/Margen/Contenido/Origenes/OrigenII" unique_id=1752484904]
 layout_mode = 2
-text = "ORIGEN II\nBastión Solitario"
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("13_font")
+theme_override_font_sizes/font_size = 26
+text = "ORIGEN II
+Bastión Solitario"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="OrigenIII" type="PanelContainer" parent="RigDerecho/Ritual/Margen/Contenido/Origenes"]
+[node name="OrigenIII" type="PanelContainer" parent="RigDerecho/Ritual/Margen/Contenido/Origenes" unique_id=1891965497]
+custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
 theme_override_styles/panel = SubResource("StyleBox_celda")
 
-[node name="Texto" type="Label" parent="RigDerecho/Ritual/Margen/Contenido/Origenes/OrigenIII"]
+[node name="Texto" type="Label" parent="RigDerecho/Ritual/Margen/Contenido/Origenes/OrigenIII" unique_id=681110924]
 layout_mode = 2
-text = "ORIGEN III\nCripta Apócrifa"
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("13_font")
+theme_override_font_sizes/font_size = 26
+text = "ORIGEN III
+Cripta Apócrifa"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="OrigenIV" type="PanelContainer" parent="RigDerecho/Ritual/Margen/Contenido/Origenes"]
+[node name="OrigenIV" type="PanelContainer" parent="RigDerecho/Ritual/Margen/Contenido/Origenes" unique_id=1890375985]
+custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
 theme_override_styles/panel = SubResource("StyleBox_celda")
 
-[node name="Texto" type="Label" parent="RigDerecho/Ritual/Margen/Contenido/Origenes/OrigenIV"]
+[node name="Texto" type="Label" parent="RigDerecho/Ritual/Margen/Contenido/Origenes/OrigenIV" unique_id=2056742192]
 layout_mode = 2
-text = "ORIGEN IV\nPáramo Ceniciento"
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("13_font")
+theme_override_font_sizes/font_size = 26
+text = "ORIGEN IV
+Páramo Ceniciento"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Relicario" type="Button" parent="RigDerecho/Ritual/Margen/Contenido"]
-custom_minimum_size = Vector2(0, 64)
+[node name="Relicario" type="Button" parent="RigDerecho/Ritual/Margen/Contenido" unique_id=2115193539]
+custom_minimum_size = Vector2(440, 64)
 layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("13_font")
+theme_override_font_sizes/font_size = 26
 text = "DEJAR CAER RELICARIO"
 
-[node name="Estado" type="Label" parent="RigDerecho/Ritual/Margen/Contenido"]
+[node name="Estado" type="Label" parent="RigDerecho/Ritual/Margen/Contenido" unique_id=1095423145]
 layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("13_font")
+theme_override_font_sizes/font_size = 26
 text = "Origen sin determinar"
 horizontal_alignment = 1
 

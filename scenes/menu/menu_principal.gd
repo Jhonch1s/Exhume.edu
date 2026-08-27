@@ -18,27 +18,19 @@ func _on_jugar_pressed() -> void:
 
 	transicion_activa = true
 	menu_colgante.process_mode = Node.PROCESS_MODE_DISABLED
-	nueva_partida.position.y = -nueva_partida.size.y
-	nueva_partida.show()
 
-	var tween := create_tween().set_parallel()
+	var tween := create_tween()
 	tween.tween_property(
 		menu_colgante,
 		"position:y",
 		menu_colgante.position.y - menu_colgante.size.y - 80.0,
 		0.55
 	).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tween.tween_property(
-		nueva_partida,
-		"position:y",
-		0.0,
-		0.70
-	).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tween.finished.connect(func() -> void:
-		menu_colgante.hide()
-		mostrando_nueva_partida = true
-		transicion_activa = false
-	)
+	await tween.finished
+	menu_colgante.hide()
+	await nueva_partida.reproducir_entrada()
+	mostrando_nueva_partida = true
+	transicion_activa = false
 
 
 func _on_volver_nueva_partida() -> void:
@@ -46,27 +38,21 @@ func _on_volver_nueva_partida() -> void:
 		return
 
 	transicion_activa = true
+	await nueva_partida.reproducir_salida()
+	nueva_partida.hide()
 	menu_colgante.show()
 	menu_colgante.process_mode = Node.PROCESS_MODE_INHERIT
 
-	var tween := create_tween().set_parallel()
-	tween.tween_property(
-		nueva_partida,
-		"position:y",
-		-nueva_partida.size.y,
-		0.55
-	).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	var tween := create_tween()
 	tween.tween_property(
 		menu_colgante,
 		"position:y",
 		0.0,
 		0.70
 	).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tween.finished.connect(func() -> void:
-		nueva_partida.hide()
-		mostrando_nueva_partida = false
-		transicion_activa = false
-	)
+	await tween.finished
+	mostrando_nueva_partida = false
+	transicion_activa = false
 
 
 func _on_continuar_pressed() -> void:
