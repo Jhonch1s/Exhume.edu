@@ -40,17 +40,10 @@ func _on_volver_nueva_partida() -> void:
 	transicion_activa = true
 	await nueva_partida.reproducir_salida()
 	nueva_partida.hide()
+	menu_colgante.position.y = 0.0
 	menu_colgante.show()
 	menu_colgante.process_mode = Node.PROCESS_MODE_INHERIT
-
-	var tween := create_tween()
-	tween.tween_property(
-		menu_colgante,
-		"position:y",
-		0.0,
-		0.70
-	).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	await tween.finished
+	await menu_colgante.reproducir_entrada()
 	mostrando_nueva_partida = false
 	transicion_activa = false
 

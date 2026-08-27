@@ -56,7 +56,7 @@ func _ready() -> void:
 	salir.presionado.connect(salir_presionado.emit)
 
 	# esperamos a que Godot termine de calcular el layout.
-	call_deferred("_reproducir_caida")
+	call_deferred("reproducir_entrada")
 
 
 func _process(delta: float) -> void:
@@ -70,7 +70,8 @@ func _process(delta: float) -> void:
 	cola_derecha.rotation_degrees = -sin(fase_derecha) * amplitud_balanceo_colas * 0.85
 
 
-func _reproducir_caida() -> void:
+func reproducir_entrada() -> Signal:
+	_detener_balanceo_colas()
 	posicion_final_y = rig_colgante.position.y
 
 	# Comienza afuera de la pantalla.
@@ -127,6 +128,7 @@ func _reproducir_caida() -> void:
 		0.0,
 		0.26
 	).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	return tween.finished
 
 
 func _reproducir_reaccion_secundaria() -> void:
