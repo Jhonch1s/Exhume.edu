@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/interacciones/panel_resultado_accion.tscn" id="9_panel_resultado"]
 [ext_resource type="Resource" path="res://assets/interactuables/mensajes_interacciones.tres" id="10_catalogo_mensajes"]
 [ext_resource type="PackedScene" path="res://scenes/ui/interacciones/menu_contextual_interacciones.tscn" id="11_menu_contextual"]
+[ext_resource type="PackedScene" path="res://scenes/ui/interacciones/panel_registro_narrativo.tscn" id="12_registro_narrativo"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_crt_zona"]
 shader = ExtResource("8_crt")
@@ -76,6 +77,8 @@ layer = 2
 [node name="PanelResultadoAccion" parent="CanvasLayer" instance=ExtResource("9_panel_resultado")]
 
 [node name="MenuContextualInteracciones" parent="CanvasLayer" instance=ExtResource("11_menu_contextual")]
+
+[node name="PanelRegistroNarrativo" parent="CanvasLayer" instance=ExtResource("12_registro_narrativo")]
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1734531678]
 stream = ExtResource("7_541xx")

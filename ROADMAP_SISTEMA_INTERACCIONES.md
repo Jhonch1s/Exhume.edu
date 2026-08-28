@@ -30,7 +30,7 @@
 - [x] Fase 14 — Sistema de tiradas. *(completada el 24 de agosto de 2026)*
 - [x] Fase 15 — Nueva partida y creación de personaje. *(completada el 28 de agosto de 2026)*
 - [x] Fase 16 — Atributos y dados en interacciones. *(completada el 28 de agosto de 2026)*
-- [ ] Fase 17 — Registro narrativo de sesión. *(planificada el 28 de agosto de 2026)*
+- [x] Fase 17 — Registro narrativo de sesión. *(primer incremento completado el 28 de agosto de 2026)*
 
 Cuando una fase comience, se debe cambiar su casilla y registrar debajo de ella:
 
@@ -1683,8 +1683,31 @@ reacciones relevantes del mundo sin reutilizar el registro interno de depuració
 El contrato y el primer incremento verificable están definidos en
 [`docs/contratos/19_REGISTRO_NARRATIVO_SESION.md`](docs/contratos/19_REGISTRO_NARRATIVO_SESION.md).
 
-La fase está planificada, no iniciada. Su primer incremento se limita al registro
-en memoria, el panel contraíble y una vertical de reacciones al movimiento.
+### Registro de implementación 17.1
+
+- Responsable: sesión Codex del 28 de agosto de 2026.
+- Decisiones: registro exclusivamente en memoria; panel flotante no modal con tres
+  entradas en compacto y todo el historial en expandido; seguimiento del final
+  condicionado a que el jugador no esté leyendo entradas anteriores. El escenario
+  publica una sola tarjeta desde el `ResultadoReacciones` ya resuelto y solo para
+  pinchos, telaraña, lodo, hielo y fuego. No existe suscripción global al historial
+  de tiradas, por lo que una percepción secreta fallida no revela su objetivo.
+- Ampliación de cierre: las palancas y demás acciones visibles `INTERACTUAR`, el
+  uso y lanzamiento de items, y los ticks perceptibles de quemado o veneno también
+  publican una tarjeta desde su `ResultadoAccion`. Persistencia y filtros se
+  descartan deliberadamente: el registro siempre pertenece solo a la sesión actual.
+- Cierre de alcance narrativo: activación de trampas agrupada con su lote de
+  movimiento; descubrimiento solo cuando la percepción secreta tiene éxito;
+  destrabarse; y expiraciones o transformaciones de superficies si su celda está
+  visible. Lava y humo venenoso se incluyen por sus consecuencias perceptibles.
+  Los fallos secretos y cambios fuera de visión no se publican.
+- Archivos: registro y entrada narrativa bajo `scripts/interacciones/presentacion`,
+  panel bajo `scenes/ui/interacciones`, integración en `EscenarioBase`, prueba
+  técnica, contrato 19 y este roadmap.
+- Pruebas: registro ordenado, visibilidad, límite compacto, expansión y contracción;
+  verificación headless y de formato del proyecto.
+- Pendientes: diálogos y combate se integrarán cuando existan sus flujos jugables;
+  no se anticipan ahora.
 
 ---
 

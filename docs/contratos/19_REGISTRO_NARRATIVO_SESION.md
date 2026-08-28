@@ -1,6 +1,6 @@
 # Contrato — registro narrativo de sesión
 
-> Estado: propuesta aprobada para la Fase 17; implementación no iniciada.
+> Estado: primer incremento implementado el 28 de agosto de 2026.
 
 ## Objetivo
 
@@ -51,11 +51,10 @@ consecuencias. El panel solo observa el registro y no participa en el juego.
 - El productor del acontecimiento determina su política de visibilidad; el panel
   se limita a respetarla.
 
-## Duración y persistencia
+## Duración
 
-El historial pertenece a la sesión actual, comienza vacío y no se incluye todavía
-en partidas guardadas ni snapshots. Esta decisión puede revisarse cuando exista
-una necesidad narrativa concreta de conservarlo entre cargas.
+El historial pertenece exclusivamente a la sesión actual, comienza vacío y no se
+incluye en partidas guardadas ni snapshots. Cerrar el juego descarta el historial.
 
 ## Primer incremento verificable
 
@@ -67,8 +66,8 @@ una necesidad narrativa concreta de conservarlo entre cargas.
 5. Verificar que el panel no bloquea el juego, conserva el orden y respeta la
    visibilidad.
 
-Quedan fuera de este incremento: persistencia, filtros, búsquedas, exportación,
-diálogos, combate, puertas, palancas, items y el registro de pasos normales.
+Quedan fuera: persistencia, filtros, búsquedas, exportación, diálogos, combate,
+puertas y el registro de pasos normales.
 
 ## Criterios de aceptación
 
@@ -79,3 +78,24 @@ diálogos, combate, puertas, palancas, items y el registro de pasos normales.
 - El registro técnico existente permanece sin cambios y no alimenta la interfaz.
 - Una percepción secreta fallida no queda expuesta por una suscripción global al
   historial de tiradas.
+
+## Implementación del primer incremento
+
+`RegistroNarrativoSesion` conserva entradas ordenadas solo en memoria y emite cada
+alta al panel observador. `PanelRegistroNarrativo` muestra las tres últimas en modo
+compacto y todas en modo expandido; solo sigue el final si el jugador no desplazó
+la vista hacia entradas anteriores.
+
+`EscenarioBase` produce una entrada visible después de resolver un lote `ENTRAR`
+de pinchos, telaraña, lodo, hielo o fuego. Usa la tirada y las consecuencias ya
+resueltas del mismo `ResultadoReacciones`, por lo que genera una tarjeta por lote.
+El mismo criterio cubre lava y humo venenoso porque su daño o estado es perceptible.
+Las acciones visibles `INTERACTUAR` y `USAR_ITEM`, los lanzamientos y los efectos
+de quemado o veneno al avanzar el turno usan el mismo canal con sus resultados ya
+resueltos.
+La activación de trampas forma parte del lote de movimiento; una detección secreta
+solo publica el descubrimiento exitoso. Destrabarse y la expiración o transformación
+de una superficie visible también producen una entrada. Las transformaciones fuera
+de la visión actual no se revelan.
+No observa globalmente `HistorialTiradas`, no modifica `GestorAcciones` y no incluye
+el registro en guardados ni snapshots.

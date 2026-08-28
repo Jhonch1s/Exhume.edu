@@ -52,6 +52,7 @@ func procesar_fin_ronda() -> ResultadoAccion:
 		var cambio: Dictionary = {
 			&"tipo": &"superficie_tick",
 			&"id_superficie": id_efecto,
+			&"coordenada": efecto.call(&"obtener_coordenada_reaccion"),
 			&"turnos_restantes": restantes,
 			&"expirada": restantes == 0,
 		}
