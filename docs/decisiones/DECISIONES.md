@@ -24,6 +24,13 @@ Las decisiones vigentes están desarrolladas en
   y presenta.
 - El origen automático o solicitado es independiente de presentar la tirada en
   primer plano o únicamente en el historial de sesión.
+- Las expresiones de daño pertenecen al contenido que las produce. Los estados las
+  conservan para volver a resolverlas en cada tick; el aplicador recibe cantidades
+  resueltas y no contiene tablas de daño por elemento.
+- Las superficies estáticas pintadas en la zona se reconstruyen desde sus capas y
+  no se incluyen en el snapshot de contenido dinámico. Pinchos hacen `1d3` sin
+  salvación; telaraña usa DES y `enredado`; lodo e hielo comparten DES y caída; el
+  fuego estático aplica quemado y funciona como fuente de luz sin fog propio.
 
 Si una decisión cambia, debe registrarse primero en el roadmap y después corregirse
 en contratos, código y pruebas dentro del mismo cambio.

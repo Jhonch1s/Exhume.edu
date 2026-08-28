@@ -48,6 +48,8 @@ var servicio_turnos: ServicioTurnos
 var procesador_superficies: ProcesadorSuperficies
 var registro_conocimiento: RegistroConocimiento = RegistroConocimiento.new()
 var servicio_examen: ServicioExamen
+var servicio_percepcion_trampas: ServicioPercepcionTrampas
+var accion_destrabarse: AccionDestrabarse = AccionDestrabarse.new()
 var ficha_jugador: Ficha = null
 var transferidor_items: TransferidorItems
 var selector_objetivos: SelectorObjetivosInteraccion = SelectorObjetivosInteraccion.new()
@@ -110,6 +112,9 @@ func _ready() -> void:
 	procesador_superficies = ProcesadorSuperficies.new(tablero)
 	tablero.generar_desde_zona(zona_actual)
 	validador_espacial = ValidadorEspacialTablero.new(tablero)
+	servicio_percepcion_trampas = ServicioPercepcionTrampas.new(
+		tablero, registro_conocimiento, validador_espacial
+	)
 	transferidor_items = TransferidorItems.new(tablero, gestor_acciones)
 	tablero.item_suelo_registrado.connect(_on_item_suelo_registrado)
 	tablero.item_suelo_retirado.connect(_on_item_suelo_retirado)
@@ -257,6 +262,9 @@ func _manejar_clic_derecho(coord: Vector2i) -> void:
 		return
 	if interaccion_modal_activa:
 		return
+	if ficha_jugador.obtener_estado(&"enredado") != null:
+		_intentar_destrabarse()
+		return
 	if ficha_jugador.esta_moviendose:
 		# Se interrumpe al terminar el paso en curso, nunca entre dos celdas.
 		ficha_jugador.solicitar_interrupcion()
@@ -298,10 +306,20 @@ func _manejar_clic_derecho(coord: Vector2i) -> void:
 		en_combate
 	)
 
+
+func _intentar_destrabarse() -> void:
+	var resultado := gestor_acciones.procesar_accion(
+		accion_destrabarse.construir_contexto(ficha_jugador)
+	)
+	ultimo_resultado_contextual = resultado
+	_presentar_resultado_contextual("Telaraña", resultado)
+
 func _avanzar_turno_exploracion(ficha: Ficha) -> bool:
 	var resultado := servicio_turnos.avanzar_turno(ficha)
 	if not resultado.exitosa:
 		return false
+	if resultado.tirada != null:
+		historial_tiradas.registrar(resultado.tirada)
 	var resultado_superficies := procesador_superficies.procesar_fin_ronda()
 	if not resultado_superficies.exitosa or ficha.pv_actual <= 0:
 		return false
@@ -388,8 +406,14 @@ func _resolver_reacciones_movimiento(
 		destino,
 		reacciones
 	)
+	for resultado_individual in resultado.resultados:
+		if resultado_individual.tirada != null:
+			historial_tiradas.registrar(resultado_individual.tirada)
 	if resultado.interrumpe_movimiento:
 		ficha.solicitar_interrupcion()
+	if ficha.obtener_estado(&"caido") != null:
+		ficha.agotar_recursos_turno()
+		_avanzar_turno_exploracion(ficha)
 	return resultado
 
 func spawnear_ficha_inicial() -> void:
@@ -424,12 +448,21 @@ func _on_ficha_paso_dado(nueva_coord: Vector2i) -> void:
 func _actualizar_luz_jugador(coordenada: Vector2i) -> void:
 	if ficha_jugador.pasos_antorcha_actual <= 0 and ficha_jugador.antorchas <= 0:
 		gestor_vision.actualizar_vision(coordenada, 1)
+	else:
+		var radio_actual: float = 5.0
+		if ficha_jugador.pasos_antorcha_actual <= 10:
+			var porcentaje_final := float(max(0, ficha_jugador.pasos_antorcha_actual)) / 10.0
+			radio_actual = max(1.0, porcentaje_final * 5.0)
+		gestor_vision.actualizar_vision(coordenada, int(radio_actual))
+	_evaluar_percepcion_trampas()
+
+
+func _evaluar_percepcion_trampas() -> void:
+	if servicio_percepcion_trampas == null or ficha_jugador == null:
 		return
-	var radio_actual: float = 5.0
-	if ficha_jugador.pasos_antorcha_actual <= 10:
-		var porcentaje_final := float(max(0, ficha_jugador.pasos_antorcha_actual)) / 10.0
-		radio_actual = max(1.0, porcentaje_final * 5.0)
-	gestor_vision.actualizar_vision(coordenada, int(radio_actual))
+	for resultado in servicio_percepcion_trampas.evaluar(ficha_jugador):
+		if resultado.tirada != null:
+			historial_tiradas.registrar(resultado.tirada)
 
 func _inicializar_audio_ambiente() -> void:
 	generador_azar_audio.randomize()

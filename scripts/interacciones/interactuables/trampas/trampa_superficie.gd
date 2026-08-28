@@ -61,6 +61,14 @@ func restaurar_estado_persistente(estado: Dictionary) -> StringName:
 	return &""
 
 
+func revelar() -> bool:
+	if presentacion == Presentacion.VISIBLE:
+		return false
+	presentacion = Presentacion.VISIBLE
+	_actualizar_presentacion()
+	return true
+
+
 func reacciona_automaticamente(tipo: TiposInteraccion.TipoAccion) -> bool:
 	return tipo in [
 		TiposInteraccion.TipoAccion.ENTRAR,

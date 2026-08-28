@@ -21,14 +21,28 @@ func validar(solicitud: SolicitudEfecto) -> StringName:
 
 
 func _validar_estado(solicitud: SolicitudEfecto) -> StringName:
-	if solicitud.clave not in [&"veneno", &"quemado"]:
+	if solicitud.clave not in [&"veneno", &"quemado", &"enredado", &"caido"]:
 		return &"estado_no_admitido"
 	if (
-		solicitud.magnitud <= 0.0
+		solicitud.magnitud < 0.0
 		or solicitud.magnitud != floorf(solicitud.magnitud)
 		or solicitud.duracion <= 0
 	):
 		return &"configuracion_estado_invalida"
+	if solicitud.magnitud == 0.0 and solicitud.terminos_dano.is_empty():
+		return &"configuracion_estado_invalida"
+	if not solicitud.terminos_dano.is_empty():
+		var motivo := MotorDados.new().validar_cantidad(
+			solicitud.terminos_dano,
+			0,
+			TiposTirada.Origen.AUTOMATICA,
+			TiposTirada.Presentacion.SOLO_LOG
+		)
+		if motivo != &"":
+			return motivo
+		for termino in solicitud.terminos_dano:
+			if termino[&"signo"] != 1:
+				return &"signo_dano_tick_invalido"
 	if (
 		not solicitud.objetivo.has_method(&"aplicar_o_renovar_estado")
 		or not solicitud.objetivo.has_method(&"recibir_danio")
@@ -59,35 +73,29 @@ func aplicar(solicitud: SolicitudEfecto) -> Variant:
 
 
 func _aplicar_estado(solicitud: SolicitudEfecto) -> Variant:
-	var aplica_dano_inmediato := solicitud.clave == &"quemado"
 	var cambio: Variant = solicitud.objetivo.call(
 		&"aplicar_o_renovar_estado",
 		solicitud.clave,
 		solicitud.magnitud,
 		solicitud.duracion,
-		solicitud.duracion - (1 if aplica_dano_inmediato else 0),
-		solicitud.fuente
+		solicitud.duracion,
+		solicitud.fuente,
+		solicitud.terminos_dano
 	)
 	if not cambio is Dictionary or cambio.is_empty() or not cambio.has(&"creado"):
 		return &"resultado_estado_invalido"
 	var creado: bool = cambio[&"creado"]
-	var dano_inmediato := 0
-	if creado and aplica_dano_inmediato:
-		var aplicado: Variant = solicitud.objetivo.call(
-			&"recibir_danio", int(solicitud.magnitud), solicitud.fuente
-		)
-		if not aplicado is int or aplicado < 0:
-			return &"resultado_dano_invalido"
-		dano_inmediato = aplicado
-	cambio[&"dano_inmediato"] = dano_inmediato
-	var mensaje_nuevo := (
-		&"estado.envenenado" if solicitud.clave == &"veneno" else &"estado.quemado"
-	)
-	var mensaje_renovado := (
-		&"estado.veneno_renovado"
-		if solicitud.clave == &"veneno"
-		else &"estado.quemado_renovado"
-	)
+	var mensaje_nuevo := &"estado.enredado"
+	var mensaje_renovado := &"estado.enredado_renovado"
+	if solicitud.clave == &"veneno":
+		mensaje_nuevo = &"estado.envenenado"
+		mensaje_renovado = &"estado.veneno_renovado"
+	elif solicitud.clave == &"quemado":
+		mensaje_nuevo = &"estado.quemado"
+		mensaje_renovado = &"estado.quemado_renovado"
+	elif solicitud.clave == &"caido":
+		mensaje_nuevo = &"estado.caido"
+		mensaje_renovado = &"estado.caido_renovado"
 	return ResultadoEfectoAplicado.new(
 		solicitud.clave,
 		solicitud.tipo,

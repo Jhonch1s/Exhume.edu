@@ -23,9 +23,6 @@ func _ejecutar() -> void:
 		escenario.tablero.obtener_celda(palanca.coordenada_mapa).visibilidad = (
 			Celda.EstadoVisibilidad.VISIBLE
 		)
-		var generador := RandomNumberGenerator.new()
-		generador.seed = _buscar_semilla_exitosa(ficha.obtener_destreza())
-		palanca.motor_dados = MotorDados.new(generador)
 		escenario.estado_seleccion_objetivos.iniciar(
 			palanca.coordenada_mapa, [palanca]
 		)
@@ -34,28 +31,25 @@ func _ejecutar() -> void:
 		var resultado: ResultadoAccion = escenario.ultimo_resultado_contextual
 		_comprobar(
 			resultado.exitosa
-			and resultado.tirada is ResultadoPrueba
-			and resultado.tirada.exitosa
+			and resultado.tirada == null
 			and &"examen.palanca.basico" in resultado.mensajes
 			and &"examen.palanca.muesca_secundaria" in resultado.mensajes,
-			"Examinar la palanca debe tirar Destreza y revelar el detalle al tener éxito."
+			"Examinar la palanca debe revelar sus detalles sin tirar dados."
 		)
 		_comprobar(
 			escenario.registro_conocimiento.conoce_fragmento(
 				ficha.id_observador, palanca.id_instancia, &"muesca_secundaria"
 			)
-			and escenario.historial_tiradas.obtener_entradas().size() == 1,
-			"La consecuencia debe registrarse como conocimiento y la tirada en el historial."
+			and escenario.historial_tiradas.obtener_entradas().is_empty(),
+			"El detalle debe recordarse como conocimiento sin registrar una tirada."
 		)
 		_comprobar(
 			escenario.panel_resultado_accion.visible
 			and escenario.interaccion_modal_activa
-			and "Modo: Normal" in escenario.panel_resultado_accion.etiqueta_mensajes.text
 			and "muesca secundaria" in escenario.panel_resultado_accion.etiqueta_mensajes.text,
-			"La vertical debe presentar dados y consecuencia narrativa en el panel modal."
+			"La vertical debe presentar la descripción narrativa en el panel modal."
 		)
 		escenario.panel_resultado_accion.ocultar()
-		var estado_antes_repetir := generador.state
 		escenario.estado_seleccion_objetivos.iniciar(
 			palanca.coordenada_mapa, [palanca]
 		)
@@ -64,8 +58,7 @@ func _ejecutar() -> void:
 			escenario.ultimo_resultado_contextual.tirada == null
 			and &"examen.palanca.muesca_secundaria"
 			in escenario.ultimo_resultado_contextual.mensajes
-			and generador.state == estado_antes_repetir
-			and escenario.historial_tiradas.obtener_entradas().size() == 1,
+			and escenario.historial_tiradas.obtener_entradas().is_empty(),
 			"El conocimiento recordado debe mostrar el detalle sin volver a tirar."
 		)
 		escenario.panel_resultado_accion.ocultar()
@@ -89,16 +82,6 @@ func _obtener_opcion_examinar(
 		if opcion.tipo == TiposInteraccion.TipoAccion.EXAMINAR:
 			return opcion
 	return null
-
-
-func _buscar_semilla_exitosa(atributo: int) -> int:
-	for semilla in 1000:
-		var generador := RandomNumberGenerator.new()
-		generador.seed = semilla
-		var resultado := MotorDados.new(generador).resolver_prueba(atributo)
-		if resultado.exitosa and resultado.clasificacion == ResultadoPrueba.Clasificacion.NORMAL:
-			return semilla
-	return -1
 
 
 func _comprobar(condicion: bool, mensaje: String) -> void:

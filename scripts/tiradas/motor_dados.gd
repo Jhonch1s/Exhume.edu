@@ -17,7 +17,7 @@ func resolver(
 	origen: Variant = TiposTirada.Origen.SOLICITADA,
 	presentacion: Variant = TiposTirada.Presentacion.PRIMER_PLANO
 ) -> ResultadoTirada:
-	var motivo := _validar(terminos, minimo_efectivo, origen, presentacion)
+	var motivo := validar_cantidad(terminos, minimo_efectivo, origen, presentacion)
 	if motivo != &"":
 		return ResultadoTirada.new(false, motivo)
 
@@ -42,6 +42,15 @@ func resolver(
 	return ResultadoTirada.new(
 		true, &"", resueltos, total, minimo_efectivo, origen, presentacion
 	)
+
+
+func validar_cantidad(
+	terminos: Array,
+	minimo_efectivo: Variant = 0,
+	origen: Variant = TiposTirada.Origen.SOLICITADA,
+	presentacion: Variant = TiposTirada.Presentacion.PRIMER_PLANO
+) -> StringName:
+	return _validar(terminos, minimo_efectivo, origen, presentacion)
 
 
 func resolver_prueba(

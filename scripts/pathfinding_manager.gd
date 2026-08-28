@@ -38,6 +38,8 @@ func calcular_camino(
 	actor: Object = null
 ) -> Array[Vector2i]:
 	var camino:Array[Vector2i]=[]
+	if actor != null and actor.has_method(&"puede_moverse") and not actor.call(&"puede_moverse"):
+		return camino
 	if not tablero_datos.has(origen) or not tablero_datos.has(destino):
 		return camino
 

@@ -6,12 +6,14 @@ extends Node2D
 @export var interrumpe_al_entrar: bool = true
 @export_range(0, 99, 1) var coste_movimiento_adicional: int = 1
 @export_range(1, 99, 1) var ticks_veneno: int = 2
-@export_range(1, 99, 1) var dano_por_tick: int = 1
+@export_range(1, 99, 1) var cantidad_dados_tick: int = 1
+@export_range(2, 99, 1) var caras_dado_tick: int = 2
 @export_range(1, 99, 1) var duracion_superficie: int = 10
 
 var tablero: TableroGrid
 var coordenada_mapa: Vector2i
 var _turnos_restantes: int = -1
+var motor_dados: MotorDados = MotorDados.new()
 
 
 func configurar_id_instancia(nuevo_id: StringName) -> void:
@@ -76,6 +78,19 @@ func validar_accion(contexto: ContextoAccion) -> StringName:
 		return &"accion_no_admitida"
 	if contexto.celda_objetivo != coordenada_mapa:
 		return &"celda_objetivo_invalida"
+	if contexto.actor == null or not contexto.actor.has_method(&"obtener_voluntad"):
+		return &"actor_sin_voluntad"
+	var voluntad: Variant = contexto.actor.call(&"obtener_voluntad")
+	if not voluntad is int or voluntad < 1 or voluntad > 5:
+		return &"voluntad_actor_invalida"
+	var motivo_dados := motor_dados.validar_cantidad(
+		_terminos_dano_tick(),
+		0,
+		TiposTirada.Origen.AUTOMATICA,
+		TiposTirada.Presentacion.SOLO_LOG
+	)
+	if motivo_dados != &"":
+		return motivo_dados
 	return &""
 
 
@@ -83,6 +98,19 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 	var motivo := validar_accion(contexto)
 	if motivo != &"":
 		return ResultadoAccion.crear_bloqueo(motivo)
+	var salvacion := motor_dados.resolver_prueba(
+		contexto.actor.call(&"obtener_voluntad"),
+		[],
+		[],
+		TiposTirada.Origen.AUTOMATICA,
+		TiposTirada.Presentacion.SOLO_LOG
+	)
+	if not salvacion.valida:
+		return ResultadoAccion.crear_bloqueo(salvacion.motivo)
+	if salvacion.exitosa:
+		return ResultadoAccion.crear_exito(
+			[&"estado.veneno_resistido"], [], [], {}, interrumpe_al_entrar
+		).con_tirada(salvacion)
 	return ResultadoAccion.crear_exito(
 		[],
 		[],
@@ -95,9 +123,18 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 			&"estado",
 			contexto.actor,
 			contexto.id_evento,
-			float(dano_por_tick),
+			0.0,
 			ticks_veneno,
 			TiposInteraccion.PoliticaApilado.NO_APILAR_Y_RENOVAR,
-			self
+			self,
+			_terminos_dano_tick()
 		)]
-	)
+	).con_tirada(salvacion)
+
+
+func _terminos_dano_tick() -> Array[Dictionary]:
+	return [{
+		&"cantidad": cantidad_dados_tick,
+		&"caras": caras_dado_tick,
+		&"signo": 1,
+	}]

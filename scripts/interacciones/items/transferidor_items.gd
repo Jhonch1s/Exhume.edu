@@ -192,7 +192,7 @@ func calcular_alcance_lanzamiento(actor: Object) -> float:
 	var fuerza: Variant = actor.call(&"obtener_fuerza")
 	if not fuerza is int or fuerza < 0:
 		return -1.0
-	return float(maxi(2, 1 + fuerza))
+	return float(7 + fuerza)
 
 
 func validar_accion(contexto: ContextoAccion) -> StringName:

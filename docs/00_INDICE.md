@@ -5,6 +5,7 @@
 - [[arquitectura/MAPA_SISTEMA_INTERACCIONES.canvas|Mapa visual del sistema]]
 - [[CONTRATOS_SISTEMA_INTERACCIONES|Contratos del sistema de interacciones]]
 - [[GUIA_CREAR_CONTENIDO_INTERACCIONES|Crear y diagnosticar contenido]]
+- [[contratos/19_REGISTRO_NARRATIVO_SESION|Registro narrativo de sesión]] — propuesta de Fase 17.
 - [Roadmap de implementación](../ROADMAP_SISTEMA_INTERACCIONES.md)
 
 ## Áreas

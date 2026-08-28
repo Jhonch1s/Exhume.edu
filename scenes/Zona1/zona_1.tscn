@@ -18,7 +18,12 @@
 [ext_resource type="PackedScene" path="res://scenes/interactuables/puertas/puerta_interactuable.tscn" id="16_puerta"]
 [ext_resource type="Resource" uid="uid://2lts1rw4c3bs" path="res://assets/interactuables/puertas/puerta/puerta.tres" id="17_puerta_def"]
 [ext_resource type="Resource" uid="uid://c2ge1trl7usdx" path="res://assets/interactuables/puertas/puerta_madera_mecanismo/puerta_madera_mecanismo.tres" id="18_puerta_mecanismo_def"]
-[ext_resource type="Resource" path="res://assets/interactuables/puertas/puerta_madera_mecanismo/puerta_madera_mecanismo_derecha.tres" id="19_puerta_mecanismo_der_def"]
+[ext_resource type="Resource" uid="uid://dvap7ko3vs5pt" path="res://assets/interactuables/puertas/puerta_madera_mecanismo/puerta_madera_mecanismo_derecha.tres" id="19_puerta_mecanismo_der_def"]
+[ext_resource type="TileSet" uid="uid://c0fcnkqgc0isg" path="res://assets/tile_sets/surface_effects/spikes.tres" id="20_igs8u"]
+[ext_resource type="TileSet" uid="uid://t08yc6kq88bo" path="res://assets/tile_sets/surface_effects/mud.tres" id="21_aevxn"]
+[ext_resource type="TileSet" uid="uid://bdm815cgoj5qn" path="res://assets/tile_sets/surface_effects/ice.tres" id="22_ko8bm"]
+[ext_resource type="TileSet" uid="uid://dr6pcgl80juta" path="res://assets/tile_sets/surface_effects/fire.tres" id="23_a8yjn"]
+[ext_resource type="TileSet" uid="uid://b2soug6txnn72" path="res://assets/tile_sets/surface_effects/web.tres" id="24_igs8u"]
 
 [node name="Zona1" type="Node2D" unique_id=1662731053]
 y_sort_enabled = true
@@ -132,7 +137,7 @@ bloqueada = false
 id_instancia = &"zona1_puerta_mecanismo_05_m03"
 definicion = ExtResource("18_puerta_mecanismo_def")
 
-[node name="PuertaMecanismo_06_m03" parent="Interactuables/Puertas" instance=ExtResource("16_puerta")]
+[node name="PuertaMecanismo_06_m03" parent="Interactuables/Puertas" unique_id=420118601 instance=ExtResource("16_puerta")]
 position = Vector2(288, 48)
 bloqueada = false
 id_instancia = &"zona1_puerta_mecanismo_06_m03"
@@ -179,3 +184,28 @@ tile_set = ExtResource("6_gu20q")
 y_sort_enabled = true
 tile_set = ExtResource("7_gu20q")
 y_sort_origin = 2
+
+[node name="CapaPinchos" type="TileMapLayer" parent="." unique_id=1378238885]
+texture_filter = 1
+tile_map_data = PackedByteArray("AAAGAAgAAQABAAAAAAAHAAgAAQACAAAAAAAIAAgAAQADAAAAAAAJAAgAAQADAAAAAAA=")
+tile_set = ExtResource("20_igs8u")
+
+[node name="CapaLodo" type="TileMapLayer" parent="." unique_id=81883059]
+texture_filter = 1
+tile_map_data = PackedByteArray("AAAGAAoAAAAAAAAAAAAHAAoAAAADAAAAAAAIAAoAAAADAAAAAAAJAAoAAAACAAAAAAA=")
+tile_set = ExtResource("21_aevxn")
+
+[node name="CapaHielo" type="TileMapLayer" parent="." unique_id=1481467480]
+texture_filter = 1
+tile_map_data = PackedByteArray("AAAGAAkAAQAAAAAAAAAHAAkAAQAAAAAAAAAIAAkAAQAAAAAAAAAJAAkAAQADAAAAAAA=")
+tile_set = ExtResource("22_ko8bm")
+
+[node name="CapaFuego" type="TileMapLayer" parent="." unique_id=1394162112]
+texture_filter = 1
+tile_map_data = PackedByteArray("AAAGAAcAAAACAAAAAAAHAAcAAAAAAAAAAAAIAAcAAAAAAAAAAAAJAAcAAAADAAAAAAA=")
+tile_set = ExtResource("23_a8yjn")
+
+[node name="CapaTelaraña" type="TileMapLayer" parent="." unique_id=1651216253]
+texture_filter = 1
+tile_map_data = PackedByteArray("AAAHAAsAAAAAAAAAAAAIAAsAAAAAAAAAAAAJAAsAAAAAAAAAAAAGAAsAAAAAAAAAAAA=")
+tile_set = ExtResource("24_igs8u")

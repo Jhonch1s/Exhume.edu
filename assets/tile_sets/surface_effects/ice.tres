@@ -1,0 +1,17 @@
+[gd_resource type="TileSet" format=3 uid="uid://bdm815cgoj5qn"]
+
+[ext_resource type="Texture2D" uid="uid://dsq71fc3oxp24" path="res://assets/tiles/surface_effects/ice/sources/ice.png" id="1_4b33q"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_4b33q"]
+texture = ExtResource("1_4b33q")
+texture_region_size = Vector2i(64, 32)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+
+[resource]
+tile_shape = 1
+tile_layout = 4
+tile_size = Vector2i(64, 32)
+sources/1 = SubResource("TileSetAtlasSource_4b33q")

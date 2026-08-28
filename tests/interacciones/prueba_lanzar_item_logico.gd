@@ -259,7 +259,7 @@ func _probar_primera_colision() -> void:
 
 func _probar_alcance_diagonal() -> void:
 	var entorno := _crear_entorno()
-	var destino := Vector2i(4, 4)
+	var destino := Vector2i(10, 10)
 	var contexto: ContextoAccion = entorno.transferidor.construir_contexto_lanzar(
 		entorno.ficha,
 		entorno.item,
@@ -272,11 +272,11 @@ func _probar_alcance_diagonal() -> void:
 	)
 	var suelo: ItemSuelo = entorno.tablero.obtener_item_suelo(&"piedra_diagonal")
 	_comprobar(
-		contexto.alcance_maximo == 4.0
+		contexto.alcance_maximo == 10.0
 		and resultado.exitosa
 		and suelo != null
 		and suelo.coordenada_mapa == destino,
-		"FUE tres debe permitir cuatro celdas diagonales o rectas."
+		"FUE tres debe permitir diez celdas diagonales o rectas."
 	)
 	_liberar(entorno)
 
@@ -286,13 +286,13 @@ func _probar_alcance_diagonal() -> void:
 		entorno.ficha,
 		entorno.item,
 		Vector2i.ZERO,
-		Vector2i(2, 2),
+		Vector2i(7, 7),
 		&"piedra_alcance_minimo"
 	)
 	resultado = entorno.gestor.procesar_accion(contexto)
 	_comprobar(
-		contexto.alcance_maximo == 2.0 and resultado.exitosa,
-		"El alcance de lanzamiento nunca debe bajar de dos celdas."
+		contexto.alcance_maximo == 7.0 and resultado.exitosa,
+		"Un actor con fuerza cero debe conservar siete celdas base."
 	)
 	_liberar(entorno)
 
@@ -302,7 +302,7 @@ func _crear_entorno(tablero_inicial: TableroGrid = null) -> Dictionary:
 	tablero.datos[Vector2i.ZERO] = Celda.new()
 	tablero.datos[Vector2i.RIGHT] = Celda.new()
 	tablero.datos[Vector2i(2, 0)] = Celda.new()
-	for paso in range(1, 6):
+	for paso in range(1, 13):
 		tablero.datos[Vector2i(paso, paso)] = Celda.new()
 	var ficha := Ficha.new()
 	ficha.coordenada_mapa = Vector2i.ZERO

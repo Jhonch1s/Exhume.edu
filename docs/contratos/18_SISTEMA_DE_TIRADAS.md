@@ -94,12 +94,10 @@ términos, dados, total y efectivo. Rechaza resultados inválidos y `SOLO_LOG` s
 abrirse. Presentar no recibe un motor ni consume azar. No hay animación de dados ni
 integración con contenido hasta existir la vertical de 14.5.
 
-Desde 14.5, la palanca existente de Zona 1 contiene un detalle mecánico que exige
-una prueba solicitada y en primer plano contra la Destreza efectiva de `Ficha`.
-`PalancaInteractuable` solicita la tirada durante su resolución de `EXAMINAR`; un
-éxito aporta la pista que revela y recuerda la muesca secundaria, mientras un fallo
-conserva la información básica sin aplicar otra consecuencia. Una vez aprendido el
-detalle, exámenes posteriores lo muestran sin volver a tirar.
+La vertical 14.5 utilizó temporalmente la palanca de Zona 1 para probar la
+integración. La Fase 16 retira esa prueba por decisión de diseño: examinar y accionar
+una palanca son deterministas. Las futuras pruebas de exploración pertenecen al
+contenido que realmente introduce incertidumbre, como trampas y secretos.
 
 `ResultadoAccion` puede transportar el resultado de tirada ya resuelto. El escenario
 lo registra en `HistorialTiradas` y presenta dados y mensajes narrativos en el panel
@@ -139,6 +137,24 @@ Las pruebas contra atributos y las tiradas de cantidad comparten el generador, p
 no necesitan una abstracción común adicional hasta que el código demuestre esa
 necesidad.
 
+## Daño variable y estados
+
+Desde la Fase 16, una `SolicitudEfecto` de estado puede transportar términos de
+daño para sus ticks. La expresión se conserva en `EstadoActor`, se persiste con la
+ficha y `ServicioTurnos` la resuelve nuevamente en cada tick como tirada automática
+`SOLO_LOG`. El contenido configura la expresión; `AplicadorEfectos` sólo recibe el
+total ya resuelto.
+
+El humo venenoso solicita primero una salvación automática de Voluntad. Un éxito
+evita el estado; un fallo aplica dos ticks y cada uno resuelve `1d2`. Renovar el
+veneno restaura los dos ticks, pero nunca produce daño inmediato. Tanto la salvación
+como los ticks se registran en el historial de la sesión durante exploración.
+
+Quemado reutiliza el mismo mecanismo con tres ticks de `1d2`. Aplicar o renovar el
+estado no causa daño inmediato. La salvación de Destreza contra el daño inicial de
+una explosión de fuego pertenece a la futura explosión que la solicite, no a la
+superficie ni al estado persistente.
+
 ## Registro, persistencia y límites
 
 El historial del jugador es independiente de `RegistroAccionesDesarrollo`. Conserva
@@ -149,9 +165,12 @@ Los resultados ya resueltos, animaciones e historial no se persisten inicialment
 Sí deberán persistirse en su dominio los futuros atributos, estados, ventajas,
 desventajas o usos agotados que sobrevivan a una carga.
 
-Quedan fuera hasta existir un caso jugable: combate, daño crítico, percepción,
-diálogo, ayudas, repeticiones, grados de resultado y consecuencias generales de
-críticos o pifias.
+La percepción de trampas es el primer consumidor secreto: prueba Destreza con radio
+cuatro, celda visible y línea visual. Usa `AUTOMATICA` + `SOLO_LOG`; el resultado se
+registra y el intento por observador/trampa se persiste, pero no abre el display.
+
+Quedan fuera hasta existir un caso jugable: combate, daño crítico, diálogo, ayudas,
+repeticiones, grados de resultado y consecuencias generales de críticos o pifias.
 
 ## Incrementos previstos
 

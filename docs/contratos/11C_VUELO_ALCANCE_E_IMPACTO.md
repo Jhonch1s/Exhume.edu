@@ -27,7 +27,7 @@ defecto, por lo que una palanca manual continúa exigiendo adyacencia cardinal.
 ### Alcance según fuerza — incremento 9.5
 
 Un actor capaz de lanzar expone `obtener_fuerza()` como entero no negativo. El
-alcance máximo se calcula una sola vez mediante `max(2, 1 + fuerza)` y usa la métrica
+alcance máximo se calcula una sola vez mediante `7 + fuerza` y usa la métrica
 de cuadrícula de 9.4. `TransferidorItems.construir_contexto_lanzar()` obtiene el dato
 del actor; los llamadores ya no proporcionan un alcance arbitrario.
 
@@ -58,4 +58,3 @@ La definición `bomba_humo` configura esta reacción con radio cero y la escena 
 queda `ItemSuelo`. La nube pertenece a la familia `&"humo"`, bloquea visión, declara
 diez turnos de duración y no bloquea trayectoria de proyectiles. Su atlas visual tiene
 cuatro cuadros de `64×64`; la definición todavía no requiere icono de inventario.
-

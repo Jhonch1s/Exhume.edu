@@ -1,0 +1,17 @@
+[gd_resource type="TileSet" format=3 uid="uid://t08yc6kq88bo"]
+
+[ext_resource type="Texture2D" uid="uid://d1dr1rch72pv2" path="res://assets/tiles/surface_effects/mud/sources/mud_source.png" id="1_eepjf"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_w254s"]
+texture = ExtResource("1_eepjf")
+texture_region_size = Vector2i(64, 32)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+
+[resource]
+tile_shape = 1
+tile_layout = 4
+tile_size = Vector2i(64, 32)
+sources/0 = SubResource("TileSetAtlasSource_w254s")

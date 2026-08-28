@@ -32,7 +32,10 @@ func _probar_quemado() -> void:
 	var aplicador := AplicadorEfectos.new()
 	var servicio := ServicioTurnosScript.new(gestor, aplicador)
 	var inicial: Variant = aplicador.aplicar(SolicitudEfecto.new(
-		&"quemado", &"estado", ficha, &"entrada_fuego", 1.0, 3
+		&"quemado", &"estado", ficha, &"entrada_fuego", 0.0, 3,
+		TiposInteraccion.PoliticaApilado.NO_APILAR_Y_RENOVAR,
+		null,
+		[{&"cantidad": 1, &"caras": 2, &"signo": 1}]
 	))
 	_comprobar(inicial is ResultadoEfectoAplicado, "Quemado debe aplicarse antes de avanzar turnos.")
 	var vida_tras_entrada := ficha.pv_actual
@@ -41,32 +44,47 @@ func _probar_quemado() -> void:
 	var estado := ficha.obtener_estado(&"quemado")
 	_comprobar(primer_turno.exitosa, "FIN_TURNO debe resolverse mediante GestorAcciones.")
 	_comprobar(primer_turno.efectos_aplicados.size() == 1, "El turno debe confirmar un daño.")
-	_comprobar(ficha.pv_actual == vida_tras_entrada - 1, "El primer turno debe aplicar un tick.")
-	_comprobar(estado != null and estado.ticks_pendientes == 1, "Debe quedar un tick pendiente.")
+	_comprobar(
+		vida_tras_entrada - ficha.pv_actual in [1, 2]
+		and primer_turno.tirada is ResultadoTirada,
+		"El primer turno debe resolver un d2."
+	)
+	_comprobar(estado != null and estado.ticks_pendientes == 2, "Deben quedar dos ticks pendientes.")
 	_comprobar(
 		primer_turno.cambios_estado == [{
 			&"tipo": &"estado_tick",
 			&"clave": &"quemado",
-			&"ticks_restantes": 1,
+			&"ticks_restantes": 2,
 			&"expirado": false,
 		}],
 		"El tick debe quedar representado como cambio estructurado."
 	)
 
+	var vida_antes_segundo := ficha.pv_actual
 	var segundo_turno := servicio.avanzar_turno(ficha)
-	_comprobar(ficha.pv_actual == vida_tras_entrada - 2, "El último tick debe aplicar daño.")
-	_comprobar(ficha.obtener_estado(&"quemado") == null, "Quemado debe expirar al llegar a cero.")
+	_comprobar(
+		vida_antes_segundo - ficha.pv_actual in [1, 2]
+		and ficha.obtener_estado(&"quemado").ticks_pendientes == 1,
+		"El segundo turno debe resolver otro d2."
+	)
 	_comprobar(
 		segundo_turno.cambios_estado.size() == 1
-		and segundo_turno.cambios_estado[0][&"expirado"],
-		"El resultado debe registrar la expiración."
+		and not segundo_turno.cambios_estado[0][&"expirado"],
+		"El segundo tick todavía no debe expirar."
 	)
 
 	var tercer_turno := servicio.avanzar_turno(ficha)
 	_comprobar(
-		tercer_turno.exitosa
-		and tercer_turno.efectos_aplicados.is_empty()
-		and tercer_turno.cambios_estado.is_empty(),
+		ficha.obtener_estado(&"quemado") == null
+		and tercer_turno.cambios_estado[0][&"expirado"],
+		"El resultado debe registrar la expiración."
+	)
+
+	var cuarto_turno := servicio.avanzar_turno(ficha)
+	_comprobar(
+		cuarto_turno.exitosa
+		and cuarto_turno.efectos_aplicados.is_empty()
+		and cuarto_turno.cambios_estado.is_empty(),
 		"FIN_TURNO sin quemado debe tener éxito vacío."
 	)
 
@@ -86,7 +104,7 @@ func _probar_estados_en_orden() -> void:
 		&"veneno", &"estado", ficha, &"veneno_inicial", 1.0, 2
 	))
 	aplicador.aplicar(SolicitudEfecto.new(
-		&"quemado", &"estado", ficha, &"fuego_inicial", 1.0, 2
+		&"quemado", &"estado", ficha, &"fuego_inicial", 1.0, 1
 	))
 	var vida_antes := ficha.pv_actual
 	var resultado := servicio.avanzar_turno(ficha)

@@ -6,8 +6,11 @@ extends Node2D
 @export var interrumpe_al_entrar: bool = true
 @export_range(0, 99, 1) var coste_movimiento_adicional: int = 1
 @export_range(1, 99, 1) var ticks_quemado: int = 3
-@export_range(1, 99, 1) var dano_por_tick: int = 1
+@export_range(1, 99, 1) var cantidad_dados_tick: int = 1
+@export_range(2, 99, 1) var caras_dado_tick: int = 2
 @export_range(1, 99, 1) var duracion_superficie: int = 7
+@export_range(0, 32, 1) var radio_luz: int = 2
+@export_range(0, 16, 1) var radio_penumbra: int = 1
 
 var tablero: TableroGrid
 var coordenada_mapa: Vector2i
@@ -49,6 +52,22 @@ func obtener_familia_superficie() -> StringName:
 	return &"fuego"
 
 
+func esta_encendida() -> bool:
+	return true
+
+
+func obtener_radio_luz() -> int:
+	return radio_luz
+
+
+func obtener_radio_penumbra() -> int:
+	return radio_penumbra
+
+
+func luz_atraviesa_muros() -> bool:
+	return false
+
+
 func obtener_duracion_superficie() -> int:
 	return duracion_superficie
 
@@ -80,6 +99,14 @@ func validar_accion(contexto: ContextoAccion) -> StringName:
 		return &"accion_no_admitida"
 	if contexto.celda_objetivo != coordenada_mapa:
 		return &"celda_objetivo_invalida"
+	var motivo_dados := MotorDados.new().validar_cantidad(
+		_terminos_dano_tick(),
+		0,
+		TiposTirada.Origen.AUTOMATICA,
+		TiposTirada.Presentacion.SOLO_LOG
+	)
+	if motivo_dados != &"":
+		return motivo_dados
 	return &""
 
 
@@ -99,9 +126,18 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 			&"estado",
 			contexto.actor,
 			contexto.id_evento,
-			float(dano_por_tick),
+			0.0,
 			ticks_quemado,
 			TiposInteraccion.PoliticaApilado.NO_APILAR_Y_RENOVAR,
-			self
+			self,
+			_terminos_dano_tick()
 		)]
 	)
+
+
+func _terminos_dano_tick() -> Array[Dictionary]:
+	return [{
+		&"cantidad": cantidad_dados_tick,
+		&"caras": caras_dado_tick,
+		&"signo": 1,
+	}]
