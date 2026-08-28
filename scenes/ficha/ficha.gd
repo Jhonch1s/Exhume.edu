@@ -205,7 +205,7 @@ func validar_estado_persistente(estado: Variant) -> StringName:
 		return &"estado_ficha_invalido"
 	if (
 		not estado.get("nombre") is String or estado["nombre"].strip_edges().is_empty()
-		or not estado.get("titulo") is String
+		or not estado.get("titulo") is String or estado["titulo"].strip_edges().is_empty()
 		or not estado.get("clase") is String or not FRAME_POR_CLASE.has(estado["clase"])
 		or not estado.get("origen") is String
 	):

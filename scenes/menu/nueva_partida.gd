@@ -65,6 +65,7 @@ var clase := ""
 var origen := ""
 var marcador_relicario: Label
 var tweens_hover: Dictionary[Button, Tween] = {}
+var motor_dados := MotorDados.new()
 
 
 func _ready() -> void:
@@ -87,6 +88,7 @@ func _ready() -> void:
 	for nombre_clase: String in botones_clase:
 		botones_clase[nombre_clase].pressed.connect(_elegir_clase.bind(nombre_clase))
 	nombre.text_changed.connect(func(_texto: String) -> void: _actualizar_comenzar())
+	titulo_aventurero.text_changed.connect(func(_texto: String) -> void: _actualizar_comenzar())
 	relicario.pressed.connect(_sortear_origen)
 	comenzar.pressed.connect(_solicitar_excursion)
 	for nodo in find_children("*", "Button", true, false):
@@ -115,15 +117,17 @@ func _animar_hover(boton: Button, escala: float) -> void:
 
 
 func _tirar_atributo(atributo: StringName) -> void:
+	if atributos.has(atributo):
+		return
 	botones_tirada[atributo].disabled = true
-	var resultado := 0
-	while resultado == 0 or resultado == 1 or resultado == 6:
-		resultado = randi_range(1, 6)
-		zona_dado.text = "PLACEHOLDER DADO\n[ %d ]" % resultado
-		await get_tree().create_timer(0.55).timeout
-		if resultado == 1 or resultado == 6:
-			zona_dado.text = "PLACEHOLDER DADO\n[ %d ] — REPITE" % resultado
-			await get_tree().create_timer(0.4).timeout
+	var tirada := motor_dados.resolver([{&"cantidad": 1, &"caras": 6, &"signo": 1}])
+	var resultado: int = tirada.terminos[0][&"resultados"][0]
+	zona_dado.text = "PLACEHOLDER DADO\n[ %d ]" % resultado
+	await get_tree().create_timer(0.55).timeout
+	if resultado == 1 or resultado == 6:
+		zona_dado.text = "PLACEHOLDER DADO\n[ %d ] — REPITE" % resultado
+		botones_tirada[atributo].disabled = false
+		return
 	atributos[atributo] = resultado
 	valores[atributo].text = str(resultado)
 	botones_tirada[atributo].self_modulate = Color(0.62, 0.62, 0.62, 1.0)
@@ -217,10 +221,19 @@ func _pv_maximos() -> int:
 
 
 func _actualizar_comenzar() -> void:
-	comenzar.disabled = nombre.text.strip_edges().is_empty() or clase.is_empty() or origen.is_empty()
+	comenzar.disabled = (
+		nombre.text.strip_edges().is_empty()
+		or titulo_aventurero.text.strip_edges().is_empty()
+		or clase.is_empty()
+		or origen.is_empty()
+	)
 
 
 func _solicitar_excursion() -> void:
+	if comenzar.disabled or atributos.size() != 3:
+		return
+	comenzar.disabled = true
+	await _reproducir_cinematica_provisional()
 	excursion_solicitada.emit({
 		"nombre": nombre.text.strip_edges(),
 		"titulo": titulo_aventurero.text.strip_edges(),
@@ -231,6 +244,30 @@ func _solicitar_excursion() -> void:
 		"clase": clase,
 		"origen": origen,
 	})
+
+
+func _reproducir_cinematica_provisional() -> void:
+	var pantalla := ColorRect.new()
+	pantalla.name = &"CinematicaProvisional"
+	pantalla.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	pantalla.color = Color.BLACK
+	pantalla.modulate.a = 0.0
+	pantalla.mouse_filter = Control.MOUSE_FILTER_STOP
+	pantalla.z_index = 100
+	add_child(pantalla)
+
+	var texto := Label.new()
+	texto.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	texto.text = "Las cavernas grises de Ubren aguardan...\n\nZONA 1"
+	texto.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	texto.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	texto.add_theme_font_size_override(&"font_size", 32)
+	pantalla.add_child(texto)
+
+	var tween := create_tween()
+	tween.tween_property(pantalla, "modulate:a", 1.0, 0.5)
+	await tween.finished
+	await get_tree().create_timer(0.75).timeout
 
 
 func reproducir_entrada() -> Signal:
