@@ -2,8 +2,6 @@
 class_name PalancaInteractuable
 extends Interactuable
 
-const PISTA_DESTREZA := &"tirada_destreza_exitosa"
-
 @export_category("Relacion de mecanismo")
 @export var ids_receptores_mecanismo: Array[StringName] = []
 
@@ -11,8 +9,6 @@ const PISTA_DESTREZA := &"tirada_destreza_exitosa"
 	set(valor):
 		activada = valor
 		_actualizar_representacion()
-
-var motor_dados: MotorDados = MotorDados.new()
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var reproductor_audio: AudioStreamPlayer2D = (
@@ -97,7 +93,7 @@ func validar_accion(contexto: ContextoAccion) -> StringName:
 
 func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 	if contexto != null and contexto.tipo == TiposInteraccion.TipoAccion.EXAMINAR:
-		return _resolver_examen_con_tirada(contexto)
+		return super.resolver_accion(contexto)
 	var motivo := validar_accion(contexto)
 	if motivo != &"":
 		return ResultadoAccion.crear_bloqueo(motivo)
@@ -132,42 +128,6 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 		[],
 		cambios
 	)
-
-
-func _resolver_examen_con_tirada(contexto: ContextoAccion) -> ResultadoAccion:
-	if not _requiere_prueba_destreza():
-		return super.resolver_accion(contexto)
-	if servicio_examen.registro_conocimiento.conoce_fragmento(
-		contexto.solicitud_examen.id_observador,
-		id_instancia,
-		&"muesca_secundaria"
-	):
-		return servicio_examen.resolver_examen(contexto, self, [PISTA_DESTREZA])
-	if contexto.actor == null or not contexto.actor.has_method(&"obtener_destreza"):
-		return ResultadoAccion.crear_bloqueo(&"actor_sin_destreza")
-	var destreza: Variant = contexto.actor.call(&"obtener_destreza")
-	var tirada := motor_dados.resolver_prueba(
-		destreza,
-		[],
-		[],
-		TiposTirada.Origen.SOLICITADA,
-		TiposTirada.Presentacion.PRIMER_PLANO
-	)
-	if not tirada.valida:
-		return ResultadoAccion.crear_bloqueo(tirada.motivo)
-	var resultado := (
-		servicio_examen.resolver_examen(contexto, self, [PISTA_DESTREZA])
-		if tirada.exitosa
-		else super.resolver_accion(contexto)
-	)
-	return resultado.con_tirada(tirada)
-
-
-func _requiere_prueba_destreza() -> bool:
-	for fragmento in obtener_fragmentos_informacion():
-		if PISTA_DESTREZA in fragmento.pistas_requeridas:
-			return true
-	return false
 
 
 func _obtener_receptores_mecanismo(activa: bool) -> Variant:

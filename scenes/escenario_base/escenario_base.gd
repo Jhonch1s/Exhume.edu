@@ -21,6 +21,7 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 @onready var trayectoria_lanzamiento: Line2D = $TrayectoriaLanzamiento
 @onready var gestor_vision: FOVManager = $GestorVision
 @onready var capa_oscuridad: TileMapLayer = $Zona1/CapaOscuridad
+@onready var panel_registro_narrativo: PanelRegistroNarrativo = $CanvasLayer/PanelRegistroNarrativo
 
 const ESCENA_FICHA = preload("res://scenes/ficha/ficha.tscn")
 const DEFINICION_PIEDRA = preload("res://assets/items/piedra/piedra.tres")
@@ -41,6 +42,7 @@ var tablero: TableroGrid = TableroGrid.new()
 var pathfinding: PathFindingManager = PathFindingManager.new()
 var gestor_acciones: GestorAcciones = GestorAcciones.new()
 var historial_tiradas: HistorialTiradas = HistorialTiradas.new()
+var registro_narrativo: RegistroNarrativoSesion = RegistroNarrativoSesion.new()
 var validador_espacial: ValidadorEspacialTablero
 var consultor_reacciones: ConsultorReaccionesCelda = ConsultorReaccionesCelda.new()
 var resolver_reacciones: ResolverReaccionesCelda
@@ -48,6 +50,8 @@ var servicio_turnos: ServicioTurnos
 var procesador_superficies: ProcesadorSuperficies
 var registro_conocimiento: RegistroConocimiento = RegistroConocimiento.new()
 var servicio_examen: ServicioExamen
+var servicio_percepcion_trampas: ServicioPercepcionTrampas
+var accion_destrabarse: AccionDestrabarse = AccionDestrabarse.new()
 var ficha_jugador: Ficha = null
 var transferidor_items: TransferidorItems
 var selector_objetivos: SelectorObjetivosInteraccion = SelectorObjetivosInteraccion.new()
@@ -96,6 +100,7 @@ var pasos_movimiento_actual: int = 0
 var longitud_movimiento_actual: int = 0
 
 func _ready() -> void:
+	panel_registro_narrativo.observar(registro_narrativo)
 	menu_contextual.opcion_accion_elegida.connect(_on_opcion_contextual_elegida)
 	menu_contextual.objetivo_elegido.connect(_on_objetivo_contextual_elegido)
 	menu_contextual.item_elegido.connect(_on_item_contextual_elegido)
@@ -110,6 +115,9 @@ func _ready() -> void:
 	procesador_superficies = ProcesadorSuperficies.new(tablero)
 	tablero.generar_desde_zona(zona_actual)
 	validador_espacial = ValidadorEspacialTablero.new(tablero)
+	servicio_percepcion_trampas = ServicioPercepcionTrampas.new(
+		tablero, registro_conocimiento, validador_espacial
+	)
 	transferidor_items = TransferidorItems.new(tablero, gestor_acciones)
 	tablero.item_suelo_registrado.connect(_on_item_suelo_registrado)
 	tablero.item_suelo_retirado.connect(_on_item_suelo_retirado)
@@ -257,6 +265,9 @@ func _manejar_clic_derecho(coord: Vector2i) -> void:
 		return
 	if interaccion_modal_activa:
 		return
+	if ficha_jugador.obtener_estado(&"enredado") != null:
+		_intentar_destrabarse()
+		return
 	if ficha_jugador.esta_moviendose:
 		# Se interrumpe al terminar el paso en curso, nunca entre dos celdas.
 		ficha_jugador.solicitar_interrupcion()
@@ -298,13 +309,34 @@ func _manejar_clic_derecho(coord: Vector2i) -> void:
 		en_combate
 	)
 
+
+func _intentar_destrabarse() -> void:
+	var resultado := gestor_acciones.procesar_accion(
+		accion_destrabarse.construir_contexto(ficha_jugador)
+	)
+	ultimo_resultado_contextual = resultado
+	_registrar_resultado_narrativo(
+		"Telaraña", resultado, EntradaRegistroNarrativo.Categoria.ESTADO
+	)
+	_presentar_resultado_contextual("Telaraña", resultado)
+
 func _avanzar_turno_exploracion(ficha: Ficha) -> bool:
 	var resultado := servicio_turnos.avanzar_turno(ficha)
 	if not resultado.exitosa:
 		return false
+	if resultado.tirada != null:
+		historial_tiradas.registrar(resultado.tirada)
+	if not resultado.mensajes.is_empty() or not resultado.efectos_aplicados.is_empty():
+		var titulo := "Estados"
+		if resultado.mensajes.any(func(id): return "quemado" in String(id)):
+			titulo = "Quemado"
+		if resultado.mensajes.any(func(id): return "veneno" in String(id)):
+			titulo = "Veneno" if titulo == "Estados" else "Quemado y veneno"
+		_registrar_resultado_narrativo(titulo, resultado, EntradaRegistroNarrativo.Categoria.ESTADO)
 	var resultado_superficies := procesador_superficies.procesar_fin_ronda()
 	if not resultado_superficies.exitosa or ficha.pv_actual <= 0:
 		return false
+	_registrar_transformaciones_superficies(resultado_superficies)
 	ficha.iniciar_turno()
 	return true
 
@@ -388,9 +420,92 @@ func _resolver_reacciones_movimiento(
 		destino,
 		reacciones
 	)
+	for resultado_individual in resultado.resultados:
+		if resultado_individual.tirada != null:
+			historial_tiradas.registrar(resultado_individual.tirada)
+	_registrar_reaccion_narrativa(tipo, reacciones, resultado)
 	if resultado.interrumpe_movimiento:
 		ficha.solicitar_interrupcion()
+	if ficha.obtener_estado(&"caido") != null:
+		ficha.agotar_recursos_turno()
+		_avanzar_turno_exploracion(ficha)
 	return resultado
+
+
+func _registrar_reaccion_narrativa(
+	tipo: TiposInteraccion.TipoAccion,
+	reacciones: Array[ReaccionCelda],
+	resultado: ResultadoReacciones
+) -> void:
+	if tipo != TiposInteraccion.TipoAccion.ENTRAR or resultado == null:
+		return
+	var titulo := ""
+	for reaccion in reacciones:
+		var receptor := reaccion.receptor
+		if receptor is Telarana:
+			titulo = "Telaraña"
+		elif receptor is Lodo:
+			titulo = "Hielo" if receptor.obtener_familia_superficie() == &"hielo" else "Lodo"
+		elif receptor is Fuego:
+			titulo = "Fuego"
+		elif receptor is HumoVeneno:
+			titulo = "Humo venenoso"
+		elif receptor is TrampaSuperficie:
+			titulo = "Trampa"
+		elif receptor is TerrenoDanino:
+			titulo = "Pinchos" if receptor.id_reaccion == &"pinchos" else "Lava"
+		if titulo != "":
+			break
+	if titulo == "":
+		return
+	var combinado := ResultadoAccion.crear_exito(
+		resultado.mensajes, resultado.efectos_aplicados, resultado.cambios_estado
+	)
+	for accion in resultado.resultados:
+		if accion.tirada != null:
+			combinado = combinado.con_tirada(accion.tirada)
+			break
+	_registrar_resultado_narrativo(
+		titulo,
+		combinado,
+		EntradaRegistroNarrativo.Categoria.MOVIMIENTO,
+		"VOL" if titulo == "Humo venenoso" else "DES"
+	)
+
+
+func _registrar_resultado_narrativo(
+	titulo: String,
+	resultado: ResultadoAccion,
+	categoria: EntradaRegistroNarrativo.Categoria,
+	etiqueta_atributo: String = "DES"
+) -> void:
+	if resultado == null:
+		return
+	var detalles: Array[String] = []
+	if resultado.tirada is ResultadoPrueba:
+		detalles.append("%s %d → %d, %s" % [
+			etiqueta_atributo,
+			resultado.tirada.atributo,
+			resultado.tirada.dado_seleccionado,
+			"éxito" if resultado.tirada.exitosa else "fallo",
+		])
+	elif resultado.tirada is ResultadoTirada:
+		detalles.append("Tirada → %d" % resultado.tirada.total_efectivo)
+	var mensajes: Array[String] = []
+	for id_mensaje in resultado.mensajes:
+		mensajes.append(
+			catalogo_mensajes.resolver(id_mensaje)
+			if catalogo_mensajes != null else String(id_mensaje)
+		)
+	for efecto in resultado.efectos_aplicados:
+		if efecto.tipo == &"dano":
+			mensajes.append("Recibes %d de daño." % int(efecto.magnitud))
+	if mensajes.is_empty() and resultado.motivo != &"":
+		mensajes.append(
+			catalogo_mensajes.resolver(resultado.motivo)
+			if catalogo_mensajes != null else String(resultado.motivo)
+		)
+	registro_narrativo.registrar(categoria, titulo, "\n".join(mensajes), detalles)
 
 func spawnear_ficha_inicial() -> void:
 	var capa_suelo: TileMapLayer = zona_actual.get_node_or_null("CapaSuelo")
@@ -424,12 +539,43 @@ func _on_ficha_paso_dado(nueva_coord: Vector2i) -> void:
 func _actualizar_luz_jugador(coordenada: Vector2i) -> void:
 	if ficha_jugador.pasos_antorcha_actual <= 0 and ficha_jugador.antorchas <= 0:
 		gestor_vision.actualizar_vision(coordenada, 1)
+	else:
+		var radio_actual: float = 5.0
+		if ficha_jugador.pasos_antorcha_actual <= 10:
+			var porcentaje_final := float(max(0, ficha_jugador.pasos_antorcha_actual)) / 10.0
+			radio_actual = max(1.0, porcentaje_final * 5.0)
+		gestor_vision.actualizar_vision(coordenada, int(radio_actual))
+	_evaluar_percepcion_trampas()
+
+
+func _evaluar_percepcion_trampas() -> void:
+	if servicio_percepcion_trampas == null or ficha_jugador == null:
 		return
-	var radio_actual: float = 5.0
-	if ficha_jugador.pasos_antorcha_actual <= 10:
-		var porcentaje_final := float(max(0, ficha_jugador.pasos_antorcha_actual)) / 10.0
-		radio_actual = max(1.0, porcentaje_final * 5.0)
-	gestor_vision.actualizar_vision(coordenada, int(radio_actual))
+	for resultado in servicio_percepcion_trampas.evaluar(ficha_jugador):
+		if resultado.tirada != null:
+			historial_tiradas.registrar(resultado.tirada)
+		if &"trampa.detectada" in resultado.mensajes:
+			_registrar_resultado_narrativo(
+				"Trampa descubierta",
+				resultado,
+				EntradaRegistroNarrativo.Categoria.SISTEMA
+			)
+
+
+func _registrar_transformaciones_superficies(resultado: ResultadoAccion) -> void:
+	for cambio in resultado.cambios_estado:
+		if not cambio.get(&"expirada", false):
+			continue
+		var coordenada: Variant = cambio.get(&"coordenada")
+		var celda := tablero.obtener_celda(coordenada) if coordenada is Vector2i else null
+		if celda == null or celda.visibilidad != Celda.EstadoVisibilidad.VISIBLE:
+			continue
+		var transformada := cambio.has(&"id_superficie_resultante")
+		registro_narrativo.registrar(
+			EntradaRegistroNarrativo.Categoria.SISTEMA,
+			"Superficie",
+			"El fuego se consume y deja humo." if transformada else "La superficie se disipa."
+		)
 
 func _inicializar_audio_ambiente() -> void:
 	generador_azar_audio.randomize()
@@ -761,6 +907,13 @@ func _ejecutar_opcion_contextual(
 	opcion_uso_item_pendiente = null
 	var titulo_resultado := _obtener_titulo_resultado_contextual(opcion)
 	menu_contextual.ocultar()
+	if contexto != null and contexto.tipo in [
+		TiposInteraccion.TipoAccion.INTERACTUAR,
+		TiposInteraccion.TipoAccion.USAR_ITEM,
+	]:
+		_registrar_resultado_narrativo(
+			titulo_resultado, resultado, EntradaRegistroNarrativo.Categoria.OBJETO
+		)
 	_presentar_resultado_contextual(titulo_resultado, resultado)
 	accion_contextual_finalizada.emit(opcion, contexto, resultado)
 
@@ -1135,6 +1288,9 @@ func _finalizar_lanzamiento(contexto: ContextoAccion, item: ItemInstancia) -> vo
 	ultimo_contexto_contextual = contexto
 	ultimo_resultado_contextual = resultado
 	lanzamiento_en_vuelo = false
+	_registrar_resultado_narrativo(
+		item.definicion.nombre, resultado, EntradaRegistroNarrativo.Categoria.OBJETO
+	)
 	panel_resultado_accion.mostrar_resultado(item.definicion.nombre, resultado, catalogo_mensajes)
 	accion_contextual_finalizada.emit(null, contexto, resultado)
 

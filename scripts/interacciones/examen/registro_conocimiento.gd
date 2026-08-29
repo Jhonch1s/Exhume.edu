@@ -2,6 +2,7 @@ class_name RegistroConocimiento
 extends RefCounted
 
 var _descubrimientos: Dictionary[StringName, Dictionary] = {}
+var _intentos_percepcion: Dictionary[StringName, Dictionary] = {}
 
 
 func registrar_descubrimientos(
@@ -78,7 +79,36 @@ func obtener_ids_conocidos(
 	return ids
 
 
-func obtener_estado_persistente() -> Array[Dictionary]:
+func registrar_intento_percepcion(
+	id_observador: StringName,
+	id_objetivo: StringName
+) -> bool:
+	if id_observador == &"" or id_objetivo == &"":
+		return false
+	var por_objetivo: Dictionary = _intentos_percepcion.get(id_observador, {})
+	if por_objetivo.has(id_objetivo):
+		return false
+	por_objetivo[id_objetivo] = true
+	_intentos_percepcion[id_observador] = por_objetivo
+	return true
+
+
+func intento_percepcion_realizado(
+	id_observador: StringName,
+	id_objetivo: StringName
+) -> bool:
+	var por_objetivo: Dictionary = _intentos_percepcion.get(id_observador, {})
+	return por_objetivo.has(id_objetivo)
+
+
+func obtener_estado_persistente() -> Dictionary:
+	return {
+		"descubrimientos": _obtener_descubrimientos_persistentes(),
+		"intentos_percepcion": _obtener_intentos_persistentes(),
+	}
+
+
+func _obtener_descubrimientos_persistentes() -> Array[Dictionary]:
 	var entradas: Array[Dictionary] = []
 	var observadores: Array[StringName] = []
 	observadores.assign(_descubrimientos.keys())
@@ -99,9 +129,39 @@ func obtener_estado_persistente() -> Array[Dictionary]:
 	return entradas
 
 
+func _obtener_intentos_persistentes() -> Array[Dictionary]:
+	var entradas: Array[Dictionary] = []
+	var observadores: Array[StringName] = []
+	observadores.assign(_intentos_percepcion.keys())
+	observadores.sort_custom(func(a, b): return String(a) < String(b))
+	for id_observador in observadores:
+		var objetivos: Array[StringName] = []
+		objetivos.assign((_intentos_percepcion[id_observador] as Dictionary).keys())
+		objetivos.sort_custom(func(a, b): return String(a) < String(b))
+		for id_objetivo in objetivos:
+			entradas.append({
+				"observador_id": String(id_observador),
+				"objetivo_id": String(id_objetivo),
+			})
+	return entradas
+
+
 func validar_estado_persistente(entradas: Variant) -> StringName:
-	if not entradas is Array:
+	if entradas is Array:
+		return _validar_descubrimientos_persistentes(entradas)
+	if (
+		not entradas is Dictionary
+		or not entradas.get("descubrimientos") is Array
+		or not entradas.get("intentos_percepcion") is Array
+	):
 		return &"conocimiento_guardado_invalido"
+	var motivo := _validar_descubrimientos_persistentes(entradas["descubrimientos"])
+	if motivo != &"":
+		return motivo
+	return _validar_intentos_persistentes(entradas["intentos_percepcion"])
+
+
+func _validar_descubrimientos_persistentes(entradas: Array) -> StringName:
 	var pares: Dictionary[String, bool] = {}
 	for entrada: Variant in entradas:
 		if not entrada is Dictionary:
@@ -127,12 +187,33 @@ func validar_estado_persistente(entradas: Variant) -> StringName:
 	return &""
 
 
+func _validar_intentos_persistentes(entradas: Array) -> StringName:
+	var pares: Dictionary[String, bool] = {}
+	for entrada: Variant in entradas:
+		if not entrada is Dictionary:
+			return &"intentos_percepcion_guardados_invalidos"
+		var observador: Variant = entrada.get("observador_id")
+		var objetivo: Variant = entrada.get("objetivo_id")
+		if (
+			not observador is String or observador.is_empty()
+			or not objetivo is String or objetivo.is_empty()
+		):
+			return &"intentos_percepcion_guardados_invalidos"
+		var par := "%s\n%s" % [observador, objetivo]
+		if pares.has(par):
+			return &"intento_percepcion_guardado_duplicado"
+		pares[par] = true
+	return &""
+
+
 func restaurar_estado_persistente(entradas: Variant) -> StringName:
 	var motivo := validar_estado_persistente(entradas)
 	if motivo != &"":
 		return motivo
+	var descubrimientos: Array = entradas if entradas is Array else entradas["descubrimientos"]
+	var intentos: Array = [] if entradas is Array else entradas["intentos_percepcion"]
 	var restaurados: Dictionary[StringName, Dictionary] = {}
-	for entrada: Dictionary in entradas:
+	for entrada: Dictionary in descubrimientos:
 		var id_observador := StringName(entrada["observador_id"])
 		var id_objetivo := StringName(entrada["objetivo_id"])
 		var por_objetivo: Dictionary = restaurados.get(id_observador, {})
@@ -142,4 +223,11 @@ func restaurar_estado_persistente(entradas: Variant) -> StringName:
 		por_objetivo[id_objetivo] = conocidos
 		restaurados[id_observador] = por_objetivo
 	_descubrimientos = restaurados
+	var intentos_restaurados: Dictionary[StringName, Dictionary] = {}
+	for entrada: Dictionary in intentos:
+		var id_observador := StringName(entrada["observador_id"])
+		var por_objetivo: Dictionary = intentos_restaurados.get(id_observador, {})
+		por_objetivo[StringName(entrada["objetivo_id"])] = true
+		intentos_restaurados[id_observador] = por_objetivo
+	_intentos_percepcion = intentos_restaurados
 	return &""

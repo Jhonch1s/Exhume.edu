@@ -72,15 +72,27 @@ func _procesar_luces_mapa() -> void:
 	for coord in datos_tablero.keys():
 		var lista_luces: Array[Object] = datos_tablero[coord].iluminacion
 		for fuente in lista_luces:
-			if not fuente is FuenteLuzInteractuable or not is_instance_valid(fuente):
+			if not is_instance_valid(fuente):
 				continue
-			var definicion: DefinicionFuenteLuz = fuente.obtener_definicion_luz()
-			if fuente.encendida and definicion != null:
+			if fuente is FuenteLuzInteractuable:
+				var definicion: DefinicionFuenteLuz = fuente.obtener_definicion_luz()
+				if fuente.encendida and definicion != null:
+					proyectar_luz_fuente(
+						coord, definicion.radio_luz, definicion.radio_penumbra,
+						definicion.atraviesa_muros
+					)
+				continue
+			if (
+				fuente.has_method(&"esta_encendida")
+				and fuente.has_method(&"obtener_radio_luz")
+				and fuente.has_method(&"obtener_radio_penumbra")
+				and fuente.has_method(&"luz_atraviesa_muros")
+				and fuente.call(&"esta_encendida")
+			):
 				proyectar_luz_fuente(
-					coord,
-					definicion.radio_luz,
-					definicion.radio_penumbra,
-					definicion.atraviesa_muros
+					coord, fuente.call(&"obtener_radio_luz"),
+					fuente.call(&"obtener_radio_penumbra"),
+					fuente.call(&"luz_atraviesa_muros")
 				)
 
 func _on_iluminacion_cambiada(_coord: Vector2i) -> void:

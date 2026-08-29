@@ -20,7 +20,10 @@ func _ejecutar() -> void:
 	ficha.pv_actual -= 2
 	ficha.energia_actual -= 7
 	ficha.consumir_recurso_turno(RecursosTurnoActor.MOVIMIENTO, 2)
-	ficha.aplicar_o_renovar_estado(&"veneno", 1.0, 2, 1)
+	ficha.aplicar_o_renovar_estado(
+		&"veneno", 0.0, 2, 1, null,
+		[{&"cantidad": 1, &"caras": 2, &"signo": 1}]
+	)
 	var piedra := load("res://assets/items/piedra/piedra.tres") as DefinicionItem
 	ficha.inventario.agregar(ItemInstancia.new(&"piedras_guardadas", piedra, 3))
 	var conocimiento := RegistroConocimiento.new()
@@ -63,6 +66,7 @@ func _ejecutar() -> void:
 		and ficha.energia_actual == ficha.energia_maxima - 7
 		and ficha.obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO) == 5
 		and ficha.obtener_estado(&"veneno").ticks_pendientes == 1
+		and ficha.obtener_estado(&"veneno").terminos_dano_tick[0][&"caras"] == 2
 		and ficha.inventario.obtener_por_id(&"piedras_guardadas").cantidad == 3,
 		"La ficha debe recuperar posicion, recursos, estado e inventario."
 	)

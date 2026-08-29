@@ -6,11 +6,10 @@
 
 ## Estado general
 
-- Estado actual: Fase 14 — completada el 24 de agosto de 2026.
-- Próximo paso: ampliar contenido de exploración sobre el sistema de tiradas cerrado.
-- Última vertical slice: examinar la palanca de Zona 1 solicita una prueba de
-  Destreza, registra y presenta los dados y puede revelar conocimiento persistente.
-- Última actualización de este registro: 24 de agosto de 2026.
+- Estado actual: Fase 17 — registro narrativo de sesión, planificada.
+- Próximo paso: implementar el primer incremento del registro narrativo.
+- Última vertical slice cerrada: superficies de Zona1 integradas con dados y estados.
+- Última actualización de este registro: 28 de agosto de 2026.
 
 ### Progreso por fases
 
@@ -29,6 +28,9 @@
 - [x] Fase 12 — Persistencia. *(completada el 22 de agosto de 2026)*
 - [x] Fase 13 — Herramientas de diseño y depuración. *(completada el 22 de agosto de 2026)*
 - [x] Fase 14 — Sistema de tiradas. *(completada el 24 de agosto de 2026)*
+- [x] Fase 15 — Nueva partida y creación de personaje. *(completada el 28 de agosto de 2026)*
+- [x] Fase 16 — Atributos y dados en interacciones. *(completada el 28 de agosto de 2026)*
+- [x] Fase 17 — Registro narrativo de sesión. *(primer incremento completado el 28 de agosto de 2026)*
 
 Cuando una fase comience, se debe cambiar su casilla y registrar debajo de ella:
 
@@ -1058,6 +1060,9 @@ La trayectoria visual coincide con la resolución lógica y ningún item desapar
 - Pruebas puntuales de 9.5: alcance cuatro con `FUE = 3`, mínimo dos con `FUE = 0`,
   conservación de rollback y vertical slice animada en Zona1. Ambas pruebas pasan;
   la escena mantiene sólo los avisos conocidos de RID y recursos al cerrar.
+- Corrección de diseño en Fase 16: el alcance pasa a `7 + FUE`; con `FUE = 3`
+  son diez celdas y `FUE = 0` conserva siete. La métrica de cuadrícula y las
+  validaciones existentes no cambian.
 - Incremento 9.6: `DefinicionItem.reaccion_impacto` permite que una definición
   resuelva una consecuencia propia después de las reacciones de la celda, sin casos
   especiales en `GestorAcciones`. La primera implementación despliega una escena de
@@ -1541,6 +1546,168 @@ desacoplada.
 Un elemento de la primera zona solicita una prueba, recibe el resultado sin delegar
 consecuencias al motor, lo registra para el jugador y elige si mostrarlo en primer
 plano, sin modificar `GestorAcciones`.
+
+---
+
+## Fase 15 — Nueva partida y creación de personaje
+
+### Estado
+
+- Completada el 28 de agosto de 2026.
+- Nueva partida obtiene Fuerza, Destreza y Voluntad mediante `MotorDados`, exige
+  identidad completa y entrega la ficha resultante a Zona 1.
+
+---
+
+## Fase 16 — Atributos y dados en interacciones
+
+### Estado
+
+- Iniciada el 28 de agosto de 2026.
+
+### Objetivo
+
+Aplicar atributos, salvaciones y cantidades aleatorias a contenido de exploración
+existente, manteniendo las tiradas fuera de `GestorAcciones` y las consecuencias en
+el elemento que las solicita.
+
+### Incrementos acordados
+
+1. Palanca determinista y alcance de lanzamiento `7 + FUE`.
+2. Daño por expresiones de dados configuradas en el contenido.
+3. Veneno: salvación automática de Voluntad y dos ticks de `1d2`.
+4. Fuego: salvación inicial de Destreza y `1d2` por tick.
+5. Percepción automática secreta mediante Destreza, radio de cuadrícula cuatro,
+   visibilidad y línea visual; un intento persistente por observador y trampa.
+
+### Registro de implementación 16.1
+
+- Responsable: sesión Codex del 28 de agosto de 2026.
+- Decisiones: examinar y accionar la palanca no usan dados; su detalle se resuelve
+  mediante las reglas ordinarias de distancia del examen. El alcance de lanzamiento
+  pasa de `max(2, 1 + FUE)` a `7 + FUE`, sin cambiar métrica, trayectoria ni peso.
+- Pendiente: incrementos 16.2 a 16.5.
+
+### Registro de implementación 16.2–16.3
+
+- Responsable: sesión Codex del 28 de agosto de 2026.
+- Decisiones: `SolicitudEfecto` y `EstadoActor` transportan opcionalmente términos
+  de daño por tick; `ServicioTurnos` agrupa y resuelve las expresiones como una
+  tirada automática `SOLO_LOG`, aplica cada subtotal al estado correspondiente y
+  devuelve el resultado estructurado. Los términos sobreviven al snapshot de ficha.
+- Veneno: `HumoVeneno` solicita una salvación automática de Voluntad; el éxito evita
+  el estado y el fallo aplica dos ticks de `1d2`. Renovar restaura ambos ticks sin
+  daño inmediato. El escenario registra salvaciones y ticks en el historial.
+- Pendiente: 16.4, 16.5 y ejecución de la batería completa.
+
+### Registro de implementación 16.4
+
+- Responsable: sesión Codex del 28 de agosto de 2026.
+- Decisiones: `Fuego` configura tres ticks de `1d2`; aplicar o renovar quemado no
+  causa daño inmediato. La salvación de Destreza contra el daño inicial de una
+  explosión queda pendiente hasta que exista una bomba o explosión de fuego real;
+  no se añade una regla sin consumidor a `Explosion`.
+- Pendiente: terreno dañino variable, 16.5 y batería completa.
+
+### Registro de implementación 16.5
+
+- Responsable: sesión Codex del 28 de agosto de 2026.
+- Decisiones: tras actualizar la visión, cada trampa no activada y no visible dentro
+  de radio cuatro (métrica de cuadrícula), en una celda visible y con línea visual,
+  provoca una prueba automática secreta de Destreza. El éxito revela la trampa; el
+  fallo no revela información. Cada pareja observador/trampa consume una sola
+  tentativa y ésta se conserva en el snapshot de conocimiento.
+- Las tiradas usan `SOLO_LOG`; no abren la presentación completa, pero quedan en el
+  historial del jugador. No hay repeticiones ni reglas de origen en este incremento.
+- Pendiente: terreno dañino variable y ejecución de la batería completa.
+
+### Registro de implementación 16.6
+
+- Responsable: sesión Codex del 28 de agosto de 2026.
+- Decisiones: las celdas de `CapaPinchos` conservan el terreno inferior y reaccionan
+  a `ENTRAR`. Cada entrada resuelve `1d3` como `SOLO_LOG`, aplica el total mediante
+  `AplicadorEfectos` y no deja estados ni concede salvación.
+- Pendiente: telaraña, lodo/hielo y batería completa de cierre.
+
+### Registro de implementación 16.7
+
+- Responsable: sesión Codex del 28 de agosto de 2026.
+- Decisiones: `CapaTelaraña` añade coste de movimiento `1` y una salvación automática
+  de Destreza al entrar. Fallar interrumpe y aplica `enredado`; superar permite
+  continuar. Enredado bloquea sólo movimiento y no expira por turno.
+- `Destrabarse` se solicita manualmente con clic derecho, gasta una acción principal
+  aunque falle y usa una prueba visible de Destreza. El éxito retira el estado.
+- Pendiente: lodo/hielo y batería completa de cierre.
+
+### Registro de implementación 16.8
+
+- Responsable: sesión Codex del 28 de agosto de 2026.
+- Decisiones: `CapaLodo` solicita una salvación automática de Destreza al entrar.
+  Fallar interrumpe, agota todos los recursos restantes y cierra el turno mediante
+  `ServicioTurnos`; `caido` desaparece antes de reponer el turno siguiente. Superar
+  permite continuar y el lodo no añade lentitud.
+- Pendiente: hielo y batería completa de cierre.
+
+### Registro de implementación 16.9
+
+- Responsable: sesión Codex del 28 de agosto de 2026.
+- Decisiones: `CapaHielo` reutiliza la reacción resbaladiza del lodo y conserva una
+  familia propia `&"hielo"`. Comparte salvación DES, caída, agotamiento y cierre de
+  turno, sin duplicar implementación.
+- Pendiente: fuego y batería completa de cierre.
+
+### Registro de implementación 16.10
+
+- Responsable: sesión Codex del 28 de agosto de 2026.
+- Decisiones: las celdas de `CapaFuego` reutilizan la reacción `Fuego`, son
+  permanentes, añaden coste `1`, aplican tres ticks de `1d2` y emiten luz de radio
+  dos más uno de penumbra. No usan fog propio ni salvación de entrada.
+- Pendiente: batería completa y cierre formal de Fase 16.
+
+### Cierre de Fase 16
+
+- Cierre: 28 de agosto de 2026.
+- Verificación: 64 scripts técnicos bajo `tests/` ejecutados aisladamente sobre el
+  proyecto activo; 64 correctos y 0 fallos. `--check-only` y `git diff --check`
+  también finalizaron correctamente.
+- Alcance cerrado: palanca determinista, lanzamiento `7 + FUE`, veneno, quemado,
+  percepción secreta de trampas, pinchos `1d3`, telaraña y `Destrabarse`, lodo,
+  hielo y fuego estático luminoso.
+- Fuera de alcance deliberado: combate, salvación de explosiones de fuego,
+  herramientas para desarmar trampas, inspiración/repeticiones y reglas de origen.
+
+## Fase 17 — Registro narrativo de sesión
+
+Propuesta aprobada: incorporar una ventana flotante que explique al jugador las
+reacciones relevantes del mundo sin reutilizar el registro interno de depuración.
+El contrato y el primer incremento verificable están definidos en
+[`docs/contratos/19_REGISTRO_NARRATIVO_SESION.md`](docs/contratos/19_REGISTRO_NARRATIVO_SESION.md).
+
+### Registro de implementación 17.1
+
+- Responsable: sesión Codex del 28 de agosto de 2026.
+- Decisiones: registro exclusivamente en memoria; panel flotante no modal con tres
+  entradas en compacto y todo el historial en expandido; seguimiento del final
+  condicionado a que el jugador no esté leyendo entradas anteriores. El escenario
+  publica una sola tarjeta desde el `ResultadoReacciones` ya resuelto y solo para
+  pinchos, telaraña, lodo, hielo y fuego. No existe suscripción global al historial
+  de tiradas, por lo que una percepción secreta fallida no revela su objetivo.
+- Ampliación de cierre: las palancas y demás acciones visibles `INTERACTUAR`, el
+  uso y lanzamiento de items, y los ticks perceptibles de quemado o veneno también
+  publican una tarjeta desde su `ResultadoAccion`. Persistencia y filtros se
+  descartan deliberadamente: el registro siempre pertenece solo a la sesión actual.
+- Cierre de alcance narrativo: activación de trampas agrupada con su lote de
+  movimiento; descubrimiento solo cuando la percepción secreta tiene éxito;
+  destrabarse; y expiraciones o transformaciones de superficies si su celda está
+  visible. Lava y humo venenoso se incluyen por sus consecuencias perceptibles.
+  Los fallos secretos y cambios fuera de visión no se publican.
+- Archivos: registro y entrada narrativa bajo `scripts/interacciones/presentacion`,
+  panel bajo `scenes/ui/interacciones`, integración en `EscenarioBase`, prueba
+  técnica, contrato 19 y este roadmap.
+- Pruebas: registro ordenado, visibilidad, límite compacto, expansión y contracción;
+  verificación headless y de formato del proyecto.
+- Pendientes: diálogos y combate se integrarán cuando existan sus flujos jugables;
+  no se anticipan ahora.
 
 ---
 

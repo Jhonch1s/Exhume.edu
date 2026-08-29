@@ -5,6 +5,7 @@ const MOVIMIENTO := &"movimiento"
 const ACCION_PRINCIPAL := &"accion_principal"
 const ACCION_ADICIONAL := &"accion_adicional"
 const REACCION := &"reaccion"
+const CLAVES: Array[StringName] = [MOVIMIENTO, ACCION_PRINCIPAL, ACCION_ADICIONAL, REACCION]
 
 var _maximos: Dictionary[StringName, int]
 var _restantes: Dictionary[StringName, int]

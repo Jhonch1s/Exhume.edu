@@ -35,6 +35,11 @@ func generar_desde_zona(zona: Node2D) -> void:
 	capa_referencia = _capa_suelo
 	var _capa_agua: TileMapLayer = zona.get_node_or_null("CapaAgua")
 	var _capa_lava: TileMapLayer = zona.get_node_or_null("CapaLava")
+	var _capa_pinchos: TileMapLayer = zona.get_node_or_null("CapaPinchos")
+	var _capa_telarana: TileMapLayer = zona.get_node_or_null("CapaTelaraña")
+	var _capa_lodo: TileMapLayer = zona.get_node_or_null("CapaLodo")
+	var _capa_hielo: TileMapLayer = zona.get_node_or_null("CapaHielo")
+	var _capa_fuego: TileMapLayer = zona.get_node_or_null("CapaFuego")
 	var _capa_paredes: TileMapLayer = zona.get_node_or_null("CapaParedes")
 	var _capa_columnas: TileMapLayer = zona.get_node_or_null("CapaColumnas")
 	var _capa_deco_nocaminable: TileMapLayer = zona.get_node_or_null("CapaDecoracionNoCaminable")
@@ -70,6 +75,55 @@ func generar_desde_zona(zona: Node2D) -> void:
 				2
 			)
 			datos[coordenada] = celda_lava
+
+	if _capa_pinchos:
+		for coordenada in _capa_pinchos.get_used_cells():
+			if datos.has(coordenada):
+				datos[coordenada].reaccion_terreno = TerrenoDanino.new(
+					&"pinchos", coordenada, 0,
+					[{&"cantidad": 1, &"caras": 3, &"signo": 1}]
+				)
+
+	if _capa_telarana:
+		for coordenada in _capa_telarana.get_used_cells():
+			if not datos.has(coordenada):
+				continue
+			var telarana := Telarana.new(
+				StringName("telarana_%d_%d" % [coordenada.x, coordenada.y])
+			)
+			telarana.configurar_registro(self, coordenada)
+			datos[coordenada].efectos_superficie.append(telarana)
+
+	if _capa_lodo:
+		for coordenada in _capa_lodo.get_used_cells():
+			if not datos.has(coordenada):
+				continue
+			var lodo := Lodo.new(StringName("lodo_%d_%d" % [coordenada.x, coordenada.y]))
+			lodo.configurar_registro(self, coordenada)
+			datos[coordenada].efectos_superficie.append(lodo)
+
+	if _capa_hielo:
+		for coordenada in _capa_hielo.get_used_cells():
+			if not datos.has(coordenada):
+				continue
+			var hielo := Lodo.new(
+				StringName("hielo_%d_%d" % [coordenada.x, coordenada.y]), &"hielo"
+			)
+			hielo.configurar_registro(self, coordenada)
+			datos[coordenada].efectos_superficie.append(hielo)
+
+	if _capa_fuego:
+		for coordenada in _capa_fuego.get_used_cells():
+			if not datos.has(coordenada):
+				continue
+			var fuego := Fuego.new()
+			fuego.configurar_id_instancia(
+				StringName("fuego_estatico_%d_%d" % [coordenada.x, coordenada.y])
+			)
+			fuego.configurar_registro(self, coordenada)
+			zona.add_child(fuego)
+			datos[coordenada].efectos_superficie.append(fuego)
+			datos[coordenada].iluminacion.append(fuego)
 
 	# 4. Escaneamos Paredes
 	if _capa_paredes:

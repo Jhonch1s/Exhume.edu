@@ -51,5 +51,17 @@ mensajes = {
 &"puerta_ya_cerrada": "La puerta ya está cerrada.",
 &"puerta_ya_desbloqueada": "La puerta ya está desbloqueada.",
 &"reaccion_item_no_implementada": "Ese item no produce ningún efecto sobre el objetivo.",
-&"sin_informacion_disponible": "No logras obtener información útil."
+&"sin_informacion_disponible": "No logras obtener información útil.",
+&"estado.veneno_resistido": "Resistes el efecto del veneno.",
+&"estado.telarana_evitada": "Atraviesas la telaraña sin quedar atrapado.",
+&"estado.enredado": "Quedas atrapado en la telaraña.",
+&"estado.enredado_renovado": "La telaraña vuelve a sujetarte.",
+&"estado.destrabado": "Logras liberarte de la telaraña.",
+&"estado.sigue_enredado": "No consigues liberarte de la telaraña.",
+&"estado.caida_evitada": "Mantienes el equilibrio sobre el terreno resbaladizo.",
+&"estado.caido": "Pierdes el equilibrio y caes al suelo.",
+&"estado.caido_renovado": "Vuelves a caer al suelo.",
+&"estado.levantado": "Te levantas al comenzar el nuevo turno.",
+&"trampa.detectada": "Detectas una trampa oculta.",
+&"trampa.no_detectada": "No detectas nada fuera de lo común."
 }

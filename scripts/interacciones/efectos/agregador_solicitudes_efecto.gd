@@ -21,6 +21,7 @@ func agregar(solicitudes: Array[SolicitudEfecto]) -> ResultadoAgregacionEfectos:
 		var anterior := agregadas[indice]
 		if anterior.tipo != solicitud.tipo:
 			return ResultadoAgregacionEfectos.new(false, &"solicitudes_incompatibles")
+		var usar_nueva := solicitud.magnitud > anterior.magnitud
 		agregadas[indice] = SolicitudEfecto.new(
 			solicitud.clave,
 			solicitud.tipo,
@@ -29,7 +30,8 @@ func agregar(solicitudes: Array[SolicitudEfecto]) -> ResultadoAgregacionEfectos:
 			maxf(anterior.magnitud, solicitud.magnitud),
 			maxi(anterior.duracion, solicitud.duracion),
 			solicitud.politica_apilado,
-			solicitud.fuente if solicitud.magnitud > anterior.magnitud else anterior.fuente
+			solicitud.fuente if usar_nueva else anterior.fuente,
+			solicitud.terminos_dano if usar_nueva else anterior.terminos_dano
 		)
 	return ResultadoAgregacionEfectos.new(true, &"", agregadas)
 

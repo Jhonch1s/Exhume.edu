@@ -72,6 +72,9 @@ func obtener_fuerza() -> int:
 func obtener_destreza() -> int:
 	return des
 
+func obtener_voluntad() -> int:
+	return vol
+
 func recibir_danio(cantidad: int, _fuente: Object = null) -> int:
 	if cantidad <= 0:
 		return 0
@@ -92,22 +95,42 @@ func obtener_claves_estado() -> Array[StringName]:
 	claves.sort_custom(func(a, b): return String(a) < String(b))
 	return claves
 
+
+func retirar_estado(clave: StringName) -> bool:
+	var estado := obtener_estado(clave)
+	if estado == null:
+		return false
+	_estados.erase(clave)
+	estado_cambiado.emit(clave, estado)
+	return true
+
+
+func puede_moverse() -> bool:
+	return obtener_estado(&"enredado") == null
+
 func aplicar_o_renovar_estado(
 	clave: StringName,
 	magnitud: float,
 	duracion_total: int,
 	ticks_pendientes: int,
-	_fuente: Object = null
+	_fuente: Object = null,
+	terminos_dano_tick: Array[Dictionary] = []
 ) -> Dictionary:
-	if clave == &"" or magnitud < 0.0 or duracion_total <= 0 or ticks_pendientes < 0:
+	if (
+		clave == &"" or magnitud < 0.0 or duracion_total <= 0 or ticks_pendientes < 0
+		or (magnitud == 0.0 and terminos_dano_tick.is_empty())
+		or _validar_terminos_dano(terminos_dano_tick) != &""
+	):
 		return {}
 	var estado := obtener_estado(clave)
 	var creado := estado == null
 	if creado:
-		estado = EstadoActor.new(clave, magnitud, duracion_total, ticks_pendientes)
+		estado = EstadoActor.new(
+			clave, magnitud, duracion_total, ticks_pendientes, terminos_dano_tick
+		)
 		_estados[clave] = estado
 	else:
-		estado.renovar(magnitud, duracion_total, ticks_pendientes)
+		estado.renovar(magnitud, duracion_total, ticks_pendientes, terminos_dano_tick)
 	estado_cambiado.emit(clave, estado)
 	return {
 		&"clave": clave,
@@ -163,6 +186,13 @@ func consumir_recurso_turno(clave: StringName, cantidad: int) -> bool:
 	return true
 
 
+func agotar_recursos_turno() -> void:
+	for clave in RecursosTurnoActor.CLAVES:
+		var restante := obtener_recurso_turno(clave)
+		if restante > 0:
+			consumir_recurso_turno(clave, restante)
+
+
 func obtener_estado_persistente() -> Dictionary:
 	var estados: Array[Dictionary] = []
 	for clave in obtener_claves_estado():
@@ -172,6 +202,7 @@ func obtener_estado_persistente() -> Dictionary:
 			"magnitud": estado.magnitud,
 			"duracion_total": estado.duracion_total,
 			"ticks_pendientes": estado.ticks_pendientes,
+			"terminos_dano_tick": estado.terminos_dano_tick,
 		})
 	var items: Array[Dictionary] = []
 	for item in inventario.obtener_contenido():
@@ -205,7 +236,7 @@ func validar_estado_persistente(estado: Variant) -> StringName:
 		return &"estado_ficha_invalido"
 	if (
 		not estado.get("nombre") is String or estado["nombre"].strip_edges().is_empty()
-		or not estado.get("titulo") is String
+		or not estado.get("titulo") is String or estado["titulo"].strip_edges().is_empty()
 		or not estado.get("clase") is String or not FRAME_POR_CLASE.has(estado["clase"])
 		or not estado.get("origen") is String
 	):
@@ -256,11 +287,15 @@ func restaurar_estado_persistente(estado: Variant) -> StringName:
 	var estados_nuevos: Dictionary[StringName, EstadoActor] = {}
 	for datos: Dictionary in estado["estados"]:
 		var clave := StringName(datos["clave"])
+		if datos.has("terminos_dano_tick") and not datos["terminos_dano_tick"] is Array:
+			return &"estados_ficha_guardados_invalidos"
+		var terminos := _copiar_terminos_dano(datos.get("terminos_dano_tick", []))
 		estados_nuevos[clave] = EstadoActor.new(
 			clave,
 			float(datos["magnitud"]),
 			int(datos["duracion_total"]),
-			int(datos["ticks_pendientes"])
+			int(datos["ticks_pendientes"]),
+			terminos
 		)
 	nombre = estado["nombre"]
 	titulo = estado["titulo"]
@@ -305,8 +340,46 @@ func _validar_estados_guardados(datos_estados: Variant) -> StringName:
 			or datos["ticks_pendientes"] < 0
 		):
 			return &"estados_ficha_guardados_invalidos"
+		if datos.has("terminos_dano_tick") and not datos["terminos_dano_tick"] is Array:
+			return &"estados_ficha_guardados_invalidos"
+		var terminos_guardados: Variant = datos.get("terminos_dano_tick", [])
+		var terminos := _copiar_terminos_dano(terminos_guardados)
+		if (
+			(magnitud == 0.0 and terminos.is_empty())
+			or (not terminos_guardados.is_empty() and terminos.is_empty())
+			or _validar_terminos_dano(terminos) != &""
+		):
+			return &"estados_ficha_guardados_invalidos"
 		claves[clave] = true
 	return &""
+
+
+func _validar_terminos_dano(terminos: Array[Dictionary]) -> StringName:
+	if terminos.is_empty():
+		return &""
+	var motivo := MotorDados.new().validar_cantidad(
+		terminos,
+		0,
+		TiposTirada.Origen.AUTOMATICA,
+		TiposTirada.Presentacion.SOLO_LOG
+	)
+	if motivo != &"":
+		return motivo
+	for termino in terminos:
+		if termino[&"signo"] != 1:
+			return &"signo_dano_tick_invalido"
+	return &""
+
+
+func _copiar_terminos_dano(valor: Variant) -> Array[Dictionary]:
+	var terminos: Array[Dictionary] = []
+	if not valor is Array:
+		return terminos
+	for termino in valor:
+		if not termino is Dictionary:
+			return []
+		terminos.append(termino.duplicate(true))
+	return terminos
 
 
 func _validar_inventario_guardado(datos_items: Variant) -> StringName:
@@ -402,7 +475,7 @@ func mover_por_camino(
 	avanzar_turno: Callable = Callable(),
 	en_combate: bool = false
 ) -> void:
-	if camino.is_empty() or esta_moviendose or not capa_referencia:
+	if camino.is_empty() or esta_moviendose or not capa_referencia or not puede_moverse():
 		return
 
 	esta_moviendose = true

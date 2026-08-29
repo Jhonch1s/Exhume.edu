@@ -57,16 +57,15 @@ ya no conserva un diccionario provisional de daño.
 ticks pendientes. `Ficha.aplicar_o_renovar_estado()` crea o renueva mediante máximos
 y emite `estado_cambiado`; no avanza turnos ni expira estados.
 
-La configuración inicial de `&"veneno"` es magnitud `1` y dos ticks. Crearlo o
-renovarlo no causa daño inmediato: conserva ambos ticks para futuros `FIN_TURNO`.
-`&"quemado"` mantiene su daño inicial al prenderse y registra únicamente los ticks
-posteriores. El debuff adicional todavía no forma parte del contrato.
+Veneno y quemado pueden conservar una expresión de daño en vez de una magnitud
+fija. Crearlos o renovarlos no causa daño inmediato: conservan todos sus ticks para
+futuros `FIN_TURNO`. El debuff adicional todavía no forma parte del contrato.
 
 Una aplicación confirmada de estado agrega su mensaje y cambio descriptivo a
 `ResultadoReacciones`; como las solicitudes se deduplican antes, superficies
-superpuestas no duplican el estado, el daño inicial ni el mensaje. `&"quemado"`
-usa el mismo contrato: tres ticks totales de un punto, el primero inmediato y dos
-pendientes; renovar no repite el daño inmediato.
+superpuestas no duplican el estado ni el mensaje. `&"quemado"` usa el mismo
+contrato: tres ticks pendientes de `1d2`; renovar restaura los tres sin daño
+inmediato.
 
 ### Fin de turno y expiración de quemado
 
@@ -90,4 +89,3 @@ el servicio procesa `quemado` y `veneno` en ese orden estable. Prevalida todas l
 claves, estados y solicitudes de daño antes de aplicar el primer efecto; una clave
 desconocida bloquea el lote sin daño ni consumo de ticks. Cada estado conserva su
 propio contador y expira independientemente dentro del mismo `ResultadoAccion`.
-

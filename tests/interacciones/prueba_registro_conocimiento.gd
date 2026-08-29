@@ -9,9 +9,10 @@ func _init() -> void:
 	_probar_separacion_por_observador_y_objetivo()
 	_probar_rechazo_atomico()
 	_probar_copias_defensivas()
+	_probar_intentos_percepcion_persistentes()
 
 	if _fallos.is_empty():
-		print("RegistroConocimiento: 5 pruebas correctas.")
+		print("RegistroConocimiento: 6 pruebas correctas.")
 		quit()
 		return
 
@@ -131,6 +132,24 @@ func _probar_copias_defensivas() -> void:
 	_comprobar(
 		resultado.ids_fragmentos_nuevos.size() == 2,
 		"El resultado debe proteger su colección de novedades."
+	)
+
+
+func _probar_intentos_percepcion_persistentes() -> void:
+	var registro := RegistroConocimiento.new()
+	_comprobar(
+		registro.registrar_intento_percepcion(&"jugador", &"trampa"),
+		"El primer intento de percepción debe registrarse."
+	)
+	_comprobar(
+		not registro.registrar_intento_percepcion(&"jugador", &"trampa"),
+		"Una misma trampa no debe admitir otra tentativa."
+	)
+	var restaurado := RegistroConocimiento.new()
+	_comprobar(
+		restaurado.restaurar_estado_persistente(registro.obtener_estado_persistente()) == &""
+		and restaurado.intento_percepcion_realizado(&"jugador", &"trampa"),
+		"La tentativa irreversible debe sobrevivir al guardado."
 	)
 	_comprobar(
 		registro.obtener_ids_conocidos(&"observador", &"objetivo")

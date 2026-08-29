@@ -1,0 +1,25 @@
+[gd_resource type="TileSet" format=3 uid="uid://dr6pcgl80juta"]
+
+[ext_resource type="Texture2D" uid="uid://2xswlv4ralj7" path="res://assets/tiles/surface_effects/fire/sources/fire_master.png" id="1_nnusm"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_knpyb"]
+texture = ExtResource("1_nnusm")
+texture_region_size = Vector2i(64, 32)
+0:0/size_in_atlas = Vector2i(1, 2)
+0:0/0 = 0
+0:0/0/texture_origin = Vector2i(0, 16)
+1:0/size_in_atlas = Vector2i(1, 2)
+1:0/0 = 0
+1:0/0/texture_origin = Vector2i(0, 16)
+2:0/size_in_atlas = Vector2i(1, 2)
+2:0/0 = 0
+2:0/0/texture_origin = Vector2i(0, 16)
+3:0/size_in_atlas = Vector2i(1, 2)
+3:0/0 = 0
+3:0/0/texture_origin = Vector2i(0, 16)
+
+[resource]
+tile_shape = 1
+tile_layout = 4
+tile_size = Vector2i(64, 32)
+sources/0 = SubResource("TileSetAtlasSource_knpyb")

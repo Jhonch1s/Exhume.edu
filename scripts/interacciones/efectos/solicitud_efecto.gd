@@ -17,6 +17,8 @@ var politica_apilado: TiposInteraccion.PoliticaApilado:
 	get: return _politica_apilado
 var id_evento: StringName:
 	get: return _id_evento
+var terminos_dano: Array[Dictionary]:
+	get: return _terminos_dano.duplicate(true)
 
 var _clave: StringName
 var _tipo: StringName
@@ -26,6 +28,7 @@ var _magnitud: float
 var _duracion: int
 var _politica_apilado: TiposInteraccion.PoliticaApilado
 var _id_evento: StringName
+var _terminos_dano: Array[Dictionary]
 
 
 func _init(
@@ -38,7 +41,8 @@ func _init(
 	politica_inicial: TiposInteraccion.PoliticaApilado = (
 		TiposInteraccion.PoliticaApilado.NO_APILAR_Y_RENOVAR
 	),
-	fuente_inicial: Object = null
+	fuente_inicial: Object = null,
+	terminos_dano_iniciales: Array[Dictionary] = []
 ) -> void:
 	_clave = clave_inicial
 	_tipo = tipo_inicial
@@ -48,3 +52,4 @@ func _init(
 	_duracion = duracion_inicial
 	_politica_apilado = politica_inicial
 	_fuente = fuente_inicial
+	_terminos_dano = terminos_dano_iniciales.duplicate(true)

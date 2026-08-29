@@ -35,10 +35,15 @@ armada y la segunda la placa presionada. `INDICIO` usa alpha `0.7`, `OCULTA`
 alpha `0.0` y `VISIBLE` alpha `1.0`. Activar la trampa cambia la región del sprite
 sin intervención de la UI.
 
+Una trampa no activada y todavía no visible puede provocar una única percepción
+automática secreta por observador. Debe estar en una celda visible, a distancia de
+cuadrícula máxima cuatro y con línea visual. La prueba usa Destreza: el éxito cambia
+la presentación a `VISIBLE`; el fallo no cambia la trampa. La tentativa se guarda
+en `RegistroConocimiento`, por lo que mover o recargar no concede otra tirada.
+
 Una trampa consultada incluye también las trampas cardinalmente adyacentes que
 puedan reaccionar a `ENTRAR`. La consulta expande toda la componente conectada,
 ordena los receptores con las reglas normales y evita ciclos por identidad. El
 resolver entrega cada receptor una sola vez al mismo `GestorAcciones`; cada trampa
 despliega su propia superficie. La adyacencia diagonal no inicia ni prolonga una
 cadena.
-

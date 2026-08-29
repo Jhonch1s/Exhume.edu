@@ -37,6 +37,42 @@ declara siete turnos de duración. Fuego y humo pueden coexistir y aplicar sus d
 estados; varias instancias de una misma familia producen una sola solicitud lógica
 por objetivo y evento.
 
+Desde la Fase 16, quemado conserva tres ticks de `1d2` y no aplica daño al crear el
+estado. Una futura explosión de fuego resolverá por separado su daño inicial y su
+salvación de Destreza; no se incorpora esa regla mientras no exista ese contenido.
+
+`CapaPinchos` conserva el suelo base y registra en cada celda una reacción de
+terreno al `ENTRAR`. Resuelve automáticamente `1d3`, aplica el total como daño
+instantáneo mediante el aplicador común y adjunta la tirada como `SOLO_LOG`. No
+ofrece salvación ni deja estados pendientes.
+
+`CapaTelaraña` registra superficies permanentes con el mismo coste adicional `1`
+del humo. Al entrar se realiza una salvación automática `SOLO_LOG` de Destreza: el
+éxito permite continuar y el fallo interrumpe el recorrido y aplica `enredado`.
+Este estado impide calcular o ejecutar rutas, pero no bloquea otras acciones.
+
+Mientras está enredado, un clic derecho intenta `Destrabarse`: consume una acción
+principal incluso al fallar y presenta una nueva prueba de Destreza en primer
+plano. El éxito retira el estado; el fallo lo conserva. `enredado` no expira al
+avanzar turnos y se incluye en el snapshot normal de estados de la ficha.
+
+`CapaLodo` realiza una salvación automática `SOLO_LOG` de Destreza al entrar. El
+éxito permite continuar; el fallo interrumpe el recorrido, aplica `caido` y agota
+movimiento, acción principal, acción adicional y reacción restantes. El escenario
+cierra entonces el turno por el flujo ordinario, incluyendo ticks pendientes, y
+`caido` se retira antes de reponer los recursos del turno siguiente. El lodo no
+añade coste de movimiento ni deja un estado duradero.
+
+`CapaHielo` reutiliza exactamente la misma reacción resbaladiza que el lodo. Sólo
+cambia su familia estable a `&"hielo"` para que futuras combinaciones puedan
+distinguirlos sin duplicar salvaciones, estados ni cierre de turno.
+
+`CapaFuego` reutiliza `Fuego` como una superficie permanente dibujada por el
+TileMap. Entrar aplica `quemado` con tres ticks de `1d2`, sin salvación inicial, y
+añade uno al coste de movimiento. Cada celda proyecta luz con radio dos y una celda
+de penumbra; por ello no usa máscaras fog propias. Estos receptores estáticos no
+entran en la duración ni en el snapshot de superficies dinámicas.
+
 ### Coste de un paso y peso de ruta
 
 `Celda.calcular_coste_movimiento(actor)` compone el coste entero del paso como
@@ -84,4 +120,3 @@ interrumpe nunca una animación entre celdas.
 sin cobrar energía: la lava conserva un peso total alto mientras su daño se aplica
 por separado como reacción de terreno. Veneno, quemado y otros estados tampoco se
 modelan como costes de desplazamiento.
-
