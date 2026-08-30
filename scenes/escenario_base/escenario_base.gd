@@ -23,6 +23,13 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 @onready var capa_oscuridad: TileMapLayer = $Zona1/CapaOscuridad
 @onready var panel_registro_narrativo: PanelRegistroNarrativo = $CanvasLayer/PanelRegistroNarrativo
 
+@onready var viewportKnight: SubViewportContainer = $KnightViewPort
+@onready var subviewportKnight: SubViewport = $KnightViewPort/KnightSubViewport
+@onready var camaraCaballero: Camera3D = $KnightViewPort/KnightSubViewport/Camera3D
+@onready var caballeroModelo: Node3D = $KnightViewPort/KnightSubViewport/caballero20
+
+const modeloCaballero = preload("res://assets/characters/knight3d/caballero20.glb")
+
 const ESCENA_FICHA = preload("res://scenes/ficha/ficha.tscn")
 const DEFINICION_PIEDRA = preload("res://assets/items/piedra/piedra.tres")
 const DEFINICION_LLAVE_PRUEBA = preload("res://assets/items/llave_prueba/llave_prueba.tres")
@@ -507,6 +514,17 @@ func _registrar_resultado_narrativo(
 		)
 	registro_narrativo.registrar(categoria, titulo, "\n".join(mensajes), detalles)
 
+func capturar_textura(angulo:float) -> ImageTexture:
+	
+	caballeroModelo.rotation.y = deg_to_rad(angulo)
+	# Esperar un frame para que el viewport se actualice
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var imagen: Image = subviewportKnight.get_texture().get_image()
+	var textura: ImageTexture = ImageTexture.create_from_image(imagen)
+	return textura
+
+
 func spawnear_ficha_inicial() -> void:
 	var capa_suelo: TileMapLayer = zona_actual.get_node_or_null("CapaSuelo")
 	if not capa_suelo:
@@ -519,6 +537,22 @@ func spawnear_ficha_inicial() -> void:
 	if coord_inicio == Vector2i(-999, -999):
 		return
 	ficha_jugador = ESCENA_FICHA.instantiate()
+	ficha_jugador.sprite_render = Sprite2D.new()
+	subviewportKnight.size = Vector2i(64, 64)
+	subviewportKnight.set_update_mode(SubViewport.UPDATE_ALWAYS)
+	ficha_jugador.texturas_por_direccion[0]   = await capturar_textura(90)   # Mirando al frente (o derecha)
+	ficha_jugador.texturas_por_direccion[90]  = await capturar_textura(0)  # Mirando hacia abajo (si usas Y como eje vertical)
+	ficha_jugador.texturas_por_direccion[180] = await capturar_textura(270) # Mirando hacia atrás
+	ficha_jugador.texturas_por_direccion[270] = await capturar_textura(180) # Mirando hacia arriba
+	ficha_jugador.sprite_render.texture = ficha_jugador.texturas_por_direccion[0]
+	ficha_jugador.sprite_render.scale = Vector2(
+		1.2,1.2
+	)
+	ficha_jugador.sprite_render.position = Vector2(0,-24)
+	ficha_jugador.get_node("Sprite2D").visible = false
+
+	ficha_jugador._aplicar_visual_clase()
+
 	var datos_aventurero := EstadoPartida.consumir_aventurero()
 	if not datos_aventurero.is_empty() and not ficha_jugador.configurar_creacion(datos_aventurero):
 		push_error("La ficha se creó con valores por defecto: datos de aventurero inválidos.")

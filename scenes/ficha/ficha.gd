@@ -1,16 +1,26 @@
 extends Node2D
 class_name Ficha
 
+
+var texturas_por_direccion: Dictionary = {}
+var sprite_render: Sprite2D = null
+
+
+
 const TEXTURA_FICHAS_CLASE = preload(
 	"res://assets/characters/player/class_tokens/sprites/player_class_tokens_isometric.png"
 )
 const FRAME_POR_CLASE := {"Guerrero": 3, "Ladrón": 0, "Mago": 6}
+
+
 
 @export var nombre: String = "Heroe Jr."
 @export var titulo: String = "El come cebolla"
 @export var id_observador: StringName = &"jugador_principal"
 @export var id_actor: StringName = &"jugador_principal"
 @export var iniciativa_base: int = 0
+
+
 
 var fue: int = 5
 var des: int = 4
@@ -413,7 +423,7 @@ func _es_numero_entero(valor: Variant) -> bool:
 func _ready() -> void:
 	pv_max = fue + des + vol
 	pv_actual = pv_max
-	_aplicar_visual_clase()
+	#_aplicar_visual_clase()
 	iniciar_turno()
 
 
@@ -431,16 +441,20 @@ func configurar_creacion(datos: Dictionary) -> bool:
 
 
 func _aplicar_visual_clase() -> void:
-	var sprite := get_node_or_null("Sprite2D") as Sprite2D
-	if sprite == null:
-		return
-	sprite.texture = TEXTURA_FICHAS_CLASE
-	sprite.hframes = 3
-	sprite.vframes = 4
-	sprite.frame = FRAME_POR_CLASE.get(clase, 0)
-	sprite.position = Vector2.ZERO
-	sprite.scale = Vector2.ONE
-	sprite.offset = Vector2.ZERO
+	
+	if sprite_render == null:
+		sprite_render = Sprite2D.new()
+		sprite_render.name = "SpriteRender"
+		add_child(sprite_render)
+		print("sprite render es null")
+	if texturas_por_direccion.has(0):
+		sprite_render.texture = texturas_por_direccion[0]
+		sprite_render.visible = true
+		add_child(sprite_render)
+		
+	else:
+		push_warning("No hay textura para dirección 0")
+
 
 func inicializar(coordenada_inicial: Vector2i, capa: TileMapLayer) -> void:
 	capa_referencia = capa
@@ -463,6 +477,10 @@ func consumir_o_recargar_antorcha() -> bool:
 func solicitar_interrupcion() -> void:
 	if esta_moviendose:
 		interrupcion_solicitada = true
+
+
+
+
 
 func mover_por_camino(
 	camino: Array[Vector2i],
@@ -517,6 +535,19 @@ func mover_por_camino(
 		if not preparar_paso.call(origen, siguiente_coord, self):
 			fue_interrumpido = true
 			break
+		var dir_vector2 = Vector2(siguiente_coord.x - origen.x, siguiente_coord.y - origen.y)
+		var angulo_grados = rad_to_deg(dir_vector2.angle())
+		
+		var angulo_redondeado = int(round(angulo_grados / 90.0) * 90)
+		# Normalizar a 0-360
+		angulo_redondeado = angulo_redondeado % 360
+		if angulo_redondeado < 0:
+			angulo_redondeado += 360
+		if sprite_render and texturas_por_direccion.has(angulo_redondeado):
+			print("se ejecuta cambio de textura")
+			print("angulo seleccionado", angulo_redondeado)
+			sprite_render.texture = texturas_por_direccion[angulo_redondeado]
+
 
 		var destino_pixeles := capa_referencia.map_to_local(siguiente_coord)
 		var tween := create_tween()

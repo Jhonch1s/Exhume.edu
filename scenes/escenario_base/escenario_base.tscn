@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/interacciones/panel_resultado_accion.tscn" id="9_panel_resultado"]
 [ext_resource type="Resource" uid="uid://fstyo5e070o6" path="res://assets/interactuables/mensajes_interacciones.tres" id="10_catalogo_mensajes"]
 [ext_resource type="PackedScene" path="res://scenes/ui/interacciones/menu_contextual_interacciones.tscn" id="11_menu_contextual"]
+[ext_resource type="PackedScene" uid="uid://ggjbjoxbbphg" path="res://assets/characters/knight3d/caballero20.glb" id="12_jpvkn"]
 [ext_resource type="PackedScene" path="res://scenes/ui/interacciones/panel_registro_narrativo.tscn" id="12_registro_narrativo"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_m8dhx"]
@@ -83,7 +84,8 @@ layer = 2
 
 [node name="MenuContextualInteracciones" parent="CanvasLayer" unique_id=1288888575 instance=ExtResource("11_menu_contextual")]
 
-[node name="PanelRegistroNarrativo" parent="CanvasLayer" instance=ExtResource("12_registro_narrativo")]
+[node name="PanelRegistroNarrativo" parent="CanvasLayer" unique_id=1606207479 instance=ExtResource("12_registro_narrativo")]
+anchors_preset = 1
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1734531678]
 stream = ExtResource("7_541xx")
@@ -92,3 +94,27 @@ autoplay = true
 
 [node name="GestorVision" type="Node" parent="." unique_id=1841790396]
 script = ExtResource("7_t484h")
+
+[node name="KnightViewPort" type="SubViewportContainer" parent="." unique_id=2057824913]
+visible = false
+offset_left = 586.0
+offset_top = -164.0
+offset_right = 1098.0
+offset_bottom = 348.0
+
+[node name="KnightSubViewport" type="SubViewport" parent="KnightViewPort" unique_id=1890890032]
+transparent_bg = true
+handle_input_locally = false
+canvas_cull_mask = 4294966273
+render_target_update_mode = 0
+
+[node name="caballero20" parent="KnightViewPort/KnightSubViewport" unique_id=1421085748 instance=ExtResource("12_jpvkn")]
+
+[node name="Camera3D" type="Camera3D" parent="KnightViewPort/KnightSubViewport" unique_id=2136811322]
+transform = Transform3D(0.70710677, 0.49999997, -0.49999997, 0, 0.70710677, 0.70710677, 0.70710677, -0.49999997, 0.49999997, -10, 13.9, 10)
+projection = 1
+size = 1.4
+
+[node name="SpotLight3D" type="SpotLight3D" parent="KnightViewPort/KnightSubViewport" unique_id=449324514]
+transform = Transform3D(0.70710677, 0, -0.70710677, 0, 1, 0, 0.70710677, 0, 0.70710677, -3, 0, 3)
+light_energy = 2.0
