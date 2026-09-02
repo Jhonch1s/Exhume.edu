@@ -1,9 +1,12 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" uid="uid://cl5u1p3hlirr2" path="res://scripts/interacciones/interactuables/fuentes_luz/fuente_luz_interactuable.gd" id="1_script"]
+[ext_resource type="Resource" path="res://assets/interactuables/luces/antorcha_pie.tres" id="2_definicion"]
 
 [node name="FuenteLuzInteractuable" type="Node2D" groups=["interactuables"]]
 script = ExtResource("1_script")
+definicion = ExtResource("2_definicion")
+ajustar_a_celda_en_editor = true
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture_filter = 1

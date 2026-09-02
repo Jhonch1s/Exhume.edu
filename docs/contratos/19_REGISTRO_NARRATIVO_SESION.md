@@ -51,6 +51,36 @@ consecuencias. El panel solo observa el registro y no participa en el juego.
 - El productor del acontecimiento determina su política de visibilidad; el panel
   se limita a respetarla.
 
+## Origen y construcción del texto
+
+La responsabilidad se divide en cuatro pasos:
+
+```text
+objeto o servicio produce IDs y ResultadoAccion
+→ CatalogoMensajesInteraccion aporta la redacción visible
+→ EscenarioBase agrupa el acontecimiento y añade detalles mecánicos
+→ PanelRegistroNarrativo dibuja la tarjeta
+```
+
+- El objeto, interactuable o servicio que resuelve la acción aporta IDs semánticos
+  en `ResultadoAccion.mensajes`, por ejemplo `palanca.activada`, `item.recogido`,
+  `estado.enredado` o `trampa.detectada`. No construye controles de interfaz.
+- `CatalogoMensajesInteraccion`, configurado actualmente mediante
+  `assets/interactuables/mensajes_interacciones.tres`, convierte esos IDs en la
+  redacción narrativa. Ese recurso es el lugar habitual para editar los textos.
+- `EscenarioBase` decide si el acontecimiento es perceptible, elige el título,
+  traduce los IDs y agrega datos ya resueltos como `DES 3 → 5, fallo` o el daño
+  confirmado. También agrupa tirada y consecuencias en una sola entrada.
+- `RegistroNarrativoSesion` conserva la entrada terminada y notifica su alta; no
+  interpreta reglas ni traduce mensajes.
+- `PanelRegistroNarrativo` solo compone visualmente título, detalles y mensaje. No
+  consulta objetos del mundo, resuelve tiradas ni decide visibilidad.
+
+En el primer incremento, los títulos y algunos textos genéricos de daño o
+transformación se construyen directamente en `EscenarioBase`. Si contenido futuro
+necesita personalizarlos, deberá trasladarlos al mismo catálogo mediante IDs
+semánticos, sin introducir reglas de presentación en `GestorAcciones`.
+
 ## Duración
 
 El historial pertenece exclusivamente a la sesión actual, comienza vacío y no se

@@ -34,8 +34,7 @@ func _ejecutar() -> void:
 	puerta.abierta = true
 	puerta.bloqueada = false
 	palanca.activada = true
-	trampa.activada = true
-	trampa.presentacion = TrampaSuperficie.Presentacion.VISIBLE
+	trampa.estado = TrampaSuperficie.Estado.ACTIVADA
 	luz.encendida = not luz.encendida
 
 	var invalido: Dictionary = copia_json.duplicate(true)

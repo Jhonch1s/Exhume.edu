@@ -8,7 +8,7 @@ signal accion_contextual_finalizada(
 )
 signal estado_modal_interaccion_cambiado(activo: bool)
 
-@onready var zona_actual: Node2D = $Zona1
+@onready var zona_actual: Node2D = $Zona
 @onready var capa_selector: TileMapLayer = $CapaSelector
 @onready var panel_resultado_accion: PanelResultadoAccion = (
 	$CanvasLayer/PanelResultadoAccion
@@ -20,7 +20,7 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 @onready var capa_camino: TileMapLayer = $CapaCamino
 @onready var trayectoria_lanzamiento: Line2D = $TrayectoriaLanzamiento
 @onready var gestor_vision: FOVManager = $GestorVision
-@onready var capa_oscuridad: TileMapLayer = $Zona1/CapaOscuridad
+@onready var capa_oscuridad: TileMapLayer = $Zona/CapaOscuridad
 @onready var panel_registro_narrativo: PanelRegistroNarrativo = $CanvasLayer/PanelRegistroNarrativo
 
 @onready var viewportKnight: SubViewportContainer = $KnightViewPort
@@ -525,15 +525,11 @@ func capturar_textura(angulo:float) -> ImageTexture:
 	return textura
 
 
-func spawnear_ficha_inicial() -> void:
+func spawnear_ficha_inicial(id_spawn: StringName = &"entrada") -> void:
 	var capa_suelo: TileMapLayer = zona_actual.get_node_or_null("CapaSuelo")
 	if not capa_suelo:
 		return
-	var coord_inicio := Vector2i(-999, -999)
-	for coord in tablero.datos:
-		if tablero.puede_entrar(coord):
-			coord_inicio = coord
-			break
+	var coord_inicio := _obtener_coordenada_spawn(id_spawn, capa_suelo)
 	if coord_inicio == Vector2i(-999, -999):
 		return
 	ficha_jugador = ESCENA_FICHA.instantiate()
@@ -560,6 +556,38 @@ func spawnear_ficha_inicial() -> void:
 	ficha_jugador.inicializar(coord_inicio, capa_suelo)
 	ficha_jugador.paso_dado.connect(_on_ficha_paso_dado)
 	tablero.ocupar_celda(coord_inicio, ficha_jugador)
+
+
+func _obtener_coordenada_spawn(
+	id_spawn: StringName,
+	capa_suelo: TileMapLayer
+) -> Vector2i:
+	var puntos: Array[PuntoSpawnZona] = []
+	for nodo in zona_actual.find_children("*", "", true, false):
+		if nodo is PuntoSpawnZona:
+			puntos.append(nodo)
+	puntos.sort_custom(func(a, b): return String(a.id_spawn) < String(b.id_spawn))
+	var coincidencias: Array[PuntoSpawnZona] = []
+	for punto in puntos:
+		if punto.id_spawn == id_spawn:
+			coincidencias.append(punto)
+	if coincidencias.size() > 1:
+		push_error("Punto de spawn duplicado: %s" % id_spawn)
+		return Vector2i(-999, -999)
+	if coincidencias.size() == 1:
+		var coordenada := coincidencias[0].obtener_coordenada(capa_suelo)
+		if tablero.puede_entrar(coordenada):
+			return coordenada
+		push_error("Punto de spawn fuera de una celda caminable: %s" % id_spawn)
+		return Vector2i(-999, -999)
+	if not puntos.is_empty():
+		push_error("La zona no contiene el punto de spawn solicitado: %s" % id_spawn)
+		return Vector2i(-999, -999)
+	# Compatibilidad con zonas anteriores al marcador explícito.
+	for coordenada in tablero.datos:
+		if tablero.puede_entrar(coordenada):
+			return coordenada
+	return Vector2i(-999, -999)
 
 func _on_ficha_paso_dado(nueva_coord: Vector2i) -> void:
 	_reproducir_sonido_paso()
@@ -592,7 +620,8 @@ func _evaluar_percepcion_trampas() -> void:
 			_registrar_resultado_narrativo(
 				"Trampa descubierta",
 				resultado,
-				EntradaRegistroNarrativo.Categoria.SISTEMA
+				EntradaRegistroNarrativo.Categoria.SISTEMA,
+				"VOL"
 			)
 
 
@@ -945,8 +974,14 @@ func _ejecutar_opcion_contextual(
 		TiposInteraccion.TipoAccion.INTERACTUAR,
 		TiposInteraccion.TipoAccion.USAR_ITEM,
 	]:
+		var etiqueta_atributo := "DES"
+		if opcion.id in [&"desarmar_fue", &"desarmar_des", &"desarmar_vol"]:
+			etiqueta_atributo = String(opcion.id).trim_prefix("desarmar_").to_upper()
 		_registrar_resultado_narrativo(
-			titulo_resultado, resultado, EntradaRegistroNarrativo.Categoria.OBJETO
+			titulo_resultado,
+			resultado,
+			EntradaRegistroNarrativo.Categoria.OBJETO,
+			etiqueta_atributo
 		)
 	_presentar_resultado_contextual(titulo_resultado, resultado)
 	accion_contextual_finalizada.emit(opcion, contexto, resultado)

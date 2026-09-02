@@ -36,7 +36,11 @@ func _validar_linea_visual(contexto: ContextoAccion) -> StringName:
 		return &"celda_espacial_invalida"
 
 	var linea := GeometriaGrid.trazar_linea(origen, destino)
-	for indice in range(1, linea.size() - 1):
+	for indice in range(1, linea.size()):
+		if _esquina_bloquea_vision(linea[indice - 1], linea[indice]):
+			return &"linea_de_efecto_bloqueada"
+		if indice == linea.size() - 1:
+			continue
 		var coordenada := linea[indice]
 		if not tablero.es_celda_valida(coordenada):
 			return &"linea_fuera_del_tablero"
@@ -47,6 +51,17 @@ func _validar_linea_visual(contexto: ContextoAccion) -> StringName:
 			return &"linea_de_efecto_bloqueada"
 
 	return &""
+
+
+func _esquina_bloquea_vision(origen: Vector2i, destino: Vector2i) -> bool:
+	var flancos := GeometriaGrid.flancos_paso_diagonal(origen, destino)
+	return (
+		flancos.size() == 2
+		and tablero.es_celda_valida(flancos[0])
+		and tablero.es_celda_valida(flancos[1])
+		and tablero.obtener_celda(flancos[0]).bloquea_vision_efectiva()
+		and tablero.obtener_celda(flancos[1]).bloquea_vision_efectiva()
+	)
 
 
 func _validar_linea_fisica(contexto: ContextoAccion) -> StringName:

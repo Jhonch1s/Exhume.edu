@@ -1,10 +1,9 @@
 ### Trampas que despliegan superficies
 
-`TrampaSuperficie` es un interactuable únicamente automático: participa en la
-categoría `INTERACTUABLE` al resolver `ENTRAR`, pero devuelve cero opciones
-voluntarias. Por ello no puede seleccionarse, resaltarse ni examinarse a distancia
-desde el menú contextual. La inspección adyacente y el desarme quedan fuera de
-este incremento.
+`TrampaSuperficie` participa automáticamente en `ENTRAR` e `IMPACTAR`. Mientras
+está oculta no ofrece opciones voluntarias. Una vez descubierta ofrece desarme
+adyacente mediante FUE, DES o VOL; no se agrega un tipo de acción nuevo, sino
+variantes identificadas de `INTERACTUAR`.
 
 Cada instancia configura una `PackedScene` de superficie y un radio entero. Las
 trampas son de un solo uso. Al activarse, `TableroGrid` instancia la superficie sobre las
@@ -25,21 +24,31 @@ la trampa no se ejecuta retroactivamente en el mismo evento `ENTRAR`. Sí modifi
 el coste y reacciona en entradas posteriores. Una explosión instantánea permanece
 como consecuencia separada y nunca se registra como superficie.
 
-La presentación visual es independiente de la reacción y admite `OCULTA`,
-`INDICIO` y `VISIBLE`. `OCULTA` transparenta el sprite; `INDICIO` usa el sprite creado
-con opacidad reducida; `VISIBLE` lo muestra completo. Estos estados no conceden
-por sí mismos opciones de interacción ni conocimiento al actor.
+El ciclo de estado es `OCULTA → DESCUBIERTA → ACTIVADA | DESACTIVADA`. Oculta y
+descubierta permanecen transparentes. Al descubrirla, la placa parpadea tres veces
+y vuelve a ocultarse: recordar su celda es responsabilidad del jugador. Activada
+muestra la placa presionada; desactivada deja de reaccionar y permanece oculta.
 
 El atlas inicial usa celdas de `64×32`: la primera columna representa la placa
-armada y la segunda la placa presionada. `INDICIO` usa alpha `0.7`, `OCULTA`
-alpha `0.0` y `VISIBLE` alpha `1.0`. Activar la trampa cambia la región del sprite
-sin intervención de la UI.
+armada y la segunda la placa presionada. El destello usa el mismo sprite y un
+`Tween` local; no requiere controles de UI.
 
-Una trampa no activada y todavía no visible puede provocar una única percepción
+`traps_isometric.png` reserva la fila 0 para veneno, la fila 1 para fuego y la
+fila 2 para placas neutras que accionan mecanismos remotos. `fila_atlas` expone
+esas tres alternativas en el inspector. La cuarta fila del archivo no tiene uso
+asignado todavía.
+
+Una trampa `OCULTA` puede provocar una única percepción
 automática secreta por observador. Debe estar en una celda visible, a distancia de
-cuadrícula máxima cuatro y con línea visual. La prueba usa Destreza: el éxito cambia
-la presentación a `VISIBLE`; el fallo no cambia la trampa. La tentativa se guarda
+cuadrícula máxima cuatro y con línea visual. La prueba usa Voluntad: el éxito cambia
+el estado a `DESCUBIERTA`; el fallo no cambia la trampa. La tentativa se guarda
 en `RegistroConocimiento`, por lo que mover o recargar no concede otra tirada.
+
+Desarmar consume una acción principal al intentarlo y presenta la tirada en primer
+plano. Por defecto se tira con desventaja; un Guerrero tira normal. El éxito lleva
+la trampa a `DESACTIVADA`. El fallo la activa y aplica su consecuencia configurada.
+El resultado transporta la tirada y la consecuencia juntas para presentación y
+registro narrativo.
 
 Una trampa consultada incluye también las trampas cardinalmente adyacentes que
 puedan reaccionar a `ENTRAR`. La consulta expande toda la componente conectada,

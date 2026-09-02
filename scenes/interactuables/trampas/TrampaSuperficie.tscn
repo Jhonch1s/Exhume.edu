@@ -12,6 +12,7 @@ nombre = "Trampa"
 [node name="TrampaSuperficie" type="Node2D" groups=["trampas"]]
 script = ExtResource("1_script")
 definicion = SubResource("Resource_trampa")
+ajustar_a_celda_en_editor = true
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture_filter = 1

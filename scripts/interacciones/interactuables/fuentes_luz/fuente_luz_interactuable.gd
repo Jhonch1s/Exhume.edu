@@ -20,6 +20,15 @@ signal estado_luz_cambiado(encendida: bool)
 
 
 func _ready() -> void:
+	set_process(Engine.is_editor_hint())
+	_actualizar_representacion()
+
+
+func _process(_delta: float) -> void:
+	if not Engine.is_editor_hint():
+		return
+	if ajustar_a_celda_en_editor:
+		_ajustar_al_centro_celda()
 	_actualizar_representacion()
 
 

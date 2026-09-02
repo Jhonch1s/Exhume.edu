@@ -47,7 +47,7 @@ y_sort_enabled = true
 script = ExtResource("1_3j2a0")
 catalogo_mensajes = ExtResource("10_catalogo_mensajes")
 
-[node name="Zona1" parent="." unique_id=1662731053 instance=ExtResource("2_3j2a0")]
+[node name="Zona" parent="." unique_id=1662731053 instance=ExtResource("2_3j2a0")]
 
 [node name="CapaCamino" type="TileMapLayer" parent="." unique_id=2140207141]
 texture_filter = 1
@@ -64,7 +64,7 @@ antialiased = true
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=643464011]
 position = Vector2(320, 181)
-zoom = Vector2(2, 2)
+zoom = Vector2(3, 3)
 
 [node name="FiltroCRT" type="CanvasLayer" parent="." unique_id=274575882]
 

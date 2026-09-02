@@ -1,0 +1,137 @@
+[gd_scene format=4 uid="uid://bgteils8qnldb"]
+
+[ext_resource type="TileSet" uid="uid://d1nvkie7qevtr" path="res://assets/tile_sets/terrain/cave_terrain.tres" id="1_t5drb"]
+[ext_resource type="TileSet" uid="uid://ppf8ki7fg8h8" path="res://assets/tile_sets/structures/walls_cave.tres" id="2_e7jyx"]
+[ext_resource type="PackedScene" path="res://scenes/interactuables/fuentes_luz/fuente_luz_interactuable.tscn" id="3_4wk75"]
+[ext_resource type="PackedScene" path="res://scenes/interactuables/trampas/TrampaSuperficie.tscn" id="3_e7jyx"]
+[ext_resource type="TileSet" uid="uid://6tn667rbykno" path="res://assets/tile_sets/structures/cave_columns.tres" id="3_f8qme"]
+[ext_resource type="TileSet" uid="uid://cy3mjhp85u73y" path="res://assets/tile_sets/decorations/stalagmites_medium.tres" id="4_4wk75"]
+[ext_resource type="Resource" uid="uid://bpvm3w36ob568" path="res://assets/interactuables/luces/antorcha_pared_derecha.tres" id="4_gu6db"]
+[ext_resource type="TileSet" uid="uid://bvv3o4iyhffgu" path="res://assets/tile_sets/decorations/cave_floor_decorations.tres" id="5_gu6db"]
+[ext_resource type="TileSet" uid="uid://cja2guulmaygb" path="res://assets/tile_sets/fog/cave_fog.tres" id="6_c4gh2"]
+[ext_resource type="PackedScene" path="res://scenes/zonas/PuntoSpawnZona.tscn" id="6_gu6db"]
+[ext_resource type="TileSet" uid="uid://c0fcnkqgc0isg" path="res://assets/tile_sets/surface_effects/spikes.tres" id="7_xa8qm"]
+[ext_resource type="TileSet" uid="uid://t08yc6kq88bo" path="res://assets/tile_sets/surface_effects/mud.tres" id="8_xgogb"]
+[ext_resource type="TileSet" uid="uid://bdm815cgoj5qn" path="res://assets/tile_sets/surface_effects/ice.tres" id="9_vsyyl"]
+[ext_resource type="TileSet" uid="uid://dr6pcgl80juta" path="res://assets/tile_sets/surface_effects/fire.tres" id="10_sa51j"]
+[ext_resource type="TileSet" uid="uid://b2soug6txnn72" path="res://assets/tile_sets/surface_effects/web.tres" id="11_mo2f4"]
+[ext_resource type="Script" uid="uid://dkkd0pruoa4im" path="res://scripts/zonas/zona_explorable.gd" id="12_zona"]
+
+[node name="TemploDeLasTrampas" type="Node2D" unique_id=1292300722]
+y_sort_enabled = true
+script = ExtResource("12_zona")
+
+[node name="CapaAgua" type="TileMapLayer" parent="." unique_id=842792544]
+z_index = -3
+texture_filter = 1
+tile_set = ExtResource("1_t5drb")
+
+[node name="CapaLava" type="TileMapLayer" parent="." unique_id=1646735384]
+z_index = -2
+texture_filter = 1
+tile_set = ExtResource("1_t5drb")
+
+[node name="CapaSuelo" type="TileMapLayer" parent="." unique_id=1302043061]
+z_index = -1
+y_sort_enabled = true
+texture_filter = 1
+tile_map_data = PackedByteArray("AAAAAP//AAACAAAAAAAAAP7/AAADAAAAAAD///7/AAABAAAAAAD///3/AAADAAAAAAD/////AAABAAAAAAAAAP3/AAADAAAAAAAAAPz/AAAAAAAAAAAAAPv/AAAAAAAAAAAAAPr/AAADAAAAAAD///v/AAADAAAAAAD///z/AAACAAAAAAD///r/AAACAAAAAAABAP//AAAAAAAAAAABAP7/AAABAAAAAAABAP3/AAAAAAAAAAABAPz/AAAAAAAAAAABAPv/AAADAAAAAAABAPr/AAABAAAAAAD+////AAABAAAAAAD+//7/AAAAAAAAAAD+//3/AAADAAAAAAD+//z/AAABAAAAAAD+//v/AAABAAAAAAD+//r/AAAAAAAAAAACAP3/AAAAAAAAAAACAPn/AAACAAAAAAACAPX/AAAAAAAAAAABAPX/AAAAAAAAAAABAPb/AAABAAAAAAABAPf/AAABAAAAAAABAPj/AAADAAAAAAAAAPj/AAADAAAAAAAAAPn/AAADAAAAAAABAPn/AAADAAAAAAAAAPf/AAADAAAAAAAAAPb/AAABAAAAAAAAAPX/AAAAAAEAAAD///X/AAACAAAAAAD///b/AAACAAAAAAD+//b/AAACAAAAAAD+//f/AAACAAAAAAD+//j/AAABAAAAAAD///j/AAAAAAAAAAD///n/AAADAAAAAAD+//n/AAACAAAAAAD///f/AAAAAAAAAAD+//X/AAABAAAAAAD9//X/AAACAAAAAAD9//n/AAACAAAAAAD9//3/AAAAAAAAAAD+//T/AAAAAAEAAAD+//P/AAAAAAAAAAD+//L/AAAAAAEAAAD///L/AAAAAAEAAAD///H/AAAAAAEAAAAAAPL/AAAAAAEAAAABAPL/AAADAAAAAAABAPP/AAAAAAEAAAABAPT/AAAAAAEAAAAAAPT/AAAAAAEAAAAAAPP/AAAAAAAAAAD///T/AAABAAAAAAD///P/AAAAAAEAAAADAPH/AAAAAAEAAAAEAPH/AAAAAAEAAAAFAPH/AAAAAAEAAAD9//H/AAAAAAEAAAD8//H/AAAAAAEAAAD7//H/AAAAAAEAAAD6//H/AAAAAAEAAAD6//D/AAAAAAEAAAD6/+//AAAAAAEAAAD6/+7/AAAAAAEAAAD6/+3/AAAAAAEAAAD6/+z/AAAAAAEAAAD6/+v/AAAAAAEAAAD6/+r/AAAAAAEAAAD6/+n/AAAAAAEAAAD7/+n/AAAAAAEAAAD8/+n/AAAAAAEAAAD9/+n/AAAAAAEAAAD+/+n/AAAAAAEAAAD//+n/AAAAAAEAAAAAAOn/AAAAAAEAAAABAOn/AAAAAAEAAAACAOr/AAAAAAEAAAACAOn/AAAAAAEAAAADAOr/AAAAAAEAAAAEAOr/AAAAAAEAAAAFAOr/AAAAAAEAAAAFAOv/AAAAAAEAAAAFAPD/AAAAAAEAAAAEAPD/AAAAAAEAAAAFAOz/AAAAAAEAAAAFAO3/AAAAAAEAAAAFAO7/AAAAAAEAAAAFAO//AAAAAAEAAAAEAO//AAAAAAEAAAADAPD/AAAAAAEAAAACAPD/AAAAAAEAAAACAPH/AAAAAAEAAAABAPH/AAAAAAEAAAAAAPH/AAAAAAEAAAD+//H/AAAAAAEAAAD8//D/AAAAAAEAAAD7//D/AAAAAAEAAAD7/+//AAAAAAEAAAD7/+7/AAAAAAEAAAD7/+3/AAAAAAEAAAD7/+z/AAAAAAEAAAD7/+v/AAAAAAEAAAD8/+v/AAAAAAEAAAD8/+r/AAAAAAEAAAD9/+r/AAAAAAEAAAD+/+r/AAAAAAEAAAD//+r/AAAAAAEAAAAAAOr/AAAAAAEAAAAAAOv/AAAAAAEAAAABAOv/AAAAAAEAAAABAOz/AAAAAAEAAAAAAOz/AAAAAAEAAAAAAO3/AAAAAAEAAAD//+3/AAAAAAEAAAD+/+3/AAAAAAEAAAD9/+3/AAAAAAEAAAD9/+7/AAAAAAEAAAD8/+7/AAAAAAEAAAD8/+3/AAAAAAEAAAD8/+z/AAAAAAEAAAD9/+z/AAAAAAEAAAD+/+z/AAAAAAEAAAD+/+v/AAAAAAEAAAD//+v/AAAAAAEAAAACAOv/AAAAAAEAAAADAOv/AAAAAAEAAAAEAOz/AAAAAAEAAAADAOz/AAAAAAEAAAADAO3/AAAAAAEAAAADAO7/AAAAAAEAAAACAO7/AAAAAAEAAAACAO//AAAAAAEAAAABAO//AAAAAAEAAAABAPD/AAAAAAEAAAAAAPD/AAAAAAEAAAD///D/AAAAAAEAAAD+//D/AAAAAAEAAAD9//D/AAAAAAEAAAABAO3/AAAAAAEAAAACAO3/AAAAAAEAAAABAO7/AAAAAAEAAAAAAO7/AAAAAAEAAAAAAO//AAAAAAEAAAD//+//AAAAAAEAAAD+/+//AAAAAAEAAAD8/+//AAAAAAEAAAD+/+7/AAAAAAEAAAD//+7/AAAAAAEAAAD9/+//AAAAAAEAAAD//+z/AAAAAAEAAAAEAO7/AAAAAAEAAAAEAO3/AAAAAAEAAAAEAOv/AAAAAAEAAAACAOz/AAAAAAEAAAABAOr/AAAAAAEAAAD9/+v/AAAAAAEAAAD7/+r/AAAAAAEAAAADAO//AAAAAAEAAAADAOn/AAAAAAEAAAAEAOn/AAAAAAEAAAAFAOn/AAAAAAEAAAD5//D/AAAAAAEAAAD5//H/AAAAAAEAAAD5/+//AAAAAAEAAAD5/+7/AAAAAAEAAAD5/+3/AAAAAAEAAAD5/+z/AAAAAAEAAAD5/+v/AAAAAAEAAAD5/+r/AAAAAAEAAAD5/+n/AAAAAAEAAAAGAOn/AAAAAAEAAAAGAOr/AAAAAAEAAAAGAOv/AAAAAAEAAAAGAOz/AAAAAAEAAAAGAO3/AAAAAAEAAAAGAO7/AAAAAAEAAAAGAO//AAAAAAEAAAAGAPD/AAAAAAEAAAAGAPH/AAAAAAEAAAAGAOj/AAAAAAEAAAAGAOf/AAAAAAEAAAAGAOb/AAAAAAEAAAAGAOX/AAAAAAEAAAAGAOT/AAAAAAEAAAAFAOT/AAAAAAEAAAAFAOX/AAAAAAEAAAAEAOX/AAAAAAEAAAADAOX/AAAAAAEAAAACAOX/AAAAAAEAAAABAOX/AAAAAAEAAAAAAOX/AAAAAAEAAAD//+X/AAAAAAEAAAD+/+X/AAAAAAEAAAD9/+X/AAAAAAEAAAD8/+X/AAAAAAEAAAD8/+b/AAAAAAEAAAD7/+b/AAAAAAEAAAD6/+b/AAAAAAEAAAD6/+X/AAAAAAEAAAD6/+T/AAAAAAEAAAD5/+j/AAAAAAEAAAD5/+f/AAAAAAEAAAD5/+b/AAAAAAEAAAD5/+X/AAAAAAEAAAD5/+T/AAAAAAEAAAD7/+T/AAAAAAEAAAD8/+T/AAAAAAEAAAD9/+T/AAAAAAEAAAD+/+T/AAAAAAEAAAD//+T/AAAAAAEAAAAAAOT/AAAAAAEAAAAEAOT/AAAAAAEAAAADAOT/AAAAAAEAAAACAOT/AAAAAAEAAAABAOT/AAAAAAEAAAD7/+X/AAAAAAEAAAAEAOb/AAAAAAEAAAAFAOb/AAAAAAEAAAAFAOf/AAAAAAEAAAAEAOf/AAAAAAEAAAAEAOj/AAAAAAEAAAADAOj/AAAAAAEAAAACAOj/AAAAAAEAAAABAOj/AAAAAAEAAAAAAOj/AAAAAAEAAAAAAOf/AAAAAAEAAAABAOf/AAAAAAEAAAABAOb/AAAAAAEAAAACAOb/AAAAAAEAAAADAOb/AAAAAAEAAAADAOf/AAAAAAEAAAACAOf/AAAAAAEAAAD//+f/AAAAAAEAAAD//+b/AAAAAAEAAAAAAOb/AAAAAAEAAAAFAOj/AAAAAAEAAAD+/+j/AAAAAAEAAAD9/+j/AAAAAAEAAAD9/+f/AAAAAAEAAAD+/+f/AAAAAAEAAAD+/+b/AAAAAAEAAAD//+j/AAAAAAEAAAD8/+j/AAAAAAEAAAD8/+f/AAAAAAEAAAD9/+b/AAAAAAEAAAD7/+j/AAAAAAEAAAD6/+j/AAAAAAEAAAD6/+f/AAAAAAEAAAD7/+f/AAAAAAEAAAA=")
+tile_set = ExtResource("1_t5drb")
+
+[node name="CapaParedes" type="TileMapLayer" parent="." unique_id=714580061]
+y_sort_enabled = true
+texture_filter = 1
+tile_map_data = PackedByteArray("AAACAPb/AAAAAAAAAAACAPf/AAAAAAAAAAACAPP/AAAAAAAAAAACAPL/AAAAAAAAAAACAPr/AAAAAAAAAAACAPv/AAAAAAAAAAADAP3/AAAAAAAAAAACAP7/AAAAAAAAAAACAP//AAAAAAAAAAAHAOz/AAAAAAAAAAAHAO3/AAAAAAAAAAAHAO7/AAAAAAAAAAAHAO//AAAAAAAAAAAHAPD/AAAAAAAAAAAHAPH/AAAAAAAAAAACAPj/AAAAAAAAAAACAPT/AAAAAAAAAAACAPz/AAAAAAAAAAADAPL/AAAAAAAAAAAFAPL/AAAAAAAAAAAGAPL/AAAAAAAAAAAEAPL/AAAAAAAAAAADAPn/AAAAAAAAAAAGAPP/AAAAAAAAAAAFAPP/AAAAAAAAAAAFAPT/AAAAAAAAAAAEAPT/AAAAAAAAAAADAPT/AAAAAAAAAAADAPP/AAAAAAAAAAAEAPP/AAAAAAAAAAADAPX/AAAAAAAAAAADAPb/AAAAAAAAAAADAPf/AAAAAAAAAAADAPj/AAAAAAAAAAADAPv/AAAAAAAAAAADAPz/AAAAAAAAAAAEAPX/AAAAAAAAAAAEAPb/AAAAAAAAAAAEAPf/AAAAAAAAAAAEAPj/AAAAAAAAAAAEAPn/AAAAAAAAAAAEAPr/AAAAAAAAAAAEAPv/AAAAAAAAAAAEAPz/AAAAAAAAAAAEAP3/AAAAAAAAAAAEAP//AAAAAAAAAAAGAPT/AAAAAAAAAAAHAPL/AAAAAAAAAAAHAPP/AAAAAAAAAAAHAPT/AAAAAAAAAAAIAPL/AAAAAAAAAAAIAPP/AAAAAAAAAAAIAPT/AAAAAAAAAAAJAPL/AAAAAAAAAAAJAPP/AAAAAAAAAAAJAPT/AAAAAAAAAAADAP//AAAAAAAAAAADAP7/AAAAAAAAAAAEAP7/AAAAAAAAAAADAPr/AAAAAAAAAAA=")
+tile_set = ExtResource("2_e7jyx")
+
+[node name="Interactuables" type="Node2D" parent="." unique_id=1982761099]
+y_sort_enabled = true
+
+[node name="FuentesLuz" type="Node2D" parent="Interactuables" unique_id=1205975169]
+y_sort_enabled = true
+
+[node name="FuenteLuzInteractuable3" parent="Interactuables/FuentesLuz" unique_id=96188886 instance=ExtResource("3_4wk75")]
+position = Vector2(-352, -208)
+encendida = false
+id_instancia = &"antorcha_muro_03"
+definicion = ExtResource("4_gu6db")
+
+[node name="FuenteLuzInteractuable" parent="Interactuables/FuentesLuz" unique_id=1231565517 instance=ExtResource("3_4wk75")]
+position = Vector2(-96, -80)
+encendida = false
+id_instancia = &"antorcha_muro_01"
+definicion = ExtResource("4_gu6db")
+
+[node name="FuenteLuzInteractuable2" parent="Interactuables/FuentesLuz" unique_id=1039430559 instance=ExtResource("3_4wk75")]
+position = Vector2(-224, -144)
+encendida = false
+id_instancia = &"antorcha_muro_02"
+definicion = ExtResource("4_gu6db")
+
+[node name="Mecanismos" type="Node2D" parent="Interactuables" unique_id=1421541653]
+y_sort_enabled = true
+
+[node name="Puertas" type="Node2D" parent="Interactuables" unique_id=954311265]
+y_sort_enabled = true
+
+[node name="Trampas" type="Node2D" parent="Interactuables" unique_id=2036982705]
+y_sort_enabled = true
+
+[node name="TrampaSuperficie" parent="Interactuables/Trampas" unique_id=638836305 instance=ExtResource("3_e7jyx")]
+position = Vector2(-128, 0)
+id_instancia = &"veneno01"
+
+[node name="TrampaSuperficie2" parent="Interactuables/Trampas" unique_id=675890886 instance=ExtResource("3_e7jyx")]
+position = Vector2(-96, -16)
+id_instancia = &"veneno02"
+
+[node name="TrampaSuperficie3" parent="Interactuables/Trampas" unique_id=1238492393 instance=ExtResource("3_e7jyx")]
+position = Vector2(-64, -32)
+id_instancia = &"veneno03"
+
+[node name="PuntosSpawn" type="Node2D" parent="." unique_id=1264180631]
+
+[node name="PuntoSpawnZona" parent="PuntosSpawn" unique_id=983720888 instance=ExtResource("6_gu6db")]
+position = Vector2(-32, 16)
+
+[node name="EfectosSuperficie" type="Node2D" parent="." unique_id=78048463]
+
+[node name="CapaColumnas" type="TileMapLayer" parent="." unique_id=1397874605]
+y_sort_enabled = true
+texture_filter = 1
+tile_set = ExtResource("3_f8qme")
+
+[node name="CapaDecoracionNoCaminable" type="TileMapLayer" parent="." unique_id=989171471]
+y_sort_enabled = true
+texture_filter = 1
+tile_set = ExtResource("4_4wk75")
+
+[node name="CapaDecoracion" type="TileMapLayer" parent="." unique_id=420319734]
+y_sort_enabled = true
+texture_filter = 1
+tile_set = ExtResource("5_gu6db")
+
+[node name="CapaOscuridad" type="TileMapLayer" parent="." unique_id=1760298020]
+y_sort_enabled = true
+tile_set = ExtResource("6_c4gh2")
+y_sort_origin = 2
+
+[node name="CapaPinchos" type="TileMapLayer" parent="." unique_id=458561971]
+texture_filter = 1
+tile_set = ExtResource("7_xa8qm")
+
+[node name="CapaLodo" type="TileMapLayer" parent="." unique_id=106488969]
+texture_filter = 1
+tile_set = ExtResource("8_xgogb")
+
+[node name="CapaHielo" type="TileMapLayer" parent="." unique_id=2134735969]
+texture_filter = 1
+tile_set = ExtResource("9_vsyyl")
+
+[node name="CapaFuego" type="TileMapLayer" parent="." unique_id=1148755780]
+texture_filter = 1
+tile_set = ExtResource("10_sa51j")
+
+[node name="CapaTelaraña" type="TileMapLayer" parent="." unique_id=973728228]
+texture_filter = 1
+tile_set = ExtResource("11_mo2f4")

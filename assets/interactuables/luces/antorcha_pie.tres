@@ -46,7 +46,6 @@ mensaje_basico_apagada = &"examen.antorcha_pie.basico_apagada"
 sonido_ambiente = ExtResource("5_sonido_ambiente")
 sonido_encender = ExtResource("6_sonido_encender")
 sonido_apagar = ExtResource("7_sonido_apagar")
-id_definicion = &"antorcha_pie"
 nombre = "Antorcha de pie"
 descripcion_base = "Una antorcha sostenida por un pedestal de piedra."
 etiquetas = Array[StringName]([&"fuego", &"calor", &"fuente_luz"])

@@ -1614,7 +1614,7 @@ el elemento que las solicita.
 - Responsable: sesión Codex del 28 de agosto de 2026.
 - Decisiones: tras actualizar la visión, cada trampa no activada y no visible dentro
   de radio cuatro (métrica de cuadrícula), en una celda visible y con línea visual,
-  provoca una prueba automática secreta de Destreza. El éxito revela la trampa; el
+  provoca una prueba automática secreta de Voluntad. El éxito descubre la trampa; el
   fallo no revela información. Cada pareja observador/trampa consume una sola
   tentativa y ésta se conserva en el snapshot de conocimiento.
 - Las tiradas usan `SOLO_LOG`; no abren la presentación completa, pero quedan en el
@@ -1675,6 +1675,17 @@ el elemento que las solicita.
   hielo y fuego estático luminoso.
 - Fuera de alcance deliberado: combate, salvación de explosiones de fuego,
   herramientas para desarmar trampas, inspiración/repeticiones y reglas de origen.
+
+### Incremento de ciclo completo de trampas
+
+- La percepción automática secreta usa VOL para dar función exploratoria al atributo.
+- El estado único de la trampa recorre `OCULTA`, `DESCUBIERTA`, `ACTIVADA` y
+  `DESACTIVADA`; la restauración acepta también el formato anterior de snapshots.
+- Detectar produce tres pulsos locales y luego oculta nuevamente la placa.
+- Una trampa descubierta ofrece desarme adyacente con FUE, DES o VOL. La prueba tiene
+  desventaja salvo para Guerrero; el éxito desactiva y el fallo activa la trampa.
+- La placa de presión que dispare estatuas relacionadas queda para la siguiente
+  vertical, apoyada sobre este ciclo ya cerrado.
 
 ## Fase 17 — Registro narrativo de sesión
 

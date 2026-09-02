@@ -1,3 +1,4 @@
+@tool
 class_name Interactuable
 extends Node2D
 
@@ -13,10 +14,33 @@ signal presencia_cambiada
 @export var color_resaltado: Color = Color.WHITE
 @export_range(1.0, 4.0, 1.0) var grosor_resaltado: float = 1.0
 
+@export_category("Edicion")
+@export var ajustar_a_celda_en_editor: bool = false
+
 var coordenada_mapa: Vector2i
 var tablero: TableroGrid
 var servicio_examen: ServicioExamen
 var resaltador_outline: ResaltadorOutline2D
+
+
+func _ajustar_al_centro_celda() -> void:
+	var capa := _obtener_capa_suelo()
+	if capa == null:
+		return
+	var posicion_en_capa := capa.to_local(global_position)
+	var centro := capa.to_global(capa.map_to_local(capa.local_to_map(posicion_en_capa)))
+	if not global_position.is_equal_approx(centro):
+		global_position = centro
+
+
+func _obtener_capa_suelo() -> TileMapLayer:
+	var ancestro := get_parent()
+	while ancestro != null:
+		var capa := ancestro.get_node_or_null(^"CapaSuelo") as TileMapLayer
+		if capa != null:
+			return capa
+		ancestro = ancestro.get_parent()
+	return null
 
 
 func configurar_registro( tablero_inicial: TableroGrid, coordenada_inicial: Vector2i ) -> void:

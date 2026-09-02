@@ -48,7 +48,7 @@ func inicializar(_capa: TileMapLayer, origen_datos: Variant) -> void:
 	# Al iniciar, cubrimos todo el mapa conocido de negro total
 	for coord in datos_tablero.keys():
 		_oscurecer_celda(coord, Celda.EstadoVisibilidad.OCULTO)
-		datos_tablero[coord].visibilidad = Celda.EstadoVisibilidad.OCULTO
+	_actualizar_presentacion_luces()
 
 func actualizar_vision(centro_jugador: Vector2i, radio_jugador: int) -> void:
 	ultimo_centro_jugador = centro_jugador
@@ -57,8 +57,6 @@ func actualizar_vision(centro_jugador: Vector2i, radio_jugador: int) -> void:
 	# 1. Sombreamos (al 60%) todo lo que estuvo visible en el paso anterior
 	for coord in celdas_visibles_actuales:
 		_oscurecer_celda(coord, Celda.EstadoVisibilidad.EXPLORADO)
-		if datos_tablero.has(coord):
-			datos_tablero[coord].visibilidad = Celda.EstadoVisibilidad.EXPLORADO
 			
 	celdas_visibles_actuales.clear()
 
@@ -67,6 +65,7 @@ func actualizar_vision(centro_jugador: Vector2i, radio_jugador: int) -> void:
 
 	# 3. Proyectamos la luz del jugador (+1 casilla de penumbra)
 	proyectar_luz_fuente(centro_jugador, radio_jugador, 1, false)
+	_actualizar_presentacion_luces()
 
 func _procesar_luces_mapa() -> void:
 	for coord in datos_tablero.keys():
@@ -128,7 +127,14 @@ func proyectar_luz_fuente(centro: Vector2i, radio_luz: int, radio_penumbra: int,
 	for destino in celdas_area:
 		var linea = _trazar_linea_bresenham(centro, destino)
 		
-		for coord in linea:
+		for indice in linea.size():
+			var coord: Vector2i = linea[indice]
+			if (
+				not atraviesa_muros
+				and indice > 0
+				and _esquina_bloquea_vision(linea[indice - 1], coord)
+			):
+				break
 			# Si choca con pared y la luz no atraviesa muros, iluminamos la pared y cortamos el rayo
 			if (
 				not atraviesa_muros
@@ -139,6 +145,16 @@ func proyectar_luz_fuente(centro: Vector2i, radio_luz: int, radio_penumbra: int,
 				break
 				
 			_aplicar_nivel_luz(coord, centro, radio_luz)
+
+func _esquina_bloquea_vision(origen: Vector2i, destino: Vector2i) -> bool:
+	var flancos := GeometriaGrid.flancos_paso_diagonal(origen, destino)
+	return (
+		flancos.size() == 2
+		and datos_tablero.has(flancos[0])
+		and datos_tablero.has(flancos[1])
+		and datos_tablero[flancos[0]].bloquea_vision_efectiva()
+		and datos_tablero[flancos[1]].bloquea_vision_efectiva()
+	)
 
 func _aplicar_nivel_luz(coord: Vector2i, centro: Vector2i, radio_luz: int) -> void:
 	var distancia = int(Vector2(coord - centro).length())
@@ -151,7 +167,6 @@ func _aplicar_nivel_luz(coord: Vector2i, centro: Vector2i, radio_luz: int) -> vo
 		# Solo se aplica si la casilla no tiene ya luz potente (VISIBLE)
 		if datos_tablero.has(coord) and datos_tablero[coord].visibilidad != Celda.EstadoVisibilidad.VISIBLE:
 			_oscurecer_celda(coord, Celda.EstadoVisibilidad.EXPLORADO)
-			datos_tablero[coord].visibilidad = Celda.EstadoVisibilidad.EXPLORADO
 
 func _revelar_celda(coord: Vector2i) -> void:
 	capa_oscuridad.erase_cell(coord)
@@ -165,9 +180,27 @@ func _oscurecer_celda(coord: Vector2i, estado: int) -> void:
 		return
 		
 	var celda: Celda = datos_tablero[coord]
+	celda.visibilidad = estado
 	var fuentes: Dictionary = FUENTES_FOG_OCULTO
 	if estado == Celda.EstadoVisibilidad.EXPLORADO:
 		fuentes = FUENTES_FOG_EXPLORADO
 
-	var source_id: int = fuentes.get(celda.familia_fog, fuentes[&"terreno"])
-	capa_oscuridad.set_cell(coord, source_id, celda.coordenada_fog)
+	var familia := celda.familia_fog
+	var coordenada_fog := celda.coordenada_fog
+	var source_id: int = fuentes.get(familia, fuentes[&"terreno"])
+	capa_oscuridad.set_cell(coord, source_id, coordenada_fog)
+
+func _actualizar_presentacion_luces() -> void:
+	for coord in datos_tablero:
+		for fuente in datos_tablero[coord].iluminacion:
+			if not (fuente is FuenteLuzInteractuable):
+				continue
+			var estado := Celda.EstadoVisibilidad.OCULTO
+			if datos_tablero.has(coord):
+				estado = datos_tablero[coord].visibilidad
+			fuente.visible = estado != Celda.EstadoVisibilidad.OCULTO
+			fuente.modulate = (
+				Color.WHITE
+				if estado == Celda.EstadoVisibilidad.VISIBLE
+				else Color(0.4, 0.4, 0.4, 1.0)
+			)

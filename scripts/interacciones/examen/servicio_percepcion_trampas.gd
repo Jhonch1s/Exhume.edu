@@ -36,7 +36,7 @@ func evaluar(actor: Object) -> Array[ResultadoAccion]:
 			actor.call(&"obtener_id_observador"), id_objetivo
 		)
 		var tirada := motor_dados.resolver_prueba(
-			actor.call(&"obtener_destreza"),
+			actor.call(&"obtener_voluntad"),
 			[],
 			[],
 			TiposTirada.Origen.AUTOMATICA,
@@ -46,14 +46,14 @@ func evaluar(actor: Object) -> Array[ResultadoAccion]:
 			resultados.append(ResultadoAccion.crear_bloqueo(tirada.motivo))
 			continue
 		if tirada.exitosa:
-			trampa.revelar()
+			trampa.descubrir()
 			resultados.append(ResultadoAccion.crear_exito(
 				[&"trampa.detectada"],
 				[],
 				[{
 					&"objetivo_id": trampa.id_instancia,
-					&"propiedad": &"presentacion",
-					&"nueva": TrampaSuperficie.Presentacion.VISIBLE,
+					&"propiedad": &"estado",
+					&"nueva": TrampaSuperficie.Estado.DESCUBIERTA,
 				}]
 			).con_tirada(tirada))
 		else:
@@ -72,17 +72,17 @@ func _actor_valido(actor: Object) -> bool:
 		and is_instance_valid(actor)
 		and actor.call(&"obtener_id_observador") is StringName
 		and actor.call(&"obtener_id_observador") != &""
-		and actor.call(&"obtener_destreza") is int
-		and actor.call(&"obtener_destreza") >= 1
-		and actor.call(&"obtener_destreza") <= 5
+		and actor.has_method(&"obtener_voluntad")
+		and actor.call(&"obtener_voluntad") is int
+		and actor.call(&"obtener_voluntad") >= 1
+		and actor.call(&"obtener_voluntad") <= 5
 	)
 
 
 func _puede_intentar(actor: Object, trampa: TrampaSuperficie) -> bool:
 	if (
 		trampa == null
-		or trampa.activada
-		or trampa.presentacion == TrampaSuperficie.Presentacion.VISIBLE
+		or trampa.estado != TrampaSuperficie.Estado.OCULTA
 		or registro_conocimiento.intento_percepcion_realizado(
 			actor.call(&"obtener_id_observador"), trampa.id_instancia
 		)

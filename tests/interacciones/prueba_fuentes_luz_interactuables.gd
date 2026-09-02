@@ -17,6 +17,17 @@ func _ejecutar_pruebas() -> void:
 	var zona := escena.instantiate() as Node2D
 	root.add_child(zona)
 	var capa_suelo := zona.get_node("CapaSuelo") as TileMapLayer
+	var fuente_colocada := zona.get_node(
+		"Interactuables/FuentesLuz/AntorchaPie_02_01"
+	) as FuenteLuzInteractuable
+	var posicion_libre := fuente_colocada.position + Vector2(6.0, 3.0)
+	var centro_esperado := capa_suelo.map_to_local(capa_suelo.local_to_map(posicion_libre))
+	fuente_colocada.position = posicion_libre
+	fuente_colocada._ajustar_al_centro_celda()
+	_comprobar(
+		fuente_colocada.position.is_equal_approx(centro_esperado),
+		"La fuente debe ajustarse al centro de la celda más cercana."
+	)
 	var tablero := TableroGrid.new()
 	root.add_child(tablero)
 	tablero.generar_desde_zona(zona)
@@ -39,6 +50,7 @@ func _ejecutar_pruebas() -> void:
 		_probar_id_duplicado(tablero, fuente)
 		_probar_accion_apagar(fuente)
 	_probar_sombra_logica()
+	_probar_sombra_esquina_diagonal()
 
 	tablero.queue_free()
 	zona.queue_free()
@@ -173,6 +185,42 @@ func _probar_sombra_logica() -> void:
 	_comprobar(
 		celdas[Vector2i(2, 0)].visibilidad == Celda.EstadoVisibilidad.OCULTO,
 		"La celda detras de la pared debe permanecer en sombra."
+	)
+	fuente.free()
+	gestor.capa_oscuridad.free()
+	gestor.free()
+
+
+func _probar_sombra_esquina_diagonal() -> void:
+	var fuente := FuenteLuzInteractuable.new()
+	var definicion := DefinicionFuenteLuz.new()
+	definicion.radio_luz = 2
+	definicion.radio_penumbra = 0
+	definicion.atraviesa_muros = false
+	fuente.definicion = definicion
+	fuente.encendida = true
+
+	var celdas: Dictionary[Vector2i, Celda] = {}
+	for coord in [Vector2i.ZERO, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.ONE]:
+		celdas[coord] = Celda.new()
+	celdas[Vector2i.ZERO].iluminacion.append(fuente)
+	celdas[Vector2i.RIGHT].bloquea_vision = true
+	celdas[Vector2i.DOWN].bloquea_vision = true
+
+	var gestor := FOVManager.new()
+	gestor.datos_tablero = celdas
+	gestor.capa_oscuridad = TileMapLayer.new()
+	gestor._procesar_luces_mapa()
+	_comprobar(
+		celdas[Vector2i.ONE].visibilidad == Celda.EstadoVisibilidad.OCULTO,
+		"Dos paredes contiguas deben cerrar la luz en su esquina diagonal."
+	)
+
+	celdas[Vector2i.DOWN].bloquea_vision = false
+	gestor._procesar_luces_mapa()
+	_comprobar(
+		celdas[Vector2i.ONE].visibilidad == Celda.EstadoVisibilidad.VISIBLE,
+		"Una sola pared no debe cerrar por completo el paso diagonal de luz."
 	)
 	fuente.free()
 	gestor.capa_oscuridad.free()

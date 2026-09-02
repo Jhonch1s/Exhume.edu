@@ -23,8 +23,33 @@ func validar(zona: Node2D, tablero: TableroGrid, capa: TileMapLayer) -> Array[St
 		if nodo.is_in_group(&"efectos_superficie"):
 			_validar_superficie(nodo, tablero, capa, ids_superficies, errores)
 
+	var ids_spawn: Dictionary[StringName, bool] = {}
+	for nodo in zona.find_children("*", "", true, false):
+		if nodo is PuntoSpawnZona:
+			_validar_punto_spawn(nodo, tablero, capa, ids_spawn, errores)
+
 	errores.sort()
 	return errores
+
+
+func _validar_punto_spawn(
+	punto: PuntoSpawnZona,
+	tablero: TableroGrid,
+	capa: TileMapLayer,
+	ids: Dictionary[StringName, bool],
+	errores: Array[String]
+) -> void:
+	var coordenada := punto.obtener_coordenada(capa)
+	if punto.id_spawn == &"":
+		errores.append("id_spawn_vacio nodo=%s" % punto.get_path())
+	elif ids.has(punto.id_spawn):
+		errores.append("id_spawn_duplicado id=%s" % punto.id_spawn)
+	else:
+		ids[punto.id_spawn] = true
+	if not tablero.puede_entrar(coordenada):
+		errores.append("spawn_fuera_celda_caminable id=%s celda=%s" % [
+			punto.id_spawn, coordenada,
+		])
 
 
 func _validar_interactuable(
@@ -45,8 +70,6 @@ func _validar_interactuable(
 		errores.append("definicion_interactuable_invalida id=%s %s" % [interactuable.id_instancia, contexto])
 	if not tablero.es_celda_valida(_coordenada(interactuable, capa)):
 		errores.append("interactuable_fuera_tablero id=%s %s" % [interactuable.id_instancia, contexto])
-
-
 func _validar_relaciones(
 	palanca: PalancaInteractuable,
 	interactuables: Dictionary[StringName, Interactuable],

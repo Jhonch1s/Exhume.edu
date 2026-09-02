@@ -367,7 +367,7 @@ func _probar_lanzamiento_desde_inventario(escenario: Variant) -> void:
 	await escenario.accion_contextual_finalizada
 	_comprobar(
 		escenario.ultimo_resultado_contextual.exitosa
-		and trampa.activada
+		and trampa.estado == TrampaSuperficie.Estado.ACTIVADA
 		and item.cantidad == 1
 		and not escenario.lanzamiento_en_vuelo
 		and escenario.representacion_lanzamiento == null

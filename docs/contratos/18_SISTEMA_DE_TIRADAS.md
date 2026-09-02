@@ -165,9 +165,14 @@ Los resultados ya resueltos, animaciones e historial no se persisten inicialment
 Sí deberán persistirse en su dominio los futuros atributos, estados, ventajas,
 desventajas o usos agotados que sobrevivan a una carga.
 
-La percepción de trampas es el primer consumidor secreto: prueba Destreza con radio
+La percepción de trampas es el primer consumidor secreto: prueba Voluntad con radio
 cuatro, celda visible y línea visual. Usa `AUTOMATICA` + `SOLO_LOG`; el resultado se
 registra y el intento por observador/trampa se persiste, pero no abre el display.
+
+El desarme de una trampa descubierta es una prueba `SOLICITADA` + `PRIMER_PLANO`
+contra FUE, DES o VOL, elegida por el jugador. Se resuelve con desventaja salvo para
+el Guerrero. La trampa, no el motor ni `GestorAcciones`, decide desactivarse con el
+éxito o activarse con el fallo.
 
 Quedan fuera hasta existir un caso jugable: combate, daño crítico, diálogo, ayudas,
 repeticiones, grados de resultado y consecuencias generales de críticos o pifias.

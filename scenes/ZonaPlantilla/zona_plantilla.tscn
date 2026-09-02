@@ -1,0 +1,98 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="TileSet" path="res://assets/tile_sets/terrain/cave_terrain.tres" id="1_terreno"]
+[ext_resource type="TileSet" path="res://assets/tile_sets/structures/walls_cave.tres" id="2_paredes"]
+[ext_resource type="TileSet" path="res://assets/tile_sets/structures/cave_columns.tres" id="3_columnas"]
+[ext_resource type="TileSet" path="res://assets/tile_sets/decorations/stalagmites_medium.tres" id="4_deco_no_caminable"]
+[ext_resource type="TileSet" path="res://assets/tile_sets/decorations/cave_floor_decorations.tres" id="5_decoracion"]
+[ext_resource type="TileSet" path="res://assets/tile_sets/fog/cave_fog.tres" id="6_oscuridad"]
+[ext_resource type="TileSet" path="res://assets/tile_sets/surface_effects/spikes.tres" id="7_pinchos"]
+[ext_resource type="TileSet" path="res://assets/tile_sets/surface_effects/mud.tres" id="8_lodo"]
+[ext_resource type="TileSet" path="res://assets/tile_sets/surface_effects/ice.tres" id="9_hielo"]
+[ext_resource type="TileSet" path="res://assets/tile_sets/surface_effects/fire.tres" id="10_fuego"]
+[ext_resource type="TileSet" path="res://assets/tile_sets/surface_effects/web.tres" id="11_telarana"]
+[ext_resource type="Script" path="res://scripts/zonas/zona_explorable.gd" id="12_zona"]
+
+[node name="Zona" type="Node2D"]
+script = ExtResource("12_zona")
+y_sort_enabled = true
+
+[node name="CapaAgua" type="TileMapLayer" parent="."]
+z_index = -3
+texture_filter = 1
+tile_set = ExtResource("1_terreno")
+
+[node name="CapaLava" type="TileMapLayer" parent="."]
+z_index = -2
+texture_filter = 1
+tile_set = ExtResource("1_terreno")
+
+[node name="CapaSuelo" type="TileMapLayer" parent="."]
+z_index = -1
+y_sort_enabled = true
+texture_filter = 1
+tile_set = ExtResource("1_terreno")
+
+[node name="CapaParedes" type="TileMapLayer" parent="."]
+y_sort_enabled = true
+texture_filter = 1
+tile_set = ExtResource("2_paredes")
+
+[node name="Interactuables" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="FuentesLuz" type="Node2D" parent="Interactuables"]
+y_sort_enabled = true
+
+[node name="Mecanismos" type="Node2D" parent="Interactuables"]
+y_sort_enabled = true
+
+[node name="Puertas" type="Node2D" parent="Interactuables"]
+y_sort_enabled = true
+
+[node name="Trampas" type="Node2D" parent="Interactuables"]
+y_sort_enabled = true
+
+[node name="PuntosSpawn" type="Node2D" parent="."]
+
+[node name="EfectosSuperficie" type="Node2D" parent="."]
+
+[node name="CapaColumnas" type="TileMapLayer" parent="."]
+y_sort_enabled = true
+texture_filter = 1
+tile_set = ExtResource("3_columnas")
+
+[node name="CapaDecoracionNoCaminable" type="TileMapLayer" parent="."]
+y_sort_enabled = true
+texture_filter = 1
+tile_set = ExtResource("4_deco_no_caminable")
+
+[node name="CapaDecoracion" type="TileMapLayer" parent="."]
+y_sort_enabled = true
+texture_filter = 1
+tile_set = ExtResource("5_decoracion")
+
+[node name="CapaOscuridad" type="TileMapLayer" parent="."]
+y_sort_enabled = true
+tile_set = ExtResource("6_oscuridad")
+y_sort_origin = 2
+
+[node name="CapaPinchos" type="TileMapLayer" parent="."]
+texture_filter = 1
+tile_set = ExtResource("7_pinchos")
+
+[node name="CapaLodo" type="TileMapLayer" parent="."]
+texture_filter = 1
+tile_set = ExtResource("8_lodo")
+
+[node name="CapaHielo" type="TileMapLayer" parent="."]
+texture_filter = 1
+tile_set = ExtResource("9_hielo")
+
+[node name="CapaFuego" type="TileMapLayer" parent="."]
+texture_filter = 1
+tile_set = ExtResource("10_fuego")
+
+[node name="CapaTelaraña" type="TileMapLayer" parent="."]
+texture_filter = 1
+tile_set = ExtResource("11_telarana")

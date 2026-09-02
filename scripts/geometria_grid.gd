@@ -24,3 +24,15 @@ static func trazar_linea(origen: Vector2i, destino: Vector2i) -> Array[Vector2i]
 			actual.y += paso_y
 
 	return puntos
+
+
+static func flancos_paso_diagonal(
+	origen: Vector2i,
+	destino: Vector2i
+) -> Array[Vector2i]:
+	if origen.x == destino.x or origen.y == destino.y:
+		return []
+	return [
+		Vector2i(destino.x, origen.y),
+		Vector2i(origen.x, destino.y),
+	]

@@ -23,6 +23,9 @@ mensajes = {
 &"fuera_de_alcance": "Debes estar junto al objetivo para realizar esa acción.",
 &"interaccion.abrir": "Abrir",
 &"interaccion.accionar": "Accionar",
+&"interaccion.desarmar_des": "Desarmar con DES",
+&"interaccion.desarmar_fue": "Desarmar con FUE",
+&"interaccion.desarmar_vol": "Desarmar con VOL",
 &"interaccion.apagar": "Apagar",
 &"interaccion.cancelar": "Cancelar",
 &"interaccion.cerrar": "Cerrar",
@@ -63,5 +66,8 @@ mensajes = {
 &"estado.caido_renovado": "Vuelves a caer al suelo.",
 &"estado.levantado": "Te levantas al comenzar el nuevo turno.",
 &"trampa.detectada": "Detectas una trampa oculta.",
-&"trampa.no_detectada": "No detectas nada fuera de lo común."
+&"trampa.desactivada": "Desactivas la trampa.",
+&"trampa.desarme_fallido": "El intento de desarme activa la trampa.",
+&"trampa.no_detectada": "No detectas nada fuera de lo común.",
+&"trampa.superficie_activada": "La placa se hunde y activa la trampa."
 }
