@@ -275,9 +275,15 @@ func registrar_interactuable(coord: Vector2i, interactuable: Interactuable) -> b
 	if motivo == &"id_instancia_duplicado":
 		push_warning("ID de interactuable duplicado: %s." % interactuable.id_instancia)
 		return false
+	if motivo != &"":
+		push_error("No se puede registrar %s en %s: %s." % [
+			interactuable.id_instancia, coord, motivo,
+		])
+		return false
 
 	interactuables_por_id[interactuable.id_instancia] = interactuable
-	datos[coord].interactuables.append(interactuable)
+	for coordenada_ocupada in interactuable.obtener_coordenadas_ocupadas(coord):
+		datos[coordenada_ocupada].interactuables.append(interactuable)
 	interactuable.configurar_registro(self, coord)
 	var cambio_presencia := _on_presencia_interactuable_cambiada.bind(interactuable)
 	if not interactuable.presencia_cambiada.is_connected(cambio_presencia):
@@ -301,16 +307,20 @@ func validar_registro_interactuable(
 		return &"celda_invalida"
 	if interactuables_por_id.has(interactuable.id_instancia):
 		return &"id_instancia_duplicado"
+	for coordenada_ocupada in interactuable.obtener_coordenadas_ocupadas(coord):
+		if not datos.has(coordenada_ocupada):
+			return &"huella_interactuable_invalida"
 	return &""
 
 func retirar_interactuable(interactuable: Interactuable) -> void:
 	if interactuable == null or not is_instance_valid(interactuable):
 		return
 	var coord := interactuable.coordenada_mapa
-	if datos.has(coord):
-		datos[coord].interactuables.erase(interactuable)
-		if interactuable is FuenteLuzInteractuable:
-			eliminar_luz(coord, interactuable)
+	for coordenada_ocupada in interactuable.obtener_coordenadas_ocupadas():
+		if datos.has(coordenada_ocupada):
+			datos[coordenada_ocupada].interactuables.erase(interactuable)
+	if interactuable is FuenteLuzInteractuable:
+		eliminar_luz(coord, interactuable)
 	var cambio_presencia := _on_presencia_interactuable_cambiada.bind(interactuable)
 	if interactuable.presencia_cambiada.is_connected(cambio_presencia):
 		interactuable.presencia_cambiada.disconnect(cambio_presencia)
@@ -324,7 +334,8 @@ func _on_presencia_interactuable_cambiada(interactuable: Interactuable) -> void:
 		or interactuables_por_id.get(interactuable.id_instancia) != interactuable
 	):
 		return
-	presencia_interactuable_cambiada.emit(interactuable.coordenada_mapa)
+	for coordenada in interactuable.obtener_coordenadas_ocupadas():
+		presencia_interactuable_cambiada.emit(coordenada)
 
 func obtener_interactuable(id_instancia: StringName) -> Interactuable:
 	return interactuables_por_id.get(id_instancia) as Interactuable
@@ -445,6 +456,9 @@ func registrar_efecto_superficie(coord: Vector2i, efecto: Object) -> bool:
 	efectos_superficie_por_id[id_efecto] = efecto
 	datos[coord].efectos_superficie.append(efecto)
 	efecto.call(&"configurar_registro", self, coord)
+	if efecto.has_method(&"esta_encendida"):
+		datos[coord].iluminacion.append(efecto)
+		iluminacion_cambiada.emit(coord)
 	efecto_superficie_registrado.emit(coord, efecto)
 	return true
 
@@ -466,6 +480,9 @@ func retirar_efecto_superficie(efecto: Object) -> bool:
 		return false
 	if datos.has(coord):
 		datos[coord].efectos_superficie.erase(efecto)
+		if efecto in datos[coord].iluminacion:
+			datos[coord].iluminacion.erase(efecto)
+			iluminacion_cambiada.emit(coord)
 	efectos_superficie_por_id.erase(id_efecto)
 	efecto_superficie_retirado.emit(coord, efecto)
 	return true

@@ -1,20 +1,21 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=3 uid="uid://bxpf3kv60y8yj"]
 
-[ext_resource type="Script" path="res://scripts/interacciones/interactuables/trampas/trampa_superficie.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/tiles/surface_effects/poison/sources/traps_isometric.png" id="2_atlas"]
-[ext_resource type="Script" path="res://scripts/interacciones/interactuables/definicion_interactuable.gd" id="3_definicion"]
+[ext_resource type="Script" uid="uid://b5lo3xkywnlwa" path="res://scripts/interacciones/interactuables/trampas/trampa_superficie.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="2_3sehm"]
+[ext_resource type="Texture2D" uid="uid://brimgqeafonmh" path="res://assets/tiles/surface_effects/poison/sources/traps_isometric.png" id="2_atlas"]
+[ext_resource type="Script" uid="uid://c5sxr7hy2ff83" path="res://scripts/interacciones/interactuables/definicion_interactuable.gd" id="3_definicion"]
 
 [sub_resource type="Resource" id="Resource_trampa"]
 script = ExtResource("3_definicion")
 id_definicion = &"trampa_superficie"
 nombre = "Trampa"
 
-[node name="TrampaSuperficie" type="Node2D" groups=["trampas"]]
+[node name="TrampaSuperficie" type="Node2D" unique_id=1153059965 groups=["trampas"]]
 script = ExtResource("1_script")
 definicion = SubResource("Resource_trampa")
 ajustar_a_celda_en_editor = true
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=163121746]
 texture_filter = 1
 texture = ExtResource("2_atlas")
 region_enabled = true

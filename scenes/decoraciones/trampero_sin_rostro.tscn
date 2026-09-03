@@ -1,0 +1,53 @@
+[gd_scene format=3 uid="uid://iobuk7ccp2y8"]
+
+[ext_resource type="Texture2D" uid="uid://bygu5sdjx8txk" path="res://assets/tiles/structures/statues/sources/faceless_trapper_statue.png" id="1_statue"]
+[ext_resource type="Script" uid="uid://ch4alcosxikpx" path="res://scripts/interacciones/interactuables/trampero_sin_rostro.gd" id="2_script"]
+[ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="3_fragmento"]
+[ext_resource type="Texture2D" uid="uid://bghg5af8jvegj" path="res://assets/ilustraciones/examen/sinrostro.png" id="3_uvlwo"]
+[ext_resource type="Script" uid="uid://bccqt6gfe8843" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="4_perfil"]
+[ext_resource type="Script" uid="uid://c5sxr7hy2ff83" path="res://scripts/interacciones/interactuables/definicion_interactuable.gd" id="5_definicion"]
+[ext_resource type="Texture2D" uid="uid://du2lalnhldljb" path="res://assets/tiles/structures/statues/fog_masks/faceless_trapper_statue_fog_hidden.png" id="7_fog_hidden"]
+[ext_resource type="Texture2D" uid="uid://emq5j8oifm0r" path="res://assets/tiles/structures/statues/fog_masks/faceless_trapper_statue_fog_explored.png" id="8_fog_explored"]
+
+[sub_resource type="Resource" id="Resource_fragmento"]
+script = ExtResource("3_fragmento")
+id_fragmento = &"identidad"
+nivel = 1
+id_mensaje = &"examen.trampero_sin_rostro.basico"
+
+[sub_resource type="Resource" id="Resource_perfil"]
+script = ExtResource("4_perfil")
+alcance_secreto = 0.0
+
+[sub_resource type="Resource" id="Resource_definicion"]
+script = ExtResource("5_definicion")
+id_definicion = &"trampero_sin_rostro"
+nombre = "El Trampero sin Rostro"
+descripcion_base = "Una figura encapuchada se alza sobre un pedestal circular, rodeada por dos enormes alas de piedra. Bajo la capucha no hay rostro alguno, solo una oscuridad demasiado profunda. Una de sus manos ofrece una pequeña llave de hierro; la otra permanece oculta tras la espalda. Entre las grietas del pedestal distingues juntas móviles y restos de mecanismos antiguos. La estatua parece aguardar que alguien acepte su ofrecimiento."
+ilustracion_examen = ExtResource("3_uvlwo")
+fragmentos_informacion = Array[ExtResource("3_fragmento")]([SubResource("Resource_fragmento")])
+perfil_observacion = SubResource("Resource_perfil")
+
+[node name="TramperoSinRostro" type="Node2D" unique_id=884258375]
+script = ExtResource("2_script")
+definicion = SubResource("Resource_definicion")
+ruta_fog_oculto = NodePath("FogOculto")
+ruta_fog_explorado = NodePath("FogExplorado")
+ajustar_a_celda_en_editor = true
+huella_celdas = Array[Vector2i]([Vector2i(0, 1), Vector2i(0, 2), Vector2i(0, 3), Vector2i(0, 4), Vector2i(1, 0), Vector2i(1, 1), Vector2i(1, 2), Vector2i(1, 3), Vector2i(1, 4), Vector2i(1, 5), Vector2i(2, 0), Vector2i(2, 1), Vector2i(2, 2), Vector2i(2, 3), Vector2i(2, 4), Vector2i(2, 5), Vector2i(3, 0), Vector2i(3, 1), Vector2i(3, 2), Vector2i(3, 3), Vector2i(3, 4), Vector2i(3, 5), Vector2i(4, 0), Vector2i(4, 1), Vector2i(4, 2), Vector2i(4, 3), Vector2i(4, 4), Vector2i(4, 5), Vector2i(5, 1), Vector2i(5, 2), Vector2i(5, 3), Vector2i(5, 4)])
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1551559981]
+texture_filter = 1
+position = Vector2(160, -72)
+texture = ExtResource("1_statue")
+
+[node name="FogOculto" type="Sprite2D" parent="." unique_id=1618763513]
+texture_filter = 1
+position = Vector2(160, -72)
+texture = ExtResource("7_fog_hidden")
+
+[node name="FogExplorado" type="Sprite2D" parent="." unique_id=591699159]
+visible = false
+texture_filter = 1
+position = Vector2(160, -72)
+texture = ExtResource("8_fog_explored")

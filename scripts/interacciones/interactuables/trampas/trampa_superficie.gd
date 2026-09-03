@@ -16,6 +16,9 @@ enum Estado {
 @export_range(0, 8, 1) var radio: int = 1
 @export var interrumpe_al_activar: bool = true
 
+@export_category("Relacion de mecanismo")
+@export var ids_receptores_mecanismo: Array[StringName] = []
+
 @export_category("Percepcion")
 @export var estado: Estado = Estado.OCULTA
 @export_range(1, 6, 1) var pulsos_descubrimiento: int = 3
@@ -129,14 +132,18 @@ func obtener_reacciones_encadenadas(
 	if tipo not in [
 		TiposInteraccion.TipoAccion.ENTRAR,
 		TiposInteraccion.TipoAccion.IMPACTAR,
-	] or tablero == null:
+	] or tablero == null or not ids_receptores_mecanismo.is_empty():
 		return trampas
 	for direccion in [Vector2i.UP, Vector2i.LEFT, Vector2i.RIGHT, Vector2i.DOWN]:
 		var celda := tablero.obtener_celda(coordenada_mapa + direccion)
 		if celda == null:
 			continue
 		for interactuable in celda.interactuables.duplicate():
-			if interactuable is TrampaSuperficie and interactuable != self:
+			if (
+				interactuable is TrampaSuperficie
+				and interactuable != self
+				and interactuable.ids_receptores_mecanismo.is_empty()
+			):
 				trampas.append(interactuable)
 	trampas.sort_custom(func(a, b): return String(a.id_instancia) < String(b.id_instancia))
 	return trampas
@@ -154,8 +161,15 @@ func validar_accion(contexto: ContextoAccion) -> StringName:
 			return &"actor_no_es_ficha"
 		if contexto.celda_objetivo != coordenada_mapa:
 			return &"celda_objetivo_invalida"
-		if tablero == null or escena_superficie == null:
+		if tablero == null or (
+			escena_superficie == null and ids_receptores_mecanismo.is_empty()
+		):
 			return &"trampa_no_configurada"
+		var receptores: Variant = _resolver_receptores_mecanismo(
+			ids_receptores_mecanismo, true
+		)
+		if receptores is StringName:
+			return receptores
 		return &""
 	if contexto.tipo not in [
 		TiposInteraccion.TipoAccion.ENTRAR,
@@ -167,8 +181,15 @@ func validar_accion(contexto: ContextoAccion) -> StringName:
 			return &"impacto_incoherente"
 	if contexto.celda_objetivo != coordenada_mapa:
 		return &"celda_objetivo_invalida"
-	if tablero == null or escena_superficie == null:
+	if tablero == null or (
+		escena_superficie == null and ids_receptores_mecanismo.is_empty()
+	):
 		return &"trampa_no_configurada"
+	var receptores: Variant = _resolver_receptores_mecanismo(
+		ids_receptores_mecanismo, true
+	)
+	if receptores is StringName:
+		return receptores
 	if estado == Estado.ACTIVADA:
 		return &"trampa_ya_activada"
 	if estado == Estado.DESACTIVADA:
@@ -186,6 +207,8 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 
 
 func _activar() -> ResultadoAccion:
+	if not ids_receptores_mecanismo.is_empty():
+		return _activar_mecanismos()
 	var afectadas := tablero.desplegar_efecto_superficie(
 		escena_superficie,
 		coordenada_mapa,
@@ -208,6 +231,50 @@ func _activar() -> ResultadoAccion:
 		cambios,
 		{},
 		interrumpe_al_activar
+	)
+
+
+func _activar_mecanismos() -> ResultadoAccion:
+	var receptores: Variant = _resolver_receptores_mecanismo(
+		ids_receptores_mecanismo, true
+	)
+	if receptores is StringName:
+		return ResultadoAccion.crear_bloqueo(receptores)
+	var mensajes: Array[StringName] = [&"trampa.mecanismo_activado"]
+	var efectos: Array = []
+	var cambios: Array[Dictionary] = []
+	var solicitudes: Array[SolicitudEfecto] = []
+	for receptor: Interactuable in receptores:
+		var resultado: Variant = receptor.call(
+			&"aplicar_cambio_mecanismo", id_instancia, true
+		)
+		if not resultado is ResultadoAccion:
+			return ResultadoAccion.crear_fallo(
+				&"resultado_receptor_mecanismo_invalido"
+			)
+		if not resultado.exitosa:
+			return resultado
+		mensajes.append_array(resultado.mensajes)
+		efectos.append_array(resultado.efectos_aplicados)
+		cambios.append_array(resultado.cambios_estado)
+		solicitudes.append_array(resultado.solicitudes_efecto)
+	var estado_anterior := estado
+	estado = Estado.ACTIVADA
+	_actualizar_presentacion()
+	cambios.push_front({
+		&"objetivo_id": id_instancia,
+		&"propiedad": &"estado",
+		&"anterior": estado_anterior,
+		&"nueva": estado,
+	})
+	return ResultadoAccion.crear_exito(
+		mensajes,
+		efectos,
+		cambios,
+		{},
+		interrumpe_al_activar,
+		false,
+		solicitudes
 	)
 
 

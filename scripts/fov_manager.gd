@@ -48,7 +48,7 @@ func inicializar(_capa: TileMapLayer, origen_datos: Variant) -> void:
 	# Al iniciar, cubrimos todo el mapa conocido de negro total
 	for coord in datos_tablero.keys():
 		_oscurecer_celda(coord, Celda.EstadoVisibilidad.OCULTO)
-	_actualizar_presentacion_luces()
+	_actualizar_presentacion_interactuables()
 
 func actualizar_vision(centro_jugador: Vector2i, radio_jugador: int) -> void:
 	ultimo_centro_jugador = centro_jugador
@@ -65,7 +65,7 @@ func actualizar_vision(centro_jugador: Vector2i, radio_jugador: int) -> void:
 
 	# 3. Proyectamos la luz del jugador (+1 casilla de penumbra)
 	proyectar_luz_fuente(centro_jugador, radio_jugador, 1, false)
-	_actualizar_presentacion_luces()
+	_actualizar_presentacion_interactuables()
 
 func _procesar_luces_mapa() -> void:
 	for coord in datos_tablero.keys():
@@ -190,17 +190,14 @@ func _oscurecer_celda(coord: Vector2i, estado: int) -> void:
 	var source_id: int = fuentes.get(familia, fuentes[&"terreno"])
 	capa_oscuridad.set_cell(coord, source_id, coordenada_fog)
 
-func _actualizar_presentacion_luces() -> void:
-	for coord in datos_tablero:
-		for fuente in datos_tablero[coord].iluminacion:
-			if not (fuente is FuenteLuzInteractuable):
-				continue
-			var estado := Celda.EstadoVisibilidad.OCULTO
+func _actualizar_presentacion_interactuables() -> void:
+	if tablero == null:
+		return
+	for interactuable in tablero.interactuables_por_id.values():
+		if not is_instance_valid(interactuable):
+			continue
+		var estado := Celda.EstadoVisibilidad.OCULTO
+		for coord in interactuable.obtener_coordenadas_ocupadas():
 			if datos_tablero.has(coord):
-				estado = datos_tablero[coord].visibilidad
-			fuente.visible = estado != Celda.EstadoVisibilidad.OCULTO
-			fuente.modulate = (
-				Color.WHITE
-				if estado == Celda.EstadoVisibilidad.VISIBLE
-				else Color(0.4, 0.4, 0.4, 1.0)
-			)
+				estado = maxi(estado, datos_tablero[coord].visibilidad)
+		interactuable.actualizar_presentacion_visibilidad(estado)

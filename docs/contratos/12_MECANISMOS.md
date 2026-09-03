@@ -55,3 +55,17 @@ Dos orientaciones visuales de una puerta pueden usar definiciones distintas con 
 mismo receptor lógico. La orientación pertenece al `Resource` y no modifica la señal
 ni el código de la puerta.
 
+### Placas de presión y estatuas
+
+`TrampaSuperficie` reutiliza la misma relación por IDs cuando configura
+`ids_receptores_mecanismo`. La placa es un emisor de un solo uso: al entrar en su
+celda envía únicamente `true` a todos sus receptores prevalidados.
+
+`EstatuaMecanismo` es un receptor instantáneo. Al recibir la activación despliega
+una línea de fuego de tres celdas en la dirección de su orientación, detenida por el
+primer obstáculo. Cada celda usa la superficie `Fuego` existente: queda iluminada,
+añade coste de movimiento, quema a quien alcance al aparecer y permanece
+siete turnos antes de transformarse en humo. Las orientaciones del atlas se traducen
+a cuadrícula así: abajo-izquierda=`DOWN`, abajo-derecha=`RIGHT`,
+arriba-izquierda=`LEFT`, arriba-derecha=`UP`.
+

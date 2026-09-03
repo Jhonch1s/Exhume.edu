@@ -85,7 +85,9 @@ func validar_accion(contexto: ContextoAccion) -> StringName:
 	var datos := definicion as DefinicionPalanca
 	if datos == null or not datos.es_valida():
 		return &"palanca_no_configurada"
-	var receptores: Variant = _obtener_receptores_mecanismo(not activada)
+	var receptores: Variant = _resolver_receptores_mecanismo(
+		ids_receptores_mecanismo, not activada
+	)
 	if receptores is StringName:
 		return receptores
 	return &""
@@ -101,7 +103,9 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 	var nueva := not activada
 	var mensajes: Array[StringName] = []
 	var cambios: Array[Dictionary] = []
-	var receptores: Variant = _obtener_receptores_mecanismo(nueva)
+	var receptores: Variant = _resolver_receptores_mecanismo(
+		ids_receptores_mecanismo, nueva
+	)
 	if receptores is StringName:
 		return ResultadoAccion.crear_bloqueo(receptores)
 	for receptor: Interactuable in receptores:
@@ -128,41 +132,6 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 		[],
 		cambios
 	)
-
-
-func _obtener_receptores_mecanismo(activa: bool) -> Variant:
-	var receptores: Array[Interactuable] = []
-	if ids_receptores_mecanismo.is_empty():
-		return receptores
-	if tablero == null:
-		return &"tablero_mecanismo_no_configurado"
-
-	var ids := ids_receptores_mecanismo.duplicate()
-	ids.sort()
-	var ids_vistos: Dictionary[StringName, bool] = {}
-	for id_receptor in ids:
-		if id_receptor == &"":
-			return &"id_receptor_mecanismo_vacio"
-		if ids_vistos.has(id_receptor):
-			return &"id_receptor_mecanismo_duplicado"
-		ids_vistos[id_receptor] = true
-		var receptor := tablero.obtener_interactuable(id_receptor)
-		if receptor == null:
-			return &"receptor_mecanismo_inexistente"
-		if (
-			not receptor.has_method(&"validar_cambio_mecanismo")
-			or not receptor.has_method(&"aplicar_cambio_mecanismo")
-		):
-			return &"receptor_mecanismo_incompatible"
-		var motivo_receptor: Variant = receptor.call(
-			&"validar_cambio_mecanismo", id_instancia, activa
-		)
-		if not motivo_receptor is StringName:
-			return &"contrato_receptor_mecanismo_invalido"
-		if motivo_receptor != &"":
-			return motivo_receptor
-		receptores.append(receptor)
-	return receptores
 
 
 func _reproducir_sonido_accion() -> void:

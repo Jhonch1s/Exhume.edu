@@ -13,6 +13,9 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 @onready var panel_resultado_accion: PanelResultadoAccion = (
 	$CanvasLayer/PanelResultadoAccion
 )
+@onready var panel_examen_ilustrado: PanelExamenIlustrado = (
+	$CanvasLayer/PanelExamenIlustrado
+)
 @onready var menu_contextual: MenuContextualInteracciones = (
 	$CanvasLayer/MenuContextualInteracciones
 )
@@ -116,6 +119,7 @@ func _ready() -> void:
 	panel_resultado_accion.resultado_presentado.connect(_on_resultado_accion_presentado)
 	panel_resultado_accion.tirada_presentada.connect(_on_tirada_presentada)
 	panel_resultado_accion.cerrado.connect(_on_panel_resultado_cerrado)
+	panel_examen_ilustrado.cerrado.connect(_on_panel_resultado_cerrado)
 	add_child(gestor_acciones)
 	resolver_reacciones = ResolverReaccionesCelda.new(gestor_acciones)
 	servicio_turnos = ServicioTurnos.new(gestor_acciones)
@@ -983,11 +987,37 @@ func _ejecutar_opcion_contextual(
 			EntradaRegistroNarrativo.Categoria.OBJETO,
 			etiqueta_atributo
 		)
-	_presentar_resultado_contextual(titulo_resultado, resultado)
+	_presentar_resultado_contextual(titulo_resultado, resultado, contexto)
 	accion_contextual_finalizada.emit(opcion, contexto, resultado)
 
 
-func _presentar_resultado_contextual(titulo: String, resultado: ResultadoAccion) -> void:
+func _presentar_resultado_contextual(
+	titulo: String,
+	resultado: ResultadoAccion,
+	contexto: ContextoAccion = null
+) -> void:
+	if (
+		contexto != null
+		and contexto.tipo == TiposInteraccion.TipoAccion.EXAMINAR
+		and resultado.exitosa
+		and contexto.objetivo is Interactuable
+		and contexto.objetivo.definicion != null
+		and contexto.objetivo.definicion.ilustracion_examen != null
+	):
+		var textos: Array[String] = []
+		for id_mensaje in resultado.mensajes:
+			textos.append(
+				catalogo_mensajes.resolver(id_mensaje)
+				if catalogo_mensajes != null
+				else String(id_mensaje)
+			)
+		panel_examen_ilustrado.mostrar(
+			titulo,
+			contexto.objetivo.definicion.ilustracion_examen,
+			"\n\n".join(textos)
+		)
+		_actualizar_estado_modal_interaccion()
+		return
 	if resultado.tirada == null:
 		panel_resultado_accion.mostrar_resultado(titulo, resultado, catalogo_mensajes)
 		return
@@ -1399,6 +1429,10 @@ func _actualizar_estado_modal_interaccion() -> void:
 		or (
 			is_instance_valid(panel_resultado_accion)
 			and panel_resultado_accion.visible
+		)
+		or (
+			is_instance_valid(panel_examen_ilustrado)
+			and panel_examen_ilustrado.visible
 		)
 	)
 	if interaccion_modal_activa == siguiente:

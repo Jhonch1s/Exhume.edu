@@ -38,6 +38,11 @@ fila 2 para placas neutras que accionan mecanismos remotos. `fila_atlas` expone
 esas tres alternativas en el inspector. La cuarta fila del archivo no tiene uso
 asignado todavía.
 
+Una placa neutral declara los receptores en `ids_receptores_mecanismo`, usando los
+`id_instancia` estables del mismo modo que una palanca. La lista se prevalida
+completa antes de hundir la placa. Al activarse envía `true` una sola vez, no
+despliega una superficie local y no participa de cadenas de placas adyacentes.
+
 Una trampa `OCULTA` puede provocar una única percepción
 automática secreta por observador. Debe estar en una celda visible, a distancia de
 cuadrícula máxima cuatro y con línea visual. La prueba usa Voluntad: el éxito cambia

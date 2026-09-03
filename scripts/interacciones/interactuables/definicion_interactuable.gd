@@ -10,6 +10,7 @@ extends Resource
 @export var etiquetas: Array[StringName] = []
 
 @export_category("Informacion examinable")
+@export var ilustracion_examen: Texture2D
 @export var fragmentos_informacion: Array[FragmentoInformacion] = []
 @export var perfil_observacion: PerfilObservacion
 

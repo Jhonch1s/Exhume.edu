@@ -16,7 +16,21 @@ func validar(zona: Node2D, tablero: TableroGrid, capa: TileMapLayer) -> Array[St
 
 	for interactuable in interactuables:
 		if interactuable is PalancaInteractuable:
-			_validar_relaciones(interactuable, ids_interactuables, errores)
+			_validar_relaciones(
+				interactuable,
+				interactuable.ids_receptores_mecanismo,
+				ids_interactuables,
+				errores
+			)
+		elif interactuable is TrampaSuperficie:
+			var trampa := interactuable as TrampaSuperficie
+			if not trampa.ids_receptores_mecanismo.is_empty():
+				_validar_relaciones(
+					trampa,
+					trampa.ids_receptores_mecanismo,
+					ids_interactuables,
+					errores
+				)
 
 	var ids_superficies: Dictionary[StringName, bool] = {}
 	for nodo in zona.find_children("*", "", true, false):
@@ -68,30 +82,39 @@ func _validar_interactuable(
 		ids[interactuable.id_instancia] = interactuable
 	if interactuable.definicion == null or not interactuable.definicion.es_valida():
 		errores.append("definicion_interactuable_invalida id=%s %s" % [interactuable.id_instancia, contexto])
-	if not tablero.es_celda_valida(_coordenada(interactuable, capa)):
+	var coordenada := _coordenada(interactuable, capa)
+	if not tablero.es_celda_valida(coordenada):
 		errores.append("interactuable_fuera_tablero id=%s %s" % [interactuable.id_instancia, contexto])
+	else:
+		for coordenada_ocupada in interactuable.obtener_coordenadas_ocupadas(coordenada):
+			if not tablero.es_celda_valida(coordenada_ocupada):
+				errores.append("huella_interactuable_fuera_tablero id=%s celda=%s %s" % [
+					interactuable.id_instancia, coordenada_ocupada, contexto,
+				])
+				break
 func _validar_relaciones(
-	palanca: PalancaInteractuable,
+	emisor: Interactuable,
+	ids_receptores: Array[StringName],
 	interactuables: Dictionary[StringName, Interactuable],
 	errores: Array[String]
 ) -> void:
 	var vistos: Dictionary[StringName, bool] = {}
-	for id_receptor in palanca.ids_receptores_mecanismo:
+	for id_receptor in ids_receptores:
 		if id_receptor == &"":
-			errores.append("id_receptor_mecanismo_vacio emisor=%s" % palanca.id_instancia)
+			errores.append("id_receptor_mecanismo_vacio emisor=%s" % emisor.id_instancia)
 			continue
 		if vistos.has(id_receptor):
-			errores.append("id_receptor_mecanismo_duplicado emisor=%s receptor=%s" % [palanca.id_instancia, id_receptor])
+			errores.append("id_receptor_mecanismo_duplicado emisor=%s receptor=%s" % [emisor.id_instancia, id_receptor])
 			continue
 		vistos[id_receptor] = true
 		var receptor := interactuables.get(id_receptor) as Interactuable
 		if receptor == null:
-			errores.append("receptor_mecanismo_inexistente emisor=%s receptor=%s" % [palanca.id_instancia, id_receptor])
+			errores.append("receptor_mecanismo_inexistente emisor=%s receptor=%s" % [emisor.id_instancia, id_receptor])
 		elif (
 			not receptor.has_method(&"validar_cambio_mecanismo")
 			or not receptor.has_method(&"aplicar_cambio_mecanismo")
 		):
-			errores.append("receptor_mecanismo_incompatible emisor=%s receptor=%s" % [palanca.id_instancia, id_receptor])
+			errores.append("receptor_mecanismo_incompatible emisor=%s receptor=%s" % [emisor.id_instancia, id_receptor])
 
 
 func _validar_superficie(

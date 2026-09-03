@@ -12,6 +12,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/interacciones/menu_contextual_interacciones.tscn" id="11_menu_contextual"]
 [ext_resource type="PackedScene" uid="uid://ggjbjoxbbphg" path="res://assets/characters/knight3d/caballero20.glb" id="12_jpvkn"]
 [ext_resource type="PackedScene" path="res://scenes/ui/interacciones/panel_registro_narrativo.tscn" id="12_registro_narrativo"]
+[ext_resource type="PackedScene" path="res://scenes/ui/interacciones/panel_examen_ilustrado.tscn" id="13_panel_examen"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_m8dhx"]
 texture = ExtResource("2_85xdd")
@@ -81,6 +82,8 @@ mouse_filter = 2
 layer = 2
 
 [node name="PanelResultadoAccion" parent="CanvasLayer" unique_id=1054421084 instance=ExtResource("9_panel_resultado")]
+
+[node name="PanelExamenIlustrado" parent="CanvasLayer" instance=ExtResource("13_panel_examen")]
 
 [node name="MenuContextualInteracciones" parent="CanvasLayer" unique_id=1288888575 instance=ExtResource("11_menu_contextual")]
 

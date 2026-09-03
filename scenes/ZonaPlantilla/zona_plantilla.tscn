@@ -56,6 +56,7 @@ y_sort_enabled = true
 [node name="PuntosSpawn" type="Node2D" parent="."]
 
 [node name="EfectosSuperficie" type="Node2D" parent="."]
+y_sort_enabled = true
 
 [node name="CapaColumnas" type="TileMapLayer" parent="."]
 y_sort_enabled = true

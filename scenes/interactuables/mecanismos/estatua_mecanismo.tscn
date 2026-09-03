@@ -1,0 +1,63 @@
+[gd_scene load_steps=12 format=3 uid="uid://bd8cy6slme5kb"]
+
+[ext_resource type="Script" uid="uid://cqjkkngqnyr4y" path="res://scripts/interacciones/interactuables/mecanismos/estatua_mecanismo.gd" id="1_be6ju"]
+[ext_resource type="Texture2D" uid="uid://c7qqq0r730er" path="res://assets/tiles/structures/statues/sources/temple_statues.png" id="1_kkaue"]
+[ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="2_71jve"]
+[ext_resource type="Texture2D" uid="uid://dhsqpscg3dq18" path="res://assets/ilustraciones/examen/estatua.png" id="3_hifeu"]
+[ext_resource type="Script" uid="uid://c5sxr7hy2ff83" path="res://scripts/interacciones/interactuables/definicion_interactuable.gd" id="3_q3tb6"]
+[ext_resource type="Script" uid="uid://bccqt6gfe8843" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="3_qbnsw"]
+[ext_resource type="Texture2D" path="res://assets/tiles/structures/statues/fog_masks/temple_statues_fog_hidden.png" id="7_fog_hidden"]
+[ext_resource type="Texture2D" path="res://assets/tiles/structures/statues/fog_masks/temple_statues_fog_explored.png" id="8_fog_explored"]
+
+[sub_resource type="Resource" id="Resource_xgogb"]
+script = ExtResource("2_71jve")
+id_fragmento = &"identidad"
+nivel = 1
+id_mensaje = &"examen.estatua.basico"
+metadata/_custom_type_script = "uid://3dmpp1fn7gc7"
+
+[sub_resource type="Resource" id="Resource_xa8qm"]
+script = ExtResource("3_qbnsw")
+alcance_basico = 2.0
+alcance_detallado = 2.0
+alcance_secreto = 0.0
+metadata/_custom_type_script = "uid://bccqt6gfe8843"
+
+[sub_resource type="Resource" id="Resource_1ml2d"]
+script = ExtResource("3_q3tb6")
+id_definicion = &"estatua_templo"
+nombre = "Estatua"
+descripcion_base = "Una figura amenazante de madera, tallada con una tosquedad casi conceptual. Su rostro está detenido en una expresión de horror."
+ilustracion_examen = ExtResource("3_hifeu")
+fragmentos_informacion = Array[ExtResource("2_71jve")]([SubResource("Resource_xgogb")])
+perfil_observacion = SubResource("Resource_xa8qm")
+metadata/_custom_type_script = "uid://c5sxr7hy2ff83"
+
+[node name="EstatuaMecanismo" type="Node2D" unique_id=696075619]
+script = ExtResource("1_be6ju")
+definicion = SubResource("Resource_1ml2d")
+ruta_fog_oculto = NodePath("FogOculto")
+ruta_fog_explorado = NodePath("FogExplorado")
+ajustar_a_celda_en_editor = true
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1997420684]
+texture_filter = 1
+position = Vector2(0, -32)
+texture = ExtResource("1_kkaue")
+region_enabled = true
+region_rect = Rect2(0, 0, 64, 96)
+
+[node name="FogOculto" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(0, -32)
+texture = ExtResource("7_fog_hidden")
+region_enabled = true
+region_rect = Rect2(0, 0, 64, 96)
+
+[node name="FogExplorado" type="Sprite2D" parent="."]
+visible = false
+texture_filter = 1
+position = Vector2(0, -32)
+texture = ExtResource("8_fog_explored")
+region_enabled = true
+region_rect = Rect2(0, 0, 64, 96)

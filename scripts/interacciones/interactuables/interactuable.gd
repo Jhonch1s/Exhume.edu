@@ -11,11 +11,16 @@ signal presencia_cambiada
 
 @export_category("Presentacion")
 @export_node_path("Sprite2D") var ruta_visual_resaltable: NodePath = ^"Sprite2D"
+@export_node_path("Sprite2D") var ruta_fog_oculto: NodePath
+@export_node_path("Sprite2D") var ruta_fog_explorado: NodePath
 @export var color_resaltado: Color = Color.WHITE
 @export_range(1.0, 4.0, 1.0) var grosor_resaltado: float = 1.0
 
 @export_category("Edicion")
 @export var ajustar_a_celda_en_editor: bool = false
+
+@export_category("Huella")
+@export var huella_celdas: Array[Vector2i] = [Vector2i.ZERO]
 
 var coordenada_mapa: Vector2i
 var tablero: TableroGrid
@@ -48,6 +53,21 @@ func configurar_registro( tablero_inicial: TableroGrid, coordenada_inicial: Vect
 	coordenada_mapa = coordenada_inicial
 
 
+func obtener_coordenadas_ocupadas(origen: Vector2i = coordenada_mapa) -> Array[Vector2i]:
+	var coordenadas: Array[Vector2i] = []
+	for desplazamiento in huella_celdas:
+		var coordenada := origen + desplazamiento
+		if coordenada not in coordenadas:
+			coordenadas.append(coordenada)
+	if coordenadas.is_empty():
+		coordenadas.append(origen)
+	return coordenadas
+
+
+func ocupa_coordenada(coordenada: Vector2i) -> bool:
+	return coordenada in obtener_coordenadas_ocupadas()
+
+
 func configurar_servicio_examen(nuevo_servicio: ServicioExamen) -> void:
 	servicio_examen = nuevo_servicio
 
@@ -64,6 +84,22 @@ func establecer_resaltado(activo: bool) -> void:
 	var resaltador := _obtener_resaltador_outline()
 	if resaltador != null:
 		resaltador.establecer_activo(activo)
+
+
+func actualizar_presentacion_visibilidad(estado: int) -> void:
+	var fog_oculto := get_node_or_null(ruta_fog_oculto) as Sprite2D
+	var fog_explorado := get_node_or_null(ruta_fog_explorado) as Sprite2D
+	var usa_mascaras := fog_oculto != null and fog_explorado != null
+	visible = usa_mascaras or estado != Celda.EstadoVisibilidad.OCULTO
+	modulate = (
+		Color.WHITE
+		if usa_mascaras or estado == Celda.EstadoVisibilidad.VISIBLE
+		else Color(0.4, 0.4, 0.4, 1.0)
+	)
+	if fog_oculto != null:
+		fog_oculto.visible = estado == Celda.EstadoVisibilidad.OCULTO
+	if fog_explorado != null:
+		fog_explorado.visible = estado == Celda.EstadoVisibilidad.EXPLORADO
 
 
 func esta_resaltado() -> bool:
@@ -167,6 +203,44 @@ func bloquea_proyectiles_interactuable() -> bool:
 	return false
 
 
+func _resolver_receptores_mecanismo(
+	ids_receptores: Array[StringName],
+	activa: bool
+) -> Variant:
+	var receptores: Array[Interactuable] = []
+	if ids_receptores.is_empty():
+		return receptores
+	if tablero == null:
+		return &"tablero_mecanismo_no_configurado"
+
+	var ids := ids_receptores.duplicate()
+	ids.sort()
+	var ids_vistos: Dictionary[StringName, bool] = {}
+	for id_receptor in ids:
+		if id_receptor == &"":
+			return &"id_receptor_mecanismo_vacio"
+		if ids_vistos.has(id_receptor):
+			return &"id_receptor_mecanismo_duplicado"
+		ids_vistos[id_receptor] = true
+		var receptor := tablero.obtener_interactuable(id_receptor)
+		if receptor == null:
+			return &"receptor_mecanismo_inexistente"
+		if (
+			not receptor.has_method(&"validar_cambio_mecanismo")
+			or not receptor.has_method(&"aplicar_cambio_mecanismo")
+		):
+			return &"receptor_mecanismo_incompatible"
+		var motivo_receptor: Variant = receptor.call(
+			&"validar_cambio_mecanismo", id_instancia, activa
+		)
+		if not motivo_receptor is StringName:
+			return &"contrato_receptor_mecanismo_invalido"
+		if motivo_receptor != &"":
+			return motivo_receptor
+		receptores.append(receptor)
+	return receptores
+
+
 func construir_contexto_accion(
 	opcion: OpcionAccion,
 	actor: Object,
@@ -179,7 +253,7 @@ func construir_contexto_accion(
 		or opcion.objetivo != self
 		or actor == null
 		or not is_instance_valid(actor)
-		or celda_objetivo != coordenada_mapa
+		or not ocupa_coordenada(celda_objetivo)
 	):
 		return null
 
@@ -245,7 +319,7 @@ func validar_accion(contexto: ContextoAccion) -> StringName:
 			return &"servicio_examen_no_configurado"
 		return servicio_examen.validar_examen(contexto, self)
 	if contexto != null and contexto.tipo == TiposInteraccion.TipoAccion.USAR_ITEM:
-		if contexto.objetivo != self or contexto.celda_objetivo != coordenada_mapa:
+		if contexto.objetivo != self or not ocupa_coordenada(contexto.celda_objetivo):
 			return &"objetivo_no_coincide"
 		var motivo_item := _validar_item_del_actor(contexto.actor, contexto.item)
 		if motivo_item != &"":
