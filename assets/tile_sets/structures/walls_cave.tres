@@ -1,6 +1,8 @@
 [gd_resource type="TileSet" format=3 uid="uid://ppf8ki7fg8h8"]
 
 [ext_resource type="Texture2D" uid="uid://bdv1qdq25dvpd" path="res://assets/tiles/structures/walls/sources/walls_cave.png" id="1_pl4v4"]
+[ext_resource type="Texture2D" uid="uid://dytmdr2gwaiib" path="res://assets/tiles/structures/walls/sources/walls_cave_tall.png" id="2_tall"]
+[ext_resource type="Texture2D" uid="uid://bascxw01iulb4" path="res://assets/tiles/structures/walls/sources/walls_cave_tall_corner.png" id="3_corner"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_1ch2c"]
 texture = ExtResource("1_pl4v4")
@@ -19,6 +21,63 @@ texture_region_size = Vector2i(64, 32)
 1:0/0/custom_data_3 = "pared"
 1:0/0/custom_data_4 = 1
 
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_tall"]
+texture = ExtResource("2_tall")
+texture_region_size = Vector2i(96, 32)
+0:0/size_in_atlas = Vector2i(1, 4)
+0:0/0 = 0
+0:0/0/texture_origin = Vector2i(0, 48)
+0:0/0/custom_data_0 = 3
+0:0/0/custom_data_2 = true
+0:0/0/custom_data_3 = "pared_alta"
+1:0/size_in_atlas = Vector2i(1, 4)
+1:0/0 = 0
+1:0/0/texture_origin = Vector2i(0, 48)
+1:0/0/custom_data_0 = 3
+1:0/0/custom_data_2 = true
+1:0/0/custom_data_3 = "pared_alta"
+1:0/0/custom_data_4 = 1
+2:0/size_in_atlas = Vector2i(1, 4)
+2:0/0 = 0
+2:0/0/texture_origin = Vector2i(0, 48)
+2:0/0/custom_data_0 = 3
+2:0/0/custom_data_2 = true
+2:0/0/custom_data_3 = "pared_alta"
+2:0/0/custom_data_4 = 2
+0:4/size_in_atlas = Vector2i(1, 4)
+0:4/0 = 0
+0:4/0/texture_origin = Vector2i(0, 48)
+0:4/0/custom_data_0 = 3
+0:4/0/custom_data_2 = true
+0:4/0/custom_data_3 = "pared_alta"
+0:4/0/custom_data_5 = 4
+1:4/size_in_atlas = Vector2i(1, 4)
+1:4/0 = 0
+1:4/0/texture_origin = Vector2i(0, 48)
+1:4/0/custom_data_0 = 3
+1:4/0/custom_data_2 = true
+1:4/0/custom_data_3 = "pared_alta"
+1:4/0/custom_data_4 = 1
+1:4/0/custom_data_5 = 4
+2:4/size_in_atlas = Vector2i(1, 4)
+2:4/0 = 0
+2:4/0/texture_origin = Vector2i(0, 48)
+2:4/0/custom_data_0 = 3
+2:4/0/custom_data_2 = true
+2:4/0/custom_data_3 = "pared_alta"
+2:4/0/custom_data_4 = 2
+2:4/0/custom_data_5 = 4
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_tall_corner"]
+texture = ExtResource("3_corner")
+texture_region_size = Vector2i(96, 32)
+0:0/size_in_atlas = Vector2i(1, 4)
+0:0/0 = 0
+0:0/0/texture_origin = Vector2i(0, 48)
+0:0/0/custom_data_0 = 3
+0:0/0/custom_data_2 = true
+0:0/0/custom_data_3 = "pared_alta_esquina"
+
 [resource]
 tile_shape = 1
 tile_layout = 4
@@ -36,3 +95,5 @@ custom_data_layer_4/type = 2
 custom_data_layer_5/name = "fog_atlas_y"
 custom_data_layer_5/type = 2
 sources/0 = SubResource("TileSetAtlasSource_1ch2c")
+sources/1 = SubResource("TileSetAtlasSource_tall")
+sources/2 = SubResource("TileSetAtlasSource_tall_corner")

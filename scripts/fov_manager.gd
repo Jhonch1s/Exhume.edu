@@ -12,6 +12,8 @@ var tiene_vision_calculada: bool = false
 const FUENTES_FOG_EXPLORADO := {
 	&"terreno": 0,
 	&"pared": 2,
+	&"pared_alta": 10,
+	&"pared_alta_esquina": 12,
 	&"columna": 4,
 	&"estalagmita": 6,
 	&"luz": 8,
@@ -20,6 +22,8 @@ const FUENTES_FOG_EXPLORADO := {
 const FUENTES_FOG_OCULTO := {
 	&"terreno": 1,
 	&"pared": 3,
+	&"pared_alta": 11,
+	&"pared_alta_esquina": 13,
 	&"columna": 5,
 	&"estalagmita": 7,
 	&"luz": 9,

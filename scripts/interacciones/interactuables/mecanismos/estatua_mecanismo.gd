@@ -36,7 +36,7 @@ func permite_caminar_interactuable() -> bool:
 	return false
 
 func bloquea_vision_interactuable() -> bool:
-	return true
+	return false
 
 func bloquea_proyectiles_interactuable() -> bool:
 	return true

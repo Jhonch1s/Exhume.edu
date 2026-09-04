@@ -91,7 +91,7 @@ func _ejecutar_pruebas() -> void:
 
 	_probar_ejecucion_accion(escenario, fuente, estado_inicial, origen_adyacente)
 	_probar_ejecucion_examen(escenario, fuente, origen_adyacente)
-	_probar_bloqueo_distancia(escenario, fuente)
+	await _probar_desplazamiento_interaccion(escenario, fuente)
 
 	_probar_panel_resultado_modal(escenario)
 	_probar_examen_otras_fuentes(escenario)
@@ -194,12 +194,17 @@ func _probar_ejecucion_examen(
 	escenario.panel_resultado_accion.ocultar()
 
 
-func _probar_bloqueo_distancia(
+func _probar_desplazamiento_interaccion(
 	escenario: Variant,
 	fuente: FuenteLuzInteractuable
 ) -> void:
 	var origen_lejano := _buscar_origen_lejano(escenario, fuente.coordenada_mapa)
-	escenario.ficha_jugador.coordenada_mapa = origen_lejano
+	var ficha: Ficha = escenario.ficha_jugador
+	escenario.tablero.liberar_celda(ficha.coordenada_mapa, ficha)
+	ficha.coordenada_mapa = origen_lejano
+	ficha.global_position = escenario.zona_actual.get_node("CapaSuelo").map_to_local(origen_lejano)
+	escenario.tablero.ocupar_celda(origen_lejano, ficha)
+	ficha.velocidad_paso = 0.001
 	escenario.tablero.obtener_celda(fuente.coordenada_mapa).visibilidad = (
 		Celda.EstadoVisibilidad.VISIBLE
 	)
@@ -207,20 +212,22 @@ func _probar_bloqueo_distancia(
 	escenario._manejar_clic_izquierdo(fuente.coordenada_mapa)
 	var botones: Array[Button] = escenario.menu_contextual.obtener_botones()
 	botones[1].pressed.emit()
+	if ficha.esta_moviendose:
+		await ficha.movimiento_terminado
+	await process_frame
 	_comprobar(
-		escenario.ultimo_resultado_contextual.estado
-		== TiposInteraccion.EstadoResolucion.BLOQUEO
-		and escenario.ultimo_resultado_contextual.motivo == &"fuera_de_alcance",
-		"GestorAcciones debe revalidar y bloquear la interacción a distancia."
+		escenario.ultimo_resultado_contextual != null
+		and escenario.ultimo_resultado_contextual.exitosa,
+		"Una interacción lejana debe caminar hasta el objetivo y resolverse."
 	)
 	_comprobar(
-		fuente.encendida == estado_anterior,
-		"Un bloqueo por distancia no debe modificar el objetivo."
+		fuente.encendida != estado_anterior,
+		"La acción debe ejecutarse automáticamente al terminar el recorrido."
 	)
 	_comprobar(
 		escenario.panel_resultado_accion.visible
-		and "Debes estar junto" in escenario.panel_resultado_accion.etiqueta_mensajes.text,
-		"Los bloqueos del gestor deben presentarse con un motivo comprensible."
+		and ficha.coordenada_mapa != origen_lejano,
+		"El resultado debe mostrarse solamente después de desplazar al jugador."
 	)
 	escenario.panel_resultado_accion.ocultar()
 

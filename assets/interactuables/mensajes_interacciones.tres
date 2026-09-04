@@ -68,6 +68,8 @@ mensajes = {
 &"puerta_ya_cerrada": "La puerta ya está cerrada.",
 &"puerta_ya_desbloqueada": "La puerta ya está desbloqueada.",
 &"reaccion_item_no_implementada": "Ese item no produce ningún efecto sobre el objetivo.",
+&"ruta_interaccion_interrumpida": "No consigues alcanzar el objetivo.",
+&"ruta_interaccion_no_disponible": "No hay una ruta disponible hasta el objetivo.",
 &"sin_informacion_disponible": "No logras obtener información útil.",
 &"trampa.desactivada": "Desactivas la trampa.",
 &"trampa.desarme_fallido": "El intento de desarme activa la trampa.",

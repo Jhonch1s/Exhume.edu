@@ -964,7 +964,36 @@ func _ejecutar_opcion_contextual(
 		)
 		if construccion is ContextoAccion:
 			contexto = construccion
-			resultado = gestor_acciones.procesar_accion(contexto)
+			if gestor_acciones.esta_en_alcance(contexto):
+				resultado = gestor_acciones.procesar_accion(contexto)
+			else:
+				var camino := _buscar_camino_interaccion(
+					opcion, item_seleccionado, coordenada_objetivo
+				)
+				menu_contextual.ocultar()
+				_limpiar_seleccion_interaccion()
+				_actualizar_estado_modal_interaccion()
+				if camino.is_empty():
+					resultado = ResultadoAccion.crear_bloqueo(
+						&"ruta_interaccion_no_disponible"
+					)
+				elif not await _recorrer_camino_interaccion(camino):
+					resultado = ResultadoAccion.crear_bloqueo(
+						&"ruta_interaccion_interrumpida"
+					)
+				else:
+					construccion = constructor_contexto_accion.construir_desde_opcion(
+						opcion,
+						ficha_jugador,
+						ficha_jugador.coordenada_mapa,
+						coordenada_objetivo,
+						item_seleccionado
+					)
+					if construccion is ContextoAccion:
+						contexto = construccion
+						resultado = gestor_acciones.procesar_accion(contexto)
+					else:
+						resultado = ResultadoAccion.crear_bloqueo(construccion)
 		else:
 			var motivo_construccion: StringName = construccion
 			resultado = ResultadoAccion.crear_bloqueo(motivo_construccion)
@@ -989,6 +1018,79 @@ func _ejecutar_opcion_contextual(
 		)
 	_presentar_resultado_contextual(titulo_resultado, resultado, contexto)
 	accion_contextual_finalizada.emit(opcion, contexto, resultado)
+
+
+func _buscar_camino_interaccion(
+	opcion: OpcionAccion,
+	item_seleccionado: ItemInstancia,
+	coordenada_objetivo: Vector2i
+) -> Array[Vector2i]:
+	var mejor_camino: Array[Vector2i] = []
+	var mejor_coste := INF
+	# ponytail: barrido simple; crear un índice espacial si los mapas grandes lo requieren.
+	for destino: Vector2i in tablero.datos:
+		if not tablero.puede_entrar(destino, ficha_jugador):
+			continue
+		var construccion: Variant = constructor_contexto_accion.construir_desde_opcion(
+			opcion,
+			ficha_jugador,
+			destino,
+			coordenada_objetivo,
+			item_seleccionado
+		)
+		if not construccion is ContextoAccion:
+			continue
+		var contexto := construccion as ContextoAccion
+		if not gestor_acciones.esta_en_alcance(contexto):
+			continue
+		if (
+			contexto.tipo_linea_efecto != TiposInteraccion.TipoLineaEfecto.NINGUNA
+			and validador_espacial.validar_linea_efecto(contexto) != &""
+		):
+			continue
+		var camino := pathfinding.calcular_camino(
+			ficha_jugador.coordenada_mapa,
+			destino,
+			tablero.datos,
+			ficha_jugador
+		)
+		if camino.is_empty():
+			continue
+		if en_combate:
+			var limitado := pathfinding.limitar_camino_por_movimiento(
+				camino,
+				tablero.datos,
+				ficha_jugador,
+				ficha_jugador.obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO)
+			)
+			if limitado.size() != camino.size():
+				continue
+		var coste := 0
+		for indice in range(1, camino.size()):
+			coste += tablero.obtener_celda(camino[indice]).calcular_coste_movimiento(
+				ficha_jugador
+			)
+		if coste < mejor_coste:
+			mejor_coste = coste
+			mejor_camino = camino
+	return mejor_camino
+
+
+func _recorrer_camino_interaccion(camino: Array[Vector2i]) -> bool:
+	capa_camino.clear()
+	longitud_movimiento_actual = camino.size() - 1
+	pasos_movimiento_actual = 0
+	return await ficha_jugador.mover_por_camino(
+		camino,
+		_preparar_paso_ficha,
+		_confirmar_paso_ficha,
+		_cancelar_paso_ficha,
+		_procesar_salida_paso_ficha,
+		_procesar_entrada_paso_ficha,
+		_calcular_coste_paso_ficha,
+		_avanzar_turno_exploracion,
+		en_combate
+	)
 
 
 func _presentar_resultado_contextual(
