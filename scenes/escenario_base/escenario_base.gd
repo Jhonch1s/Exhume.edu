@@ -19,6 +19,9 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 @onready var menu_contextual: MenuContextualInteracciones = (
 	$CanvasLayer/MenuContextualInteracciones
 )
+@onready var capa_paredes_oclusivas: CapaParedesOclusivas = (
+	zona_actual.get_node("CapaParedes") as CapaParedesOclusivas
+)
 @onready var camera_2d: Camera2D = $Camera2D
 @onready var capa_camino: TileMapLayer = $CapaCamino
 @onready var trayectoria_lanzamiento: Line2D = $TrayectoriaLanzamiento
@@ -160,6 +163,8 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	centrar_camara_en_ficha()
+	if ficha_jugador and capa_paredes_oclusivas:
+		capa_paredes_oclusivas.actualizar_occlusion(ficha_jugador.global_position)
 	_actualizar_audio_proximidad()
 	if ficha_jugador and ficha_jugador.esta_moviendose:
 		trayectoria_lanzamiento.clear_points()
