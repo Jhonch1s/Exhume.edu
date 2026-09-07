@@ -12,6 +12,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/interacciones/menu_contextual_interacciones.tscn" id="11_menu_contextual"]
 [ext_resource type="PackedScene" uid="uid://ggjbjoxbbphg" path="res://assets/characters/knight3d/caballero20.glb" id="12_jpvkn"]
 [ext_resource type="PackedScene" path="res://scenes/ui/interacciones/panel_registro_narrativo.tscn" id="12_registro_narrativo"]
+[ext_resource type="PackedScene" uid="uid://cj78e6l5ebb42" path="res://scenes/ui/interacciones/panel_examen_ilustrado.tscn" id="13_panel_examen"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_m8dhx"]
 texture = ExtResource("2_85xdd")
@@ -47,7 +48,7 @@ y_sort_enabled = true
 script = ExtResource("1_3j2a0")
 catalogo_mensajes = ExtResource("10_catalogo_mensajes")
 
-[node name="Zona1" parent="." unique_id=1662731053 instance=ExtResource("2_3j2a0")]
+[node name="Zona" parent="." unique_id=1662731053 instance=ExtResource("2_3j2a0")]
 
 [node name="CapaCamino" type="TileMapLayer" parent="." unique_id=2140207141]
 texture_filter = 1
@@ -64,7 +65,7 @@ antialiased = true
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=643464011]
 position = Vector2(320, 181)
-zoom = Vector2(2, 2)
+zoom = Vector2(3, 3)
 
 [node name="FiltroCRT" type="CanvasLayer" parent="." unique_id=274575882]
 
@@ -82,6 +83,8 @@ layer = 2
 
 [node name="PanelResultadoAccion" parent="CanvasLayer" unique_id=1054421084 instance=ExtResource("9_panel_resultado")]
 
+[node name="PanelExamenIlustrado" parent="CanvasLayer" unique_id=1214408067 instance=ExtResource("13_panel_examen")]
+
 [node name="MenuContextualInteracciones" parent="CanvasLayer" unique_id=1288888575 instance=ExtResource("11_menu_contextual")]
 
 [node name="PanelRegistroNarrativo" parent="CanvasLayer" unique_id=1606207479 instance=ExtResource("12_registro_narrativo")]
@@ -96,6 +99,8 @@ autoplay = true
 script = ExtResource("7_t484h")
 
 [node name="KnightViewPort" type="SubViewportContainer" parent="." unique_id=2057824913]
+visible = false
+texture_filter = 1
 offset_left = 586.0
 offset_top = -164.0
 offset_right = 1098.0
@@ -105,7 +110,7 @@ offset_bottom = 348.0
 transparent_bg = true
 handle_input_locally = false
 canvas_cull_mask = 4294966273
-render_target_update_mode = 4
+render_target_update_mode = 0
 
 [node name="caballero20" parent="KnightViewPort/KnightSubViewport" unique_id=1421085748 instance=ExtResource("12_jpvkn")]
 
@@ -116,4 +121,4 @@ size = 1.4
 
 [node name="SpotLight3D" type="SpotLight3D" parent="KnightViewPort/KnightSubViewport" unique_id=449324514]
 transform = Transform3D(0.70710677, 0, -0.70710677, 0, 1, 0, 0.70710677, 0, 0.70710677, -3, 0, 3)
-light_energy = 2.0
+light_energy = 3.0

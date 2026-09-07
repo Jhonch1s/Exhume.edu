@@ -14,7 +14,7 @@ func _ejecutar_pruebas() -> void:
 	_probar_retiro_activacion_provisional_en_escenario()
 
 	if _fallos.is_empty():
-		print("PresentacionExamen: 4 pruebas correctas.")
+		print("PresentacionExamen: 5 pruebas correctas.")
 		quit()
 		return
 	for fallo in _fallos:
@@ -134,6 +134,33 @@ func _probar_retiro_activacion_provisional_en_escenario() -> void:
 		escenario.get_node_or_null("CanvasLayer/PanelDetalle") == null,
 		"El panel técnico heredado debe retirarse de la escena principal."
 	)
+	var objetivo := Interactuable.new()
+	objetivo.definicion = DefinicionInteractuable.new()
+	objetivo.definicion.ilustracion_examen = GradientTexture2D.new()
+	var contexto := ContextoAccion.new(
+		TiposInteraccion.TipoAccion.EXAMINAR,
+		escenario.ficha_jugador,
+		Vector2i.ZERO,
+		Vector2i.ZERO,
+		objetivo
+	)
+	escenario._presentar_resultado_contextual(
+		"Estatua",
+		ResultadoAccion.crear_exito([&"examen.estatua.basico"]),
+		contexto
+	)
+	_comprobar(
+		escenario.panel_examen_ilustrado.visible
+		and not escenario.panel_resultado_accion.visible,
+		"Examinar un objeto ilustrado debe abrir solamente el panel grande."
+	)
+	_comprobar(
+		escenario.panel_examen_ilustrado.etiqueta_titulo.text == "Estatua"
+		and not escenario.panel_examen_ilustrado.etiqueta_texto.text.is_empty(),
+		"El panel ilustrado debe recibir el título y la descripción resuelta."
+	)
+	escenario.panel_examen_ilustrado.ocultar()
+	objetivo.free()
 	escenario.queue_free()
 
 

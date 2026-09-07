@@ -11,13 +11,14 @@ func _init() -> void:
 	_probar_geometria_compartida()
 	_probar_linea_visual_despejada()
 	_probar_obstaculo_intermedio()
+	_probar_esquina_visual()
 	_probar_destino_opaco()
 	_probar_hueco_y_extremos_invalidos()
 	_probar_configuracion_y_linea_fisica()
 	_probar_integracion_con_gestor()
 
 	if _fallos.is_empty():
-		print("ValidadorEspacialTablero: 7 pruebas correctas.")
+		print("ValidadorEspacialTablero: 8 pruebas correctas.")
 		quit()
 		return
 
@@ -41,6 +42,11 @@ func _probar_geometria_compartida() -> void:
 		GeometriaGrid.trazar_linea(Vector2i(2, 1), Vector2i(2, 1))
 		== [Vector2i(2, 1)],
 		"Una línea sin desplazamiento debe contener una sola celda."
+	)
+	_comprobar(
+		GeometriaGrid.flancos_paso_diagonal(Vector2i.ZERO, Vector2i.ONE)
+		== [Vector2i.RIGHT, Vector2i.DOWN],
+		"Un paso diagonal debe exponer sus dos flancos ortogonales."
 	)
 
 
@@ -66,6 +72,29 @@ func _probar_obstaculo_intermedio() -> void:
 	_comprobar(
 		motivo == &"linea_de_efecto_bloqueada",
 		"Una celda intermedia opaca debe bloquear la línea visual."
+	)
+	tablero.free()
+
+
+func _probar_esquina_visual() -> void:
+	var tablero := TableroGrid.new()
+	for coord in [Vector2i.ZERO, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.ONE]:
+		tablero.datos[coord] = Celda.new()
+	tablero.obtener_celda(Vector2i.RIGHT).bloquea_vision = true
+	tablero.obtener_celda(Vector2i.DOWN).bloquea_vision = true
+	var validador := ValidadorEspacialTablero.new(tablero)
+	var contexto := _crear_contexto_visual(
+		RefCounted.new(), Vector2i.ZERO, Vector2i.ONE
+	)
+
+	_comprobar(
+		validador.validar_linea_efecto(contexto) == &"linea_de_efecto_bloqueada",
+		"Dos paredes contiguas deben cerrar la visión en su esquina diagonal."
+	)
+	tablero.obtener_celda(Vector2i.DOWN).bloquea_vision = false
+	_comprobar(
+		validador.validar_linea_efecto(contexto) == &"",
+		"Una sola pared debe permitir la visión diagonal por el lado abierto."
 	)
 	tablero.free()
 

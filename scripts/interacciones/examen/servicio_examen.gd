@@ -91,7 +91,7 @@ func _validar_contrato(
 		return &"solicitud_examen_invalida"
 	if not contexto.tiene_origen() or not contexto.tiene_celda_objetivo():
 		return &"coordenadas_incompletas"
-	if contexto.celda_objetivo != objetivo.coordenada_mapa:
+	if not objetivo.ocupa_coordenada(contexto.celda_objetivo):
 		return &"coordenada_objetivo_inconsistente"
 	return &""
 

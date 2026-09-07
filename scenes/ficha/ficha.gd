@@ -492,9 +492,9 @@ func mover_por_camino(
 	calcular_coste_paso: Callable = Callable(),
 	avanzar_turno: Callable = Callable(),
 	en_combate: bool = false
-) -> void:
+) -> bool:
 	if camino.is_empty() or esta_moviendose or not capa_referencia or not puede_moverse():
-		return
+		return false
 
 	esta_moviendose = true
 	interrupcion_solicitada = false
@@ -583,6 +583,7 @@ func mover_por_camino(
 	esta_moviendose = false
 	interrupcion_solicitada = false
 	movimiento_terminado.emit(fue_interrumpido)
+	return not fue_interrumpido
 
 func calcular_duracion_paso(coste_paso: int) -> float:
 	return velocidad_paso * (2.0 if coste_paso > 1 else 1.0)

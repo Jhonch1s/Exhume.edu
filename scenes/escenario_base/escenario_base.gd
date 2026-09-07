@@ -8,19 +8,25 @@ signal accion_contextual_finalizada(
 )
 signal estado_modal_interaccion_cambiado(activo: bool)
 
-@onready var zona_actual: Node2D = $Zona1
+@onready var zona_actual: Node2D = $Zona
 @onready var capa_selector: TileMapLayer = $CapaSelector
 @onready var panel_resultado_accion: PanelResultadoAccion = (
 	$CanvasLayer/PanelResultadoAccion
 )
+@onready var panel_examen_ilustrado: PanelExamenIlustrado = (
+	$CanvasLayer/PanelExamenIlustrado
+)
 @onready var menu_contextual: MenuContextualInteracciones = (
 	$CanvasLayer/MenuContextualInteracciones
+)
+@onready var capa_paredes_oclusivas: CapaParedesOclusivas = (
+	zona_actual.get_node("CapaParedes") as CapaParedesOclusivas
 )
 @onready var camera_2d: Camera2D = $Camera2D
 @onready var capa_camino: TileMapLayer = $CapaCamino
 @onready var trayectoria_lanzamiento: Line2D = $TrayectoriaLanzamiento
 @onready var gestor_vision: FOVManager = $GestorVision
-@onready var capa_oscuridad: TileMapLayer = $Zona1/CapaOscuridad
+@onready var capa_oscuridad: TileMapLayer = $Zona/CapaOscuridad
 @onready var panel_registro_narrativo: PanelRegistroNarrativo = $CanvasLayer/PanelRegistroNarrativo
 
 @onready var viewportKnight: SubViewportContainer = $KnightViewPort
@@ -116,6 +122,7 @@ func _ready() -> void:
 	panel_resultado_accion.resultado_presentado.connect(_on_resultado_accion_presentado)
 	panel_resultado_accion.tirada_presentada.connect(_on_tirada_presentada)
 	panel_resultado_accion.cerrado.connect(_on_panel_resultado_cerrado)
+	panel_examen_ilustrado.cerrado.connect(_on_panel_resultado_cerrado)
 	add_child(gestor_acciones)
 	resolver_reacciones = ResolverReaccionesCelda.new(gestor_acciones)
 	servicio_turnos = ServicioTurnos.new(gestor_acciones)
@@ -156,6 +163,8 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	centrar_camara_en_ficha()
+	if ficha_jugador and capa_paredes_oclusivas:
+		capa_paredes_oclusivas.actualizar_occlusion(ficha_jugador.global_position)
 	_actualizar_audio_proximidad()
 	if ficha_jugador and ficha_jugador.esta_moviendose:
 		trayectoria_lanzamiento.clear_points()
@@ -525,15 +534,11 @@ func capturar_textura(angulo:float) -> ImageTexture:
 	return textura
 
 
-func spawnear_ficha_inicial() -> void:
+func spawnear_ficha_inicial(id_spawn: StringName = &"entrada") -> void:
 	var capa_suelo: TileMapLayer = zona_actual.get_node_or_null("CapaSuelo")
 	if not capa_suelo:
 		return
-	var coord_inicio := Vector2i(-999, -999)
-	for coord in tablero.datos:
-		if tablero.puede_entrar(coord):
-			coord_inicio = coord
-			break
+	var coord_inicio := _obtener_coordenada_spawn(id_spawn, capa_suelo)
 	if coord_inicio == Vector2i(-999, -999):
 		return
 	ficha_jugador = ESCENA_FICHA.instantiate()
@@ -560,6 +565,38 @@ func spawnear_ficha_inicial() -> void:
 	ficha_jugador.inicializar(coord_inicio, capa_suelo)
 	ficha_jugador.paso_dado.connect(_on_ficha_paso_dado)
 	tablero.ocupar_celda(coord_inicio, ficha_jugador)
+
+
+func _obtener_coordenada_spawn(
+	id_spawn: StringName,
+	capa_suelo: TileMapLayer
+) -> Vector2i:
+	var puntos: Array[PuntoSpawnZona] = []
+	for nodo in zona_actual.find_children("*", "", true, false):
+		if nodo is PuntoSpawnZona:
+			puntos.append(nodo)
+	puntos.sort_custom(func(a, b): return String(a.id_spawn) < String(b.id_spawn))
+	var coincidencias: Array[PuntoSpawnZona] = []
+	for punto in puntos:
+		if punto.id_spawn == id_spawn:
+			coincidencias.append(punto)
+	if coincidencias.size() > 1:
+		push_error("Punto de spawn duplicado: %s" % id_spawn)
+		return Vector2i(-999, -999)
+	if coincidencias.size() == 1:
+		var coordenada := coincidencias[0].obtener_coordenada(capa_suelo)
+		if tablero.puede_entrar(coordenada):
+			return coordenada
+		push_error("Punto de spawn fuera de una celda caminable: %s" % id_spawn)
+		return Vector2i(-999, -999)
+	if not puntos.is_empty():
+		push_error("La zona no contiene el punto de spawn solicitado: %s" % id_spawn)
+		return Vector2i(-999, -999)
+	# Compatibilidad con zonas anteriores al marcador explícito.
+	for coordenada in tablero.datos:
+		if tablero.puede_entrar(coordenada):
+			return coordenada
+	return Vector2i(-999, -999)
 
 func _on_ficha_paso_dado(nueva_coord: Vector2i) -> void:
 	_reproducir_sonido_paso()
@@ -592,7 +629,8 @@ func _evaluar_percepcion_trampas() -> void:
 			_registrar_resultado_narrativo(
 				"Trampa descubierta",
 				resultado,
-				EntradaRegistroNarrativo.Categoria.SISTEMA
+				EntradaRegistroNarrativo.Categoria.SISTEMA,
+				"VOL"
 			)
 
 
@@ -931,7 +969,36 @@ func _ejecutar_opcion_contextual(
 		)
 		if construccion is ContextoAccion:
 			contexto = construccion
-			resultado = gestor_acciones.procesar_accion(contexto)
+			if gestor_acciones.esta_en_alcance(contexto):
+				resultado = gestor_acciones.procesar_accion(contexto)
+			else:
+				var camino := _buscar_camino_interaccion(
+					opcion, item_seleccionado, coordenada_objetivo
+				)
+				menu_contextual.ocultar()
+				_limpiar_seleccion_interaccion()
+				_actualizar_estado_modal_interaccion()
+				if camino.is_empty():
+					resultado = ResultadoAccion.crear_bloqueo(
+						&"ruta_interaccion_no_disponible"
+					)
+				elif not await _recorrer_camino_interaccion(camino):
+					resultado = ResultadoAccion.crear_bloqueo(
+						&"ruta_interaccion_interrumpida"
+					)
+				else:
+					construccion = constructor_contexto_accion.construir_desde_opcion(
+						opcion,
+						ficha_jugador,
+						ficha_jugador.coordenada_mapa,
+						coordenada_objetivo,
+						item_seleccionado
+					)
+					if construccion is ContextoAccion:
+						contexto = construccion
+						resultado = gestor_acciones.procesar_accion(contexto)
+					else:
+						resultado = ResultadoAccion.crear_bloqueo(construccion)
 		else:
 			var motivo_construccion: StringName = construccion
 			resultado = ResultadoAccion.crear_bloqueo(motivo_construccion)
@@ -945,14 +1012,119 @@ func _ejecutar_opcion_contextual(
 		TiposInteraccion.TipoAccion.INTERACTUAR,
 		TiposInteraccion.TipoAccion.USAR_ITEM,
 	]:
+		var etiqueta_atributo := "DES"
+		if opcion.id in [&"desarmar_fue", &"desarmar_des", &"desarmar_vol"]:
+			etiqueta_atributo = String(opcion.id).trim_prefix("desarmar_").to_upper()
 		_registrar_resultado_narrativo(
-			titulo_resultado, resultado, EntradaRegistroNarrativo.Categoria.OBJETO
+			titulo_resultado,
+			resultado,
+			EntradaRegistroNarrativo.Categoria.OBJETO,
+			etiqueta_atributo
 		)
-	_presentar_resultado_contextual(titulo_resultado, resultado)
+	_presentar_resultado_contextual(titulo_resultado, resultado, contexto)
 	accion_contextual_finalizada.emit(opcion, contexto, resultado)
 
 
-func _presentar_resultado_contextual(titulo: String, resultado: ResultadoAccion) -> void:
+func _buscar_camino_interaccion(
+	opcion: OpcionAccion,
+	item_seleccionado: ItemInstancia,
+	coordenada_objetivo: Vector2i
+) -> Array[Vector2i]:
+	var mejor_camino: Array[Vector2i] = []
+	var mejor_coste := INF
+	# ponytail: barrido simple; crear un índice espacial si los mapas grandes lo requieren.
+	for destino: Vector2i in tablero.datos:
+		if not tablero.puede_entrar(destino, ficha_jugador):
+			continue
+		var construccion: Variant = constructor_contexto_accion.construir_desde_opcion(
+			opcion,
+			ficha_jugador,
+			destino,
+			coordenada_objetivo,
+			item_seleccionado
+		)
+		if not construccion is ContextoAccion:
+			continue
+		var contexto := construccion as ContextoAccion
+		if not gestor_acciones.esta_en_alcance(contexto):
+			continue
+		if (
+			contexto.tipo_linea_efecto != TiposInteraccion.TipoLineaEfecto.NINGUNA
+			and validador_espacial.validar_linea_efecto(contexto) != &""
+		):
+			continue
+		var camino := pathfinding.calcular_camino(
+			ficha_jugador.coordenada_mapa,
+			destino,
+			tablero.datos,
+			ficha_jugador
+		)
+		if camino.is_empty():
+			continue
+		if en_combate:
+			var limitado := pathfinding.limitar_camino_por_movimiento(
+				camino,
+				tablero.datos,
+				ficha_jugador,
+				ficha_jugador.obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO)
+			)
+			if limitado.size() != camino.size():
+				continue
+		var coste := 0
+		for indice in range(1, camino.size()):
+			coste += tablero.obtener_celda(camino[indice]).calcular_coste_movimiento(
+				ficha_jugador
+			)
+		if coste < mejor_coste:
+			mejor_coste = coste
+			mejor_camino = camino
+	return mejor_camino
+
+
+func _recorrer_camino_interaccion(camino: Array[Vector2i]) -> bool:
+	capa_camino.clear()
+	longitud_movimiento_actual = camino.size() - 1
+	pasos_movimiento_actual = 0
+	return await ficha_jugador.mover_por_camino(
+		camino,
+		_preparar_paso_ficha,
+		_confirmar_paso_ficha,
+		_cancelar_paso_ficha,
+		_procesar_salida_paso_ficha,
+		_procesar_entrada_paso_ficha,
+		_calcular_coste_paso_ficha,
+		_avanzar_turno_exploracion,
+		en_combate
+	)
+
+
+func _presentar_resultado_contextual(
+	titulo: String,
+	resultado: ResultadoAccion,
+	contexto: ContextoAccion = null
+) -> void:
+	if (
+		contexto != null
+		and contexto.tipo == TiposInteraccion.TipoAccion.EXAMINAR
+		and resultado.exitosa
+		and contexto.objetivo is Interactuable
+		and contexto.objetivo.definicion != null
+		and contexto.objetivo.definicion.ilustracion_examen != null
+	):
+		var textos: Array[String] = []
+		for id_mensaje in resultado.mensajes:
+			textos.append(
+				catalogo_mensajes.resolver(id_mensaje)
+				if catalogo_mensajes != null
+				else String(id_mensaje)
+			)
+		panel_examen_ilustrado.mostrar(
+			titulo,
+			contexto.objetivo.definicion.ilustracion_examen,
+			"\n\n".join(textos)
+		)
+		_actualizar_estado_modal_interaccion()
+		return
 	if resultado.tirada == null:
 		panel_resultado_accion.mostrar_resultado(titulo, resultado, catalogo_mensajes)
 		return
@@ -1364,6 +1536,10 @@ func _actualizar_estado_modal_interaccion() -> void:
 		or (
 			is_instance_valid(panel_resultado_accion)
 			and panel_resultado_accion.visible
+		)
+		or (
+			is_instance_valid(panel_examen_ilustrado)
+			and panel_examen_ilustrado.visible
 		)
 	)
 	if interaccion_modal_activa == siguiente:

@@ -121,17 +121,24 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 		{},
 		interrumpe_al_entrar,
 		false,
-		[SolicitudEfecto.new(
-			&"quemado",
-			&"estado",
-			contexto.actor,
-			contexto.id_evento,
-			0.0,
-			ticks_quemado,
-			TiposInteraccion.PoliticaApilado.NO_APILAR_Y_RENOVAR,
-			self,
-			_terminos_dano_tick()
-		)]
+		[crear_solicitud_quemado(contexto.actor, contexto.id_evento)]
+	)
+
+
+func crear_solicitud_quemado(
+	objetivo: Object,
+	id_evento: StringName
+) -> SolicitudEfecto:
+	return SolicitudEfecto.new(
+		&"quemado",
+		&"estado",
+		objetivo,
+		id_evento,
+		0.0,
+		ticks_quemado,
+		TiposInteraccion.PoliticaApilado.NO_APILAR_Y_RENOVAR,
+		self,
+		_terminos_dano_tick()
 	)
 
 

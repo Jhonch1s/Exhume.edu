@@ -1,0 +1,84 @@
+[gd_scene format=3 uid="uid://cj78e6l5ebb42"]
+
+[ext_resource type="FontFile" uid="uid://c0l0sby5jy2p4" path="res://assets/ui/fonts/Amarante-Regular.ttf" id="1_qcl8t"]
+[ext_resource type="Texture2D" uid="uid://cd3x0bxji4x2m" path="res://assets/ilustraciones/examen/estatua.png" id="2_s3hdd"]
+[ext_resource type="Script" path="res://scenes/ui/interacciones/panel_examen_ilustrado.gd" id="3_script"]
+
+[node name="PanelExamenIlustrado" type="Control" unique_id=2056705937]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1468.0
+offset_bottom = 816.0
+script = ExtResource("3_script")
+
+[node name="Ventana" type="PanelContainer" parent="." unique_id=889018313]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.08
+anchor_top = 0.1
+anchor_right = 0.92
+anchor_bottom = 0.9
+grow_horizontal = 0
+
+[node name="Margen" type="MarginContainer" parent="Ventana" unique_id=1894502926]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 23
+theme_override_constants/margin_bottom = 24
+
+[node name="Contenido" type="VBoxContainer" parent="Ventana/Margen" unique_id=2023711646]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Cabecera" type="HBoxContainer" parent="Ventana/Margen/Contenido" unique_id=402813121]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Titulo" type="Label" parent="Ventana/Margen/Contenido/Cabecera" unique_id=1988346330]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_qcl8t")
+theme_override_font_sizes/font_size = 33
+text = "Locurilla Placeholderillo
+"
+
+[node name="Espacio" type="Control" parent="Ventana/Margen/Contenido/Cabecera" unique_id=1244018389]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Cerrar" type="Button" parent="Ventana/Margen/Contenido/Cabecera" unique_id=1006911875]
+custom_minimum_size = Vector2(44, 40)
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Cerrar"
+text = "x"
+
+[node name="HSeparator" type="HSeparator" parent="Ventana/Margen/Contenido" unique_id=820256692]
+layout_mode = 2
+
+[node name="Cuerpo" type="HBoxContainer" parent="Ventana/Margen/Contenido" unique_id=1832755415]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 24
+
+[node name="Imagen" type="TextureRect" parent="Ventana/Margen/Contenido/Cuerpo" unique_id=2138469139]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 35.0
+texture = ExtResource("2_s3hdd")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Separador" type="VSeparator" parent="Ventana/Margen/Contenido/Cuerpo" unique_id=1998918668]
+layout_mode = 2
+
+[node name="Texto" type="RichTextLabel" parent="Ventana/Margen/Contenido/Cuerpo" unique_id=1578417300]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 65.0
+theme_override_fonts/normal_font = ExtResource("1_qcl8t")
+theme_override_font_sizes/normal_font_size = 19
+bbcode_enabled = true
+text = "Locurilla lo que hice con mi silla anoche en la alcantarilla mientras veía la orilla de la mañanilla."
+horizontal_alignment = 1
+vertical_alignment = 1
