@@ -96,7 +96,6 @@ autoplay = true
 script = ExtResource("7_t484h")
 
 [node name="KnightViewPort" type="SubViewportContainer" parent="." unique_id=2057824913]
-visible = false
 offset_left = 586.0
 offset_top = -164.0
 offset_right = 1098.0
@@ -106,7 +105,7 @@ offset_bottom = 348.0
 transparent_bg = true
 handle_input_locally = false
 canvas_cull_mask = 4294966273
-render_target_update_mode = 0
+render_target_update_mode = 4
 
 [node name="caballero20" parent="KnightViewPort/KnightSubViewport" unique_id=1421085748 instance=ExtResource("12_jpvkn")]
 
