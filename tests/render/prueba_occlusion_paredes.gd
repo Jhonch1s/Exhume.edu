@@ -5,6 +5,17 @@ const CAPA_PAREDES_OCLUSIVAS := preload("res://scripts/render/capa_paredes_oclus
 
 func _init() -> void:
 	var capa := CAPA_PAREDES_OCLUSIVAS.new()
+	capa.name = "CapaParedes"
+	var zona := Node2D.new()
+	var capa_oscuridad := TileMapLayer.new()
+	capa_oscuridad.name = "CapaOscuridad"
+	zona.add_child(capa_oscuridad)
+	zona.add_child(capa)
+	capa._ready()
+	if not _comprobar(capa_oscuridad.material == capa._material_recorte, "La niebla no comparte el recorte"):
+		return
+	if not _comprobar(capa._material_recorte.get_shader_parameter(&"ancho_borde") == 12.0, "El borde difuminado no fue configurado"):
+		return
 	var tiles := TileSet.new()
 	tiles.tile_shape = TileSet.TILE_SHAPE_ISOMETRIC
 	tiles.tile_layout = TileSet.TILE_LAYOUT_DIAMOND_DOWN
@@ -36,8 +47,8 @@ func _init() -> void:
 	if not _comprobar(capa._use_tile_data_runtime_update(delante), "La pared retirada no pidió limpiar su material"):
 		return
 
-	print("OK: la oclusion solo toma el frente y se retira al retroceder.")
-	capa.free()
+	print("OK: pared y niebla comparten recorte; frente y retirada funcionan.")
+	zona.free()
 	quit()
 
 

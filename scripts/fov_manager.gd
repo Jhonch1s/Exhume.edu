@@ -16,6 +16,7 @@ const FUENTES_FOG_EXPLORADO := {
 	&"pared_alta_esquina": 12,
 	&"columna": 4,
 	&"estalagmita": 6,
+	&"roca": 14,
 	&"luz": 8,
 }
 
@@ -26,6 +27,7 @@ const FUENTES_FOG_OCULTO := {
 	&"pared_alta_esquina": 13,
 	&"columna": 5,
 	&"estalagmita": 7,
+	&"roca": 15,
 	&"luz": 9,
 }
 

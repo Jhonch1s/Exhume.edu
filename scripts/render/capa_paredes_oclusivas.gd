@@ -7,6 +7,7 @@ const MARGEN_CONO := 16.0
 
 @export var radio_occlusion := Vector2(64.0, 52.0)
 @export var desplazamiento_centro := Vector2(0.0, -32.0)
+@export_range(0.0, 24.0, 1.0) var ancho_borde := 12.0
 var _material_recorte := ShaderMaterial.new()
 var _celdas_con_recorte: Dictionary[Vector2i, bool] = {}
 var _celdas_a_actualizar: Dictionary[Vector2i, bool] = {}
@@ -15,12 +16,20 @@ var _celdas_a_actualizar: Dictionary[Vector2i, bool] = {}
 func _init() -> void:
 	_material_recorte.shader = SHADER_OCLUSION
 	_material_recorte.set_shader_parameter(&"radio", radio_occlusion)
+	_material_recorte.set_shader_parameter(&"ancho_borde", ancho_borde)
+
+
+func _ready() -> void:
+	var capa_oscuridad := get_parent().get_node_or_null("CapaOscuridad") as TileMapLayer
+	if capa_oscuridad:
+		capa_oscuridad.material = _material_recorte
 
 
 func actualizar_occlusion(posicion_jugador: Vector2) -> void:
 	var centro_recorte := posicion_jugador + desplazamiento_centro
 	_material_recorte.set_shader_parameter(&"posicion_jugador", centro_recorte)
 	_material_recorte.set_shader_parameter(&"radio", radio_occlusion)
+	_material_recorte.set_shader_parameter(&"ancho_borde", ancho_borde)
 	var nuevas: Dictionary[Vector2i, bool] = {}
 	for coordenada in get_used_cells():
 		var datos_tile := get_cell_tile_data(coordenada)

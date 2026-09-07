@@ -161,7 +161,7 @@ func generar_desde_zona(zona: Node2D) -> void:
 			else:
 				datos[coord] = celda_decoracion
 
-	# 7. Las decoraciones planas pueden modificar propiedades sin sustituir el terreno.
+	# 7. Las decoraciones caminables conservan el suelo, pero aportan altura y fog.
 	if _capa_decoracion:
 		for coord in _capa_decoracion.get_used_cells():
 			if not datos.has(coord):
@@ -175,6 +175,13 @@ func generar_desde_zona(zona: Node2D) -> void:
 			datos[coord].bloquea_vision = (
 				datos[coord].bloquea_vision or celda_decoracion.bloquea_vision
 			)
+			if celda_decoracion.altura > datos[coord].altura:
+				datos[coord].altura = celda_decoracion.altura
+				datos[coord].zona = &"decoracion"
+				datos[coord].configurar_fog(
+					celda_decoracion.familia_fog,
+					celda_decoracion.coordenada_fog
+				)
 
 # --- UTILIDADES ---
 

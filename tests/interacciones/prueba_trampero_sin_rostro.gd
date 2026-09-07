@@ -9,6 +9,13 @@ func _init() -> void:
 	) as PackedScene).instantiate()
 	var decoraciones := templo.get_node("Interactuables/Decoraciones") as Node2D
 	var orden_isometrico := decoraciones.y_sort_enabled
+	var trampas := templo.get_node("Interactuables/Trampas")
+	var placas_fuego_correctas := true
+	for nombre in [&"TrampaSuperficie7", &"TrampaSuperficie8", &"TrampaSuperficie9"]:
+		var placa := trampas.get_node(NodePath(nombre)) as TrampaSuperficie
+		var superficie := placa.escena_superficie.instantiate()
+		placas_fuego_correctas = placas_fuego_correctas and superficie is Fuego
+		superficie.free()
 	templo.free()
 	var estatua := (load(RUTA_ESCENA) as PackedScene).instantiate() as Interactuable
 	var tablero := TableroGrid.new()
@@ -26,7 +33,10 @@ func _init() -> void:
 	) == &"celda_invalida"
 	var registrada := tablero.registrar_interactuable(Vector2i(1, 1), estatua)
 	var ocupadas := estatua.obtener_coordenadas_ocupadas()
-	var correcta := orden_isometrico and rechaza_fuera and registrada and ocupadas.size() == 32
+	var correcta := (
+		orden_isometrico and placas_fuego_correctas
+		and rechaza_fuera and registrada and ocupadas.size() == 32
+	)
 	for coordenada in ocupadas:
 		var celda := tablero.obtener_celda(coordenada)
 		correcta = correcta and not celda.es_caminable_efectiva()

@@ -5,10 +5,9 @@
 [ext_resource type="PackedScene" path="res://scenes/interactuables/fuentes_luz/fuente_luz_interactuable.tscn" id="3_4wk75"]
 [ext_resource type="PackedScene" uid="uid://bxpf3kv60y8yj" path="res://scenes/interactuables/trampas/TrampaSuperficie.tscn" id="3_e7jyx"]
 [ext_resource type="TileSet" uid="uid://6tn667rbykno" path="res://assets/tile_sets/structures/cave_columns.tres" id="3_f8qme"]
+[ext_resource type="PackedScene" path="res://scenes/efectos_superficie/Fuego.tscn" id="3_fuego"]
 [ext_resource type="Script" uid="uid://7ydarlpsaxpo" path="res://scripts/render/capa_paredes_oclusivas.gd" id="3_occlusion"]
-[ext_resource type="TileSet" uid="uid://cy3mjhp85u73y" path="res://assets/tile_sets/decorations/stalagmites_medium.tres" id="4_4wk75"]
 [ext_resource type="Resource" uid="uid://bpvm3w36ob568" path="res://assets/interactuables/luces/antorcha_pared_derecha.tres" id="4_gu6db"]
-[ext_resource type="TileSet" uid="uid://bvv3o4iyhffgu" path="res://assets/tile_sets/decorations/cave_floor_decorations.tres" id="5_gu6db"]
 [ext_resource type="TileSet" uid="uid://cja2guulmaygb" path="res://assets/tile_sets/fog/cave_fog.tres" id="6_c4gh2"]
 [ext_resource type="PackedScene" path="res://scenes/zonas/PuntoSpawnZona.tscn" id="6_gu6db"]
 [ext_resource type="PackedScene" uid="uid://bd8cy6slme5kb" path="res://scenes/interactuables/mecanismos/estatua_mecanismo.tscn" id="6_xa8qm"]
@@ -19,6 +18,8 @@
 [ext_resource type="TileSet" uid="uid://dr6pcgl80juta" path="res://assets/tile_sets/surface_effects/fire.tres" id="10_sa51j"]
 [ext_resource type="TileSet" uid="uid://b2soug6txnn72" path="res://assets/tile_sets/surface_effects/web.tres" id="11_mo2f4"]
 [ext_resource type="Script" uid="uid://dkkd0pruoa4im" path="res://scripts/zonas/zona_explorable.gd" id="12_zona"]
+[ext_resource type="TileSet" uid="uid://1fe2sya7tpn7" path="res://assets/tile_sets/decorations/rocks_medium_no_caminable.tres" id="13_sa51j"]
+[ext_resource type="TileSet" uid="uid://b77ljuevfro4x" path="res://assets/tile_sets/decorations/rocks_medium.tres" id="14_mo2f4"]
 
 [node name="TemploDeLasTrampas" type="Node2D" unique_id=1292300722]
 y_sort_enabled = true
@@ -44,7 +45,7 @@ tile_set = ExtResource("1_t5drb")
 [node name="CapaParedes" type="TileMapLayer" parent="." unique_id=714580061]
 y_sort_enabled = true
 texture_filter = 1
-tile_map_data = PackedByteArray("AAACAPP/AQAAAAQAAAACAPT/AgAAAAAAAAACAPL/AQAAAAQAAAADAPX/AQABAAQAAAACAPr/AQAAAAQAAAACAPv/AQAAAAQAAAACAPz/AgAAAAAAAAACAPb/AQABAAQAAAACAPf/AQACAAQAAAACAPj/AgAAAAAAAAACAP7/AQACAAQAAAACAP//AgAAAAAAAAAHAOz/AgAAAAAAAAAHAO3/AQAAAAQAAAAHAO7/AQAAAAQAAAAHAO//AQACAAQAAAAHAPD/AQAAAAQAAAAHAPH/AQACAAQAAAADAPL/AQAAAAAAAAAEAPL/AQAAAAAAAAAFAPL/AQAAAAAAAAAGAPL/AQAAAAAAAAADAP3/AQACAAQAAAADAPn/AQACAAQAAAADAPz/AQACAAQAAAD6/+T/AQACAAAAAAD7/+T/AQAAAAAAAAD8/+T/AQACAAAAAAD9/+T/AQACAAAAAAD+/+T/AQAAAAAAAAD//+T/AQABAAAAAAAAAOT/AQACAAAAAAABAOT/AQACAAAAAAACAOT/AQAAAAAAAAADAOT/AQACAAAAAAAEAOT/AQACAAAAAAAFAOT/AQACAAAAAAAGAOT/AQABAAAAAAAHAOX/AQAAAAQAAAAHAOb/AQAAAAQAAAAHAOf/AQACAAQAAAAHAOj/AQABAAQAAAAHAOT/AQABAAQAAAD5/+T/AQACAAQAAAAHAPL/AgAAAAAAAAAIAOf/AgAAAAAAAAAIAOj/AQABAAQAAAAIAOz/AgAAAAAAAAAIAO3/AgAAAAAAAAAIAO7/AgAAAAAAAAAIAO//AgAAAAAAAAAIAPD/AgAAAAAAAAAIAPH/AgAAAAAAAAAIAPL/AgAAAAAAAAAIAOP/AgAAAAAAAAAIAOT/AgAAAAAAAAAIAOX/AgAAAAAAAAAIAOb/AgAAAAAAAAD5/+P/AgAAAAAAAAD6/+P/AgAAAAAAAAD7/+P/AgAAAAAAAAD8/+P/AgAAAAAAAAD9/+P/AgAAAAAAAAD+/+P/AgAAAAAAAAD//+P/AgAAAAAAAAAAAOP/AgAAAAAAAAABAOP/AgAAAAAAAAACAOP/AgAAAAAAAAADAOP/AgAAAAAAAAAEAOP/AgAAAAAAAAAFAOP/AgAAAAAAAAAGAOP/AgAAAAAAAAAHAOP/AgAAAAAAAAADAPT/AQAAAAQAAAADAPj/AQABAAQAAAAKAOX/AQABAAAAAAALAOX/AQACAAAAAAAMAOX/AQAAAAAAAAANAOX/AQABAAAAAAAOAOX/AQACAAAAAAAPAOX/AQAAAAAAAAAQAOX/AQABAAAAAAARAOX/AQACAAAAAAAJAOX/AQAAAAAAAAASAOb/AQAAAAQAAAASAOf/AQAAAAQAAAASAOj/AQAAAAQAAAASAOn/AQAAAAQAAAASAOr/AQAAAAQAAAASAOv/AQAAAAQAAAASAOz/AQAAAAQAAAASAO3/AQAAAAQAAAASAO7/AQAAAAQAAAADAP//AQABAAQAAAADAPP/AQAAAAQAAAADAPb/AQAAAAQAAAADAPf/AQAAAAQAAAADAPr/AQACAAQAAAADAPv/AQAAAAQAAAADAP7/AQABAAQAAAAEAPP/AQABAAAAAAAFAPP/AQABAAAAAAAGAPP/AQABAAAAAAAHAPP/AQABAAAAAAAIAPP/AQAAAAAAAAA=")
+tile_map_data = PackedByteArray("AAACAPP/AQAAAAQAAAACAPT/AgAAAAAAAAACAPL/AQAAAAQAAAADAPX/AQABAAQAAAACAPr/AQAAAAQAAAACAPv/AQAAAAQAAAACAPz/AgAAAAAAAAACAPb/AQABAAQAAAACAPf/AQACAAQAAAACAPj/AgAAAAAAAAACAP7/AQACAAQAAAACAP//AgAAAAAAAAAHAOz/AgAAAAAAAAAHAO3/AQAAAAQAAAAHAO7/AQAAAAQAAAAHAO//AQACAAQAAAAHAPD/AQAAAAQAAAAHAPH/AQACAAQAAAADAPL/AQAAAAAAAAAEAPL/AQAAAAAAAAAFAPL/AQAAAAAAAAAGAPL/AQAAAAAAAAADAP3/AQACAAQAAAADAPn/AQACAAQAAAADAPz/AQACAAQAAAD6/+T/AQACAAAAAAD7/+T/AQAAAAAAAAD8/+T/AQACAAAAAAD9/+T/AQACAAAAAAD+/+T/AQAAAAAAAAD//+T/AQABAAAAAAAAAOT/AQACAAAAAAABAOT/AQACAAAAAAACAOT/AQAAAAAAAAADAOT/AQACAAAAAAAEAOT/AQACAAAAAAAFAOT/AQACAAAAAAAGAOT/AQABAAAAAAAHAOX/AQAAAAQAAAAHAOb/AQAAAAQAAAAHAOf/AQACAAQAAAAHAOj/AQABAAQAAAAHAOT/AQABAAQAAAD5/+T/AQACAAQAAAAHAPL/AgAAAAAAAAAIAOf/AgAAAAAAAAAIAOj/AQABAAQAAAAIAOz/AgAAAAAAAAAIAO3/AgAAAAAAAAAIAO7/AgAAAAAAAAAIAO//AgAAAAAAAAAIAPD/AgAAAAAAAAAIAPH/AgAAAAAAAAAIAPL/AgAAAAAAAAAIAOP/AgAAAAAAAAAIAOT/AgAAAAAAAAAIAOX/AgAAAAAAAAAIAOb/AgAAAAAAAAD5/+P/AgAAAAAAAAD6/+P/AgAAAAAAAAD7/+P/AgAAAAAAAAD8/+P/AgAAAAAAAAD9/+P/AgAAAAAAAAD+/+P/AgAAAAAAAAD//+P/AgAAAAAAAAAAAOP/AgAAAAAAAAABAOP/AgAAAAAAAAACAOP/AgAAAAAAAAADAOP/AgAAAAAAAAAEAOP/AgAAAAAAAAAFAOP/AgAAAAAAAAAGAOP/AgAAAAAAAAAHAOP/AgAAAAAAAAADAPT/AQAAAAQAAAADAPj/AQABAAQAAAAKAOX/AQABAAAAAAALAOX/AQACAAAAAAAMAOX/AQAAAAAAAAANAOX/AQABAAAAAAAOAOX/AQACAAAAAAAPAOX/AQAAAAAAAAAQAOX/AQABAAAAAAARAOX/AQACAAAAAAAJAOX/AQAAAAAAAAASAOb/AQAAAAQAAAASAOf/AQAAAAQAAAASAOj/AQAAAAQAAAASAOn/AQAAAAQAAAASAOr/AQAAAAQAAAASAOv/AQAAAAQAAAASAOz/AQAAAAQAAAASAO3/AQAAAAQAAAASAO7/AQAAAAQAAAADAP//AQABAAQAAAADAPP/AQAAAAQAAAADAPb/AQAAAAQAAAADAPf/AQAAAAQAAAADAPr/AQACAAQAAAADAPv/AQAAAAQAAAADAP7/AQABAAQAAAAEAPP/AQABAAAAAAAFAPP/AQABAAAAAAAGAPP/AQABAAAAAAAHAPP/AQABAAAAAAAIAPP/AQAAAAAAAAAJAO//AQAAAAAAAAAJAPD/AQAAAAAAAAAKAO//AQAAAAAAAAAKAPD/AQACAAAAAAALAO//AQACAAAAAAALAPD/AQAAAAAAAAAMAO//AQAAAAAAAAAMAPD/AQACAAAAAAANAO//AQAAAAAAAAANAPD/AQABAAAAAAAOAO//AQACAAAAAAAOAPD/AQABAAAAAAAPAO//AQABAAAAAAAPAPD/AQACAAAAAAAQAO//AQACAAAAAAAQAPD/AQACAAAAAAARAO//AQACAAAAAAARAPD/AQACAAAAAAASAO//AQACAAAAAAASAPD/AQABAAAAAAA=")
 tile_set = ExtResource("2_e7jyx")
 script = ExtResource("3_occlusion")
 
@@ -130,6 +131,7 @@ ruta_fog_explorado = NodePath("../EstatuaMecanismo10/FogExplorado")
 
 [node name="EstatuaMecanismo12" parent="Interactuables/Mecanismos" unique_id=1348084891 instance=ExtResource("6_xa8qm")]
 position = Vector2(0, -544)
+orientacion = 3
 id_instancia = &"templo_estatua_12"
 ruta_visual_resaltable = NodePath("../EstatuaMecanismo10/Sprite2D")
 ruta_fog_oculto = NodePath("../EstatuaMecanismo10/FogOculto")
@@ -173,20 +175,28 @@ id_instancia = &"templo_placa03"
 
 [node name="TrampaSuperficie7" parent="Interactuables/Trampas" unique_id=1153059965 instance=ExtResource("3_e7jyx")]
 position = Vector2(-480, -464)
+escena_superficie = ExtResource("3_fuego")
 fila_atlas = 1
 id_instancia = &"fuego01"
 
 [node name="TrampaSuperficie8" parent="Interactuables/Trampas" unique_id=1475740001 instance=ExtResource("3_e7jyx")]
 position = Vector2(-448, -448)
+escena_superficie = ExtResource("3_fuego")
 fila_atlas = 1
 id_instancia = &"fuego02"
-ruta_visual_resaltable = NodePath("../TrampaSuperficie7/Sprite2D")
 
 [node name="TrampaSuperficie9" parent="Interactuables/Trampas" unique_id=1403851181 instance=ExtResource("3_e7jyx")]
 position = Vector2(-416, -432)
+escena_superficie = ExtResource("3_fuego")
 fila_atlas = 1
 id_instancia = &"fuego03"
-ruta_visual_resaltable = NodePath("../TrampaSuperficie7/Sprite2D")
+
+[node name="TrampaSuperficie10" parent="Interactuables/Trampas" unique_id=646360248 instance=ExtResource("3_e7jyx")]
+position = Vector2(-32, -560)
+ids_receptores_mecanismo = Array[StringName]([&"templo_estatua_12"])
+fila_atlas = 2
+id_instancia = &"templo_placa04"
+ruta_visual_resaltable = NodePath("../TrampaSuperficie6/Sprite2D")
 
 [node name="Decoraciones" type="Node2D" parent="Interactuables" unique_id=1611133362]
 y_sort_enabled = true
@@ -211,14 +221,14 @@ tile_set = ExtResource("3_f8qme")
 [node name="CapaDecoracionNoCaminable" type="TileMapLayer" parent="." unique_id=989171471]
 y_sort_enabled = true
 texture_filter = 1
-tile_map_data = PackedByteArray("AAD+//r/AgAAAAIAAAABAP//AgABAAIAAAA=")
-tile_set = ExtResource("4_4wk75")
+tile_map_data = PackedByteArray("AAD+//r/AAAAAAAAAAAQAOb/AAAGAAAAAAAPAOb/AAAFAAAAAAARAOj/AAAKAAAAAAD8/+X/AAAEAAAAAAD8/+j/AAAGAAAAAAD9/+f/AAAEAAEAAAD8/+f/AAADAAEAAAA=")
+tile_set = ExtResource("13_sa51j")
 
 [node name="CapaDecoracion" type="TileMapLayer" parent="." unique_id=420319734]
 y_sort_enabled = true
 texture_filter = 1
-tile_map_data = PackedByteArray("AAABAPr/AAABAAIAAAABAPb/AAAAAAAAAAD+//j/AAABAAIAAAABAP3/AAAAAAIAAAA=")
-tile_set = ExtResource("5_gu6db")
+tile_map_data = PackedByteArray("AAABAPr/AAAWAAAAAAD+//j/AAAQAAEAAAABAP3/AAAHAAAAAAAIAOn/AAANAAAAAAD9/+j/AAAKAAEAAAD//+X/AAALAAEAAAD7/+j/AAATAAAAAAA=")
+tile_set = ExtResource("14_mo2f4")
 
 [node name="CapaOscuridad" type="TileMapLayer" parent="." unique_id=1760298020]
 y_sort_enabled = true
