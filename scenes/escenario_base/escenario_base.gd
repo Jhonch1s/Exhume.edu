@@ -34,7 +34,19 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 @onready var camaraCaballero: Camera3D = $KnightViewPort/KnightSubViewport/Camera3D
 @onready var caballeroModelo: Node3D = $KnightViewPort/KnightSubViewport/caballero20
 
+@onready var viewportWizar: SubViewportContainer = $WizardViewPort
+@onready var subviewportWizard: SubViewport = $WizardViewPort/WizardSubViewport
+@onready var camaraMago: Camera3D = $WizardViewPort/WizardSubViewport/Camera3D
+@onready var magoModelo:Node3D = $WizardViewPort/WizardSubViewport/modelomago2
+
+@onready var viewportThief: SubViewportContainer = $ThiefViewPort
+@onready var subviewportThief: SubViewport = $ThiefViewPort/ThiefSubViewport
+@onready var camaraThief: Camera3D = $ThiefViewPort/ThiefSubViewport/Camera3D
+@onready var ladronModelo: Node3D = $ThiefViewPort/ThiefSubViewport/modeloladron2
+
 const modeloCaballero = preload("res://assets/characters/knight3d/caballero20.glb")
+const modeloMago = preload("res://assets/characters/knight3d/modelomago2.glb")
+const modeloLadron = preload("res://assets/characters/knight3d/modeloladron2.glb")
 
 const ESCENA_FICHA = preload("res://scenes/ficha/ficha.tscn")
 const DEFINICION_PIEDRA = preload("res://assets/items/piedra/piedra.tres")
@@ -523,14 +535,44 @@ func _registrar_resultado_narrativo(
 		)
 	registro_narrativo.registrar(categoria, titulo, "\n".join(mensajes), detalles)
 
-func capturar_textura(angulo:float) -> ImageTexture:
+
+func capturar_textura(angulo:float,jugador: int) -> ImageTexture:
+	var textura: ImageTexture
 	
-	caballeroModelo.rotation.y = deg_to_rad(angulo)
-	# Esperar un frame para que el viewport se actualice
-	await get_tree().process_frame
-	await get_tree().process_frame
-	var imagen: Image = subviewportKnight.get_texture().get_image()
-	var textura: ImageTexture = ImageTexture.create_from_image(imagen)
+	if jugador == 1:
+		camaraCaballero.position = Vector3(-10,13.9,10) 
+		camaraCaballero.rotation.x = deg_to_rad(-45)
+		camaraCaballero.rotation.y = deg_to_rad(-45)
+		camaraCaballero.size = 1.5
+		caballeroModelo.rotation.y = deg_to_rad(angulo)
+		await get_tree().process_frame
+		await get_tree().process_frame
+		var imagen: Image = subviewportKnight.get_texture().get_image()
+		textura = ImageTexture.create_from_image(imagen)
+		
+	
+	if jugador == 2:
+		camaraMago.position = Vector3(0,14,10)
+		camaraMago.rotation.x = deg_to_rad(-45)
+		camaraMago.rotation.y = deg_to_rad(-45)
+		magoModelo.rotation.y = deg_to_rad(angulo)
+		await get_tree().process_frame
+		await get_tree().process_frame
+		var imagen: Image = subviewportWizard.get_texture().get_image()
+		textura = ImageTexture.create_from_image(imagen)
+		
+	
+	if jugador == 3:
+		camaraThief.position = Vector3(10,13.9,10)
+		camaraThief.rotation.x = deg_to_rad(-45)
+		camaraThief.rotation.y = deg_to_rad(-45)
+		ladronModelo.rotation.y = deg_to_rad(angulo)
+		await get_tree().process_frame
+		await get_tree().process_frame
+		var imagen: Image = subviewportThief.get_texture().get_image()
+		textura = ImageTexture.create_from_image(imagen)
+
+
 	return textura
 
 
@@ -543,15 +585,17 @@ func spawnear_ficha_inicial(id_spawn: StringName = &"entrada") -> void:
 		return
 	ficha_jugador = ESCENA_FICHA.instantiate()
 	ficha_jugador.sprite_render = Sprite2D.new()
-	subviewportKnight.size = Vector2i(64, 64)
+	subviewportKnight.size = Vector2i(512,512)
+	subviewportWizard.size = Vector2i(512, 512)
 	subviewportKnight.set_update_mode(SubViewport.UPDATE_ALWAYS)
-	ficha_jugador.texturas_por_direccion[0]   = await capturar_textura(90)   # Mirando al frente (o derecha)
-	ficha_jugador.texturas_por_direccion[90]  = await capturar_textura(0)  # Mirando hacia abajo (si usas Y como eje vertical)
-	ficha_jugador.texturas_por_direccion[180] = await capturar_textura(270) # Mirando hacia atrás
-	ficha_jugador.texturas_por_direccion[270] = await capturar_textura(180) # Mirando hacia arriba
+	subviewportWizard.set_update_mode(SubViewport.UPDATE_ALWAYS)
+	ficha_jugador.texturas_por_direccion[0]   = await capturar_textura(90,1)   # Mirando al frente (o derecha)
+	ficha_jugador.texturas_por_direccion[90]  = await capturar_textura(0,1)  # Mirando hacia abajo (si usas Y como eje vertical)
+	ficha_jugador.texturas_por_direccion[180] = await capturar_textura(270,1) # Mirando hacia atrás
+	ficha_jugador.texturas_por_direccion[270] = await capturar_textura(180,1) # Mirando hacia arriba
 	ficha_jugador.sprite_render.texture = ficha_jugador.texturas_por_direccion[0]
 	ficha_jugador.sprite_render.scale = Vector2(
-		1.2,1.2
+		0.12,0.12
 	)
 	ficha_jugador.sprite_render.position = Vector2(0,-24)
 	ficha_jugador.get_node("Sprite2D").visible = false

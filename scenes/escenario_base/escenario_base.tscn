@@ -13,6 +13,8 @@
 [ext_resource type="PackedScene" uid="uid://ggjbjoxbbphg" path="res://assets/characters/knight3d/caballero20.glb" id="12_jpvkn"]
 [ext_resource type="PackedScene" path="res://scenes/ui/interacciones/panel_registro_narrativo.tscn" id="12_registro_narrativo"]
 [ext_resource type="PackedScene" uid="uid://cj78e6l5ebb42" path="res://scenes/ui/interacciones/panel_examen_ilustrado.tscn" id="13_panel_examen"]
+[ext_resource type="PackedScene" uid="uid://ctjcxiiq4gyyg" path="res://assets/characters/knight3d/modelomago2.glb" id="14_lmwd1"]
+[ext_resource type="PackedScene" uid="uid://x6yvxqunle3f" path="res://assets/characters/knight3d/modeloladron2.glb" id="15_8kiln"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_m8dhx"]
 texture = ExtResource("2_85xdd")
@@ -109,6 +111,7 @@ offset_bottom = 348.0
 [node name="KnightSubViewport" type="SubViewport" parent="KnightViewPort" unique_id=1890890032]
 transparent_bg = true
 handle_input_locally = false
+canvas_item_default_texture_filter = 0
 canvas_cull_mask = 4294966273
 render_target_update_mode = 0
 
@@ -121,4 +124,49 @@ size = 1.4
 
 [node name="SpotLight3D" type="SpotLight3D" parent="KnightViewPort/KnightSubViewport" unique_id=449324514]
 transform = Transform3D(0.70710677, 0, -0.70710677, 0, 1, 0, 0.70710677, 0, 0.70710677, -3, 0, 3)
+light_energy = 3.0
+
+[node name="WizardViewPort" type="SubViewportContainer" parent="." unique_id=709266984]
+visible = false
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="WizardSubViewport" type="SubViewport" parent="WizardViewPort" unique_id=1179709218]
+transparent_bg = true
+handle_input_locally = false
+canvas_item_default_texture_filter = 0
+render_target_update_mode = 0
+
+[node name="modelomago2" parent="WizardViewPort/WizardSubViewport" unique_id=460110347 instance=ExtResource("14_lmwd1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 0)
+
+[node name="Camera3D" type="Camera3D" parent="WizardViewPort/WizardSubViewport" unique_id=485581630]
+transform = Transform3D(0.70710677, 0.49999997, -0.49999997, 0, 0.70710677, 0.70710677, 0.70710677, -0.49999997, 0.49999997, 0, 14, 10)
+projection = 1
+size = 1.4
+
+[node name="SpotLight3D" type="SpotLight3D" parent="WizardViewPort/WizardSubViewport" unique_id=1805722019]
+transform = Transform3D(0.70710677, 0, -0.70710677, 0, 1, 0, 0.70710677, 0, 0.70710677, 7, 0, 3)
+light_energy = 3.0
+
+[node name="ThiefViewPort" type="SubViewportContainer" parent="." unique_id=2036329913]
+visible = false
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="ThiefSubViewport" type="SubViewport" parent="ThiefViewPort" unique_id=1584483443]
+transparent_bg = true
+handle_input_locally = false
+render_target_update_mode = 0
+
+[node name="modeloladron2" parent="ThiefViewPort/ThiefSubViewport" unique_id=1381421340 instance=ExtResource("15_8kiln")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0, 0)
+
+[node name="Camera3D" type="Camera3D" parent="ThiefViewPort/ThiefSubViewport" unique_id=1948029702]
+transform = Transform3D(0.70710677, 0.5, -0.49999994, 0, 0.7071067, 0.7071068, 0.70710677, -0.5, 0.49999994, 10, 13.8, 10)
+projection = 1
+size = 1.1
+
+[node name="SpotLight3D" type="SpotLight3D" parent="ThiefViewPort/ThiefSubViewport" unique_id=623331364]
+transform = Transform3D(0.70710677, 0, -0.70710677, 0, 1, 0, 0.70710677, 0, 0.70710677, 17, 0, 3)
 light_energy = 3.0
