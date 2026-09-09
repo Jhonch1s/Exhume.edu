@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="DefinicionFuenteLuz" format=3 uid="uid://b4lapm55mony8"]
+
+[ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="1_qo62c"]
+[ext_resource type="Script" uid="uid://cyergln3tfhfs" path="res://scripts/interacciones/interactuables/fuentes_luz/definicion_fuente_luz.gd" id="2_04ap8"]
+[ext_resource type="Texture2D" uid="uid://boa23or7m4sb" path="res://assets/tiles/lighting/sources/canldes.png" id="3_04ap8"]
+
+[resource]
+script = ExtResource("2_04ap8")
+radio_luz = 1
+radio_penumbra = 2
+altura = 1
+permite_caminar = false
+textura = ExtResource("3_04ap8")
+region_encendida = Rect2(0, 32, 64, 42)
+region_apagada = Rect2(0, 0, 64, 32)
+desplazamiento_sprite = Vector2(0, 0)
+id_definicion = &"vela_01"
+nombre = "Velas"
+descripcion_base = "Un pequeño grupo de velas."
+etiquetas = Array[StringName]([&"fuego", &"calor", &"fuente_luz"])
+metadata/_custom_type_script = "uid://cyergln3tfhfs"

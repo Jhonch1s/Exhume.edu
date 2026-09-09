@@ -43,6 +43,9 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 @onready var subviewportThief: SubViewport = $ThiefViewPort/ThiefSubViewport
 @onready var camaraThief: Camera3D = $ThiefViewPort/ThiefSubViewport/Camera3D
 @onready var ladronModelo: Node3D = $ThiefViewPort/ThiefSubViewport/modeloladron2
+@onready var panel_inventario_cofre: PanelInventarioCofre = (
+	$CanvasLayer/PanelInventarioCofre
+)
 
 const modeloCaballero = preload("res://assets/characters/knight3d/caballero20.glb")
 const modeloMago = preload("res://assets/characters/knight3d/modelomago2.glb")
@@ -135,6 +138,7 @@ func _ready() -> void:
 	panel_resultado_accion.tirada_presentada.connect(_on_tirada_presentada)
 	panel_resultado_accion.cerrado.connect(_on_panel_resultado_cerrado)
 	panel_examen_ilustrado.cerrado.connect(_on_panel_resultado_cerrado)
+	panel_inventario_cofre.visibility_changed.connect(_actualizar_estado_modal_interaccion)
 	add_child(gestor_acciones)
 	resolver_reacciones = ResolverReaccionesCelda.new(gestor_acciones)
 	servicio_turnos = ServicioTurnos.new(gestor_acciones)
@@ -1149,6 +1153,18 @@ func _presentar_resultado_contextual(
 ) -> void:
 	if (
 		contexto != null
+		and contexto.tipo == TiposInteraccion.TipoAccion.INTERACTUAR
+		and contexto.id_accion == &"abrir_cofre"
+		and contexto.objetivo is CofreInteractuable
+		and resultado.exitosa
+	):
+		panel_inventario_cofre.mostrar(
+			contexto.objetivo,
+			ficha_jugador.obtener_inventario()
+		)
+		return
+	if (
+		contexto != null
 		and contexto.tipo == TiposInteraccion.TipoAccion.EXAMINAR
 		and resultado.exitosa
 		and contexto.objetivo is Interactuable
@@ -1576,7 +1592,13 @@ func _cancelar_lanzamiento() -> void:
 func _actualizar_estado_modal_interaccion() -> void:
 	var siguiente := (
 		lanzamiento_en_vuelo
-		or (is_instance_valid(menu_contextual) and menu_contextual.visible)
+		or (
+			is_instance_valid(panel_inventario_cofre)
+			and panel_inventario_cofre.visible
+		)
+		or (
+			is_instance_valid(menu_contextual) 
+			and menu_contextual.visible)
 		or (
 			is_instance_valid(panel_resultado_accion)
 			and panel_resultado_accion.visible

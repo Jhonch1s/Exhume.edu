@@ -17,6 +17,7 @@ const FUENTES_FOG_EXPLORADO := {
 	&"columna": 4,
 	&"estalagmita": 6,
 	&"roca": 14,
+	&"ruina": 16,
 	&"luz": 8,
 }
 
@@ -28,6 +29,7 @@ const FUENTES_FOG_OCULTO := {
 	&"columna": 5,
 	&"estalagmita": 7,
 	&"roca": 15,
+	&"ruina": 17,
 	&"luz": 9,
 }
 

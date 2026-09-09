@@ -6,10 +6,25 @@
 
 ## Estado general
 
-- Estado actual: Fase 17 — registro narrativo de sesión, planificada.
-- Próximo paso: implementar el primer incremento del registro narrativo.
-- Última vertical slice cerrada: superficies de Zona1 integradas con dados y estados.
-- Última actualización de este registro: 28 de agosto de 2026.
+- Estado actual: primer incremento del registro narrativo implementado; cofres con contenido e interfaz funcional en desarrollo asistido.
+- Próximo paso acordado: pulir interfaces de interacciones y eventos en otro chat, antes de continuar los items.
+- Última vertical slice cerrada: superficies de Zona1 integradas con dados y estados; cofres aún sin cierre de regresión ni persistencia.
+- Última actualización de este registro: 8 de septiembre de 2026.
+
+### Continuidad de septiembre de 2026
+
+- [Cofres](docs/contenido/COFRES.md): capacidad por pilas, transferencia entre
+  inventarios, contenido inicial desde Inspector, apertura visual, máscaras y panel
+  adaptable con casillas vacías, Recoger todo y Cerrar. Examen del cofre integrado.
+- [Personajes](docs/contenido/PERSONAJES.md): modelos 3D de las tres clases y captura
+  de vistas a sprites 2D; el spawn aún selecciona siempre el caballero.
+- [Pendientes y forma de trabajo](docs/PENDIENTES_INTERFAZ.md): menú/hover/examen de
+  items, comunicación de eventos, persistencia de cofres y revisión de personajes.
+- Corrección de contenido: estatuas 11 y 12 del templo apuntan ahora a sus propias
+  máscaras y sprite, sin controlar la estatua 10.
+
+La implementación de cofres es un incremento adicional; no cambia retroactivamente
+el cierre histórico de la fase 7 ni certifica un nuevo cierre de pruebas.
 
 ### Progreso por fases
 

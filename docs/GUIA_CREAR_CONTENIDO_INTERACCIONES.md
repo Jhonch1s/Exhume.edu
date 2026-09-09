@@ -3,6 +3,10 @@
 Esta guía usa las escenas y `Resource` existentes como plantillas. Agregar contenido
 común no requiere modificar `GestorAcciones`.
 
+Para almacenamiento, seguir [Cofres](contenido/COFRES.md): escena reutilizable,
+definición de tamaño e imagen, contenido por instancia y máscaras de niebla.
+Para la representación del jugador, ver [Personajes](contenido/PERSONAJES.md).
+
 ## Crear una zona
 
 Duplica `scenes/ZonaPlantilla/zona_plantilla.tscn`. La plantilla contiene vacíos

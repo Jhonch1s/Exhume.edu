@@ -11,8 +11,12 @@ contenido. La escena expone señales de presentación y cierre, y permite person
 texto del botón, separador, viñeta, tema y estructura visual. Puede cerrarse mediante
 su botón o `ui_cancel`.
 
-Toda opción resuelta desde el menú contextual entrega su `ResultadoAccion` al mismo
-panel reemplazable. La transición menú → resultado conserva un único estado modal:
+El escenario selecciona la presentación según el resultado: un examen exitoso de
+un interactuable con `definicion.ilustracion_examen` abre `PanelExamenIlustrado`;
+sin esa imagen usa el panel normal. La elección no depende de la resolución del
+archivo ni del nivel de información. Abrir un cofre exitosamente abre su propio
+panel de inventario. Los demás resultados siguen la presentación normal de texto
+o tirada. La transición menú → resultado conserva un único estado modal:
 el mundo no recupera input entre ambas vistas y el objetivo permanece seleccionado
 y resaltado hasta que el resultado se cierra. El panel no conoce la opción elegida,
 el constructor de contexto ni la implementación del objetivo.
@@ -35,4 +39,3 @@ cinco celdas e información detallada solo en adyacencia. Ese alcance de observa
 es independiente del radio mecánico de iluminación de la fuente. Una celda
 `EXPLORADO` no permitirá descubrimientos nuevos. Los enemigos podrán declarar otro
 perfil de alcance en el futuro sin cambiar estos contratos.
-

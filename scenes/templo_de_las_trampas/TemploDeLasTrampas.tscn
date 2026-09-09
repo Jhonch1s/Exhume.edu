@@ -11,15 +11,34 @@
 [ext_resource type="TileSet" uid="uid://cja2guulmaygb" path="res://assets/tile_sets/fog/cave_fog.tres" id="6_c4gh2"]
 [ext_resource type="PackedScene" path="res://scenes/zonas/PuntoSpawnZona.tscn" id="6_gu6db"]
 [ext_resource type="PackedScene" uid="uid://bd8cy6slme5kb" path="res://scenes/interactuables/mecanismos/estatua_mecanismo.tscn" id="6_xa8qm"]
+[ext_resource type="Resource" uid="uid://b7ki8hmyvy0n8" path="res://assets/interactuables/luces/vela_04.tres" id="7_mo2f4"]
 [ext_resource type="TileSet" uid="uid://c0fcnkqgc0isg" path="res://assets/tile_sets/surface_effects/spikes.tres" id="7_xa8qm"]
+[ext_resource type="Resource" uid="uid://c6i3scsvatjt8" path="res://assets/interactuables/luces/vela_02.tres" id="8_v62it"]
 [ext_resource type="PackedScene" uid="uid://iobuk7ccp2y8" path="res://scenes/decoraciones/trampero_sin_rostro.tscn" id="8_vsyyl"]
 [ext_resource type="TileSet" uid="uid://t08yc6kq88bo" path="res://assets/tile_sets/surface_effects/mud.tres" id="8_xgogb"]
+[ext_resource type="Resource" uid="uid://b4lapm55mony8" path="res://assets/interactuables/luces/vela_01.tres" id="9_om0fx"]
 [ext_resource type="TileSet" uid="uid://bdm815cgoj5qn" path="res://assets/tile_sets/surface_effects/ice.tres" id="9_vsyyl"]
+[ext_resource type="Resource" uid="uid://cy28fn7qjae0u" path="res://assets/interactuables/luces/vela_03.tres" id="10_nh37t"]
 [ext_resource type="TileSet" uid="uid://dr6pcgl80juta" path="res://assets/tile_sets/surface_effects/fire.tres" id="10_sa51j"]
 [ext_resource type="TileSet" uid="uid://b2soug6txnn72" path="res://assets/tile_sets/surface_effects/web.tres" id="11_mo2f4"]
 [ext_resource type="Script" uid="uid://dkkd0pruoa4im" path="res://scripts/zonas/zona_explorable.gd" id="12_zona"]
 [ext_resource type="TileSet" uid="uid://1fe2sya7tpn7" path="res://assets/tile_sets/decorations/rocks_medium_no_caminable.tres" id="13_sa51j"]
 [ext_resource type="TileSet" uid="uid://b77ljuevfro4x" path="res://assets/tile_sets/decorations/rocks_medium.tres" id="14_mo2f4"]
+[ext_resource type="Script" uid="uid://bjmk05ma4ww44" path="res://scripts/interacciones/items/entrada_inventario_inicial.gd" id="16_hu6da"]
+[ext_resource type="Resource" uid="uid://duimmx1272hjc" path="res://assets/items/bomba_humo/bomba_humo.tres" id="17_5njko"]
+[ext_resource type="Resource" path="res://assets/items/piedra/piedra.tres" id="18_njd4s"]
+[ext_resource type="PackedScene" uid="uid://gsnmo7fvpda3" path="res://scenes/interactuables/cofres/cofre_interactuable.tscn" id="25_om0fx"]
+
+[sub_resource type="Resource" id="Resource_5sqel"]
+script = ExtResource("16_hu6da")
+definicion = ExtResource("17_5njko")
+metadata/_custom_type_script = "uid://bjmk05ma4ww44"
+
+[sub_resource type="Resource" id="Resource_i1fw8"]
+script = ExtResource("16_hu6da")
+definicion = ExtResource("18_njd4s")
+cantidad = 3
+metadata/_custom_type_script = "uid://bjmk05ma4ww44"
 
 [node name="TemploDeLasTrampas" type="Node2D" unique_id=1292300722]
 y_sort_enabled = true
@@ -73,6 +92,28 @@ encendida = false
 id_instancia = &"antorcha_muro_02"
 definicion = ExtResource("4_gu6db")
 
+[node name="FuenteLuzInteractuable4" parent="Interactuables/FuentesLuz" unique_id=1887444686 instance=ExtResource("3_4wk75")]
+position = Vector2(-672, -240)
+id_instancia = &"vela_piso_01"
+definicion = ExtResource("7_mo2f4")
+
+[node name="FuenteLuzInteractuable6" parent="Interactuables/FuentesLuz" unique_id=1778254549 instance=ExtResource("3_4wk75")]
+position = Vector2(-512, -320)
+id_instancia = &"vela_piso_03"
+definicion = ExtResource("8_v62it")
+ruta_visual_resaltable = NodePath("../FuenteLuzInteractuable4/Sprite2D")
+
+[node name="FuenteLuzInteractuable5" parent="Interactuables/FuentesLuz" unique_id=908109730 instance=ExtResource("3_4wk75")]
+position = Vector2(-544, -272)
+id_instancia = &"vela_piso_02"
+definicion = ExtResource("9_om0fx")
+ruta_visual_resaltable = NodePath("../FuenteLuzInteractuable4/Sprite2D")
+
+[node name="FuenteLuzInteractuable7" parent="Interactuables/FuentesLuz" unique_id=825186346 instance=ExtResource("3_4wk75")]
+position = Vector2(-576, -256)
+id_instancia = &"vela_piso_04"
+definicion = ExtResource("10_nh37t")
+
 [node name="Mecanismos" type="Node2D" parent="Interactuables" unique_id=1421541653]
 y_sort_enabled = true
 
@@ -123,19 +164,13 @@ id_instancia = &"templo_estatua_10"
 
 [node name="EstatuaMecanismo11" parent="Interactuables/Mecanismos" unique_id=975137484 instance=ExtResource("6_xa8qm")]
 position = Vector2(-256, -672)
-orientacion = 2
+orientacion = 1
 id_instancia = &"templo_estatua_11"
-ruta_visual_resaltable = NodePath("../EstatuaMecanismo10/Sprite2D")
-ruta_fog_oculto = NodePath("../EstatuaMecanismo10/FogOculto")
-ruta_fog_explorado = NodePath("../EstatuaMecanismo10/FogExplorado")
 
 [node name="EstatuaMecanismo12" parent="Interactuables/Mecanismos" unique_id=1348084891 instance=ExtResource("6_xa8qm")]
 position = Vector2(0, -544)
 orientacion = 3
 id_instancia = &"templo_estatua_12"
-ruta_visual_resaltable = NodePath("../EstatuaMecanismo10/Sprite2D")
-ruta_fog_oculto = NodePath("../EstatuaMecanismo10/FogOculto")
-ruta_fog_explorado = NodePath("../EstatuaMecanismo10/FogExplorado")
 
 [node name="Puertas" type="Node2D" parent="Interactuables" unique_id=954311265]
 y_sort_enabled = true
@@ -205,6 +240,13 @@ y_sort_enabled = true
 position = Vector2(-832, -320)
 id_instancia = &"templo_trampero_sin_rostro"
 
+[node name="Cofres" type="Node2D" parent="Interactuables" unique_id=1115444602]
+y_sort_enabled = true
+
+[node name="CofreInteractuable" parent="Interactuables/Cofres" unique_id=1433795063 instance=ExtResource("25_om0fx")]
+position = Vector2(-320, -288)
+contenido_inicial = Array[ExtResource("16_hu6da")]([SubResource("Resource_5sqel"), SubResource("Resource_i1fw8")])
+
 [node name="PuntosSpawn" type="Node2D" parent="." unique_id=1264180631]
 
 [node name="PuntoSpawnZona" parent="PuntosSpawn" unique_id=983720888 instance=ExtResource("6_gu6db")]
@@ -227,7 +269,7 @@ tile_set = ExtResource("13_sa51j")
 [node name="CapaDecoracion" type="TileMapLayer" parent="." unique_id=420319734]
 y_sort_enabled = true
 texture_filter = 1
-tile_map_data = PackedByteArray("AAABAPr/AAAWAAAAAAD+//j/AAAQAAEAAAABAP3/AAAHAAAAAAAIAOn/AAANAAAAAAD9/+j/AAAKAAEAAAD//+X/AAALAAEAAAD7/+j/AAATAAAAAAA=")
+tile_map_data = PackedByteArray("AAABAPr/AAAWAAAAAAD+//j/AAAQAAEAAAABAP3/AAAHAAAAAAAIAOn/AAANAAAAAAD9/+j/AAAKAAEAAAD//+X/AAALAAEAAAD7/+j/AAATAAAAAAD7/+X/AQAOAAEAAAAGAO3/AQAcAAAAAAA=")
 tile_set = ExtResource("14_mo2f4")
 
 [node name="CapaOscuridad" type="TileMapLayer" parent="." unique_id=1760298020]

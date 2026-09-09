@@ -2,10 +2,11 @@ class_name Inventario
 extends RefCounted
 
 var _contenido: Array[ItemInstancia] = []
+var capacidad: int = -1
 
 
 func obtener_contenido() -> Array[ItemInstancia]:
-	return _contenido.duplicate()
+	return _contenido.duplicate()	
 
 
 func obtener_por_id(id_instancia: StringName) -> ItemInstancia:
@@ -14,6 +15,8 @@ func obtener_por_id(id_instancia: StringName) -> ItemInstancia:
 			return item
 	return null
 
+func esta_lleno() -> bool:
+	return capacidad >= 0 and _contenido.size() >= capacidad
 
 func obtener_por_definicion(id_definicion: StringName) -> Array[ItemInstancia]:
 	var encontrados: Array[ItemInstancia] = []
@@ -28,6 +31,9 @@ func validar_agregado(item: ItemInstancia) -> StringName:
 		return &"item_invalido"
 	if obtener_por_id(item.id_instancia) != null:
 		return &"id_item_duplicado"
+		
+	if esta_lleno():
+		return &"inventario_lleno"
 	return &""
 
 
@@ -136,6 +142,9 @@ func separar(
 		return ResultadoOperacionInventario.crear_fallo(&"id_item_nuevo_vacio")
 	if obtener_por_id(nuevo_id) != null:
 		return ResultadoOperacionInventario.crear_fallo(&"id_item_duplicado")
+	if esta_lleno():
+		return ResultadoOperacionInventario.crear_fallo(&"inventario_lleno") ##basta de tantos mensajes loko
+	
 
 	origen._establecer_cantidad(origen.cantidad - cantidad)
 	var separado := ItemInstancia.new(nuevo_id, origen.definicion, cantidad)
@@ -153,3 +162,22 @@ func _ordenar() -> void:
 	_contenido.sort_custom(func(a: ItemInstancia, b: ItemInstancia):
 		return String(a.id_instancia) < String(b.id_instancia)
 	)
+	
+func transferir_a(
+	destino: Inventario,
+	id_item: StringName
+) -> ResultadoOperacionInventario:
+	if destino == null or destino == self:
+		return ResultadoOperacionInventario.crear_fallo(
+			&"inventario_destino_invalido"
+		)
+
+	var item := obtener_por_id(id_item)
+	if item == null:
+		return ResultadoOperacionInventario.crear_fallo(&"item_no_encontrado")
+
+	var resultado := destino.agregar(item)
+	if resultado.exitosa:
+		_contenido.erase(item)
+
+	return resultado

@@ -64,6 +64,23 @@ func _ejecutar_pruebas() -> void:
 		not fuente.encendida,
 		"El resaltado debe ser puramente visual y no modificar el estado mecánico."
 	)
+	var velas := load(
+		"res://assets/interactuables/luces/vela_02.tres"
+	) as DefinicionFuenteLuz
+	_comprobar(velas.es_valida(), "La definición de velas debe ser válida.")
+	fuente.definicion = velas
+	fuente._actualizar_representacion()
+	_comprobar(
+		fuente.sprite.region_rect == Rect2(64, 0, 64, 32)
+		and fuente.sprite.position == Vector2.ZERO,
+		"Las velas apagadas deben conservar su base alineada."
+	)
+	fuente.encendida = true
+	_comprobar(
+		fuente.sprite.region_rect == Rect2(64, 32, 64, 42)
+		and fuente.sprite.position == Vector2(0, -5),
+		"La llama debe ampliar la región hacia arriba sin desplazar su base."
+	)
 
 	fuente.free()
 	_finalizar()

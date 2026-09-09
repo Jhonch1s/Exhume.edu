@@ -165,5 +165,8 @@ func _actualizar_representacion() -> void:
 	sprite.visible = true
 	sprite.texture = datos.textura
 	sprite.region_enabled = true
-	sprite.region_rect = datos.region_encendida if encendida else datos.region_apagada
-	sprite.position = datos.desplazamiento_sprite
+	var region := datos.region_encendida if encendida else datos.region_apagada
+	sprite.region_rect = region
+	sprite.position = datos.desplazamiento_sprite - Vector2(
+		0.0, (region.size.y - datos.region_apagada.size.y) / 2.0
+	)

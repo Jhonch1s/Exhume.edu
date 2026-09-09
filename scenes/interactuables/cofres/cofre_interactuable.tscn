@@ -1,0 +1,39 @@
+[gd_scene format=3 uid="uid://gsnmo7fvpda3"]
+
+[ext_resource type="Script" uid="uid://dfictn2m474dk" path="res://scripts/interacciones/interactuables/cofres/cofre_interactuable.gd" id="1_apb36"]
+[ext_resource type="Resource" uid="uid://bswagwxixm357" path="res://scenes/interactuables/cofres/cofre_pequeno.tres" id="2_etp26"]
+[ext_resource type="Texture2D" uid="uid://vaf823hcjjes" path="res://assets/interactuables/cofres/source/cofres_basicos.png" id="3_uvb74"]
+[ext_resource type="Texture2D" uid="uid://degs6mhuh4pux" path="res://assets/interactuables/cofres/fog_masks/cofres_basicos_fog_hidden.png" id="4_582v1"]
+[ext_resource type="Texture2D" uid="uid://dt00j8vig4xqv" path="res://assets/interactuables/cofres/fog_masks/cofres_basicos_fog_explored.png" id="5_vvfa8"]
+
+[node name="CofreInteractuable" type="Node2D" unique_id=1433795063 groups=["interactuables"]]
+script = ExtResource("1_apb36")
+variante = 3
+id_instancia = &"cofre_pequeno"
+definicion = ExtResource("2_etp26")
+ruta_fog_oculto = NodePath("FogOculto")
+ruta_fog_explorado = NodePath("FogExplorado")
+ajustar_a_celda_en_editor = true
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=730182774]
+texture_filter = 1
+position = Vector2(0, -16)
+texture = ExtResource("3_uvb74")
+region_enabled = true
+region_rect = Rect2(0, 128, 64, 64)
+
+[node name="FogOculto" type="Sprite2D" parent="." unique_id=76943]
+visible = false
+texture_filter = 1
+position = Vector2(0, -16)
+texture = ExtResource("4_582v1")
+region_enabled = true
+region_rect = Rect2(0, 128, 64, 64)
+
+[node name="FogExplorado" type="Sprite2D" parent="." unique_id=1107359436]
+visible = false
+texture_filter = 1
+position = Vector2(0, -16)
+texture = ExtResource("5_vvfa8")
+region_enabled = true
+region_rect = Rect2(0, 128, 64, 64)

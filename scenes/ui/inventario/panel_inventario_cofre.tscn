@@ -1,0 +1,75 @@
+[gd_scene format=3 uid="uid://bxk3q10ej5gkm"]
+
+[ext_resource type="Script" uid="uid://c0gf00340dj18" path="res://scenes/ui/inventario/panel_inventario_cofre.gd" id="1_4xbyf"]
+[ext_resource type="Texture2D" uid="uid://bxy6yas5mdp7p" path="res://assets/ui/inventario/cofre_pequeno.png" id="2_fondo"]
+[ext_resource type="FontFile" uid="uid://c0l0sby5jy2p4" path="res://assets/ui/fonts/Amarante-Regular.ttf" id="3_56sna"]
+
+[node name="PanelInventarioCofre" type="Control" unique_id=131137301]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 600.0
+offset_bottom = 600.0
+script = ExtResource("1_4xbyf")
+
+[node name="Fondo" type="TextureRect" parent="." unique_id=1179042650]
+layout_mode = 0
+offset_right = 600.0
+offset_bottom = 600.0
+mouse_filter = 2
+texture = ExtResource("2_fondo")
+expand_mode = 1
+
+[node name="AreaItems" type="MarginContainer" parent="Fondo" unique_id=1654183276]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.21
+anchor_top = 0.225
+anchor_right = 0.795
+anchor_bottom = 0.62
+mouse_filter = 2
+
+[node name="Proporcion" type="AspectRatioContainer" parent="Fondo/AreaItems" unique_id=238435877]
+layout_mode = 2
+mouse_filter = 2
+ratio = 4.0
+
+[node name="Contenido" type="GridContainer" parent="Fondo/AreaItems/Proporcion" unique_id=1799002604]
+layout_mode = 2
+theme_override_constants/h_separation = 0
+theme_override_constants/v_separation = 0
+columns = 4
+
+[node name="Botones" type="Control" parent="Fondo" unique_id=1166366634]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="RecogerTodos" type="Button" parent="Fondo/Botones" unique_id=806950951]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.11
+anchor_top = 0.638
+anchor_right = 0.89
+anchor_bottom = 0.738
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_56sna")
+theme_override_font_sizes/font_size = 36
+text = "Recoger todo"
+flat = true
+
+[node name="Cerrar" type="Button" parent="Fondo/Botones" unique_id=1439864410]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.11
+anchor_top = 0.758
+anchor_right = 0.89
+anchor_bottom = 0.886
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_56sna")
+theme_override_font_sizes/font_size = 36
+text = "Cerrar"
+flat = true

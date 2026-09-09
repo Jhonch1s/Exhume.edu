@@ -1,4 +1,4 @@
-## Items e inventario mínimo
+## Items e inventario
 
 `DefinicionItem` es un `Resource` compartido que declara `id_definicion`, `nombre`,
 etiquetas semánticas, magnitudes, si admite apilado y su cantidad máxima. Una
@@ -11,10 +11,13 @@ cantidad. La pila posee la identidad; sus unidades internas no tienen IDs
 individuales. El ID permanece estable mientras exista la pila y la cantidad debe
 estar entre uno y el máximo de su definición.
 
-`Inventario` es un componente lógico `RefCounted` contenido por `Ficha`. En 7.1 no
-tiene límite: la capacidad futura se calculará mediante peso y fuerza. Conserva
-instancias únicas por ID, devuelve copias ordenadas de su contenido y permite
-consultar por ID de instancia o definición.
+`Inventario` es un componente lógico `RefCounted` contenido por `Ficha` y por
+`CofreInteractuable`. `capacidad = -1` significa ilimitado, como en el jugador;
+un valor no negativo limita el número de pilas. Los cofres usan columnas por filas.
+`agregar()` y `separar()` rechazan crear una entrada adicional si está lleno.
+Peso y fuerza todavía no determinan la capacidad. Conserva instancias únicas por
+ID y devuelve una copia de la lista ordenada por ID: las instancias dentro de esa
+copia siguen siendo las mismas referencias. Permite consultar por instancia o definición.
 
 Agregar una instancia nunca la apila automáticamente. `combinar()` es explícito,
 exige la misma definición apilable y rechaza por completo una suma superior al
@@ -27,6 +30,17 @@ Todas las operaciones validan completamente antes de modificar el contenido y
 devuelven `ResultadoOperacionInventario`. Un fallo no contiene transferencia
 parcial y deja intactos contenido, cantidades e identidades. En 7.1 no se emiten
 señales ni se registran items en celdas.
+
+### Transferencia entre inventarios y cofres — septiembre de 2026
+
+`transferir_a(destino, id_item)` mueve una pila completa. Reutiliza `destino.agregar()`
+y solo elimina del origen tras el éxito; una transferencia fallida no altera ninguno
+de los inventarios. No combina pilas automáticamente.
+
+El botón Recoger todo del cofre compone varias transferencias individuales: se detiene
+en el primer fallo y conserva las anteriores. Por tanto, el lote completo puede ser
+parcial aunque cada transferencia sea atómica. Ver [Cofres](../contenido/COFRES.md)
+para inicialización, presentación, flujo modal y límites de persistencia.
 
 ### Presencia lógica en el suelo
 
@@ -127,4 +141,3 @@ botones heredan ese estilo y aceptan las texturas de contenido sin introducir un
 UI definitiva de inventario. Cancelar cierra el flujo modal completo. En 8.2 no se
 elige cantidad ni se consume el item; el futuro consumo reutilizará esta misma
 instancia seleccionada.
-

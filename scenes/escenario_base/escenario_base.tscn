@@ -9,6 +9,7 @@
 [ext_resource type="Shader" uid="uid://cmw1kk6ofvqkm" path="res://scenes/menu/filtro_crt_luminancia.gdshader" id="8_crt"]
 [ext_resource type="PackedScene" path="res://scenes/ui/interacciones/panel_resultado_accion.tscn" id="9_panel_resultado"]
 [ext_resource type="Resource" uid="uid://fstyo5e070o6" path="res://assets/interactuables/mensajes_interacciones.tres" id="10_catalogo_mensajes"]
+[ext_resource type="PackedScene" uid="uid://bxk3q10ej5gkm" path="res://scenes/ui/inventario/panel_inventario_cofre.tscn" id="11_e1m65"]
 [ext_resource type="PackedScene" path="res://scenes/ui/interacciones/menu_contextual_interacciones.tscn" id="11_menu_contextual"]
 [ext_resource type="PackedScene" uid="uid://ggjbjoxbbphg" path="res://assets/characters/knight3d/caballero20.glb" id="12_jpvkn"]
 [ext_resource type="PackedScene" path="res://scenes/ui/interacciones/panel_registro_narrativo.tscn" id="12_registro_narrativo"]
@@ -91,6 +92,8 @@ layer = 2
 
 [node name="PanelRegistroNarrativo" parent="CanvasLayer" unique_id=1606207479 instance=ExtResource("12_registro_narrativo")]
 anchors_preset = 1
+
+[node name="PanelInventarioCofre" parent="CanvasLayer" unique_id=131137301 instance=ExtResource("11_e1m65")]
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1734531678]
 stream = ExtResource("7_541xx")

@@ -21,6 +21,7 @@ contenido técnico original, dividido por dominio.
 ## Contenido y mundo persistente
 
 - [[contratos/10_ITEMS_E_INVENTARIO|Items e inventario]].
+- [Cofres y almacenamiento](contenido/COFRES.md).
 - [[contratos/11A_USO_LLAVES_Y_DESTINO_DE_ITEMS|Uso, llaves y destino de items]].
 - [[contratos/11B_LANZAMIENTO_LOGICO_Y_TRAYECTORIA|Lanzamiento lógico y trayectoria]].
 - [[contratos/11C_VUELO_ALCANCE_E_IMPACTO|Vuelo, alcance e impacto]].
