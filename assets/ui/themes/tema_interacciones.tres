@@ -1,0 +1,13 @@
+[gd_resource type="Theme" format=3 uid="uid://lef354d5f11x"]
+
+[ext_resource type="Texture2D" uid="uid://dxer78oyq1j6e" path="res://assets/ui/panels/interacciones/marco_interacciones-reducido.png" id="1_1mmsj"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_1mmsj"]
+texture = ExtResource("1_1mmsj")
+texture_margin_left = 21.0
+texture_margin_top = 19.0
+texture_margin_right = 21.0
+texture_margin_bottom = 19.0
+
+[resource]
+PanelContainer/styles/panel = SubResource("StyleBoxTexture_1mmsj")
