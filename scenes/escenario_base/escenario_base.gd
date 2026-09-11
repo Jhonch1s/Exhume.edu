@@ -42,7 +42,7 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 @onready var viewportThief: SubViewportContainer = $ThiefViewPort
 @onready var subviewportThief: SubViewport = $ThiefViewPort/ThiefSubViewport
 @onready var camaraThief: Camera3D = $ThiefViewPort/ThiefSubViewport/Camera3D
-@onready var ladronModelo: Node3D = $ThiefViewPort/ThiefSubViewport/modeloladron2
+@onready var ladronModelo: Node3D = $ThiefViewPort/ThiefSubViewport/ladronmodelo
 @onready var panel_inventario_cofre: PanelInventarioCofre = (
 	$CanvasLayer/PanelInventarioCofre
 )
@@ -127,7 +127,13 @@ var siguiente_paso_usa_variante_uno: bool = true
 var pasos_movimiento_actual: int = 0
 var longitud_movimiento_actual: int = 0
 
+var nombreClase: String= "";
+
 func _ready() -> void:
+	var clase_elegida: String = EstadoPartida.aventurero_pendiente.get("clase","")
+	
+	nombreClase = clase_elegida
+	
 	panel_registro_narrativo.observar(registro_narrativo)
 	menu_contextual.opcion_accion_elegida.connect(_on_opcion_contextual_elegida)
 	menu_contextual.objetivo_elegido.connect(_on_objetivo_contextual_elegido)
@@ -176,7 +182,9 @@ func _ready() -> void:
 		_colocar_bomba_humo_prueba()
 		_actualizar_luz_jugador(ficha_jugador.coordenada_mapa)
 		_actualizar_audio_proximidad()
-
+	
+	
+	
 func _process(_delta: float) -> void:
 	centrar_camara_en_ficha()
 	if ficha_jugador and capa_paredes_oclusivas:
@@ -540,10 +548,11 @@ func _registrar_resultado_narrativo(
 	registro_narrativo.registrar(categoria, titulo, "\n".join(mensajes), detalles)
 
 
-func capturar_textura(angulo:float,jugador: int) -> ImageTexture:
+func capturar_textura(angulo:float,jugador: String) -> ImageTexture:
 	var textura: ImageTexture
 	
-	if jugador == 1:
+	if jugador == "Guerrero":
+		ficha_jugador.sprite_render.position = Vector2(0,-24)
 		camaraCaballero.position = Vector3(-10,13.9,10) 
 		camaraCaballero.rotation.x = deg_to_rad(-45)
 		camaraCaballero.rotation.y = deg_to_rad(-45)
@@ -555,7 +564,8 @@ func capturar_textura(angulo:float,jugador: int) -> ImageTexture:
 		textura = ImageTexture.create_from_image(imagen)
 		
 	
-	if jugador == 2:
+	if jugador == "Mago":
+		ficha_jugador.sprite_render.position = Vector2(0,-24)
 		camaraMago.position = Vector3(0,14,10)
 		camaraMago.rotation.x = deg_to_rad(-45)
 		camaraMago.rotation.y = deg_to_rad(-45)
@@ -566,8 +576,17 @@ func capturar_textura(angulo:float,jugador: int) -> ImageTexture:
 		textura = ImageTexture.create_from_image(imagen)
 		
 	
-	if jugador == 3:
-		camaraThief.position = Vector3(10,13.9,10)
+	if jugador == "Ladrón":
+		ficha_jugador.sprite_render.position = Vector2(0,-16)
+		if angulo == 0:
+			camaraThief.position = Vector3(10,13.8,10)
+		if angulo == 90:
+			camaraThief.position = Vector3(10,14,10)
+		if angulo == 180:
+			camaraThief.position = Vector3(10,14,10)
+		if angulo == 270:
+			camaraThief.position = Vector3(10,13.9,10)
+		#camaraThief.position = Vector3(10,14,10)
 		camaraThief.rotation.x = deg_to_rad(-45)
 		camaraThief.rotation.y = deg_to_rad(-45)
 		ladronModelo.rotation.y = deg_to_rad(angulo)
@@ -593,15 +612,18 @@ func spawnear_ficha_inicial(id_spawn: StringName = &"entrada") -> void:
 	subviewportWizard.size = Vector2i(512, 512)
 	subviewportKnight.set_update_mode(SubViewport.UPDATE_ALWAYS)
 	subviewportWizard.set_update_mode(SubViewport.UPDATE_ALWAYS)
-	ficha_jugador.texturas_por_direccion[0]   = await capturar_textura(90,1)   # Mirando al frente (o derecha)
-	ficha_jugador.texturas_por_direccion[90]  = await capturar_textura(0,1)  # Mirando hacia abajo (si usas Y como eje vertical)
-	ficha_jugador.texturas_por_direccion[180] = await capturar_textura(270,1) # Mirando hacia atrás
-	ficha_jugador.texturas_por_direccion[270] = await capturar_textura(180,1) # Mirando hacia arriba
+	subviewportThief.set_update_mode(SubViewport.UPDATE_ALWAYS)
+	
+	ficha_jugador.texturas_por_direccion[0]   = await capturar_textura(90,nombreClase)   # Mirando al frente (o derecha)
+	ficha_jugador.texturas_por_direccion[90]  = await capturar_textura(0,nombreClase)  # Mirando hacia abajo (si usas Y como eje vertical)
+	ficha_jugador.texturas_por_direccion[180] = await capturar_textura(270,nombreClase) # Mirando hacia atrás
+	ficha_jugador.texturas_por_direccion[270] = await capturar_textura(180,nombreClase) # Mirando hacia arriba
 	ficha_jugador.sprite_render.texture = ficha_jugador.texturas_por_direccion[0]
 	ficha_jugador.sprite_render.scale = Vector2(
 		0.12,0.12
 	)
-	ficha_jugador.sprite_render.position = Vector2(0,-24)
+	
+	#ficha_jugador.sprite_render.position = Vector2(0,-16)
 	ficha_jugador.get_node("Sprite2D").visible = false
 
 	ficha_jugador._aplicar_visual_clase()

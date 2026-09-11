@@ -15,7 +15,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/interacciones/panel_registro_narrativo.tscn" id="12_registro_narrativo"]
 [ext_resource type="PackedScene" uid="uid://cj78e6l5ebb42" path="res://scenes/ui/interacciones/panel_examen_ilustrado.tscn" id="13_panel_examen"]
 [ext_resource type="PackedScene" uid="uid://ctjcxiiq4gyyg" path="res://assets/characters/knight3d/modelomago2.glb" id="14_lmwd1"]
-[ext_resource type="PackedScene" uid="uid://x6yvxqunle3f" path="res://assets/characters/knight3d/modeloladron2.glb" id="15_8kiln"]
+[ext_resource type="PackedScene" uid="uid://c87w474pswjrx" path="res://assets/characters/knight3d/ladronmodelo.glb" id="16_0resi"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_m8dhx"]
 texture = ExtResource("2_85xdd")
@@ -162,13 +162,12 @@ transparent_bg = true
 handle_input_locally = false
 render_target_update_mode = 0
 
-[node name="modeloladron2" parent="ThiefViewPort/ThiefSubViewport" unique_id=1381421340 instance=ExtResource("15_8kiln")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0, 0)
+[node name="ladronmodelo" parent="ThiefViewPort/ThiefSubViewport" unique_id=1135471360 instance=ExtResource("16_0resi")]
+transform = Transform3D(1.1924881e-08, 0, -1, 0, 1, 0, 1, 0, 1.1924881e-08, 20, 0, 0)
 
 [node name="Camera3D" type="Camera3D" parent="ThiefViewPort/ThiefSubViewport" unique_id=1948029702]
-transform = Transform3D(0.70710677, 0.5, -0.49999994, 0, 0.7071067, 0.7071068, 0.70710677, -0.5, 0.49999994, 10, 13.8, 10)
+transform = Transform3D(0.70710677, 0.5, -0.49999994, 0, 0.7071067, 0.7071068, 0.70710677, -0.5, 0.49999994, 10, 13.9, 10)
 projection = 1
-size = 1.1
 
 [node name="SpotLight3D" type="SpotLight3D" parent="ThiefViewPort/ThiefSubViewport" unique_id=623331364]
 transform = Transform3D(0.70710677, 0, -0.70710677, 0, 1, 0, 0.70710677, 0, 0.70710677, 17, 0, 3)
