@@ -5,6 +5,11 @@ extends Node2D
 var resaltador: ResaltadorOutline2D
 
 
+func _ready() -> void:
+	if sprite.hframes > 1:
+		sprite.frame = randi_range(0, sprite.hframes - 1)
+
+
 func establecer_resaltado(activo: bool) -> void:
 	if resaltador == null:
 		resaltador = ResaltadorOutline2D.new()

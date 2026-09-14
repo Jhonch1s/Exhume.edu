@@ -89,6 +89,79 @@ func obtener_inventario() -> Inventario:
 	inventario.capacidad = datos.columnas * datos.filas if datos != null else 0
 	return inventario
 
+
+func obtener_estado_persistente() -> Dictionary:
+	var items: Array[Dictionary] = []
+	for item in inventario.obtener_contenido():
+		items.append({
+			"id": String(item.id_instancia),
+			"definicion_id": String(item.definicion.id_definicion),
+			"definicion_path": item.definicion.resource_path,
+			"cantidad": item.cantidad,
+		})
+	return {"abierto": abierto, "inventario": items}
+
+
+func validar_estado_persistente(estado: Dictionary) -> StringName:
+	if (
+		estado.size() != 2
+		or not estado.get("abierto") is bool
+		or not estado.get("inventario") is Array
+	):
+		return &"estado_cofre_invalido"
+	var datos_cofre := definicion as DefinicionCofre
+	if datos_cofre == null or not datos_cofre.es_valida():
+		return &"cofre_no_configurado"
+	if estado["inventario"].size() > datos_cofre.columnas * datos_cofre.filas:
+		return &"inventario_cofre_excede_capacidad"
+	var ids: Dictionary[String, bool] = {}
+	for datos: Variant in estado["inventario"]:
+		if not datos is Dictionary:
+			return &"inventario_cofre_guardado_invalido"
+		var id_item: Variant = datos.get("id")
+		var id_definicion: Variant = datos.get("definicion_id")
+		var ruta: Variant = datos.get("definicion_path")
+		if (
+			not id_item is String or id_item.is_empty() or ids.has(id_item)
+			or not id_definicion is String or id_definicion.is_empty()
+			or not ruta is String or ruta.is_empty() or not ResourceLoader.exists(ruta)
+			or not _es_numero_entero(datos.get("cantidad"))
+		):
+			return &"inventario_cofre_guardado_invalido"
+		var definicion_item := ResourceLoader.load(ruta) as DefinicionItem
+		var item := ItemInstancia.new(
+			StringName(id_item), definicion_item, int(datos["cantidad"])
+		)
+		if (
+			definicion_item == null
+			or String(definicion_item.id_definicion) != id_definicion
+			or not item.es_valida()
+		):
+			return &"definicion_item_guardada_invalida"
+		ids[id_item] = true
+	return &""
+
+
+func restaurar_estado_persistente(estado: Dictionary) -> StringName:
+	var motivo := validar_estado_persistente(estado)
+	if motivo != &"":
+		return motivo
+	var inventario_nuevo := Inventario.new()
+	var datos_cofre := definicion as DefinicionCofre
+	inventario_nuevo.capacidad = datos_cofre.columnas * datos_cofre.filas
+	for datos: Dictionary in estado["inventario"]:
+		var definicion_item := ResourceLoader.load(datos["definicion_path"]) as DefinicionItem
+		inventario_nuevo.agregar(ItemInstancia.new(
+			StringName(datos["id"]), definicion_item, int(datos["cantidad"])
+		))
+	inventario = inventario_nuevo
+	abierto = estado["abierto"]
+	return &""
+
+
+func _es_numero_entero(valor: Variant) -> bool:
+	return valor is int or (valor is float and is_equal_approx(valor, roundf(valor)))
+
 func obtener_opciones_accion(actor: Object = null) -> Array[OpcionAccion]:
 	var opciones := super.obtener_opciones_accion(actor)
 	opciones.append(OpcionAccion.crear_habilitada(

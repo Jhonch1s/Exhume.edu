@@ -19,8 +19,15 @@ func _ejecutar() -> void:
 	var puerta := escenario.tablero.obtener_interactuable(
 		&"zona1_puerta_mecanismo_05_m03"
 	) as PuertaInteractuable
+	var cofre := escenario.tablero.obtener_interactuable(&"cofre_pequeno") as CofreInteractuable
 	palanca.activada = true
 	puerta.abierta = true
+	cofre.abierto = true
+	var item_retirado := cofre.inventario.obtener_contenido()[0]
+	cofre.inventario.retirar(item_retirado.id_instancia)
+	var ids_cofre_guardados: Array[StringName] = []
+	for item in cofre.inventario.obtener_contenido():
+		ids_cofre_guardados.append(item.id_instancia)
 	ficha.pv_actual -= 2
 	ficha.aplicar_o_renovar_estado(&"veneno", 1.0, 2, 1)
 	var fragmento := FragmentoInformacion.new()
@@ -38,6 +45,8 @@ func _ejecutar() -> void:
 
 	palanca.activada = false
 	puerta.abierta = false
+	cofre.abierto = false
+	cofre._cargar_contenido_inicial()
 	ficha.pv_actual = ficha.pv_max
 	ficha.consumir_tick_estado(&"veneno")
 	escenario.registro_conocimiento.restaurar_estado_persistente([])
@@ -46,6 +55,11 @@ func _ejecutar() -> void:
 	var superficie_restaurada: Object = escenario.tablero.efectos_superficie_por_id.values()[0]
 	_comprobar(
 		palanca.activada and puerta.abierta
+		and cofre.abierto
+		and cofre.inventario.obtener_por_id(item_retirado.id_instancia) == null
+		and cofre.inventario.obtener_contenido().map(
+			func(item): return item.id_instancia
+		) == ids_cofre_guardados
 		and ficha.pv_actual == ficha.pv_max - 2
 		and ficha.obtener_estado(&"veneno").ticks_pendientes == 1,
 		"Puerta, palanca, ficha y estado activo deben recuperar su estado."

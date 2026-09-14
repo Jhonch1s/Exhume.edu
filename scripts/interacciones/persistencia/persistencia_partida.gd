@@ -53,6 +53,16 @@ func validar_restauracion(
 	var ids_inventario: Dictionary[String, bool] = {}
 	for item: Dictionary in snapshot["ficha"]["inventario"]:
 		ids_inventario[item["id"]] = true
+	for datos_interactuable: Dictionary in snapshot["interactuables"]:
+		var entidad := tablero.obtener_interactuable(
+			StringName(datos_interactuable["id"])
+		)
+		if not entidad is CofreInteractuable:
+			continue
+		for item: Dictionary in datos_interactuable["estado"]["inventario"]:
+			if ids_inventario.has(item["id"]):
+				return &"id_item_guardado_duplicado"
+			ids_inventario[item["id"]] = true
 	motivo = contenido_dinamico.validar(
 		snapshot.get("items_suelo"),
 		snapshot.get("superficies"),

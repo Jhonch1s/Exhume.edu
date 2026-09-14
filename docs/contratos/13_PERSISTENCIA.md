@@ -89,13 +89,12 @@ La versión 1 se acepta de forma estricta. No hay migraciones hasta que exista u
 segunda versión real. Tampoco se guardan animaciones, tweens, hover, menús, rutas
 tentativas ni otras presentaciones transitorias.
 
-### Límite actual de cofres — septiembre de 2026
+### Cofres — septiembre de 2026
 
-`CofreInteractuable` todavía hereda el estado persistente vacío de `Interactuable`.
-Su contenido y su apertura no se serializan ni restauran; tampoco entran en la
-validación global de IDs de items. Reiniciar el escenario reconstruye su contenido
-inicial. Es necesario extender ese contrato antes de considerar seguro guardar y
-cargar una partida con cofres saqueados. Ver [Cofres](../contenido/COFRES.md).
+`CofreInteractuable` guarda su apertura y las pilas restantes. Cada pila usa el
+mismo contrato de identidad, definición, ruta y cantidad de la ficha. La validación
+rechaza inventarios que exceden la capacidad y IDs repetidos entre cualquier cofre,
+la ficha y el suelo. Restaurar reemplaza el inventario inicial sin repetir acciones.
 
 Las funciones de guardar/cargar archivo existen, pero no hay llamadas desde el
 flujo normal del juego que las ofrezcan al jugador; las llamadas actuales están

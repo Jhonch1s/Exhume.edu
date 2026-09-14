@@ -1373,7 +1373,8 @@ func _abrir_selector_item_lanzamiento() -> void:
 		catalogo_mensajes.resolver(&"interaccion.lanzar_item"),
 		adaptador_menu_contextual.construir_entradas_items(
 			arrojables,
-			catalogo_mensajes
+			catalogo_mensajes,
+			false
 		),
 		get_viewport().get_mouse_position()
 	)

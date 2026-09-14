@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/interacciones/items/representacion_item_suelo.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/items/antorcha/sprites/antorcha.png" id="2_textura"]
+
+[node name="AntorchaSuelo" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+texture = ExtResource("2_textura")

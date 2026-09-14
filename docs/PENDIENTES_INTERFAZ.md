@@ -66,13 +66,10 @@ la tapa del cofre en el mundo.
 
 ## Pendientes funcionales separados del pulido
 
-- Guardar/restaurar contenido y apertura del cofre, incluida unicidad de IDs entre
-  cofres, inventario del jugador y suelo. Las funciones de guardado de partida
-  existen, pero no están conectadas a un flujo normal de guardar/cargar.
+- Las funciones de guardado de partida incluyen los cofres, pero todavía no están
+  conectadas a un flujo normal de guardar/cargar.
 - El cofre ya bloquea el paso abierto y cerrado; conservar esa regla al pulir su UI.
 - Decidir si recoger del cofre debe pasar por acciones, costes y registro narrativo.
-- Conectar selección de clase a las capturas del modelo correspondiente; el spawn
-  todavía genera siempre el caballero.
 - Adaptar pruebas del panel para construir un cofre real y llamar `mostrar()`.
 
 No considerar estos pendientes resueltos por la documentación ni iniciar un nuevo

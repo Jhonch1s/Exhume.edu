@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="DefinicionItem" format=3 uid="uid://duimmx1272hjc"]
 
 [ext_resource type="Script" uid="uid://brbgghxl8rc0q" path="res://scripts/interacciones/items/definicion_item.gd" id="1_definicion"]
+[ext_resource type="Texture2D" uid="uid://bdb8q2x1x4lfh" path="res://assets/items/bomba_humo/icons/bomba_humo_icono.png" id="2_aq2n8"]
 [ext_resource type="PackedScene" uid="uid://cl0uxlkjhbodp" path="res://scenes/items/bomba_humo_suelo.tscn" id="2_mundo"]
 [ext_resource type="Script" uid="uid://dbu8xn81o5vnr" path="res://scripts/interacciones/items/reaccion_impacto_superficie.gd" id="3_reaccion"]
 [ext_resource type="PackedScene" path="res://scenes/efectos_superficie/Humo.tscn" id="4_humo"]
@@ -15,7 +16,9 @@ id_mensaje = &"bomba_humo.activada"
 script = ExtResource("1_definicion")
 id_definicion = &"bomba_humo"
 nombre = "Bomba de humo"
+icono = ExtResource("2_aq2n8")
 escena_mundo = ExtResource("2_mundo")
+descripcion_base = "Un recipiente frágil cargado con una mezcla que libera una nube espesa al romperse."
 etiquetas = Array[StringName]([&"arrojable", &"fragil", &"humo"])
 magnitudes = Dictionary[StringName, float]({
 &"peso": 1.0

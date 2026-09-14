@@ -58,7 +58,8 @@ func construir_entradas_objetivos(
 
 func construir_entradas_items(
 	items: Array[ItemInstancia],
-	catalogo: CatalogoMensajesInteraccion
+	catalogo: CatalogoMensajesInteraccion,
+	mostrar_iconos: bool = true
 ) -> Array[EntradaMenuContextual]:
 	var entradas: Array[EntradaMenuContextual] = []
 	for item in items:
@@ -67,7 +68,10 @@ func construir_entradas_items(
 		var texto := item.definicion.nombre
 		if item.cantidad > 1:
 			texto += " ×%d" % item.cantidad
-		entradas.append(EntradaMenuContextual.desde_item(item, texto))
+		var entrada := EntradaMenuContextual.desde_item(item, texto)
+		if not mostrar_iconos:
+			entrada.icono = null
+		entradas.append(entrada)
 	entradas.append(EntradaMenuContextual.cancelar(
 		_resolver(catalogo, &"interaccion.cancelar")
 	))

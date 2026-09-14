@@ -7,6 +7,10 @@ extends Resource
 @export var icono: Texture2D
 @export var escena_mundo: PackedScene
 
+@export_category("Presentacion")
+@export_multiline var descripcion_base: String = ""
+@export var ilustracion_examen: Texture2D
+
 @export_category("Semantica")
 @export var etiquetas: Array[StringName] = []
 @export var magnitudes: Dictionary[StringName, float] = {}

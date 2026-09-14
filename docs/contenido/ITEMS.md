@@ -29,6 +29,8 @@ Fuente: [DefinicionItem](../../scripts/interacciones/items/definicion_item.gd).
 | `nombre` | `String`, vacío | Nombre presentado en menús y resultados. Texto directo, no ID de traducción. |
 | `icono` | `Texture2D`, null | Casilla y selector de inventario. Independiente del sprite del suelo. |
 | `escena_mundo` | `PackedScene`, null | Representación al registrar en el suelo y durante el vuelo. |
+| `descripcion_base` | `String`, vacío | Texto preparado para hover y examen de ítems. |
+| `ilustracion_examen` | `Texture2D`, null | Ilustración grande opcional para el futuro examen. |
 | `etiquetas` | `Array[StringName]`, vacío | Capacidades/características copiadas al contexto de uso e impacto. |
 | `magnitudes` | `Dictionary[StringName, float]`, vacío | Valores numéricos copiados al contexto. No ejecutan reglas por sí solos. |
 | `reaccion_impacto` | `Resource`, null | Comportamiento opcional del propio ítem después de un lanzamiento. |
@@ -236,14 +238,22 @@ Restaurar carga el recurso por ruta y comprueba ID, cantidad y definición. Las
 definiciones de contenido persistente deben guardarse en archivos; renombrar su
 ruta o ID necesita considerar las partidas existentes.
 
-El contenido y apertura de los cofres todavía no se guardan. Reiniciar la escena
-recrea su contenido inicial. Ver [límites de cofres](COFRES.md).
+El contenido restante y la apertura de cada cofre forman parte del guardado. Sus
+IDs se validan junto con los del inventario del jugador y los ítems del suelo.
 
-No están modelados hoy: descripción, ilustración de examen, rareza, precio,
-categoría de equipo, daño de arma, ranura de equipo, requisitos de uso, cargas,
+No están modelados hoy: rareza, precio, categoría de equipo, daño de arma,
+ranura de equipo, requisitos de uso, cargas,
 durabilidad por ejemplar, propietario persistente, recetas, sonidos generales,
 acciones de comer/beber/equipar ni un inventario por peso. Antorchas y raciones
 de Ficha son contadores separados, no definiciones de ítem de este sistema.
+
+## Habilidades y modificadores futuros
+
+Antes de añadir datos de habilidad hay que definir cuándo están activos: mientras
+el ítem está en el inventario, solo al equiparlo o al consumirlo. También deben
+definirse duración, acumulación, cargas y qué atributos pueden modificar. Hasta
+entonces, `magnitudes` continúa describiendo el ítem o su impacto y no modifica
+automáticamente fuerza, destreza, voluntad ni recursos de turno.
 
 ## Modelo general a adoptar
 

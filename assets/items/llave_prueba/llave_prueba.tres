@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="DefinicionLlave" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="DefinicionLlave" format=3 uid="uid://x3ujg6bp8qgt"]
 
-[ext_resource type="Script" path="res://scripts/interacciones/items/definicion_llave.gd" id="1_definicion"]
-[ext_resource type="Texture2D" path="res://assets/items/llave_prueba/llave_placeholder.svg" id="2_icono"]
+[ext_resource type="Script" uid="uid://cyh3yxrc1cjqk" path="res://scripts/interacciones/items/definicion_llave.gd" id="1_definicion"]
+[ext_resource type="Texture2D" uid="uid://ciptcjh48w784" path="res://assets/items/llave_prueba/llave_placeholder.svg" id="2_icono"]
 [ext_resource type="PackedScene" path="res://scenes/items/llave_suelo.tscn" id="3_escena"]
 
 [resource]
@@ -11,6 +11,5 @@ id_definicion = &"llave_prueba"
 nombre = "Llave de prueba"
 icono = ExtResource("2_icono")
 escena_mundo = ExtResource("3_escena")
+descripcion_base = "Una llave sencilla de hierro, diseñada para una cerradura de cripta común."
 etiquetas = Array[StringName]([&"llave", &"solido"])
-apilable = false
-cantidad_maxima = 1

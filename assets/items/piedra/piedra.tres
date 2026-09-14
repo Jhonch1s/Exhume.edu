@@ -1,16 +1,19 @@
-[gd_resource type="Resource" script_class="DefinicionItem" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="DefinicionItem" format=3 uid="uid://dxscf7l388d5k"]
 
-[ext_resource type="Script" path="res://scripts/interacciones/items/definicion_item.gd" id="1"]
+[ext_resource type="Script" uid="uid://brbgghxl8rc0q" path="res://scripts/interacciones/items/definicion_item.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/items/piedra_suelo.tscn" id="2"]
+[ext_resource type="Texture2D" uid="uid://clgcal1qsixly" path="res://assets/items/piedra/icons/piedra_icon.png.png" id="2_b6qfy"]
 
 [resource]
 script = ExtResource("1")
 id_definicion = &"piedra"
 nombre = "Piedra"
+icono = ExtResource("2_b6qfy")
 escena_mundo = ExtResource("2")
+descripcion_base = "Una piedra irregular, pesada y de bordes romos. Puede servir como proyectil improvisado."
 etiquetas = Array[StringName]([&"mineral", &"solido", &"contundente", &"arrojable"])
-magnitudes = {
+magnitudes = Dictionary[StringName, float]({
 &"peso": 3.0
-}
+})
 apilable = true
 cantidad_maxima = 99

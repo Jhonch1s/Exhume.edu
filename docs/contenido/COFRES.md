@@ -119,8 +119,7 @@ recogida individual desde la casilla, depósito ni selección de cantidades.
 La transferencia del panel llama directamente al inventario, sin producir una
 acción del gestor, coste de turno ni entrada narrativa por cada pila.
 
-El cofre no implementa los métodos de persistencia de su estado: el sistema
-heredado devuelve un diccionario vacío. Ni contenido ni apertura se guardan o
-restauran, ni se comprueban globalmente sus IDs contra jugador/suelo al cargar.
-El guardado existente no debe considerarse compatible con una partida de cofres
-saqueados hasta completar ese contrato.
+El guardado conserva la apertura y cada pila restante mediante ID de instancia,
+definición, ruta y cantidad. La carga valida primero el documento completo,
+comprueba la capacidad y la unicidad de IDs entre cofres, jugador y suelo, y luego
+reemplaza el inventario del cofre sin recrear el contenido ya saqueado.
