@@ -3,6 +3,29 @@
 Punto de partida del 8 de septiembre de 2026. El usuario quiere retomar el pulido
 en otro chat; esta actualización solo documenta y no inicia esa implementación.
 
+## Estado del pulido visual
+
+Actualizado el 14 de septiembre de 2026 durante el trabajo asistido en Godot.
+
+- `tema_interacciones.tres` se comparte entre menú contextual, resultados y examen
+  ilustrado. Usa `StyleBoxTexture` con el marco de nueve regiones generado para el
+  proyecto, Amarante y estados de botón normal, hover, foco, pulsado y deshabilitado.
+- `PanelResultadoAccion` y `MenuContextualInteracciones` comienzan ocultos en sus
+  escenas. El examen ilustrado y el panel de cofre también se ocultan al iniciar;
+  el registro narrativo permanece visible como panel persistente.
+- `PanelRegistroNarrativo` conserva un estilo local oscuro para no destacar sobre
+  el escenario. Su vista compacta usa una línea por entrada y fuente menor; la vista
+  expandida aumenta su altura y muestra los detalles.
+- El registro se puede mover arrastrando su cabecera. Las tarjetas usan
+  `RichTextLabel` y los fragmentos de daño pueden mostrar la pista de su tirada al
+  pasar el cursor mediante BBCode `hint`.
+- El cofre queda fuera de este pulido: conserva su ilustración, cuadrícula centrada
+  y cuadrada, y los botones `Recoger todo` y `Cerrar`.
+
+Queda por comprobar en ejecución el examen normal e ilustrado, sus cierres y el orden
+visual con el registro. La presentación de fallos de transferencia, el menú de items
+y la persistencia siguen siendo pendientes funcionales separados.
+
 ## Forma de trabajo acordada
 
 Desarrollo asistido: el usuario crea escenas, configura recursos y edita código

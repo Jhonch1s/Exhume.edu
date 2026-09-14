@@ -531,13 +531,24 @@ func _registrar_resultado_narrativo(
 		)
 	for efecto in resultado.efectos_aplicados:
 		if efecto.tipo == &"dano":
-			mensajes.append("Recibes %d de daño." % int(efecto.magnitud))
+			mensajes.append("Recibes [hint=\"%s\"]%d de daño[/hint]." % [
+				_formatear_pista_tirada(resultado.tirada), int(efecto.magnitud)
+			])
 	if mensajes.is_empty() and resultado.motivo != &"":
 		mensajes.append(
 			catalogo_mensajes.resolver(resultado.motivo)
 			if catalogo_mensajes != null else String(resultado.motivo)
 		)
 	registro_narrativo.registrar(categoria, titulo, "\n".join(mensajes), detalles)
+
+
+func _formatear_pista_tirada(tirada: Variant) -> String:
+	if tirada is ResultadoTirada and not tirada.terminos.is_empty():
+		var terminos: Array[String] = []
+		for termino in tirada.terminos:
+			terminos.append("%dd%d → %s" % [termino[&"cantidad"], termino[&"caras"], str(termino[&"resultados"])])
+		return ", ".join(terminos)
+	return "Resultado de la tirada"
 
 
 func capturar_textura(angulo:float,jugador: int) -> ImageTexture:

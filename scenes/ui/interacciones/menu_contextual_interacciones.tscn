@@ -5,6 +5,7 @@
 [ext_resource type="FontFile" uid="uid://c0l0sby5jy2p4" path="res://assets/ui/fonts/Amarante-Regular.ttf" id="3_qborq"]
 
 [node name="MenuContextualInteracciones" type="PanelContainer" unique_id=885564624]
+visible = false
 custom_minimum_size = Vector2(220, 0)
 offset_right = 220.0
 offset_bottom = 160.0

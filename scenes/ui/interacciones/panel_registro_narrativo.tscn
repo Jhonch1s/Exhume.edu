@@ -1,47 +1,69 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://7yotsv0ybgvs"]
 
-[ext_resource type="Script" path="res://scenes/ui/interacciones/panel_registro_narrativo.gd" id="1"]
+[ext_resource type="Script" uid="uid://bng7i0rfrn5sv" path="res://scenes/ui/interacciones/panel_registro_narrativo.gd" id="1"]
+[ext_resource type="Theme" uid="uid://lef354d5f11x" path="res://assets/ui/themes/tema_interacciones.tres" id="1_82ryi"]
 
-[node name="PanelRegistroNarrativo" type="PanelContainer"]
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -336.0
-offset_top = 16.0
-offset_right = -16.0
-offset_bottom = 176.0
+[sub_resource type="StyleBoxFlat" id="StyleBoxRegistroOscuro"]
+bg_color = Color(0.075, 0.065, 0.055, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.27, 0.21, 0.15, 0.9)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[node name="PanelRegistroNarrativo" type="PanelContainer" unique_id=742211521]
 custom_minimum_size = Vector2(320, 0)
-mouse_filter = 2
+custom_maximum_size = Vector2(-1, 90)
+anchors_preset = -1
+anchor_left = 0.9850001
+anchor_right = 0.9850001
+offset_left = -307.2002
+offset_top = 16.0
+offset_right = 12.799805
+offset_bottom = 176.0
+grow_horizontal = 0
+theme = ExtResource("1_82ryi")
+theme_override_styles/panel = SubResource("StyleBoxRegistroOscuro")
 script = ExtResource("1")
 
-[node name="Margen" type="MarginContainer" parent="."]
+[node name="Margen" type="MarginContainer" parent="." unique_id=190956116]
 layout_mode = 2
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 8
 
-[node name="Contenido" type="VBoxContainer" parent="Margen"]
+[node name="Contenido" type="VBoxContainer" parent="Margen" unique_id=1002340966]
 layout_mode = 2
 
-[node name="Cabecera" type="HBoxContainer" parent="Margen/Contenido"]
+[node name="Cabecera" type="HBoxContainer" parent="Margen/Contenido" unique_id=1785008941]
 layout_mode = 2
+mouse_filter = 0
 
-[node name="Titulo" type="Label" parent="Margen/Contenido/Cabecera"]
+[node name="Titulo" type="Label" parent="Margen/Contenido/Cabecera" unique_id=1904484099]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.44, 0.37466002, 0.29479998, 1)
+theme_override_font_sizes/font_size = 13
 text = "Acontecimientos"
 
-[node name="Expandir" type="Button" parent="Margen/Contenido/Cabecera"]
+[node name="Expandir" type="Button" parent="Margen/Contenido/Cabecera" unique_id=1321462134]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.4392157, 0.3764706, 0.29411766, 1)
+theme_override_font_sizes/font_size = 13
 text = "Expandir"
 
-[node name="Desplazamiento" type="ScrollContainer" parent="Margen/Contenido"]
+[node name="Desplazamiento" type="ScrollContainer" parent="Margen/Contenido" unique_id=2110244292]
 custom_minimum_size = Vector2(0, 112)
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="Tarjetas" type="VBoxContainer" parent="Margen/Contenido/Desplazamiento"]
+[node name="Tarjetas" type="VBoxContainer" parent="Margen/Contenido/Desplazamiento" unique_id=1368483998]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8

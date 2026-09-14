@@ -1,38 +1,41 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://qsn46qnxpghl"]
 
-[ext_resource type="Script" path="res://scenes/ui/interacciones/panel_resultado_accion.gd" id="1_panel"]
+[ext_resource type="Script" uid="uid://b1aplbcqluer5" path="res://scenes/ui/interacciones/panel_resultado_accion.gd" id="1_panel"]
+[ext_resource type="Theme" uid="uid://lef354d5f11x" path="res://assets/ui/themes/tema_interacciones.tres" id="1_vwu8s"]
 
-[node name="PanelResultadoAccion" type="PanelContainer"]
+[node name="PanelResultadoAccion" type="PanelContainer" unique_id=1445779408]
 visible = false
 custom_minimum_size = Vector2(360, 0)
 offset_left = 24.0
 offset_top = 24.0
 offset_right = 384.0
 offset_bottom = 220.0
+theme = ExtResource("1_vwu8s")
 script = ExtResource("1_panel")
 
-[node name="Margen" type="MarginContainer" parent="."]
+[node name="Margen" type="MarginContainer" parent="." unique_id=1095098121]
 layout_mode = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 12
 
-[node name="Contenido" type="VBoxContainer" parent="Margen"]
+[node name="Contenido" type="VBoxContainer" parent="Margen" unique_id=1280295881]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="Titulo" type="Label" parent="Margen/Contenido"]
+[node name="Titulo" type="Label" parent="Margen/Contenido" unique_id=1983936180]
 layout_mode = 2
+theme_override_font_sizes/font_size = 22
 text = "Objetivo"
 
-[node name="Mensajes" type="Label" parent="Margen/Contenido"]
+[node name="Mensajes" type="Label" parent="Margen/Contenido" unique_id=423675522]
 custom_minimum_size = Vector2(328, 96)
 layout_mode = 2
 size_flags_vertical = 3
 text = "Información"
 autowrap_mode = 2
 
-[node name="Cerrar" type="Button" parent="Margen/Contenido"]
+[node name="Cerrar" type="Button" parent="Margen/Contenido" unique_id=1095758532]
 layout_mode = 2
 text = "Cerrar"
