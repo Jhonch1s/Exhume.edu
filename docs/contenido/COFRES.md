@@ -47,7 +47,9 @@ interacción y el receptor establece `abierto = true`. Ante éxito,
 El panel pertenece a `CanvasLayer` y participa del estado modal del escenario.
 Cerrar o Escape oculta el panel; el cofre permanece abierto en el mundo.
 
-El panel genera todas las casillas, ocupadas primero y vacías al final. No hay
+El panel genera todas las casillas, ocupadas primero y vacías al final. Al pasar
+el cursor por una pila muestra nombre, cantidad, descripción y su ilustración de
+examen o, si no existe, el icono. No hay
 posiciones de slots persistentes: al retirar una pila, las restantes se compactan.
 `configurar(null)` limpia icono y cantidad y deshabilita el botón. Una pila usa
 `DefinicionItem.icono`; `escena_mundo` no se convierte automáticamente en icono.
@@ -114,7 +116,7 @@ El bloqueo de visión y proyectiles sigue heredando los valores de `Interactuabl
 
 ## Límites actuales
 
-No están implementados menú de click derecho por item, hover, examen de items,
+No están implementados menú de click derecho por item, examen de items,
 recogida individual desde la casilla, depósito ni selección de cantidades.
 La transferencia del panel llama directamente al inventario, sin producir una
 acción del gestor, coste de turno ni entrada narrativa por cada pila.

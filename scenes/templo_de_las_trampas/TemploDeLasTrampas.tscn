@@ -27,6 +27,8 @@
 [ext_resource type="Script" uid="uid://bjmk05ma4ww44" path="res://scripts/interacciones/items/entrada_inventario_inicial.gd" id="16_hu6da"]
 [ext_resource type="Resource" uid="uid://duimmx1272hjc" path="res://assets/items/bomba_humo/bomba_humo.tres" id="17_5njko"]
 [ext_resource type="Resource" uid="uid://dxscf7l388d5k" path="res://assets/items/piedra/piedra.tres" id="18_njd4s"]
+[ext_resource type="PackedScene" path="res://scenes/zonas/ItemSueloZona.tscn" id="19_njd4s"]
+[ext_resource type="Resource" uid="uid://dcbclcer2wmfn" path="res://assets/items/antorcha/antorcha.tres" id="20_8pgsv"]
 [ext_resource type="PackedScene" uid="uid://gsnmo7fvpda3" path="res://scenes/interactuables/cofres/cofre_interactuable.tscn" id="25_om0fx"]
 
 [sub_resource type="Resource" id="Resource_5sqel"]
@@ -246,6 +248,24 @@ y_sort_enabled = true
 [node name="CofreInteractuable" parent="Interactuables/Cofres" unique_id=1433795063 instance=ExtResource("25_om0fx")]
 position = Vector2(-320, -288)
 contenido_inicial = Array[ExtResource("16_hu6da")]([SubResource("Resource_5sqel"), SubResource("Resource_i1fw8")])
+
+[node name="ItemsSuelo" type="Node2D" parent="." unique_id=64758360 groups=["items_suelo"]]
+y_sort_enabled = true
+
+[node name="AntorchaSuelo" parent="ItemsSuelo" unique_id=1974844852 instance=ExtResource("19_njd4s")]
+position = Vector2(-407, -216)
+id_instancia = &"templo_antorcha_01"
+definicion = ExtResource("20_8pgsv")
+
+[node name="PiedraSuelo" parent="ItemsSuelo" unique_id=57606272 instance=ExtResource("19_njd4s")]
+position = Vector2(-93, 4)
+id_instancia = &"templo_piedra_01"
+definicion = ExtResource("18_njd4s")
+
+[node name="PiedraSuelo" parent="ItemsSuelo/PiedraSuelo" unique_id=9859801 instance=ExtResource("19_njd4s")]
+position = Vector2(12, 13)
+id_instancia = &"templo_piedra_02"
+definicion = ExtResource("18_njd4s")
 
 [node name="PuntosSpawn" type="Node2D" parent="." unique_id=1264180631]
 

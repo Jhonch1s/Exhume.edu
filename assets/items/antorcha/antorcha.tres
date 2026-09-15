@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="DefinicionItem" format=3]
+[gd_resource type="Resource" script_class="DefinicionItem" format=3 uid="uid://dcbclcer2wmfn"]
 
-[ext_resource type="Script" path="res://scripts/interacciones/items/definicion_item.gd" id="1_definicion"]
-[ext_resource type="Texture2D" path="res://assets/items/antorcha/icons/antorcha_icono.png" id="2_icono"]
+[ext_resource type="Script" uid="uid://brbgghxl8rc0q" path="res://scripts/interacciones/items/definicion_item.gd" id="1_definicion"]
+[ext_resource type="Texture2D" uid="uid://d38xuttsjojab" path="res://assets/items/antorcha/icons/antorcha_icono.png" id="2_icono"]
 [ext_resource type="PackedScene" path="res://scenes/items/antorcha_suelo.tscn" id="3_mundo"]
 
 [resource]

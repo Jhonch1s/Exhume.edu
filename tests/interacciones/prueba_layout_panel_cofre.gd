@@ -22,6 +22,31 @@ func probar() -> void:
 		for casilla in grid.get_children():
 			assert(absf(casilla.size.x - casilla.size.y) <= 1.0)
 			assert(area.get_global_rect().encloses(casilla.get_global_rect()))
+	var cofre := CofreInteractuable.new()
+	cofre.definicion = load("res://scenes/interactuables/cofres/cofre_pequeno.tres")
+	var piedra := load("res://assets/items/piedra/piedra.tres") as DefinicionItem
+	cofre.obtener_inventario().agregar(ItemInstancia.new(&"detalle:piedra", piedra, 3))
+	panel.mostrar(cofre, Inventario.new())
+	var casilla_item := panel.contenido.get_child(0) as CasillaInventario
+	casilla_item.mouse_entered.emit()
+	assert(panel.detalle_item.visible)
+	assert(panel.detalle_nombre.text == "Piedra")
+	assert(panel.detalle_cantidad.text == "Cantidad: 3")
+	assert(panel.detalle_descripcion.text == piedra.descripcion_base)
+	casilla_item.mouse_exited.emit()
+	assert(not panel.detalle_item.visible)
+	var inicio := panel.position
+	var pulsacion := InputEventMouseButton.new()
+	pulsacion.button_index = MOUSE_BUTTON_LEFT
+	pulsacion.pressed = true
+	panel._gui_input(pulsacion)
+	var movimiento := InputEventMouseMotion.new()
+	movimiento.relative = Vector2(40, 30)
+	panel._input(movimiento)
+	assert(panel.position == inicio + Vector2(40, 30))
+	pulsacion.pressed = false
+	panel._input(pulsacion)
+	cofre.free()
 	panel.free()
-	print("Panel cofre: celdas cuadradas y centradas en cuatro tamaños, incluido 900x200.")
+	print("Panel cofre: layout y detalle de item correctos.")
 	quit()

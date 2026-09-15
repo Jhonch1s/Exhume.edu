@@ -13,9 +13,14 @@ var esta_registrado: bool:
 	get:
 		return _esta_registrado
 
+var desplazamiento_visual: Vector2:
+	get:
+		return _desplazamiento_visual
+
 var _item: ItemInstancia
 var _coordenada_mapa: Variant = null
 var _esta_registrado: bool = false
+var _desplazamiento_visual := Vector2.ZERO
 var _transferidor_items: TransferidorItems
 var _representacion: Node2D
 
@@ -30,6 +35,10 @@ func es_valido() -> bool:
 
 func configurar_transferidor_items(nuevo_transferidor: TransferidorItems) -> void:
 	_transferidor_items = nuevo_transferidor
+
+
+func configurar_desplazamiento_visual(nuevo_desplazamiento: Vector2) -> void:
+	_desplazamiento_visual = nuevo_desplazamiento
 
 
 func obtener_id_objetivo_interaccion() -> StringName:
@@ -51,6 +60,14 @@ func obtener_representacion() -> Node2D:
 func establecer_resaltado(activo: bool) -> void:
 	if is_instance_valid(_representacion) and _representacion.has_method(&"establecer_resaltado"):
 		_representacion.call(&"establecer_resaltado", activo)
+
+
+func contiene_punto_visual(punto_global: Vector2) -> bool:
+	return (
+		is_instance_valid(_representacion)
+		and _representacion.has_method(&"contiene_punto_global")
+		and _representacion.call(&"contiene_punto_global", punto_global)
+	)
 
 
 func obtener_opciones_accion(_actor: Object = null) -> Array[OpcionAccion]:

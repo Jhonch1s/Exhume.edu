@@ -87,8 +87,7 @@ var adaptador_menu_contextual: AdaptadorMenuContextual = AdaptadorMenuContextual
 var constructor_contexto_accion: ConstructorContextoAccion = ConstructorContextoAccion.new()
 var ultima_coordenada_hover: Vector2i = Vector2i(-999, -999)
 var objetivos_hover: Array[Object] = []
-var objetivo_hover: Object = null
-var objetivo_resaltado: Object = null
+var objetivos_resaltados: Array[Object] = []
 var ultima_opcion_contextual_seleccionada: OpcionAccion = null
 var opcion_uso_item_pendiente: OpcionAccion = null
 var seleccionando_item_lanzamiento: bool = false
@@ -153,6 +152,7 @@ func _ready() -> void:
 		tablero, registro_conocimiento, validador_espacial
 	)
 	transferidor_items = TransferidorItems.new(tablero, gestor_acciones)
+	tablero.configurar_transferidor_items(transferidor_items)
 	tablero.item_suelo_registrado.connect(_on_item_suelo_registrado)
 	tablero.item_suelo_retirado.connect(_on_item_suelo_retirado)
 	servicio_examen = ServicioExamen.new(tablero, registro_conocimiento)
@@ -167,6 +167,7 @@ func _ready() -> void:
 		if errores_contenido.is_empty():
 			tablero.registrar_interactuables_desde_zona(zona_actual, capa_suelo)
 			tablero.registrar_efectos_superficie_desde_zona(zona_actual, capa_suelo)
+			tablero.registrar_items_suelo_desde_zona(zona_actual, capa_suelo)
 		else:
 			for error in errores_contenido:
 				push_error("Contenido de zona invalido: %s" % error)
@@ -208,9 +209,9 @@ func _process(_delta: float) -> void:
 			_actualizar_previsualizacion_lanzamiento(coord_actual)
 			ultima_coordenada_hover = coord_actual
 		return
+	_actualizar_hover_interaccion(coord_actual, get_global_mouse_position())
 	if coord_actual == ultima_coordenada_hover:
 		return
-	_actualizar_hover_interaccion(coord_actual)
 	capa_selector.clear()
 	if tablero.es_celda_valida(coord_actual):
 		capa_selector.set_cell(coord_actual, 0, Vector2i(1, 1))
@@ -268,7 +269,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	var coord_clic := capa_suelo.local_to_map(get_global_mouse_position())
 	if event.button_index == MOUSE_BUTTON_LEFT:
-		_manejar_clic_izquierdo(coord_clic)
+		_manejar_clic_izquierdo(coord_clic, get_global_mouse_position())
 	elif event.button_index == MOUSE_BUTTON_RIGHT:
 		_manejar_clic_derecho(coord_clic)
 
@@ -279,7 +280,7 @@ func _imprimir_celda_bajo_cursor() -> void:
 		var coordenada := capa_suelo.local_to_map(get_global_mouse_position())
 		print(InspectorCeldaDesarrollo.new().describir(tablero, coordenada))
 
-func _manejar_clic_izquierdo(coord: Vector2i) -> void:
+func _manejar_clic_izquierdo(coord: Vector2i, punto_global: Variant = null) -> void:
 	if (
 		ficha_jugador == null
 		or ficha_jugador.esta_moviendose
@@ -289,7 +290,7 @@ func _manejar_clic_izquierdo(coord: Vector2i) -> void:
 	if item_lanzamiento_pendiente != null:
 		_seleccionar_celda_lanzamiento(coord)
 		return
-	if not _solicitar_interaccion_en_celda(coord):
+	if not _solicitar_interaccion_en_celda(coord, punto_global):
 		_cerrar_menu_contextual()
 		return
 	_abrir_menu_contextual(get_viewport().get_mouse_position())
@@ -905,35 +906,40 @@ func centrar_camara_en_ficha() -> void:
 	if ficha_jugador and camera_2d:
 		camera_2d.global_position = ficha_jugador.global_position
 
-func _actualizar_hover_interaccion(coord: Vector2i) -> void:
+func _actualizar_hover_interaccion(coord: Vector2i, punto_global: Variant = null) -> void:
 	objetivos_hover = selector_objetivos.obtener_objetivos_perceptibles(
 		tablero,
 		coord,
-		ficha_jugador
+		ficha_jugador,
+		punto_global
 	)
-	objetivo_hover = objetivos_hover[0] if objetivos_hover.size() == 1 else null
 	_actualizar_resaltado_interaccion()
 
 
 func _limpiar_hover_interaccion() -> void:
 	objetivos_hover.clear()
-	objetivo_hover = null
 	_actualizar_resaltado_interaccion()
 
 
-func _solicitar_interaccion_en_celda(coord: Vector2i) -> bool:
+func _solicitar_interaccion_en_celda(coord: Vector2i, punto_global: Variant = null) -> bool:
 	var objetivos := selector_objetivos.obtener_objetivos_perceptibles(
 		tablero,
 		coord,
-		ficha_jugador
+		ficha_jugador,
+		punto_global
 	)
-	var iniciada := estado_seleccion_objetivos.iniciar(coord, objetivos)
+	var coord_objetivo := coord
+	if objetivos.size() == 1 and objetivos[0] is ItemSuelo:
+		coord_objetivo = objetivos[0].coordenada_mapa
+	var iniciada := estado_seleccion_objetivos.iniciar(coord_objetivo, objetivos)
 	_actualizar_resaltado_interaccion()
 	return iniciada
 
 
 func seleccionar_objetivo_interaccion(objetivo: Object) -> bool:
 	var seleccion_valida := estado_seleccion_objetivos.seleccionar(objetivo)
+	if seleccion_valida and objetivo is ItemSuelo:
+		estado_seleccion_objetivos.celda_seleccionada = objetivo.coordenada_mapa
 	_actualizar_resaltado_interaccion()
 	return seleccion_valida
 
@@ -944,16 +950,28 @@ func _limpiar_seleccion_interaccion() -> void:
 
 
 func _actualizar_resaltado_interaccion() -> void:
-	var siguiente := objetivo_seleccionado if objetivo_seleccionado != null else objetivo_hover
-	if objetivo_resaltado == siguiente:
+	var siguientes: Array[Object] = []
+	if is_instance_valid(objetivo_seleccionado):
+		siguientes.append(objetivo_seleccionado)
+	else:
+		siguientes.assign(objetivos_hover)
+	if objetivos_resaltados == siguientes:
 		return
-	if is_instance_valid(objetivo_resaltado):
-		if objetivo_resaltado.has_method(&"establecer_resaltado"):
-			objetivo_resaltado.call(&"establecer_resaltado", false)
-	objetivo_resaltado = siguiente if is_instance_valid(siguiente) else null
-	if objetivo_resaltado != null:
-		if objetivo_resaltado.has_method(&"establecer_resaltado"):
-			objetivo_resaltado.call(&"establecer_resaltado", true)
+	for objetivo in objetivos_resaltados:
+		if (
+			is_instance_valid(objetivo)
+			and objetivo not in siguientes
+			and objetivo.has_method(&"establecer_resaltado")
+		):
+			objetivo.call(&"establecer_resaltado", false)
+	for objetivo in siguientes:
+		if (
+			is_instance_valid(objetivo)
+			and objetivo not in objetivos_resaltados
+			and objetivo.has_method(&"establecer_resaltado")
+		):
+			objetivo.call(&"establecer_resaltado", true)
+	objetivos_resaltados.assign(siguientes)
 
 
 func _abrir_menu_contextual(posicion_pantalla: Vector2) -> void:
@@ -1324,8 +1342,11 @@ func _on_item_suelo_registrado(coord: Vector2i, item_suelo: ItemSuelo) -> void:
 	var representacion := item_suelo.item.definicion.escena_mundo.instantiate() as Node2D
 	if representacion == null:
 		return
+	var capa_suelo := zona_actual.get_node("CapaSuelo") as TileMapLayer
 	zona_actual.add_child(representacion)
-	representacion.global_position = zona_actual.get_node("CapaSuelo").map_to_local(coord)
+	representacion.global_position = capa_suelo.to_global(
+		capa_suelo.map_to_local(coord) + item_suelo.desplazamiento_visual
+	)
 	item_suelo.vincular_representacion(representacion)
 
 

@@ -16,6 +16,10 @@ func obtener_items_suelo(tablero: TableroGrid) -> Array[Dictionary]:
 			"definicion_path": item.definicion.resource_path,
 			"cantidad": item.cantidad,
 			"coordenada": [item_suelo.coordenada_mapa.x, item_suelo.coordenada_mapa.y],
+			"desplazamiento_visual": [
+				item_suelo.desplazamiento_visual.x,
+				item_suelo.desplazamiento_visual.y,
+			],
 		})
 	return datos
 
@@ -66,11 +70,16 @@ func restaurar(items: Array, superficies: Array, tablero: TableroGrid) -> String
 	var items_nuevos: Array[Dictionary] = []
 	for datos: Dictionary in items:
 		var definicion := ResourceLoader.load(datos["definicion_path"]) as DefinicionItem
+		var item_suelo := ItemSuelo.new(ItemInstancia.new(
+			StringName(datos["id"]), definicion, int(datos["cantidad"])
+		))
+		var desplazamiento: Array = datos.get("desplazamiento_visual", [0.0, 0.0])
+		item_suelo.configurar_desplazamiento_visual(Vector2(
+			float(desplazamiento[0]), float(desplazamiento[1])
+		))
 		items_nuevos.append({
 			"coordenada": Vector2i(datos["coordenada"][0], datos["coordenada"][1]),
-			"item": ItemSuelo.new(ItemInstancia.new(
-				StringName(datos["id"]), definicion, int(datos["cantidad"])
-			)),
+			"item": item_suelo,
 		})
 	var superficies_nuevas: Array[Dictionary] = []
 	for datos: Dictionary in superficies:
@@ -117,6 +126,7 @@ func _validar_item(
 		or not ruta is String or ruta.is_empty() or not ResourceLoader.exists(ruta)
 		or not _es_numero_entero(datos.get("cantidad"))
 		or not _coordenada_valida(datos.get("coordenada"), tablero)
+		or not _vector2_valido(datos.get("desplazamiento_visual", [0.0, 0.0]))
 	):
 		return &"item_suelo_guardado_invalido"
 	var definicion := ResourceLoader.load(ruta) as DefinicionItem
@@ -171,3 +181,14 @@ func _coordenada_valida(valor: Variant, tablero: TableroGrid) -> bool:
 
 func _es_numero_entero(valor: Variant) -> bool:
 	return valor is int or (valor is float and is_equal_approx(valor, roundf(valor)))
+
+
+func _vector2_valido(valor: Variant) -> bool:
+	return (
+		valor is Array and valor.size() == 2
+		and _es_numero_finito(valor[0]) and _es_numero_finito(valor[1])
+	)
+
+
+func _es_numero_finito(valor: Variant) -> bool:
+	return (valor is int or valor is float) and is_finite(float(valor))

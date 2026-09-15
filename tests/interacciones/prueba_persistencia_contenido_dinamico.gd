@@ -16,9 +16,9 @@ func _ejecutar() -> void:
 	tablero.registrar_interactuables_desde_zona(zona, zona.get_node("CapaSuelo"))
 	tablero.registrar_efectos_superficie_desde_zona(zona, zona.get_node("CapaSuelo"))
 	var piedra := load("res://assets/items/piedra/piedra.tres") as DefinicionItem
-	tablero.registrar_item_suelo(
-		Vector2i(2, 1), ItemSuelo.new(ItemInstancia.new(&"piedras_suelo", piedra, 2))
-	)
+	var piedras_suelo := ItemSuelo.new(ItemInstancia.new(&"piedras_suelo", piedra, 2))
+	piedras_suelo.configurar_desplazamiento_visual(Vector2(3.5, -2.0))
+	tablero.registrar_item_suelo(Vector2i(2, 1), piedras_suelo)
 	var superficie: Object = tablero.efectos_superficie_por_id.values()[0]
 	for _paso in range(3):
 		superficie.call(&"consumir_turno_superficie")
@@ -36,6 +36,14 @@ func _ejecutar() -> void:
 		) == &"",
 		"Items de suelo y superficies deben producir un snapshot JSON valido."
 	)
+	var copia_legacy := copia_json.duplicate(true)
+	copia_legacy["items_suelo"][0].erase("desplazamiento_visual")
+	_comprobar(
+		persistencia.validar_restauracion(
+			copia_legacy, tablero, &"zona1", ficha, conocimiento
+		) == &"",
+		"Los guardados anteriores deben seguir siendo validos."
+	)
 
 	tablero.retirar_item_suelo(tablero.obtener_item_suelo(&"piedras_suelo"))
 	var humo_extra := (load("res://scenes/efectos_superficie/Humo.tscn") as PackedScene).instantiate()
@@ -52,6 +60,8 @@ func _ejecutar() -> void:
 	)
 	_comprobar(
 		tablero.obtener_item_suelo(&"piedras_suelo").item.cantidad == 2
+		and tablero.obtener_item_suelo(&"piedras_suelo").desplazamiento_visual
+			== Vector2(3.5, -2.0)
 		and not tablero.efectos_superficie_por_id.has(&"humo_extra")
 		and restaurada.call(&"obtener_turnos_restantes_superficie") == 7,
 		"El snapshot debe reemplazar exactamente items, superficies y duracion."

@@ -71,6 +71,7 @@ position = Vector2(320, 181)
 zoom = Vector2(3, 3)
 
 [node name="FiltroCRT" type="CanvasLayer" parent="." unique_id=274575882]
+layer = 3
 
 [node name="Pantalla" type="ColorRect" parent="FiltroCRT" unique_id=864690420]
 material = SubResource("ShaderMaterial_crt_zona")

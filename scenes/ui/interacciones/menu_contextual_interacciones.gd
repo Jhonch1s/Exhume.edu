@@ -106,6 +106,7 @@ func _agregar_entrada(entrada: EntradaMenuContextual) -> void:
 	boton.disabled = not entrada.habilitada
 	boton.text = entrada.texto
 	boton.icon = entrada.icono
+	boton.expand_icon = true
 	if not entrada.habilitada and not entrada.motivo_bloqueo.is_empty():
 		boton.text += "\n" + entrada.motivo_bloqueo
 		boton.tooltip_text = entrada.motivo_bloqueo

@@ -266,6 +266,35 @@ func registrar_interactuables_desde_zona(
 			registro_valido = false
 	return registro_valido
 
+func registrar_items_suelo_desde_zona(
+	zona: Node2D,
+	capa_referencia: TileMapLayer
+) -> bool:
+	var registro_valido := true
+	for nodo in zona.find_children("*", "", true, false):
+		if not nodo.is_in_group("items_suelo_zona"):
+			continue
+		var marcador := nodo as ItemSueloZona
+		var coord := marcador.obtener_coordenada(capa_referencia)
+		if marcador.id_instancia == &"":
+			push_error("El item de suelo en %s no tiene id_instancia." % coord)
+			registro_valido = false
+			continue
+		var item_suelo := ItemSuelo.new(ItemInstancia.new(
+			marcador.id_instancia,
+			marcador.definicion,
+			marcador.cantidad
+		))
+		item_suelo.configurar_desplazamiento_visual(
+			marcador.obtener_desplazamiento_visual(capa_referencia)
+		)
+		if not registrar_item_suelo(coord, item_suelo):
+			push_error("No se pudo registrar el item de suelo %s en %s." % [
+				marcador.id_instancia, coord,
+			])
+			registro_valido = false
+	return registro_valido
+
 func registrar_interactuable(coord: Vector2i, interactuable: Interactuable) -> bool:
 	var motivo := validar_registro_interactuable(coord, interactuable)
 	if motivo == &"interactuable_invalido":

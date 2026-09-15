@@ -5,17 +5,32 @@ extends RefCounted
 func obtener_objetivos_perceptibles(
 	tablero: TableroGrid,
 	coordenada: Vector2i,
-	actor: Object = null
+	actor: Object = null,
+	punto_global: Variant = null
 ) -> Array[Object]:
 	var objetivos: Array[Object] = []
-	if tablero == null or not tablero.es_celda_valida(coordenada):
+	if tablero == null:
 		return objetivos
 
+	var candidatos: Array[Object] = []
 	var celda := tablero.obtener_celda(coordenada)
-	if celda == null or celda.visibilidad != Celda.EstadoVisibilidad.VISIBLE:
-		return objetivos
+	if celda != null and celda.visibilidad == Celda.EstadoVisibilidad.VISIBLE:
+		candidatos.append_array(celda.interactuables)
+		if not punto_global is Vector2:
+			candidatos.append_array(celda.items_suelo)
 
-	for contenido in celda.interactuables + celda.items_suelo:
+	if punto_global is Vector2:
+		# ponytail: recorrido lineal; usar indice espacial solo si la cantidad de items lo exige.
+		for item_suelo in tablero.items_suelo_por_id.values():
+			var celda_item := tablero.obtener_celda(item_suelo.coordenada_mapa)
+			if (
+				celda_item != null
+				and celda_item.visibilidad == Celda.EstadoVisibilidad.VISIBLE
+				and item_suelo.contiene_punto_visual(punto_global)
+			):
+				candidatos.append(item_suelo)
+
+	for contenido in candidatos:
 		if not is_instance_valid(contenido):
 			continue
 		if (
@@ -26,7 +41,8 @@ func obtener_objetivos_perceptibles(
 			continue
 		if contenido.call(&"obtener_opciones_accion", actor).is_empty():
 			continue
-		objetivos.append(contenido)
+		if contenido not in objetivos:
+			objetivos.append(contenido)
 
 	objetivos.sort_custom(_ordenar_por_id_estable)
 	return objetivos
