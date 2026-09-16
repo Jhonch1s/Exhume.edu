@@ -1,6 +1,6 @@
 # Ítems: estado actual y modelo de autoría
 
-Revisado contra el código del workspace el 9 de septiembre de 2026. Esta guía
+Revisado contra el código del workspace el 16 de septiembre de 2026. Esta guía
 describe el estado actual, incluidos cambios locales. La ficha del final es una
 plantilla de contenido; no introduce una clase nueva ni capacidades de runtime.
 
@@ -53,6 +53,12 @@ crea automáticamente consumo, humo, daño o una regla de carga.
 todo lo anterior y añade `patron_cerradura: StringName`, inicialmente vacío.
 Su `es_valida()` exige además etiqueta `llave` y patrón no vacío. Es un dato
 de compatibilidad con puertas, no una etiqueta distinta para cada cerradura.
+
+[DefinicionAntorcha](../../scripts/interacciones/items/definicion_antorcha.gd)
+hereda de `DefinicionItem` y añade radio de visión, pasos de atenuación, energía,
+escala y color de luz. `assets/items/antorcha/antorcha.tres` guarda esos valores
+y `magnitudes.duracion = 80` para el consumo. La ficha conserva sólo los pasos
+restantes de la unidad activa; véase [HUD y luz](../arquitectura/HUD_JUGADOR.md).
 
 ## Estado de una pila y de su presencia en el mapa
 
@@ -197,12 +203,14 @@ la escena de representación en el editor no crea una pila lógica registrada.
 | Piedra | `assets/items/piedra/piedra.tres`; sprite `sprites/piedra_isometrica.png`; mundo `scenes/items/piedra_suelo.tscn`; fuente `assets/art_source/items/piedra/piedra_isometrica.ase`. |
 | Bomba de humo | `assets/items/bomba_humo/bomba_humo.tres`; sprite `sprites/bomba_humo_isometric1.png`; mundo `scenes/items/bomba_humo_suelo.tscn`; fuente `assets/art_source/items/bomba_humo/sprites/bomba_humo_isometric1.ase`. |
 | Llave | `assets/items/llave_prueba/llave_prueba.tres`; `llave_placeholder.svg` como sprite e icono; mundo `scenes/items/llave_suelo.tscn`. |
+| Antorcha | `assets/items/antorcha/antorcha.tres`; icono `icons/antorcha_icono.png`; mundo `scenes/items/antorcha_suelo.tscn`. |
 
 | Tipo | Etiquetas | Magnitudes | Apilado | Icono asignado | Particularidad |
 |---|---|---|---|---|---|
 | `piedra` | mineral, solido, contundente, arrojable | peso 3.0 | 99 | No | Sin reacción propia; caída normal al lanzar. |
 | `bomba_humo` | arrojable, fragil, humo | peso 1.0 | 10 | No | Reacción de superficie Humo, radio 2, mensaje bomba_humo.activada. |
 | `llave_prueba` | llave, solido | Vacío | No, máximo 1 | Sí | Patrón cripta_simple. |
+| `antorcha` | luz, consumible | duración 80 | 10 | Sí | Luz y radio definidos por `DefinicionAntorcha`; el inventario consume una unidad tras 80 pasos. |
 
 Humo usa `scenes/efectos_superficie/Humo.tscn` y
 `assets/tiles/surface_effects/smoke/source/smoke_isometric.png`: cuatro frames

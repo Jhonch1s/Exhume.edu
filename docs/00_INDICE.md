@@ -8,6 +8,7 @@
 - [[contratos/19_REGISTRO_NARRATIVO_SESION|Registro narrativo de sesión]] — primer incremento implementado.
 - [Cofres e inventarios de almacenamiento](contenido/COFRES.md).
 - [Personajes y modelos 3D](contenido/PERSONAJES.md).
+- [HUD del jugador y antorcha en mano](arquitectura/HUD_JUGADOR.md).
 - [Continuidad: pulido de interfaces](PENDIENTES_INTERFAZ.md) — punto de partida para el próximo chat.
 - [Roadmap de implementación](../ROADMAP_SISTEMA_INTERACCIONES.md)
 

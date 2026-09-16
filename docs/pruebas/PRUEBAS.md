@@ -13,6 +13,13 @@ Las pruebas headless bajo `tests/` protegen contratos, atomicidad y verticales r
 Una prueba se elimina cuando su comportamiento queda cubierto por otra más directa,
 no solamente porque pertenezca a una fase antigua.
 
+`tests/interacciones/prueba_antorchas_hud.tscn` cubre inventario y consumo de
+antorchas, engarces, retratos, tooltips de quemado y veneno, luz inicial,
+propiedades de `DefinicionAntorcha`, atenuación y apagado al agotarse. También
+comprueba que la llave y la bomba de humo de prueba no aparezcan al iniciar el
+escenario. `prueba_integracion_menu_contextual.gd` crea esos objetos dentro de
+la propia prueba para verificar sus interacciones sin poblar el juego.
+
 ## Estado de las comprobaciones de cofres — 14 de septiembre de 2026
 
 - El usuario ejecutó la prueba de capacidad y la prueba visual de casilla y confirmó

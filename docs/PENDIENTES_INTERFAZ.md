@@ -22,6 +22,12 @@ Actualizado el 14 de septiembre de 2026 durante el trabajo asistido en Godot.
 - El cofre queda fuera de este pulido: conserva su ilustración, cuadrícula centrada
   y cuadrada, y los botones `Recoger todo` y `Cerrar`.
 
+Desde entonces existe un [HUD de roca centrado abajo](arquitectura/HUD_JUGADOR.md)
+con retrato por clase, vida y energía, acciones y movimiento, antorchas del
+inventario, estados con tooltip y el registro narrativo móvil. La barra de
+experiencia, las habilidades, los accesos rápidos configurables y el overlay
+de combate aún no están conectados a la lógica correspondiente.
+
 Queda por comprobar en ejecución el examen normal e ilustrado, sus cierres y el orden
 visual con el registro. La presentación de fallos de transferencia, el menú de items
 y la persistencia siguen siendo pendientes funcionales separados.
