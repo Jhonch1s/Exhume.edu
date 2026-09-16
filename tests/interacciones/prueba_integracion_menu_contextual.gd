@@ -1,5 +1,8 @@
 extends SceneTree
 
+const DEFINICION_LLAVE_PRUEBA = preload("res://assets/items/llave_prueba/llave_prueba.tres")
+const DEFINICION_BOMBA_HUMO = preload("res://assets/items/bomba_humo/bomba_humo.tres")
+
 var _fallos: Array[String] = []
 
 
@@ -13,6 +16,22 @@ func _ejecutar_pruebas() -> void:
 	root.add_child(escenario)
 	await process_frame
 	await process_frame
+	if escenario.ficha_jugador == null:
+		_comprobar(false, "La integración necesita la ficha del jugador.")
+		escenario.free()
+		_finalizar()
+		return
+	_comprobar(
+		escenario.tablero.obtener_item_suelo(&"zona1_llave_prueba") == null
+		and escenario.tablero.obtener_item_suelo(&"zona1_bomba_humo") == null,
+		"El escenario no debe generar la llave ni la bomba de humo de prueba."
+	)
+	_comprobar(_colocar_item_prueba(escenario, &"zona1_llave_prueba", DEFINICION_LLAVE_PRUEBA,
+		[Vector2i.LEFT, Vector2i.UP, Vector2i.DOWN, Vector2i.RIGHT]),
+		"La prueba debe poder colocar una llave en el suelo.")
+	_comprobar(_colocar_item_prueba(escenario, &"zona1_bomba_humo", DEFINICION_BOMBA_HUMO,
+		[Vector2i.ZERO, Vector2i.DOWN, Vector2i.RIGHT, Vector2i.UP, Vector2i.LEFT]),
+		"La prueba debe poder colocar una bomba de humo en el suelo.")
 
 	var fuente := escenario.tablero.obtener_interactuable(
 		&"zona1_antorcha_pie_02_01"
@@ -104,6 +123,22 @@ func _ejecutar_pruebas() -> void:
 	_probar_multiples_objetivos(escenario, fuente)
 	escenario.free()
 	_finalizar()
+
+
+func _colocar_item_prueba(
+	escenario: Variant, id: StringName, definicion: DefinicionItem,
+	direcciones: Array[Vector2i]
+) -> bool:
+	for direccion in direcciones:
+		var coord: Vector2i = escenario.ficha_jugador.coordenada_mapa + direccion
+		if escenario.tablero.validar_colocacion_item_suelo(coord, escenario.ficha_jugador) != &"":
+			continue
+		if not escenario.tablero.obtener_celda(coord).items_suelo.is_empty():
+			continue
+		var item := ItemSuelo.new(ItemInstancia.new(id, definicion, 1))
+		item.configurar_transferidor_items(escenario.transferidor_items)
+		return escenario.tablero.registrar_item_suelo(coord, item)
+	return false
 
 
 func _probar_ejecucion_accion(

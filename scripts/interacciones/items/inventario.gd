@@ -97,6 +97,17 @@ func retirar(
 	)
 
 
+func consumir_unidad(id_instancia: StringName) -> bool:
+	var item := obtener_por_id(id_instancia)
+	if item == null:
+		return false
+	if item.cantidad == 1:
+		_contenido.erase(item)
+	else:
+		item._establecer_cantidad(item.cantidad - 1)
+	return true
+
+
 func combinar(
 	id_origen: StringName,
 	id_destino: StringName

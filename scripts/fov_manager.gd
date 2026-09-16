@@ -35,6 +35,9 @@ const FUENTES_FOG_OCULTO := {
 
 func inicializar(_capa: TileMapLayer, origen_datos: Variant) -> void:
 	capa_oscuridad = _capa
+	celdas_visibles_actuales.clear()
+	tiene_vision_calculada = false
+	ultimo_radio_jugador = 0
 	if origen_datos is TableroGrid:
 		tablero = origen_datos
 		datos_tablero = tablero.datos

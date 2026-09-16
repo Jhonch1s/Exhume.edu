@@ -1,0 +1,582 @@
+[gd_scene format=3 uid="uid://cj6cokkjw74c"]
+
+[ext_resource type="Script" uid="uid://btv44wv5v8j7f" path="res://scenes/ui/hud/hud.gd" id="0_script"]
+[ext_resource type="Texture2D" uid="uid://dfinu3vuddyb3" path="res://assets/ui/panels/hud/hud_base_roca_v01.png" id="1_base"]
+[ext_resource type="Texture2D" path="res://assets/ui/panels/hud/retratos/guerrero.png" id="2_portrait"]
+[ext_resource type="FontFile" uid="uid://c0l0sby5jy2p4" path="res://assets/ui/fonts/Amarante-Regular.ttf" id="3_font"]
+[ext_resource type="PackedScene" uid="uid://7yotsv0ybgvs" path="res://scenes/ui/interacciones/panel_registro_narrativo.tscn" id="4_log"]
+[ext_resource type="Script" path="res://scenes/ui/hud/estado_tooltip.gd" id="5_state_tip"]
+
+[sub_resource type="Shader" id="ShaderBarAnimated"]
+code = "shader_type canvas_item;\n\nuniform float speed = 0.55;\nuniform float intensity = 0.10;\n\nvoid fragment() {\n\tvec4 base = COLOR;\n\tfloat onda = sin(UV.x * 18.0 + UV.y * 3.0 + TIME * speed);\n\tfloat sombra = smoothstep(-0.65, 0.65, onda) * intensity;\n\tCOLOR = vec4(base.rgb * (1.0 - sombra), base.a);\n}\n"
+
+[sub_resource type="ShaderMaterial" id="MaterialBarAnimated"]
+shader = SubResource("ShaderBarAnimated")
+
+[sub_resource type="StyleBoxFlat" id="StylePanel"]
+bg_color = Color(0.075, 0.09, 0.11, 0.96)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.31, 0.35, 0.39, 0.98)
+corner_radius_top_left = 1
+corner_radius_top_right = 1
+corner_radius_bottom_right = 1
+corner_radius_bottom_left = 1
+shadow_color = Color(0.01, 0.012, 0.016, 0.9)
+shadow_size = 4
+shadow_offset = Vector2(0, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBarEmpty"]
+bg_color = Color(0.04, 0.045, 0.055, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.19, 0.21, 0.24, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBarHealth"]
+bg_color = Color(0.63, 0.12, 0.09, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.91, 0.34, 0.2, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBarFatigue"]
+bg_color = Color(0.55, 0.43, 0.16, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.83, 0.67, 0.27, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleSlot"]
+bg_color = Color(0.105, 0.12, 0.14, 0.98)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.38, 0.42, 0.46, 0.98)
+corner_radius_top_left = 1
+corner_radius_top_right = 1
+corner_radius_bottom_right = 1
+corner_radius_bottom_left = 1
+shadow_color = Color(0.008, 0.01, 0.014, 0.95)
+shadow_size = 5
+shadow_offset = Vector2(0, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBarMovement"]
+bg_color = Color(0.84, 0.86, 0.86, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.98, 0.98, 0.94, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBarExperience"]
+bg_color = Color(0.12, 0.3, 0.12, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.35, 0.72, 0.3, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[node name="HUD" type="Control" unique_id=1068463453]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("0_script")
+
+[node name="HUDRoot" type="Control" parent="." unique_id=1094682854]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="HudBaseRoca" type="TextureRect" parent="HUDRoot" unique_id=547618559]
+texture_filter = 1
+layout_mode = 0
+offset_left = 196.0
+offset_top = 835.0
+offset_right = 1724.0
+offset_bottom = 1107.0
+scale = Vector2(0.8, 0.8)
+pivot_offset = Vector2(764, 136)
+mouse_filter = 2
+texture = ExtResource("1_base")
+expand_mode = 1
+
+[node name="SeccionesHUD" type="Control" parent="HUDRoot" unique_id=266571247]
+anchors_preset = 0
+offset_left = 196.0
+offset_top = 835.0
+offset_right = 1724.0
+offset_bottom = 1107.0
+scale = Vector2(0.8, 0.8)
+pivot_offset = Vector2(764, 136)
+mouse_filter = 2
+
+[node name="SeccionJugador" type="Control" parent="HUDRoot/SeccionesHUD" unique_id=1970383164]
+anchors_preset = 0
+offset_left = 38.0
+offset_top = 64.0
+offset_right = 480.0
+offset_bottom = 230.0
+mouse_filter = 1
+
+[node name="Retrato" type="Panel" parent="HUDRoot/SeccionesHUD/SeccionJugador" unique_id=1242815934]
+layout_mode = 0
+offset_left = -11.4999695
+offset_top = -100.5
+offset_right = 129.75
+offset_bottom = 161.5
+theme_override_styles/panel = SubResource("StylePanel")
+
+[node name="Imagen" type="TextureRect" parent="HUDRoot/SeccionesHUD/SeccionJugador/Retrato" unique_id=1049210225]
+texture_filter = 1
+layout_mode = 0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 135.0
+offset_bottom = 253.75
+mouse_filter = 2
+texture = ExtResource("2_portrait")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Recursos" type="Panel" parent="HUDRoot/SeccionesHUD/SeccionJugador" unique_id=441990928]
+layout_mode = 0
+offset_left = 161.0
+offset_top = 36.0
+offset_right = 481.0
+offset_bottom = 160.0
+theme_override_styles/panel = SubResource("StylePanel")
+
+[node name="Nombre" type="Label" parent="HUDRoot/SeccionesHUD/SeccionJugador/Recursos" unique_id=118191943]
+layout_mode = 0
+offset_left = 17.0
+offset_top = 1.0
+offset_right = 309.0
+offset_bottom = 29.0
+theme_override_colors/font_color = Color(0.82, 0.78, 0.7, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 22
+text = "SIN FICHA"
+
+[node name="VidaBarra" type="ProgressBar" parent="HUDRoot/SeccionesHUD/SeccionJugador/Recursos" unique_id=1462209239]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 27.75
+offset_right = 304.0
+offset_bottom = 47.75
+material = SubResource("MaterialBarAnimated")
+theme_override_styles/background = SubResource("StyleBarEmpty")
+theme_override_styles/fill = SubResource("StyleBarHealth")
+value = 78.0
+show_percentage = false
+
+[node name="VidaTexto" type="Label" parent="HUDRoot/SeccionesHUD/SeccionJugador/Recursos" unique_id=459831296]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 47.75
+offset_right = 304.0
+offset_bottom = 69.75
+theme_override_colors/font_color = Color(0.82, 0.78, 0.7, 1)
+theme_override_font_sizes/font_size = 12
+text = "-- / --"
+horizontal_alignment = 2
+
+[node name="EnergiaBarra" type="ProgressBar" parent="HUDRoot/SeccionesHUD/SeccionJugador/Recursos" unique_id=832009895]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 65.5
+offset_right = 304.0
+offset_bottom = 85.5
+theme_override_styles/background = SubResource("StyleBarEmpty")
+theme_override_styles/fill = SubResource("StyleBarFatigue")
+value = 100.0
+show_percentage = false
+
+[node name="EnergiaTexto" type="Label" parent="HUDRoot/SeccionesHUD/SeccionJugador/Recursos" unique_id=1916863915]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 85.5
+offset_right = 304.0
+offset_bottom = 107.5
+theme_override_colors/font_color = Color(0.82, 0.78, 0.7, 1)
+theme_override_font_sizes/font_size = 12
+text = "-- / --"
+horizontal_alignment = 2
+
+[node name="Antorcha" type="Label" parent="HUDRoot/SeccionesHUD/SeccionJugador/Recursos" unique_id=728758207]
+layout_mode = 0
+offset_left = 15.75
+offset_top = 101.25012
+offset_right = 307.75
+offset_bottom = 127.25012
+theme_override_colors/font_color = Color(0.88, 0.65, 0.28, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = "🔥   --"
+
+[node name="EngarcesAntorchas" type="VBoxContainer" parent="HUDRoot/SeccionesHUD/SeccionJugador" unique_id=181223001]
+layout_mode = 0
+offset_left = 133.25
+offset_top = 52.25
+offset_right = 158.25
+offset_bottom = 144.5
+mouse_filter = 2
+theme_override_constants/separation = 7
+
+[node name="Engarce1" type="Panel" parent="HUDRoot/SeccionesHUD/SeccionJugador/EngarcesAntorchas" unique_id=181223002]
+custom_minimum_size = Vector2(25, 25)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleSlot")
+
+[node name="Luz" type="ColorRect" parent="HUDRoot/SeccionesHUD/SeccionJugador/EngarcesAntorchas/Engarce1" unique_id=893997444]
+layout_mode = 0
+offset_left = 7.0
+offset_top = 7.0
+offset_right = 18.0
+offset_bottom = 18.0
+mouse_filter = 2
+color = Color(0.22, 0.18, 0.12, 1)
+
+[node name="Engarce2" type="Panel" parent="HUDRoot/SeccionesHUD/SeccionJugador/EngarcesAntorchas" unique_id=181223003]
+custom_minimum_size = Vector2(25, 25)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleSlot")
+
+[node name="Luz" type="ColorRect" parent="HUDRoot/SeccionesHUD/SeccionJugador/EngarcesAntorchas/Engarce2" unique_id=1333458448]
+layout_mode = 0
+offset_left = 7.0
+offset_top = 7.0
+offset_right = 18.0
+offset_bottom = 18.0
+mouse_filter = 2
+color = Color(0.22, 0.18, 0.12, 1)
+
+[node name="Engarce3" type="Panel" parent="HUDRoot/SeccionesHUD/SeccionJugador/EngarcesAntorchas" unique_id=181223004]
+custom_minimum_size = Vector2(25, 25)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleSlot")
+
+[node name="Luz" type="ColorRect" parent="HUDRoot/SeccionesHUD/SeccionJugador/EngarcesAntorchas/Engarce3" unique_id=625076779]
+layout_mode = 0
+offset_left = 7.0
+offset_top = 7.0
+offset_right = 18.0
+offset_bottom = 18.0
+mouse_filter = 2
+color = Color(0.22, 0.18, 0.12, 1)
+
+[node name="EstadosAlterados" type="Control" parent="HUDRoot/SeccionesHUD" unique_id=875237260]
+anchors_preset = 0
+offset_left = 580.0
+offset_top = -22.0
+offset_right = 948.0
+offset_bottom = 28.0
+mouse_filter = 1
+
+[node name="EstadoQuemado" type="Panel" parent="HUDRoot/SeccionesHUD/EstadosAlterados" unique_id=832046906]
+layout_mode = 0
+offset_right = 48.0
+offset_bottom = 48.0
+theme_override_styles/panel = SubResource("StyleSlot")
+script = ExtResource("5_state_tip")
+
+[node name="Icono" type="Label" parent="HUDRoot/SeccionesHUD/EstadosAlterados/EstadoQuemado" unique_id=1196195472]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.91, 0.3, 0.14, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 24
+text = "F"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="EstadoEnvenenado" type="Panel" parent="HUDRoot/SeccionesHUD/EstadosAlterados" unique_id=2007402887]
+layout_mode = 0
+offset_left = 58.0
+offset_right = 106.0
+offset_bottom = 48.0
+theme_override_styles/panel = SubResource("StyleSlot")
+script = ExtResource("5_state_tip")
+
+[node name="Icono" type="Label" parent="HUDRoot/SeccionesHUD/EstadosAlterados/EstadoEnvenenado" unique_id=128087977]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.46, 0.73, 0.36, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 24
+text = "P"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="EstadoCansado" type="Panel" parent="HUDRoot/SeccionesHUD/EstadosAlterados" unique_id=1778715629]
+layout_mode = 0
+offset_left = 116.0
+offset_right = 164.0
+offset_bottom = 48.0
+theme_override_styles/panel = SubResource("StyleSlot")
+script = ExtResource("5_state_tip")
+
+[node name="Icono" type="Label" parent="HUDRoot/SeccionesHUD/EstadosAlterados/EstadoCansado" unique_id=60173974]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.82, 0.67, 0.27, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 24
+text = "C"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SeccionHabilidades" type="Control" parent="HUDRoot/SeccionesHUD" unique_id=384184162]
+anchors_preset = 0
+offset_left = 532.0
+offset_top = 105.0
+offset_right = 904.0
+offset_bottom = 221.0
+mouse_filter = 1
+
+[node name="Titulo" type="Label" parent="HUDRoot/SeccionesHUD/SeccionHabilidades" unique_id=431990316]
+layout_mode = 0
+offset_left = 8.0
+offset_right = 200.0
+offset_bottom = 24.0
+theme_override_colors/font_color = Color(0.75, 0.73, 0.68, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 21
+text = "HABILIDADES"
+
+[node name="Ranura1" type="Button" parent="HUDRoot/SeccionesHUD/SeccionHabilidades" unique_id=369711279]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 28.0
+offset_right = 86.0
+offset_bottom = 110.0
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleSlot")
+text = "I"
+
+[node name="Ranura2" type="Button" parent="HUDRoot/SeccionesHUD/SeccionHabilidades" unique_id=1406546777]
+layout_mode = 0
+offset_left = 94.0
+offset_top = 28.0
+offset_right = 176.0
+offset_bottom = 110.0
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleSlot")
+text = "II"
+
+[node name="Ranura3" type="Button" parent="HUDRoot/SeccionesHUD/SeccionHabilidades" unique_id=1545470210]
+layout_mode = 0
+offset_left = 184.0
+offset_top = 28.0
+offset_right = 266.0
+offset_bottom = 110.0
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleSlot")
+text = "III"
+
+[node name="Ranura4" type="Button" parent="HUDRoot/SeccionesHUD/SeccionHabilidades" unique_id=1797235052]
+layout_mode = 0
+offset_left = 274.0
+offset_top = 28.0
+offset_right = 356.0
+offset_bottom = 110.0
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleSlot")
+text = "IV"
+
+[node name="SeccionItems" type="Control" parent="HUDRoot/SeccionesHUD" unique_id=186534687]
+anchors_preset = 0
+offset_left = 929.0
+offset_top = 104.0
+offset_right = 1289.0
+offset_bottom = 222.0
+mouse_filter = 1
+
+[node name="Titulo" type="Label" parent="HUDRoot/SeccionesHUD/SeccionItems" unique_id=314902240]
+layout_mode = 0
+offset_left = 8.0
+offset_right = 200.0
+offset_bottom = 24.0
+theme_override_colors/font_color = Color(0.75, 0.73, 0.68, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 21
+text = "ITEMS RÁPIDOS"
+
+[node name="Ranura1" type="Button" parent="HUDRoot/SeccionesHUD/SeccionItems" unique_id=1814163504]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 28.0
+offset_right = 86.0
+offset_bottom = 110.0
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleSlot")
+text = "1"
+
+[node name="Ranura2" type="Button" parent="HUDRoot/SeccionesHUD/SeccionItems" unique_id=940953417]
+layout_mode = 0
+offset_left = 94.0
+offset_top = 28.0
+offset_right = 176.0
+offset_bottom = 110.0
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleSlot")
+text = "2"
+
+[node name="Ranura3" type="Button" parent="HUDRoot/SeccionesHUD/SeccionItems" unique_id=1196552575]
+layout_mode = 0
+offset_left = 184.0
+offset_top = 28.0
+offset_right = 266.0
+offset_bottom = 110.0
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleSlot")
+text = "3"
+
+[node name="Ranura4" type="Button" parent="HUDRoot/SeccionesHUD/SeccionItems" unique_id=607879074]
+layout_mode = 0
+offset_left = 274.0
+offset_top = 28.0
+offset_right = 356.0
+offset_bottom = 110.0
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleSlot")
+text = "3"
+
+[node name="PasarTurno" type="Button" parent="HUDRoot/SeccionesHUD" unique_id=1334498189]
+layout_mode = 0
+offset_left = 1312.0
+offset_top = 130.0
+offset_right = 1409.0
+offset_bottom = 215.0
+theme_override_colors/font_color = Color(0.86, 0.78, 0.6, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 25
+theme_override_styles/normal = SubResource("StyleSlot")
+text = "PASAR
+TURNO"
+
+[node name="EngarcesAcciones" type="VBoxContainer" parent="HUDRoot/SeccionesHUD" unique_id=1951332202]
+layout_mode = 0
+offset_left = 902.75
+offset_top = 137.25
+offset_right = 918.25
+offset_bottom = 162.25
+mouse_filter = 2
+theme_override_constants/separation = 3
+
+[node name="MovimientoBarra" type="ProgressBar" parent="HUDRoot/SeccionesHUD" unique_id=181223020]
+layout_mode = 0
+offset_left = 1410.25
+offset_top = 214.75
+offset_right = 1495.8372
+offset_bottom = 228.5
+rotation = -1.5707964
+material = SubResource("MaterialBarAnimated")
+tooltip_text = "Movimiento restante"
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBarEmpty")
+theme_override_styles/fill = SubResource("StyleBarMovement")
+show_percentage = false
+
+[node name="ExperienciaBarra" type="ProgressBar" parent="HUDRoot" unique_id=181223030]
+layout_mode = 0
+offset_left = 360.0
+offset_top = 1058.0
+offset_right = 1560.0
+offset_bottom = 1066.0
+material = SubResource("MaterialBarAnimated")
+tooltip_text = "Experiencia (sistema pendiente)"
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBarEmpty")
+theme_override_styles/fill = SubResource("StyleBarExperience")
+value = 45.0
+show_percentage = false
+
+[node name="LogAcontecimientos" parent="HUDRoot" unique_id=155326214 instance=ExtResource("4_log")]
+layout_mode = 0
+anchors_preset = 0
+anchor_left = 0.0
+anchor_right = 0.0
+offset_left = 32.0
+offset_top = 20.0
+offset_right = 352.0
+offset_bottom = 180.0
+grow_horizontal = 1
+
+[node name="OverlayCombate" type="Control" parent="HUDRoot" unique_id=1075053100]
+visible = false
+anchors_preset = 0
+offset_left = 520.0
+offset_top = 28.0
+offset_right = 1400.0
+offset_bottom = 120.0
+
+[node name="SecuenciaTurnos" type="Label" parent="HUDRoot/OverlayCombate" unique_id=738814653]
+layout_mode = 0
+offset_right = 880.0
+offset_bottom = 36.0
+theme_override_colors/font_color = Color(0.82, 0.78, 0.7, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 18
+text = "SECUENCIA DE TURNOS     JUGADOR  →  ENEMIGO  →  JUGADOR"
+horizontal_alignment = 1
+
+[node name="PuntosAccion" type="Label" parent="HUDRoot/OverlayCombate" unique_id=459977520]
+layout_mode = 0
+offset_top = 44.0
+offset_right = 880.0
+offset_bottom = 76.0
+theme_override_colors/font_color = Color(0.83, 0.64, 0.25, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 16
+text = "ACCIONES RESTANTES: 3"
+horizontal_alignment = 1

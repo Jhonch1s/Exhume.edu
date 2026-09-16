@@ -39,9 +39,9 @@ var _estados: Dictionary[StringName, EstadoActor] = {}
 var clase: String = "Guerrero"
 var origen: String = ""
 
-var antorchas: int = 3
-var PASOS_MAX_ANTORCHA: int = 80
-var pasos_antorcha_actual: int = 80
+const ID_ANTORCHA := &"antorcha"
+const PASOS_MAX_ANTORCHA: int = 80
+var pasos_antorcha_actual: int = 0
 var raciones: int = 3
 var inventario: Inventario = Inventario.new()
 
@@ -75,6 +75,30 @@ func puede_actuar() -> bool:
 
 func obtener_inventario() -> Inventario:
 	return inventario
+
+func obtener_cantidad_antorchas() -> int:
+	var cantidad := 0
+	for item in inventario.obtener_por_definicion(ID_ANTORCHA):
+		cantidad += item.cantidad
+	return cantidad
+
+func obtener_antorcha_activa() -> DefinicionAntorcha:
+	var antorchas := inventario.obtener_por_definicion(ID_ANTORCHA)
+	if antorchas.is_empty() or pasos_antorcha_actual <= 0:
+		return null
+	return antorchas[0].definicion as DefinicionAntorcha
+
+func activar_antorcha_si_necesario() -> bool:
+	var antorchas := inventario.obtener_por_definicion(ID_ANTORCHA)
+	if antorchas.is_empty():
+		pasos_antorcha_actual = 0
+		return false
+	if pasos_antorcha_actual > 0:
+		return true
+	pasos_antorcha_actual = int(antorchas[0].definicion.magnitudes.get(
+		&"duracion", float(PASOS_MAX_ANTORCHA)
+	))
+	return pasos_antorcha_actual > 0
 
 func obtener_fuerza() -> int:
 	return fue
@@ -235,6 +259,7 @@ func obtener_estado_persistente() -> Dictionary:
 		"coordenada": [coordenada_mapa.x, coordenada_mapa.y],
 		"pv_actual": pv_actual,
 		"energia_actual": energia_actual,
+		"pasos_antorcha_actual": pasos_antorcha_actual,
 		"recursos_turno": recursos_turno.obtener_restantes(),
 		"estados": estados,
 		"inventario": items,
@@ -273,6 +298,16 @@ func validar_estado_persistente(estado: Variant) -> StringName:
 		or estado["energia_actual"] < 0 or estado["energia_actual"] > energia_maxima
 	):
 		return &"recursos_ficha_guardados_invalidos"
+	var pasos_antorcha_guardados: Variant = estado.get(
+		"pasos_antorcha_actual",
+		0
+	)
+	if (
+		not _es_numero_entero(pasos_antorcha_guardados)
+		or pasos_antorcha_guardados < 0
+		or pasos_antorcha_guardados > PASOS_MAX_ANTORCHA
+	):
+		return &"recurso_antorcha_guardado_invalido"
 	if not estado.get("recursos_turno") is Dictionary:
 		return &"recursos_turno_guardados_invalidos"
 	var motivo := recursos_turno.validar_restauracion(estado["recursos_turno"])
@@ -321,8 +356,10 @@ func restaurar_estado_persistente(estado: Variant) -> StringName:
 		global_position = capa_referencia.map_to_local(coordenada_mapa)
 	pv_actual = int(estado["pv_actual"])
 	energia_actual = int(estado["energia_actual"])
+	pasos_antorcha_actual = int(estado.get("pasos_antorcha_actual", 0))
 	recursos_turno.restaurar(estado["recursos_turno"])
 	inventario = inventario_nuevo
+	activar_antorcha_si_necesario()
 	_estados = estados_nuevos
 	puntos_vida_cambiados.emit(pv_actual, pv_max)
 	recursos_turno_cambiados.emit(recursos_turno)
@@ -462,17 +499,26 @@ func inicializar(coordenada_inicial: Vector2i, capa: TileMapLayer) -> void:
 	if capa_referencia:
 		global_position = capa_referencia.map_to_local(coordenada_mapa)
 
-func consumir_o_recargar_antorcha() -> bool:
+func consumir_paso_antorcha() -> bool:
+	var antorchas := inventario.obtener_por_definicion(ID_ANTORCHA)
+	if antorchas.is_empty():
+		pasos_antorcha_actual = 0
+		return false
+	if not activar_antorcha_si_necesario():
+		return false
+	pasos_antorcha_actual -= 1
 	if pasos_antorcha_actual > 0:
 		return true
-	if antorchas > 1:
-		antorchas -= 1
-		pasos_antorcha_actual = PASOS_MAX_ANTORCHA
-		print("Se cambia antorcha")
-		return true
-	antorchas = 0
-	print("No quedan mas antorchas")
-	return false
+	if not inventario.consumir_unidad(antorchas[0].id_instancia):
+		return false
+	var siguientes := inventario.obtener_por_definicion(ID_ANTORCHA)
+	if siguientes.is_empty():
+		pasos_antorcha_actual = 0
+		return false
+	pasos_antorcha_actual = int(siguientes[0].definicion.magnitudes.get(
+		&"duracion", float(PASOS_MAX_ANTORCHA)
+	))
+	return true
 
 func solicitar_interrupcion() -> void:
 	if esta_moviendose:

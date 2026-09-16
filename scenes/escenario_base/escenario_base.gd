@@ -27,7 +27,10 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 @onready var trayectoria_lanzamiento: Line2D = $TrayectoriaLanzamiento
 @onready var gestor_vision: FOVManager = $GestorVision
 @onready var capa_oscuridad: TileMapLayer = $Zona/CapaOscuridad
-@onready var panel_registro_narrativo: PanelRegistroNarrativo = $CanvasLayer/PanelRegistroNarrativo
+@onready var hud: HUD = $CanvasLayer/HUD
+@onready var panel_registro_narrativo: PanelRegistroNarrativo = (
+	$CanvasLayer/HUD/HUDRoot/LogAcontecimientos
+)
 
 @onready var viewportKnight: SubViewportContainer = $KnightViewPort
 @onready var subviewportKnight: SubViewport = $KnightViewPort/KnightSubViewport
@@ -53,8 +56,7 @@ const modeloLadron = preload("res://assets/characters/knight3d/modeloladron2.glb
 
 const ESCENA_FICHA = preload("res://scenes/ficha/ficha.tscn")
 const DEFINICION_PIEDRA = preload("res://assets/items/piedra/piedra.tres")
-const DEFINICION_LLAVE_PRUEBA = preload("res://assets/items/llave_prueba/llave_prueba.tres")
-const DEFINICION_BOMBA_HUMO = preload("res://assets/items/bomba_humo/bomba_humo.tres")
+const DEFINICION_ANTORCHA = preload("res://assets/items/antorcha/antorcha.tres")
 const SONIDO_PASO_1 = preload("res://assets/sonidos/pasos/editado/pasos.wav")
 const SONIDO_PASO_2 = preload("res://assets/sonidos/pasos/editado/pasos 2.wav")
 const SONIDO_MONSTRUO_CADENAS = preload("res://assets/sonidos/enemigo/munstro con cadenas.wav")
@@ -132,6 +134,7 @@ func _ready() -> void:
 	nombreClase = EstadoPartida.aventurero_pendiente.get("clase", nombreClase)
 
 	panel_registro_narrativo.observar(registro_narrativo)
+	hud.pasar_turno_solicitado.connect(_on_pasar_turno_hud)
 	menu_contextual.opcion_accion_elegida.connect(_on_opcion_contextual_elegida)
 	menu_contextual.objetivo_elegido.connect(_on_objetivo_contextual_elegido)
 	menu_contextual.item_elegido.connect(_on_item_contextual_elegido)
@@ -174,11 +177,10 @@ func _ready() -> void:
 	pathfinding.inicializar(tablero.datos)
 	gestor_vision.inicializar(capa_oscuridad, tablero)
 	_inicializar_audio_ambiente()
-	spawnear_ficha_inicial()
+	await spawnear_ficha_inicial()
 	if ficha_jugador:
+		hud.configurar_ficha(ficha_jugador)
 		_colocar_piedra_prueba()
-		_colocar_llave_prueba()
-		_colocar_bomba_humo_prueba()
 		_actualizar_luz_jugador(ficha_jugador.coordenada_mapa)
 		_actualizar_audio_proximidad()
 
@@ -395,7 +397,8 @@ func cargar_partida(ruta: String = RUTA_GUARDADO) -> StringName:
 	if motivo != &"":
 		return motivo
 	pathfinding.inicializar(tablero.datos)
-	_actualizar_luz_jugador(ficha_jugador.coordenada_mapa)
+	hud.actualizar_desde_ficha()
+	call_deferred("_actualizar_luz_al_cargar")
 	camino_actual_tentativo.clear()
 	capa_camino.clear()
 	return &""
@@ -638,6 +641,10 @@ func spawnear_ficha_inicial(id_spawn: StringName = &"entrada") -> void:
 	var datos_aventurero := EstadoPartida.consumir_aventurero()
 	if not datos_aventurero.is_empty() and not ficha_jugador.configurar_creacion(datos_aventurero):
 		push_error("La ficha se creó con valores por defecto: datos de aventurero inválidos.")
+	ficha_jugador.inventario.agregar(ItemInstancia.new(
+		&"jugador_antorchas_iniciales", DEFINICION_ANTORCHA, 3
+	))
+	ficha_jugador.activar_antorcha_si_necesario()
 	zona_actual.add_child(ficha_jugador)
 	ficha_jugador.inicializar(coord_inicio, capa_suelo)
 	ficha_jugador.paso_dado.connect(_on_ficha_paso_dado)
@@ -677,23 +684,32 @@ func _obtener_coordenada_spawn(
 
 func _on_ficha_paso_dado(nueva_coord: Vector2i) -> void:
 	_reproducir_sonido_paso()
-	ficha_jugador.pasos_antorcha_actual -= 1
-	if ficha_jugador.pasos_antorcha_actual <= 0:
-		var tiene_luz := ficha_jugador.consumir_o_recargar_antorcha()
-		if not tiene_luz:
-			print("El jugador se ha quedado completamente a oscuras.")
+	if not ficha_jugador.consumir_paso_antorcha():
+		print("El jugador se ha quedado completamente a oscuras.")
+	hud.actualizar_desde_ficha()
 	_actualizar_luz_jugador(nueva_coord)
 
+func _on_pasar_turno_hud() -> void:
+	if ficha_jugador == null or ficha_jugador.esta_moviendose or interaccion_modal_activa:
+		return
+	_avanzar_turno_exploracion(ficha_jugador)
+
 func _actualizar_luz_jugador(coordenada: Vector2i) -> void:
-	if ficha_jugador.pasos_antorcha_actual <= 0 and ficha_jugador.antorchas <= 0:
+	var antorcha := ficha_jugador.obtener_antorcha_activa()
+	if antorcha == null:
 		gestor_vision.actualizar_vision(coordenada, 1)
 	else:
-		var radio_actual: float = 5.0
-		if ficha_jugador.pasos_antorcha_actual <= 10:
-			var porcentaje_final := float(max(0, ficha_jugador.pasos_antorcha_actual)) / 10.0
-			radio_actual = max(1.0, porcentaje_final * 5.0)
+		var radio_actual := float(antorcha.radio_vision)
+		if antorcha.pasos_atenuacion > 0 and ficha_jugador.pasos_antorcha_actual <= antorcha.pasos_atenuacion:
+			var porcentaje_final := float(ficha_jugador.pasos_antorcha_actual) / antorcha.pasos_atenuacion
+			radio_actual = maxf(1.0, porcentaje_final * antorcha.radio_vision)
 		gestor_vision.actualizar_vision(coordenada, int(radio_actual))
 	_evaluar_percepcion_trampas()
+
+
+func _actualizar_luz_al_cargar() -> void:
+	if ficha_jugador != null:
+		_actualizar_luz_jugador(ficha_jugador.coordenada_mapa)
 
 
 func _evaluar_percepcion_trampas() -> void:
@@ -1300,42 +1316,6 @@ func _colocar_piedra_prueba() -> void:
 		return
 
 
-func _colocar_llave_prueba() -> void:
-	var direcciones: Array[Vector2i] = [Vector2i.LEFT, Vector2i.UP, Vector2i.DOWN, Vector2i.RIGHT]
-	for direccion in direcciones:
-		var coord := ficha_jugador.coordenada_mapa + direccion
-		if tablero.validar_colocacion_item_suelo(coord, ficha_jugador) != &"":
-			continue
-		if not tablero.obtener_celda(coord).items_suelo.is_empty():
-			continue
-		var llave := ItemSuelo.new(ItemInstancia.new(
-			&"zona1_llave_prueba",
-			DEFINICION_LLAVE_PRUEBA,
-			1
-		))
-		llave.configurar_transferidor_items(transferidor_items)
-		tablero.registrar_item_suelo(coord, llave)
-		return
-
-
-func _colocar_bomba_humo_prueba() -> void:
-	var direcciones: Array[Vector2i] = [Vector2i.ZERO, Vector2i.DOWN, Vector2i.RIGHT, Vector2i.UP, Vector2i.LEFT]
-	for direccion in direcciones:
-		var coord := ficha_jugador.coordenada_mapa + direccion
-		if tablero.validar_colocacion_item_suelo(coord, ficha_jugador) != &"":
-			continue
-		if not tablero.obtener_celda(coord).items_suelo.is_empty():
-			continue
-		var bomba := ItemSuelo.new(ItemInstancia.new(
-			&"zona1_bomba_humo",
-			DEFINICION_BOMBA_HUMO,
-			1
-		))
-		bomba.configurar_transferidor_items(transferidor_items)
-		tablero.registrar_item_suelo(coord, bomba)
-		return
-
-
 func _on_item_suelo_registrado(coord: Vector2i, item_suelo: ItemSuelo) -> void:
 	if item_suelo.item.definicion.escena_mundo == null:
 		return
@@ -1354,6 +1334,13 @@ func _on_item_suelo_retirado(_coord: Vector2i, item_suelo: ItemSuelo) -> void:
 	var representacion := item_suelo.obtener_representacion()
 	if representacion != null:
 		representacion.queue_free()
+	if (
+		ficha_jugador != null
+		and item_suelo.item.definicion.id_definicion == &"antorcha"
+	):
+		ficha_jugador.activar_antorcha_si_necesario()
+		hud.actualizar_desde_ficha()
+		_actualizar_luz_jugador(ficha_jugador.coordenada_mapa)
 
 
 func _soltar_unico_item_prueba() -> void:

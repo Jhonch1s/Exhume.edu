@@ -227,8 +227,9 @@ cada CofreInteractuable. Al iniciar, el cofre valida todas las entradas antes de
 asignar el inventario y crea IDs `<id_cofre>:contenido:<indice>`.
 La cantidad de una entrada debe caber en una pila; no se desborda a otras.
 
-Los tres objetos de prueba del suelo se crean expresamente en EscenarioBase:
-`_colocar_piedra_prueba`, `_colocar_llave_prueba`, `_colocar_bomba_humo_prueba`.
+La piedra de prueba del suelo se crea expresamente en EscenarioBase con
+`_colocar_piedra_prueba`. La llave y la bomba de humo de prueba sólo se crean
+durante las pruebas de integración.
 No existe todavía un nodo genérico de autoría de ItemSuelo con definición,
 cantidad e ID exportados para colocarlo desde el Inspector.
 
@@ -244,8 +245,10 @@ IDs se validan junto con los del inventario del jugador y los ítems del suelo.
 No están modelados hoy: rareza, precio, categoría de equipo, daño de arma,
 ranura de equipo, requisitos de uso, cargas,
 durabilidad por ejemplar, propietario persistente, recetas, sonidos generales,
-acciones de comer/beber/equipar ni un inventario por peso. Antorchas y raciones
-de Ficha son contadores separados, no definiciones de ítem de este sistema.
+acciones de comer/beber/equipar ni un inventario por peso. Las antorchas son
+definiciones de ítem del inventario; la Ficha conserva únicamente el desgaste
+de la antorcha activa. Las raciones aún no están migradas y siguen siendo un
+contador separado.
 
 ## Habilidades y modificadores futuros
 

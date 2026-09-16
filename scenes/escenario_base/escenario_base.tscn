@@ -16,6 +16,7 @@
 [ext_resource type="PackedScene" uid="uid://cj78e6l5ebb42" path="res://scenes/ui/interacciones/panel_examen_ilustrado.tscn" id="13_panel_examen"]
 [ext_resource type="PackedScene" uid="uid://ctjcxiiq4gyyg" path="res://assets/characters/knight3d/modelomago2.glb" id="14_lmwd1"]
 [ext_resource type="PackedScene" uid="uid://c87w474pswjrx" path="res://assets/characters/knight3d/ladronmodelo.glb" id="16_0resi"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud/hud.tscn" id="17_hud"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_m8dhx"]
 texture = ExtResource("2_85xdd")
@@ -85,14 +86,13 @@ mouse_filter = 2
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=592841260]
 layer = 2
 
+[node name="HUD" parent="CanvasLayer" unique_id=207001 instance=ExtResource("17_hud")]
+
 [node name="PanelResultadoAccion" parent="CanvasLayer" unique_id=1054421084 instance=ExtResource("9_panel_resultado")]
 
 [node name="PanelExamenIlustrado" parent="CanvasLayer" unique_id=1214408067 instance=ExtResource("13_panel_examen")]
 
 [node name="MenuContextualInteracciones" parent="CanvasLayer" unique_id=1288888575 instance=ExtResource("11_menu_contextual")]
-
-[node name="PanelRegistroNarrativo" parent="CanvasLayer" unique_id=1606207479 instance=ExtResource("12_registro_narrativo")]
-anchors_preset = 1
 
 [node name="PanelInventarioCofre" parent="CanvasLayer" unique_id=131137301 instance=ExtResource("11_e1m65")]
 
