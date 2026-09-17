@@ -13,9 +13,17 @@ consecuencias. El motor nunca aplica daño, estados, revelaciones ni reacciones.
 ## Prueba básica de Exhume
 
 Una prueba ordinaria tira `1d6` y tiene éxito cuando el dado es menor o igual que
-el atributo relevante. Los valores efectivos de prueba permanecen entre 1 y 5:
+el atributo relevante. Los atributos base de prueba permanecen entre 1 y 5:
 las acciones imposibles se bloquean sin tirar y las triviales pueden resolverse
 automáticamente.
+
+Una prueba puede recibir modificadores enteros identificados por fuente, por ejemplo
+un objeto equipado. Se suman al atributo base para obtener el objetivo efectivo:
+atributo 3 con bono +2 permite superar la prueba con un dado de 5 o menos. Los
+modificadores no alteran la cara natural: el 1 sigue siendo crítico y el 6 pifia,
+incluso si el objetivo efectivo queda fuera de 1..5. Sin modificadores, el
+comportamiento es el mismo que antes. Las fuentes y valores se conservan en el
+resultado y en el historial para explicar la cuenta.
 
 El orden de resolución es obligatorio:
 
@@ -88,16 +96,17 @@ antes de consumir azar. Estas propiedades son independientes: una tirada automá
 puede usar `PRIMER_PLANO` y una solicitada puede usar `SOLO_LOG`.
 
 Desde 14.4, el panel reutilizable de resultados acepta también cantidades y pruebas
-ya resueltas mediante `mostrar_tirada()`. Para una prueba muestra modo, dados en orden,
-dado seleccionado, atributo, clasificación y éxito/fallo; para una cantidad muestra
+ya resueltas mediante `mostrar_tirada()`. Para una prueba muestra el objetivo efectivo,
+uno o dos dados, el dado seleccionado, ventaja o desventaja si aplica, el veredicto
+y la cuenta de los bonos cuando los hay; para una cantidad muestra
 términos, dados, total y efectivo. Rechaza resultados inválidos y `SOLO_LOG` sin
 abrirse. Presentar no recibe un motor ni consume azar. El panel muestra ahora el
 modelo 3D `dadico.glb` en las pruebas `PRIMER_PLANO`: uno o dos dados según el modo,
 con el no seleccionado atenuado. Cada dado gira hasta la cara ya resuelta. Las
 tiradas de cantidad mantienen su presentación textual; no se simulan modelos para
 dados que no sean d6.
-Durante el giro, el modal muestra «Lanzando dados…». Revela los valores, la
-clasificación y los mensajes de consecuencia al finalizar; el resultado lógico ya
+Durante el giro, el modal mantiene oculto el veredicto. Revela el valor seleccionado,
+la clasificación y los mensajes de consecuencia al finalizar; el resultado lógico ya
 estaba fijado antes de iniciar la animación.
 
 La vertical 14.5 utilizó temporalmente la palanca de Zona 1 para probar la
@@ -122,7 +131,7 @@ resultados individuales ordenados, subtotales, total calculado y total efectivo.
 El generador puede inyectarse ya configurado con una semilla para pruebas. El motor
 crea y aleatoriza uno propio cuando no se inyecta. No requiere nodos ni árbol activo.
 
-Desde 14.2, `MotorDados.resolver_prueba()` acepta un atributo efectivo entero entre
+Desde 14.2, `MotorDados.resolver_prueba()` acepta un atributo base entero entre
 1 y 5 y listas de IDs de fuentes de ventaja y desventaja. Conserva ambas listas y
 las cancela por cantidad: balance positivo tira `2d6` y selecciona el menor, balance
 negativo selecciona el mayor y balance cero tira `1d6`. Sólo el dado seleccionado

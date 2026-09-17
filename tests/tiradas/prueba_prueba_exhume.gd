@@ -7,6 +7,7 @@ func _init() -> void:
 	_probar_comparacion_y_extremos()
 	_probar_ventaja_y_desventaja()
 	_probar_cancelacion_y_copias()
+	_probar_modificadores()
 	_probar_rechazo_sin_tirar()
 
 	if _fallos.is_empty():
@@ -88,6 +89,74 @@ func _probar_rechazo_sin_tirar() -> void:
 	_comprobar(
 		not resultado.valida and resultado.dados.is_empty() and generador.state == estado,
 		"Un atributo fuera de 1..5 debe rechazarse sin consumir azar."
+	)
+	var invalida := MotorDados.new(generador).resolver_prueba(
+		3, [], [], TiposTirada.Origen.SOLICITADA,
+		TiposTirada.Presentacion.PRIMER_PLANO,
+		[{&"fuente": &"anillo", &"valor": 1.5}]
+	)
+	_comprobar(
+		not invalida.valida and generador.state == estado,
+		"Un bono no entero debe rechazarse sin consumir azar."
+	)
+
+
+func _probar_modificadores() -> void:
+	var semilla := 0
+	for candidata in 1000:
+		if _motor_con_semilla(candidata).resolver_prueba(3).dado_seleccionado == 4:
+			semilla = candidata
+			break
+	var modificadores: Array[Dictionary] = [{&"fuente": &"anillo", &"valor": 2}]
+	var sin_bono := _motor_con_semilla(semilla).resolver_prueba(3)
+	var con_bono := _motor_con_semilla(semilla).resolver_prueba(
+		3, [], [], TiposTirada.Origen.SOLICITADA,
+		TiposTirada.Presentacion.PRIMER_PLANO, modificadores
+	)
+	modificadores[0][&"valor"] = 99
+	var copia := con_bono.modificadores
+	copia[0][&"valor"] = 99
+	_comprobar(
+		not sin_bono.exitosa and con_bono.exitosa
+		and con_bono.dado_seleccionado == 4
+		and con_bono.bono_total == 2
+		and con_bono.atributo_efectivo == 5
+		and con_bono.modificadores[0][&"valor"] == 2,
+		"El bono debe aumentar el objetivo y conservar copias defensivas."
+	)
+	var penalizada := _motor_con_semilla(semilla).resolver_prueba(
+		5, [], [], TiposTirada.Origen.SOLICITADA,
+		TiposTirada.Presentacion.PRIMER_PLANO,
+		[{&"fuente": &"herida", &"valor": -2}]
+	)
+	_comprobar(
+		penalizada.atributo_efectivo == 3 and not penalizada.exitosa,
+		"Una penalización debe reducir el objetivo efectivo."
+	)
+	var critico_con_penalizacion: ResultadoPrueba
+	var pifia_con_bono: ResultadoPrueba
+	for candidata in 1000:
+		var prueba := _motor_con_semilla(candidata).resolver_prueba(3)
+		if prueba.dado_seleccionado == 1 and critico_con_penalizacion == null:
+			critico_con_penalizacion = _motor_con_semilla(candidata).resolver_prueba(
+				1, [], [], TiposTirada.Origen.SOLICITADA,
+				TiposTirada.Presentacion.PRIMER_PLANO,
+				[{&"fuente": &"herida", &"valor": -5}]
+			)
+		if prueba.dado_seleccionado == 6 and pifia_con_bono == null:
+			pifia_con_bono = _motor_con_semilla(candidata).resolver_prueba(
+				5, [], [], TiposTirada.Origen.SOLICITADA,
+				TiposTirada.Presentacion.PRIMER_PLANO,
+				[{&"fuente": &"anillo", &"valor": 5}]
+			)
+		if critico_con_penalizacion != null and pifia_con_bono != null:
+			break
+	_comprobar(
+		critico_con_penalizacion != null and critico_con_penalizacion.exitosa
+		and critico_con_penalizacion.clasificacion == ResultadoPrueba.Clasificacion.CRITICO
+		and pifia_con_bono != null and not pifia_con_bono.exitosa
+		and pifia_con_bono.clasificacion == ResultadoPrueba.Clasificacion.PIFIA,
+		"Los extremos naturales deben prevalecer sobre los modificadores."
 	)
 
 

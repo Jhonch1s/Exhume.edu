@@ -51,10 +51,15 @@ const RETRATOS_POR_CLASE := {
 var ficha: Ficha
 var vida_objetivo := -1.0
 var energia_objetivo := -1.0
+var estado_hover: Control
+var tooltip_estado: PanelContainer
 
 
 func _ready() -> void:
 	pasar_turno.pressed.connect(func(): pasar_turno_solicitado.emit())
+	for panel in estados:
+		panel.mouse_entered.connect(_mostrar_tooltip_estado.bind(panel))
+		panel.mouse_exited.connect(_ocultar_tooltip_estado)
 	antorcha.visible = false
 	for boton in habilidades + items_rapidos + [pasar_turno]:
 		_conectar_feedback_boton(boton)
@@ -206,6 +211,7 @@ func _animar_barra(barra: ProgressBar, valor: float) -> void:
 
 func _actualizar_estados(_clave: StringName = &"", _estado: EstadoActor = null) -> void:
 	if ficha == null:
+		_ocultar_tooltip_estado()
 		for panel in estados:
 			panel.visible = false
 		return
@@ -222,6 +228,41 @@ func _actualizar_estados(_clave: StringName = &"", _estado: EstadoActor = null) 
 		var icono := panel.get_node("Icono") as Label
 		icono.text = String(clave).left(1).to_upper()
 		icono.modulate = _color_estado(clave)
+	if estado_hover != null:
+		_mostrar_tooltip_estado(estado_hover)
+
+
+func _mostrar_tooltip_estado(panel: Control) -> void:
+	_ocultar_tooltip_estado()
+	if not panel.visible or panel.tooltip_text.is_empty():
+		return
+	estado_hover = panel
+	tooltip_estado = panel.call(&"_make_custom_tooltip", panel.tooltip_text) as PanelContainer
+	tooltip_estado.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for hijo in tooltip_estado.get_children():
+		(hijo as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+		for nieto in hijo.get_children():
+			(nieto as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tooltip_estado.z_index = 10
+	$HUDRoot.add_child(tooltip_estado)
+	tooltip_estado.reset_size()
+	var pantalla := get_viewport_rect().size
+	var ancla := panel.get_global_rect()
+	tooltip_estado.global_position = Vector2(
+		clampf(ancla.position.x, 0.0, maxf(0.0, pantalla.x - tooltip_estado.size.x)),
+		clampf(
+			ancla.position.y - tooltip_estado.size.y - 8.0,
+			0.0,
+			maxf(0.0, pantalla.y - tooltip_estado.size.y)
+		)
+	)
+
+
+func _ocultar_tooltip_estado() -> void:
+	estado_hover = null
+	if tooltip_estado != null:
+		tooltip_estado.free()
+		tooltip_estado = null
 
 
 func _descripcion_estado(clave: StringName, estado: EstadoActor) -> String:

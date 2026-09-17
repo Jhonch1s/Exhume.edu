@@ -38,5 +38,6 @@ VistaDado3D expone tamano_pixel (1 a 6) en el Inspector. Valor inicial: 3. Usa s
 
 ## Contorno exterior
 
-contorno_dado.gdshader procesa únicamente el alfa del SubViewport. Solo añade color donde el píxel original es totalmente transparente: no cambia la piedra, las runas ni las aristas internas. El material es local a cada instancia y respeta la modulación del modal. En VistaDado3D, Grosor Contorno (0 desactiva, 1 por defecto, hasta 3) se mide en píxeles del render reducido; Color Contorno permite elegir el tono. Se conserva el Tamano Pixel 5 elegido en la escena por el usuario. Verificado en GL Compatibility con seis caras y tirada doble; capturas seis_caras_contorno.png y seis_caras_sin_contorno.png.
+contorno_dado.gdshader procesa únicamente el alfa del SubViewport. Rellena con el color del contorno la cobertura transparente del borde, componiéndolo detrás del modelo; conserva intactos los píxeles opacos de piedra y runas. El material es local a cada instancia y respeta la modulación del modal. En VistaDado3D, Grosor Contorno (0 desactiva, 1 por defecto, hasta 3) usa 1 para rellenar el borde y 2–3 para añadir 1–2 píxeles exteriores del render reducido; Color Contorno permite elegir el tono. Se conserva el Tamano Pixel 5 elegido en la escena por el usuario. Verificado en GL Compatibility con seis caras y tirada doble; capturas seis_caras_contorno.png y seis_caras_sin_contorno.png.
+
 

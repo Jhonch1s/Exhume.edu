@@ -13,7 +13,8 @@ func _init() -> void:
 		[&"luz"],
 		[&"distancia"],
 		TiposTirada.Origen.AUTOMATICA,
-		TiposTirada.Presentacion.PRIMER_PLANO
+		TiposTirada.Presentacion.PRIMER_PLANO,
+		[{&"fuente": &"anillo", &"valor": 2}]
 	)
 	var solicitada := motor.resolver(
 		[{&"cantidad": 1, &"caras": 3, &"signo": 1}],
@@ -38,6 +39,7 @@ func _init() -> void:
 		historial.obtener_entradas().size() == 2
 		and "AUTOMATICA | PRIMER_PLANO" in historial.obtener_entradas()[0]
 		and "ventaja=[luz] desventaja=[distancia]" in historial.obtener_entradas()[0]
+		and "objetivo=5 bonos=[anillo:+2]" in historial.obtener_entradas()[0]
 		and "SOLICITADA | SOLO_LOG" in historial.obtener_entradas()[1]
 		and "terminos=+1d3=" in historial.obtener_entradas()[1],
 		"Debe conservar un texto explicable y copias defensivas, incluso para SOLO_LOG."

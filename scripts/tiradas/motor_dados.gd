@@ -58,10 +58,11 @@ func resolver_prueba(
 	fuentes_ventaja: Array[StringName] = [],
 	fuentes_desventaja: Array[StringName] = [],
 	origen: Variant = TiposTirada.Origen.SOLICITADA,
-	presentacion: Variant = TiposTirada.Presentacion.PRIMER_PLANO
+	presentacion: Variant = TiposTirada.Presentacion.PRIMER_PLANO,
+	modificadores: Array[Dictionary] = []
 ) -> ResultadoPrueba:
 	var motivo := _validar_prueba(
-		atributo, fuentes_ventaja, fuentes_desventaja, origen, presentacion
+		atributo, fuentes_ventaja, fuentes_desventaja, origen, presentacion, modificadores
 	)
 	if motivo != &"":
 		return ResultadoPrueba.new(false, motivo)
@@ -88,7 +89,10 @@ func resolver_prueba(
 		clasificacion = ResultadoPrueba.Clasificacion.CRITICO
 	elif seleccionado == 6:
 		clasificacion = ResultadoPrueba.Clasificacion.PIFIA
-	var exitosa: bool = seleccionado <= atributo
+	var bono_total := 0
+	for modificador in modificadores:
+		bono_total += modificador[&"valor"]
+	var exitosa: bool = seleccionado <= atributo + bono_total
 	if clasificacion == ResultadoPrueba.Clasificacion.CRITICO:
 		exitosa = true
 	elif clasificacion == ResultadoPrueba.Clasificacion.PIFIA:
@@ -105,7 +109,8 @@ func resolver_prueba(
 		clasificacion,
 		exitosa,
 		origen,
-		presentacion
+		presentacion,
+		modificadores
 	)
 
 
@@ -145,7 +150,8 @@ func _validar_prueba(
 	fuentes_ventaja: Array[StringName],
 	fuentes_desventaja: Array[StringName],
 	origen: Variant,
-	presentacion: Variant
+	presentacion: Variant,
+	modificadores: Array[Dictionary]
 ) -> StringName:
 	var motivo_politica := _validar_politica(origen, presentacion)
 	if motivo_politica != &"":
@@ -155,6 +161,15 @@ func _validar_prueba(
 	for fuente in fuentes_ventaja + fuentes_desventaja:
 		if fuente == &"":
 			return &"fuente_prueba_invalida"
+	for modificador in modificadores:
+		if (
+			not modificador.has(&"fuente")
+			or typeof(modificador[&"fuente"]) != TYPE_STRING_NAME
+			or modificador[&"fuente"] == &""
+			or not modificador.has(&"valor")
+			or typeof(modificador[&"valor"]) != TYPE_INT
+		):
+			return &"modificador_prueba_invalido"
 	return &""
 
 

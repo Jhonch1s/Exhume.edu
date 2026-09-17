@@ -523,9 +523,16 @@ func _registrar_resultado_narrativo(
 		return
 	var detalles: Array[String] = []
 	if resultado.tirada is ResultadoPrueba:
-		detalles.append("%s %d → %d, %s" % [
+		var bono: int = resultado.tirada.bono_total
+		var ajuste := ""
+		if bono != 0:
+			ajuste = " %s %d = %d" % [
+				"+" if bono > 0 else "−", absi(bono), resultado.tirada.atributo_efectivo
+			]
+		detalles.append("%s %d%s → dado %d, %s" % [
 			etiqueta_atributo,
 			resultado.tirada.atributo,
+			ajuste,
 			resultado.tirada.dado_seleccionado,
 			"éxito" if resultado.tirada.exitosa else "fallo",
 		])

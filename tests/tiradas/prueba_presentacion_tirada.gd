@@ -23,7 +23,11 @@ func _ejecutar() -> void:
 	var generador := RandomNumberGenerator.new()
 	generador.seed = 144
 	var motor := MotorDados.new(generador)
-	var prueba := motor.resolver_prueba(3, [&"luz"])
+	var prueba := motor.resolver_prueba(
+		3, [&"luz"], [], TiposTirada.Origen.SOLICITADA,
+		TiposTirada.Presentacion.PRIMER_PLANO,
+		[{&"fuente": &"anillo", &"valor": 2}]
+	)
 	var estado_resuelto := generador.state
 	var presentadas := [0]
 	panel.tirada_presentada.connect(func(resultado):
@@ -34,7 +38,9 @@ func _ejecutar() -> void:
 		panel.mostrar_tirada("Prueba de percepción", prueba)
 		and panel.visible
 		and panel.etiqueta_titulo.text == "Prueba de percepción"
-		and panel.etiqueta_mensajes.text == "Lanzando dados…"
+		and panel.etiqueta_objetivo.text == "OBJETIVO  ·  5 O MENOS"
+		and "Base 3 +2 Anillo  =  5" in panel.etiqueta_bonos.text
+		and not panel.etiqueta_veredicto.visible
 		and panel.contenedor_dados.visible
 		and panel.vista_dado_2.visible == (prueba.dados.size() == 2)
 		and presentadas[0] == 1
@@ -43,9 +49,9 @@ func _ejecutar() -> void:
 	)
 	await create_timer(1.5).timeout
 	_comprobar(
-		"Modo: Ventaja" in panel.etiqueta_mensajes.text
-		and "Dados:" in panel.etiqueta_mensajes.text
-		and "Seleccionado: %d" % prueba.dado_seleccionado in panel.etiqueta_mensajes.text
+		panel.etiqueta_veredicto.visible
+		and "%d" % prueba.dado_seleccionado in panel.etiqueta_veredicto.text
+		and panel.etiqueta_objetivo.visible
 		and generador.state == estado_resuelto,
 		"La animación debe revelar el resultado resuelto sin consumir azar adicional."
 	)
@@ -55,6 +61,15 @@ func _ejecutar() -> void:
 		is_equal_approx(panel.vista_dado_1.get_node("SubViewport/PivoteDado").rotation_degrees.y, 270.0),
 		"La cara 1 debe mirar a cámara en la orientación calibrada."
 	)
+	var prueba_sin_bono := motor.resolver_prueba(3)
+	_comprobar(
+		panel.mostrar_tirada("Sin bono", prueba_sin_bono)
+		and panel.etiqueta_objetivo.text == "OBJETIVO  ·  3 O MENOS"
+		and not panel.etiqueta_bonos.visible
+		and not panel.antetitulo.visible,
+		"Una prueba normal debe ocultar bono y modo cuando no aplican."
+	)
+	panel.ocultar()
 	var mallas := panel.vista_dado_1.get_node("SubViewport/PivoteDado/Dado").find_children(
 		"*", "MeshInstance3D", true, false
 	)
@@ -74,7 +89,8 @@ func _ejecutar() -> void:
 	_comprobar(
 		panel.mostrar_tirada("Cantidad", cantidad)
 		and "+1d3:" in panel.etiqueta_mensajes.text
-		and "Total: %d" % cantidad.total_calculado in panel.etiqueta_mensajes.text,
+		and "Total: %d" % cantidad.total_calculado in panel.etiqueta_mensajes.text
+		and not panel.etiqueta_objetivo.visible,
 		"El mismo panel debe presentar cantidades resueltas."
 	)
 	panel.ocultar()

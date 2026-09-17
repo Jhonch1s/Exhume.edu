@@ -18,6 +18,7 @@ func _lanzar_prueba() -> void:
 		[&"demostracion"],
 		[],
 		TiposTirada.Origen.SOLICITADA,
-		TiposTirada.Presentacion.PRIMER_PLANO
+		TiposTirada.Presentacion.PRIMER_PLANO,
+		[{&"fuente": &"amuleto", &"valor": 2}]
 	)
-	panel.mostrar_tirada("Prueba de Destreza", resultado, ["Ejemplo visual del modal."])
+	panel.mostrar_tirada("Prueba de Destreza", resultado)

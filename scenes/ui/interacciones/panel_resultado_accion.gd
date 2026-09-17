@@ -12,6 +12,8 @@ signal cerrado
 @onready var etiqueta_titulo: Label = $Margen/Contenido/Titulo
 @onready var etiqueta_mensajes: Label = $Margen/Contenido/Mensajes
 @onready var etiqueta_veredicto: Label = $Margen/Contenido/Veredicto
+@onready var etiqueta_objetivo: Label = $Margen/Contenido/Objetivo
+@onready var etiqueta_bonos: Label = $Margen/Contenido/Bonos
 @onready var antetitulo: Label = $Margen/Contenido/Antetitulo
 @onready var boton_cerrar: Button = $Margen/Contenido/Cerrar
 @onready var contenedor_dados: HBoxContainer = $Margen/Contenido/Dados
@@ -36,10 +38,15 @@ func mostrar_resultado(
 	etiqueta_titulo.text = titulo
 	_prueba_pendiente = null
 	etiqueta_mensajes.text = _componer_mensajes(resultado, catalogo)
+	etiqueta_mensajes.visible = not etiqueta_mensajes.text.is_empty()
 	etiqueta_veredicto.visible = false
+	etiqueta_objetivo.visible = false
+	etiqueta_bonos.visible = false
 	antetitulo.text = "R E S U L T A D O"
+	antetitulo.visible = true
 	contenedor_dados.visible = false
 	visible = true
+	_ajustar_altura()
 	boton_cerrar.grab_focus()
 	resultado_presentado.emit(resultado)
 
@@ -56,20 +63,34 @@ func mostrar_tirada(
 	):
 		return false
 	etiqueta_titulo.text = titulo
-	antetitulo.text = "T I R A D A   D E   D A D O S"
-	etiqueta_veredicto.visible = resultado is ResultadoPrueba
-	etiqueta_veredicto.text = " "
-	_texto_tirada_pendiente = (
-		_componer_prueba(resultado)
-		if resultado is ResultadoPrueba
-		else _componer_cantidad(resultado)
-	)
-	if not mensajes.is_empty():
-		_texto_tirada_pendiente += separador_mensajes + separador_mensajes.join(mensajes)
+	etiqueta_veredicto.visible = false
+	if resultado is ResultadoPrueba:
+		antetitulo.visible = resultado.modo != ResultadoPrueba.Modo.NORMAL
+		antetitulo.text = (
+			"V E N T A J A" if resultado.modo == ResultadoPrueba.Modo.VENTAJA
+			else "D E S V E N T A J A"
+		)
+		etiqueta_objetivo.text = "OBJETIVO  ·  %d O MENOS" % resultado.atributo_efectivo
+		etiqueta_objetivo.visible = true
+		etiqueta_bonos.text = _componer_bonos(resultado)
+		etiqueta_bonos.visible = not resultado.modificadores.is_empty()
+		_texto_tirada_pendiente = separador_mensajes.join(mensajes)
+		etiqueta_mensajes.text = ""
+		etiqueta_mensajes.visible = false
+	else:
+		antetitulo.text = "T I R A D A"
+		antetitulo.visible = true
+		etiqueta_objetivo.visible = false
+		etiqueta_bonos.visible = false
+		_texto_tirada_pendiente = _componer_cantidad(resultado)
+		if not mensajes.is_empty():
+			_texto_tirada_pendiente += separador_mensajes + separador_mensajes.join(mensajes)
+		etiqueta_mensajes.text = _texto_tirada_pendiente
+		etiqueta_mensajes.visible = true
 	_prueba_pendiente = resultado if resultado is ResultadoPrueba else null
-	etiqueta_mensajes.text = "Lanzando dados…" if _prueba_pendiente != null else _texto_tirada_pendiente
 	_mostrar_dados_prueba(resultado)
 	visible = true
+	_ajustar_altura()
 	boton_cerrar.grab_focus()
 	tirada_presentada.emit(resultado)
 	return true
@@ -92,10 +113,14 @@ func _revelar_tirada() -> void:
 	if not visible or _prueba_pendiente == null:
 		return
 	etiqueta_mensajes.text = _texto_tirada_pendiente
-	etiqueta_veredicto.text = "%s · %s" % [
-		"ÉXITO" if _prueba_pendiente.exitosa else "FALLO",
-		String(ResultadoPrueba.Clasificacion.keys()[_prueba_pendiente.clasificacion]).to_upper().replace("CRITICO", "CRÍTICO"),
-	]
+	etiqueta_mensajes.visible = not _texto_tirada_pendiente.is_empty()
+	var estado := "ÉXITO" if _prueba_pendiente.exitosa else "FALLO"
+	if _prueba_pendiente.clasificacion == ResultadoPrueba.Clasificacion.CRITICO:
+		estado = "ÉXITO CRÍTICO"
+	elif _prueba_pendiente.clasificacion == ResultadoPrueba.Clasificacion.PIFIA:
+		estado = "PIFIA"
+	etiqueta_veredicto.text = "%d  ·  %s" % [_prueba_pendiente.dado_seleccionado, estado]
+	etiqueta_veredicto.visible = true
 	etiqueta_veredicto.add_theme_color_override("font_color",
 		Color("365247") if _prueba_pendiente.exitosa else Color("883d32"))
 	var dados := _prueba_pendiente.dados
@@ -105,6 +130,16 @@ func _revelar_tirada() -> void:
 		else:
 			vista_dado_1.modulate.a = 0.45
 	_prueba_pendiente = null
+	_ajustar_altura()
+
+
+func _ajustar_altura() -> void:
+	await get_tree().process_frame
+	if not visible:
+		return
+	var mitad_altura := get_combined_minimum_size().y * 0.5
+	offset_top = -mitad_altura
+	offset_bottom = mitad_altura
 
 
 func ocultar() -> void:
@@ -137,13 +172,13 @@ func _componer_mensajes(
 	return separador_mensajes.join(lineas)
 
 
-func _componer_prueba(resultado: ResultadoPrueba) -> String:
-	return "Modo: %s   ·   Atributo: %d\nDados: %s   ·   Seleccionado: %d" % [
-		String(ResultadoPrueba.Modo.keys()[resultado.modo]).capitalize(),
-		resultado.atributo,
-		_formatear_dados(resultado.dados),
-		resultado.dado_seleccionado,
-	]
+func _componer_bonos(resultado: ResultadoPrueba) -> String:
+	var partes: Array[String] = ["Base %d" % resultado.atributo]
+	for modificador in resultado.modificadores:
+		var valor: int = modificador[&"valor"]
+		var fuente := String(modificador[&"fuente"]).replace("_", " ").capitalize()
+		partes.append("%s%d %s" % ["+" if valor >= 0 else "−", absi(valor), fuente])
+	return " ".join(partes) + "  =  %d" % resultado.atributo_efectivo
 
 
 func _componer_cantidad(resultado: ResultadoTirada) -> String:

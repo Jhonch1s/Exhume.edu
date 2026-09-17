@@ -23,17 +23,29 @@ func limpiar() -> void:
 
 
 func _formatear_prueba(resultado: ResultadoPrueba) -> String:
-	return "%s | %s | dados=%s seleccionado=%d atributo=%d | %s | %s | ventaja=%s desventaja=%s" % [
+	return "%s | %s | dados=%s seleccionado=%d atributo=%d objetivo=%d bonos=%s | %s | %s | ventaja=%s desventaja=%s" % [
 		_nombre(TiposTirada.Origen, resultado.origen),
 		_nombre(TiposTirada.Presentacion, resultado.presentacion),
 		str(resultado.dados),
 		resultado.dado_seleccionado,
 		resultado.atributo,
+		resultado.atributo_efectivo,
+		_formatear_modificadores(resultado.modificadores),
 		_nombre(ResultadoPrueba.Clasificacion, resultado.clasificacion),
 		"EXITO" if resultado.exitosa else "FALLO",
 		_formatear_fuentes(resultado.fuentes_ventaja),
 		_formatear_fuentes(resultado.fuentes_desventaja),
 	]
+
+
+func _formatear_modificadores(modificadores: Array[Dictionary]) -> String:
+	var partes: Array[String] = []
+	for modificador in modificadores:
+		var valor: int = modificador[&"valor"]
+		partes.append("%s:%s%d" % [
+			modificador[&"fuente"], "+" if valor >= 0 else "-", absi(valor)
+		])
+	return "[" + ", ".join(partes) + "]"
 
 
 func _formatear_cantidad(resultado: ResultadoTirada) -> String:

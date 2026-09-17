@@ -33,6 +33,18 @@ var atributo: int:
 	get:
 		return _atributo
 
+var modificadores: Array[Dictionary]:
+	get:
+		return _modificadores.duplicate(true)
+
+var bono_total: int:
+	get:
+		return _bono_total
+
+var atributo_efectivo: int:
+	get:
+		return _atributo + _bono_total
+
 var fuentes_ventaja: Array[StringName]:
 	get:
 		return _fuentes_ventaja.duplicate()
@@ -66,6 +78,8 @@ var _motivo: StringName
 var _dados: Array[int]
 var _dado_seleccionado: int
 var _atributo: int
+var _modificadores: Array[Dictionary]
+var _bono_total: int
 var _fuentes_ventaja: Array[StringName]
 var _fuentes_desventaja: Array[StringName]
 var _modo: Modo
@@ -87,13 +101,20 @@ func _init(
 	clasificacion_inicial: Clasificacion = Clasificacion.NORMAL,
 	exitosa_inicial: bool = false,
 	origen_inicial: TiposTirada.Origen = TiposTirada.Origen.SOLICITADA,
-	presentacion_inicial: TiposTirada.Presentacion = TiposTirada.Presentacion.PRIMER_PLANO
+	presentacion_inicial: TiposTirada.Presentacion = TiposTirada.Presentacion.PRIMER_PLANO,
+	modificadores_iniciales: Array[Dictionary] = []
 ) -> void:
 	_valida = valida_inicial
 	_motivo = &"" if valida_inicial else motivo_inicial
 	_dados = dados_iniciales.duplicate()
 	_dado_seleccionado = dado_inicial if valida_inicial else 0
 	_atributo = atributo_inicial if valida_inicial else 0
+	_modificadores = modificadores_iniciales.duplicate(true)
+	if not valida_inicial:
+		_modificadores.clear()
+	_bono_total = 0
+	for modificador in _modificadores:
+		_bono_total += modificador[&"valor"]
 	_fuentes_ventaja = ventajas_iniciales.duplicate()
 	_fuentes_desventaja = desventajas_iniciales.duplicate()
 	if not valida_inicial:

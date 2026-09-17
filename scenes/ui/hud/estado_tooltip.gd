@@ -3,6 +3,11 @@ extends Panel
 const FUENTE = preload("res://assets/ui/fonts/Amarante-Regular.ttf")
 
 
+func _get_tooltip(_at_position: Vector2) -> String:
+	# El popup nativo se dibuja por encima del CanvasLayer del filtro CRT.
+	return ""
+
+
 func _make_custom_tooltip(for_text: String) -> Object:
 	var cuadro := PanelContainer.new()
 	var piedra := get_theme_stylebox(&"panel").duplicate() as StyleBoxFlat

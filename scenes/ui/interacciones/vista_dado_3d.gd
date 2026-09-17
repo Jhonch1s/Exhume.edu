@@ -11,6 +11,7 @@ signal animacion_finalizada
 		stretch_shrink = tamano_pixel
 		texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST if tamano_pixel > 1 else CanvasItem.TEXTURE_FILTER_LINEAR
 
+## 0 desactiva; 1 rellena la transparencia del borde; 2 y 3 lo expanden.
 @export_range(0, 3, 1) var grosor_contorno: int = 1:
 	set(valor):
 		grosor_contorno = clampi(valor, 0, 3)

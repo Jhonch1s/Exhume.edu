@@ -49,6 +49,18 @@ func _ready() -> void:
 		_fallar("El estado no crea el tooltip con el marco del HUD.")
 		return
 	cuadro.free()
+	var panel_veneno := hud.estados[1]
+	if panel_veneno.call(&"_get_tooltip", Vector2.ZERO) != "":
+		_fallar("El tooltip nativo del estado debe estar desactivado para respetar el filtro CRT.")
+		return
+	panel_veneno.mouse_entered.emit()
+	if hud.tooltip_estado == null or hud.tooltip_estado.get_parent() != hud.get_node("HUDRoot"):
+		_fallar("El tooltip del estado debe dibujarse dentro del HUD, bajo el filtro CRT.")
+		return
+	panel_veneno.mouse_exited.emit()
+	if hud.tooltip_estado != null:
+		_fallar("El tooltip del estado debe ocultarse al salir del icono.")
+		return
 	ficha.consumir_tick_estado(&"veneno")
 	if "1 turno restante" not in hud.estados[1].tooltip_text:
 		_fallar("El tooltip de veneno no actualizó la duración.")
