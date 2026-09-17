@@ -14,6 +14,11 @@ func _ejecutar() -> void:
 	var panel := escena.instantiate() as PanelResultadoAccion
 	root.add_child(panel)
 	await process_frame
+	_comprobar(
+		panel.vista_dado_1.get_node("SubViewport").find_world_3d()
+		!= panel.vista_dado_2.get_node("SubViewport").find_world_3d(),
+		"Cada dado debe tener su propio mundo 3D para evitar modelos superpuestos."
+	)
 
 	var generador := RandomNumberGenerator.new()
 	generador.seed = 144
@@ -29,14 +34,36 @@ func _ejecutar() -> void:
 		panel.mostrar_tirada("Prueba de percepción", prueba)
 		and panel.visible
 		and panel.etiqueta_titulo.text == "Prueba de percepción"
-		and "Modo: Ventaja" in panel.etiqueta_mensajes.text
-		and "Dados:" in panel.etiqueta_mensajes.text
-		and "Seleccionado: %d" % prueba.dado_seleccionado in panel.etiqueta_mensajes.text
+		and panel.etiqueta_mensajes.text == "Lanzando dados…"
+		and panel.contenedor_dados.visible
+		and panel.vista_dado_2.visible == (prueba.dados.size() == 2)
 		and presentadas[0] == 1
 		and generador.state == estado_resuelto,
 		"El panel debe presentar la prueba ya resuelta sin volver a tirar."
 	)
+	await create_timer(1.5).timeout
+	_comprobar(
+		"Modo: Ventaja" in panel.etiqueta_mensajes.text
+		and "Dados:" in panel.etiqueta_mensajes.text
+		and "Seleccionado: %d" % prueba.dado_seleccionado in panel.etiqueta_mensajes.text
+		and generador.state == estado_resuelto,
+		"La animación debe revelar el resultado resuelto sin consumir azar adicional."
+	)
 	panel.ocultar()
+	panel.vista_dado_1.call(&"mostrar_valor", 1)
+	_comprobar(
+		is_equal_approx(panel.vista_dado_1.get_node("SubViewport/PivoteDado").rotation_degrees.y, 270.0),
+		"La cara 1 debe mirar a cámara en la orientación calibrada."
+	)
+	var mallas := panel.vista_dado_1.get_node("SubViewport/PivoteDado/Dado").find_children(
+		"*", "MeshInstance3D", true, false
+	)
+	_comprobar(
+		not mallas.is_empty()
+		and (mallas[0] as MeshInstance3D).mesh.get_surface_count() == 3
+		and (mallas[0] as MeshInstance3D).get_active_material(1) != null,
+		"La vista debe conservar el cuerpo y los símbolos del dado."
+	)
 
 	var cantidad := motor.resolver(
 		[{&"cantidad": 1, &"caras": 3, &"signo": 1}],

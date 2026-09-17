@@ -1,0 +1,91 @@
+[gd_scene format=3 uid="uid://dutr555cu2xa6"]
+
+[ext_resource type="Script" uid="uid://cjbvd2yjcmimd" path="res://scenes/ui/interacciones/calibrador_dado_3d.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://borar6pe1o3xk" path="res://assets/characters/knight3d/dadico.glb" id="2_dado"]
+
+[node name="CalibradorDado3D" type="Control" unique_id=1090022930]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Panel" type="PanelContainer" parent="." unique_id=1288564924]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -210.0
+offset_top = -250.0
+offset_right = 210.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margen" type="MarginContainer" parent="Panel" unique_id=2012598410]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="Contenido" type="VBoxContainer" parent="Panel/Margen" unique_id=891561518]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Titulo" type="Label" parent="Panel/Margen/Contenido" unique_id=433530859]
+layout_mode = 2
+text = "Calibración del dado"
+horizontal_alignment = 1
+
+[node name="Vista" type="SubViewportContainer" parent="Panel/Margen/Contenido" unique_id=435724247]
+custom_minimum_size = Vector2(360, 360)
+layout_mode = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="Panel/Margen/Contenido/Vista" unique_id=1360921947]
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(412, 360)
+render_target_update_mode = 4
+
+[node name="PivoteDado" type="Node3D" parent="Panel/Margen/Contenido/Vista/SubViewport" unique_id=984062457]
+
+[node name="Dado" parent="Panel/Margen/Contenido/Vista/SubViewport/PivoteDado" unique_id=67057431 instance=ExtResource("2_dado")]
+
+[node name="Camera3D" type="Camera3D" parent="Panel/Margen/Contenido/Vista/SubViewport" unique_id=1802652296]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4)
+projection = 1
+current = true
+size = 3.6
+
+[node name="Luz" type="DirectionalLight3D" parent="Panel/Margen/Contenido/Vista/SubViewport" unique_id=102958569]
+transform = Transform3D(0.866025, -0.25, 0.433013, 0, 0.866025, 0.5, -0.5, -0.433013, 0.75, 0, 0, 0)
+light_energy = 1.5
+
+[node name="Controles" type="HBoxContainer" parent="Panel/Margen/Contenido" unique_id=1509818933]
+layout_mode = 2
+alignment = 1
+
+[node name="Anterior" type="Button" parent="Panel/Margen/Contenido/Controles" unique_id=1592850194]
+layout_mode = 2
+text = "←"
+
+[node name="Angulo" type="Label" parent="Panel/Margen/Contenido/Controles" unique_id=627868279]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+text = "Rotación Y: 0°"
+horizontal_alignment = 1
+
+[node name="Siguiente" type="Button" parent="Panel/Margen/Contenido/Controles" unique_id=1643895033]
+layout_mode = 2
+text = "→"
+
+[node name="Instruccion" type="Label" parent="Panel/Margen/Contenido" unique_id=27350208]
+layout_mode = 2
+text = "Recorre las seis posiciones y anota el símbolo frontal."
+horizontal_alignment = 1

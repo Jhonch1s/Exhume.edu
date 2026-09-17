@@ -88,7 +88,10 @@ layer = 2
 
 [node name="HUD" parent="CanvasLayer" unique_id=207001 instance=ExtResource("17_hud")]
 
-[node name="PanelResultadoAccion" parent="CanvasLayer" unique_id=1054421084 instance=ExtResource("9_panel_resultado")]
+[node name="CanvasLayerModalDados" type="CanvasLayer" parent="."]
+layer = 4
+
+[node name="PanelResultadoAccion" parent="CanvasLayerModalDados" unique_id=1054421084 instance=ExtResource("9_panel_resultado")]
 
 [node name="PanelExamenIlustrado" parent="CanvasLayer" unique_id=1214408067 instance=ExtResource("13_panel_examen")]
 

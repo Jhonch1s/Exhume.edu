@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://xsxb4xhr5vpc"]
+
+[ext_resource type="PackedScene" uid="uid://borar6pe1o3xk" path="res://assets/characters/knight3d/dadico.glb" id="1_kbpe1"]
+
+[node name="Control" type="Control" unique_id=56029231]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="." unique_id=1640489318]
+custom_minimum_size = Vector2(300, 300)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="SubViewport" type="SubViewport" parent="SubViewportContainer" unique_id=1422424356]
+transparent_bg = true
+handle_input_locally = false
+render_target_update_mode = 4
+
+[node name="dadico" parent="SubViewportContainer/SubViewport" unique_id=1982212759 instance=ExtResource("1_kbpe1")]
+
+[node name="XRCamera3D" type="XRCamera3D" parent="SubViewportContainer/SubViewport" unique_id=469480937]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0013974607, 0.015684187, 0.58107084)
+fov = 82.26
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="SubViewportContainer/SubViewport" unique_id=1939958157]

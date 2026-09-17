@@ -1,0 +1,48 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://tests/tiradas/demo_modal_dados.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/ui/interacciones/panel_resultado_accion.tscn" id="2_panel"]
+
+[node name="DemoModalDados" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Centro" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Contenido" type="VBoxContainer" parent="Centro"]
+layout_mode = 2
+alignment = 1
+
+[node name="Instruccion" type="Label" parent="Centro/Contenido"]
+layout_mode = 2
+text = "Pulsa el botón para ver el modal con dos dados."
+horizontal_alignment = 1
+
+[node name="LanzarPrueba" type="Button" parent="Centro/Contenido"]
+layout_mode = 2
+text = "Lanzar prueba"
+
+[node name="PanelResultadoAccion" parent="." instance=ExtResource("2_panel")]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -430.0
+offset_top = -360.0
+offset_right = 430.0
+offset_bottom = 360.0
+grow_horizontal = 2
+grow_vertical = 2

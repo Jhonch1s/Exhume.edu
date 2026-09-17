@@ -1,0 +1,49 @@
+[gd_scene format=3 uid="uid://brapvx1v3eovq"]
+
+[ext_resource type="Script" uid="uid://da0ourwnj6gfi" path="res://scenes/ui/interacciones/vista_dado_3d.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://borar6pe1o3xk" path="res://assets/characters/knight3d/dadico.glb" id="2_dado"]
+[ext_resource type="Shader" uid="uid://bula1wphmyr07" path="res://scenes/ui/interacciones/contorno_dado.gdshader" id="3_contorno"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_contorno"]
+resource_local_to_scene = true
+shader = ExtResource("3_contorno")
+shader_parameter/color_contorno = Color(0.035, 0.055, 0.085, 1)
+shader_parameter/grosor_contorno = 1.0
+
+[sub_resource type="Environment" id="Environment_piedra"]
+ambient_light_source = 3
+ambient_light_color = Color(0.55, 0.6, 0.68, 1)
+ambient_light_energy = 0.4
+reflected_light_source = 2
+
+[node name="VistaDado3D" type="SubViewportContainer" unique_id=1708964012]
+texture_filter = 1
+material = SubResource("ShaderMaterial_contorno")
+custom_minimum_size = Vector2(714, 714)
+stretch = true
+stretch_shrink = 3
+script = ExtResource("1_script")
+
+[node name="SubViewport" type="SubViewport" parent="." unique_id=634957931]
+own_world_3d = true
+transparent_bg = true
+handle_input_locally = false
+msaa_3d = 2
+size = Vector2i(238, 238)
+render_target_update_mode = 4
+
+[node name="PivoteDado" type="Node3D" parent="SubViewport" unique_id=150933493]
+
+[node name="Dado" parent="SubViewport/PivoteDado" unique_id=1763180088 instance=ExtResource("2_dado")]
+
+[node name="AmbientePiedra" type="WorldEnvironment" parent="SubViewport" unique_id=69475752]
+environment = SubResource("Environment_piedra")
+
+[node name="Camera3D" type="Camera3D" parent="SubViewport" unique_id=1741631203]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.7526426)
+projection = 1
+current = true
+size = 0.9636804
+
+[node name="Luz" type="DirectionalLight3D" parent="SubViewport" unique_id=988250044]
+transform = Transform3D(0.866025, -0.25, 0.433013, 0, 0.866025, 0.5, -0.5, -0.433013, 0.75, 0, 0, 0)

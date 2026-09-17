@@ -20,9 +20,10 @@ sombras animadas en la escena HUD.
 `LogAcontecimientos` es una instancia del `PanelRegistroNarrativo` existente,
 dentro del HUD pero independiente de la barra inferior: permanece visible y
 se puede arrastrar por su cabecera o expandir. La fuente de los acontecimientos
-sigue siendo `RegistroNarrativoSesion`, no el HUD. Los demás paneles modales
-(resultado, examen, menú contextual y cofre) siguen siendo hermanos del HUD en
-el `CanvasLayer`, no hijos de la barra. Véase
+sigue siendo `RegistroNarrativoSesion`, no el HUD. Los paneles de examen, menú
+contextual y cofre son hermanos del HUD en el `CanvasLayer`. El panel de resultado
+y tiradas está en una capa superior al filtro CRT para conservar la legibilidad
+de los dados y textos. Véase
 [registro narrativo](../contratos/19_REGISTRO_NARRATIVO_SESION.md).
 
 ## Datos y comportamiento actuales

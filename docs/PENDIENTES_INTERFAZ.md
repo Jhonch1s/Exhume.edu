@@ -63,6 +63,16 @@ Los puntos candidatos son:
 - Revisar qué eventos necesitan panel modal, examen ilustrado o registro narrativo:
   interacción, tiradas, daño, estados, trampas y recogida. No abrir ventanas por
   cada efecto sin revisar el resultado completo y lo que ya comunica el registro.
+- Las pruebas de dados en primer plano ya muestran `dadico.glb` girando hasta el
+  resultado resuelto. El prototipo muestra cada dado a 714 px, centra el modal,
+  aplica contraste oscuro con símbolos claros y presenta el modal por encima del
+  CRT. Falta validar este aspecto en ejecución;
+  las tiradas de cantidad siguen usando texto.
+- Cada vista de dado usa `own_world_3d`: compartir mundo superponía las dos
+  instancias situadas en el origen. La prueba de presentación comprueba su aislamiento.
+  El modelo completo tiene una copia editable en
+  `assets/art_source/blender/dados/dadico_trabajo.blend`; esa carpeta excluye la
+  importación automática de Godot con `.gdignore`.
 - Completar iconos de `DefinicionItem`; los objetos sin icono siguen siendo reales.
 
 La estética del cofre pequeño es madera vieja y maltrecha, sin cabecera ni título,

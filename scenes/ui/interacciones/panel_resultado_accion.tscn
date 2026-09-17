@@ -1,41 +1,90 @@
-[gd_scene format=3 uid="uid://qsn46qnxpghl"]
+[gd_scene load_steps=4 format=3 uid="uid://qsn46qnxpghl"]
 
 [ext_resource type="Script" uid="uid://b1aplbcqluer5" path="res://scenes/ui/interacciones/panel_resultado_accion.gd" id="1_panel"]
 [ext_resource type="Theme" uid="uid://lef354d5f11x" path="res://assets/ui/themes/tema_interacciones.tres" id="1_vwu8s"]
+[ext_resource type="PackedScene" path="res://scenes/ui/interacciones/vista_dado_3d.tscn" id="2_dado"]
 
 [node name="PanelResultadoAccion" type="PanelContainer" unique_id=1445779408]
 visible = false
-custom_minimum_size = Vector2(360, 0)
-offset_left = 24.0
-offset_top = 24.0
-offset_right = 384.0
-offset_bottom = 220.0
+custom_minimum_size = Vector2(860, 0)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -430.0
+offset_top = -360.0
+offset_right = 430.0
+offset_bottom = 360.0
+grow_horizontal = 2
+grow_vertical = 2
 theme = ExtResource("1_vwu8s")
 script = ExtResource("1_panel")
 
 [node name="Margen" type="MarginContainer" parent="." unique_id=1095098121]
 layout_mode = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 12
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 28
 
 [node name="Contenido" type="VBoxContainer" parent="Margen" unique_id=1280295881]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 16
+
+[node name="Antetitulo" type="Label" parent="Margen/Contenido"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.43, 0.35, 0.25, 1)
+theme_override_font_sizes/font_size = 16
+text = "T I R A D A   D E   D A D O S"
+horizontal_alignment = 1
 
 [node name="Titulo" type="Label" parent="Margen/Contenido" unique_id=1983936180]
 layout_mode = 2
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 32
 text = "Objetivo"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Separador" type="HSeparator" parent="Margen/Contenido"]
+layout_mode = 2
+modulate = Color(0.55, 0.43, 0.29, 0.45)
+
+[node name="Dados" type="HBoxContainer" parent="Margen/Contenido"]
+visible = false
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 16
+
+[node name="Dado1" parent="Margen/Contenido/Dados" instance=ExtResource("2_dado")]
+custom_minimum_size = Vector2(320, 320)
+layout_mode = 2
+
+[node name="Dado2" parent="Margen/Contenido/Dados" instance=ExtResource("2_dado")]
+visible = false
+custom_minimum_size = Vector2(320, 320)
+layout_mode = 2
+
+[node name="Veredicto" type="Label" parent="Margen/Contenido"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+horizontal_alignment = 1
+text = " "
 
 [node name="Mensajes" type="Label" parent="Margen/Contenido" unique_id=423675522]
-custom_minimum_size = Vector2(328, 96)
+custom_minimum_size = Vector2(328, 90)
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_font_sizes/font_size = 19
 text = "Información"
 autowrap_mode = 2
+horizontal_alignment = 1
 
 [node name="Cerrar" type="Button" parent="Margen/Contenido" unique_id=1095758532]
 layout_mode = 2
+custom_minimum_size = Vector2(220, 44)
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 22
 text = "Cerrar"

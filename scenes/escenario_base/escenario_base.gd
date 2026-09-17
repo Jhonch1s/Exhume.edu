@@ -11,7 +11,7 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 @onready var zona_actual: Node2D = $Zona
 @onready var capa_selector: TileMapLayer = $CapaSelector
 @onready var panel_resultado_accion: PanelResultadoAccion = (
-	$CanvasLayer/PanelResultadoAccion
+	$CanvasLayerModalDados/PanelResultadoAccion
 )
 @onready var panel_examen_ilustrado: PanelExamenIlustrado = (
 	$CanvasLayer/PanelExamenIlustrado

@@ -91,8 +91,14 @@ Desde 14.4, el panel reutilizable de resultados acepta también cantidades y pru
 ya resueltas mediante `mostrar_tirada()`. Para una prueba muestra modo, dados en orden,
 dado seleccionado, atributo, clasificación y éxito/fallo; para una cantidad muestra
 términos, dados, total y efectivo. Rechaza resultados inválidos y `SOLO_LOG` sin
-abrirse. Presentar no recibe un motor ni consume azar. No hay animación de dados ni
-integración con contenido hasta existir la vertical de 14.5.
+abrirse. Presentar no recibe un motor ni consume azar. El panel muestra ahora el
+modelo 3D `dadico.glb` en las pruebas `PRIMER_PLANO`: uno o dos dados según el modo,
+con el no seleccionado atenuado. Cada dado gira hasta la cara ya resuelta. Las
+tiradas de cantidad mantienen su presentación textual; no se simulan modelos para
+dados que no sean d6.
+Durante el giro, el modal muestra «Lanzando dados…». Revela los valores, la
+clasificación y los mensajes de consecuencia al finalizar; el resultado lógico ya
+estaba fijado antes de iniciar la animación.
 
 La vertical 14.5 utilizó temporalmente la palanca de Zona 1 para probar la
 integración. La Fase 16 retira esa prueba por decisión de diseño: examinar y accionar
