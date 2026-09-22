@@ -1,13 +1,25 @@
-[gd_scene load_steps=4 format=3 uid="uid://qsn46qnxpghl"]
+[gd_scene format=3 uid="uid://qsn46qnxpghl"]
 
 [ext_resource type="Script" uid="uid://b1aplbcqluer5" path="res://scenes/ui/interacciones/panel_resultado_accion.gd" id="1_panel"]
-[ext_resource type="Theme" uid="uid://lef354d5f11x" path="res://assets/ui/themes/tema_interacciones.tres" id="1_vwu8s"]
-[ext_resource type="PackedScene" path="res://scenes/ui/interacciones/vista_dado_3d.tscn" id="2_dado"]
+[ext_resource type="Theme" path="res://assets/ui/themes/tema_tirada_dados.tres" id="1_vwu8s"]
+[ext_resource type="PackedScene" uid="uid://brapvx1v3eovq" path="res://scenes/ui/interacciones/vista_dado_3d.tscn" id="2_dado"]
+[ext_resource type="Shader" uid="uid://bula1wphmyr07" path="res://scenes/ui/interacciones/contorno_dado.gdshader" id="4_i41gn"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_888mb"]
+resource_local_to_scene = true
+shader = ExtResource("4_i41gn")
+shader_parameter/color_contorno = Color(0.035, 0.055, 0.085, 1)
+shader_parameter/grosor_contorno = 1.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vhhc3"]
+resource_local_to_scene = true
+shader = ExtResource("4_i41gn")
+shader_parameter/color_contorno = Color(0.035, 0.055, 0.085, 1)
+shader_parameter/grosor_contorno = 1.0
 
 [node name="PanelResultadoAccion" type="PanelContainer" unique_id=1445779408]
 visible = false
 custom_minimum_size = Vector2(560, 0)
-layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -33,9 +45,9 @@ theme_override_constants/margin_bottom = 20
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Antetitulo" type="Label" parent="Margen/Contenido"]
+[node name="Antetitulo" type="Label" parent="Margen/Contenido" unique_id=262810564]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.43, 0.35, 0.25, 1)
+theme_override_colors/font_color = Color(0.596078, 0.698039, 0.752941, 1)
 theme_override_font_sizes/font_size = 16
 text = "T I R A D A   D E   D A D O S"
 horizontal_alignment = 1
@@ -47,47 +59,49 @@ text = "Objetivo"
 horizontal_alignment = 1
 autowrap_mode = 2
 
-[node name="Separador" type="HSeparator" parent="Margen/Contenido"]
-layout_mode = 2
+[node name="Separador" type="HSeparator" parent="Margen/Contenido" unique_id=396113281]
 modulate = Color(0.55, 0.43, 0.29, 0.45)
+layout_mode = 2
 
-[node name="Objetivo" type="Label" parent="Margen/Contenido"]
+[node name="Objetivo" type="Label" parent="Margen/Contenido" unique_id=98184655]
 visible = false
 layout_mode = 2
 theme_override_font_sizes/font_size = 25
 horizontal_alignment = 1
 
-[node name="Dados" type="HBoxContainer" parent="Margen/Contenido"]
+[node name="Dados" type="HBoxContainer" parent="Margen/Contenido" unique_id=787867620]
 visible = false
 layout_mode = 2
-alignment = 1
 theme_override_constants/separation = 12
+alignment = 1
 
-[node name="Dado1" parent="Margen/Contenido/Dados" instance=ExtResource("2_dado")]
+[node name="Dado1" parent="Margen/Contenido/Dados" unique_id=1760746588 instance=ExtResource("2_dado")]
+material = SubResource("ShaderMaterial_888mb")
 custom_minimum_size = Vector2(176, 320)
 layout_mode = 2
 
-[node name="Dado2" parent="Margen/Contenido/Dados" instance=ExtResource("2_dado")]
+[node name="Dado2" parent="Margen/Contenido/Dados" unique_id=1518868504 instance=ExtResource("2_dado")]
 visible = false
+material = SubResource("ShaderMaterial_vhhc3")
 custom_minimum_size = Vector2(176, 320)
 layout_mode = 2
 
-[node name="Veredicto" type="Label" parent="Margen/Contenido"]
+[node name="Veredicto" type="Label" parent="Margen/Contenido" unique_id=2037888981]
 visible = false
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
-horizontal_alignment = 1
 text = " "
+horizontal_alignment = 1
 
 [node name="Mensajes" type="Label" parent="Margen/Contenido" unique_id=423675522]
 layout_mode = 2
 theme_override_font_sizes/font_size = 19
 text = "Información"
-autowrap_mode = 2
 horizontal_alignment = 1
+autowrap_mode = 2
 
-[node name="Bonos" type="Label" parent="Margen/Contenido"]
+[node name="Bonos" type="Label" parent="Margen/Contenido" unique_id=936718733]
 visible = false
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
@@ -95,8 +109,8 @@ horizontal_alignment = 1
 autowrap_mode = 2
 
 [node name="Cerrar" type="Button" parent="Margen/Contenido" unique_id=1095758532]
-layout_mode = 2
 custom_minimum_size = Vector2(200, 40)
+layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 22
 text = "Cerrar"

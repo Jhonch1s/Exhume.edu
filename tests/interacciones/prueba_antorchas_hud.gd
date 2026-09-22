@@ -65,7 +65,15 @@ func _ready() -> void:
 	if "1 turno restante" not in hud.estados[1].tooltip_text:
 		_fallar("El tooltip de veneno no actualizó la duración.")
 		return
-	if ficha.pasos_antorcha_actual != 80 or "×2" not in hud.items_rapidos[0].text:
+	var ranura_antorcha := hud.items_rapidos[0]
+	if (
+		ficha.pasos_antorcha_actual != 80
+		or (ranura_antorcha.get_node("Icono") as TextureRect).texture != antorcha.icono
+		or (ranura_antorcha.get_node("Cantidad") as Label).text != "2"
+		or ranura_antorcha.text != ""
+		or ranura_antorcha.size != Vector2(82, 82)
+		or not ranura_antorcha.disabled
+	):
 		_fallar("El HUD no muestra las dos antorchas iniciales.")
 		return
 	ficha.pasos_antorcha_actual = 1
@@ -76,7 +84,8 @@ func _ready() -> void:
 	if (
 		ficha.obtener_cantidad_antorchas() != 1
 		or ficha.pasos_antorcha_actual != 80
-		or "×1" not in hud.items_rapidos[0].text
+		or (ranura_antorcha.get_node("Cantidad") as Label).text != ""
+		or (ranura_antorcha.get_node("Icono") as TextureRect).texture != antorcha.icono
 		or hud.antorcha_luces[1].color != Color("#28231b")
 	):
 		_fallar("El consumo no actualizó la pila y los engarces del HUD.")
@@ -84,6 +93,10 @@ func _ready() -> void:
 	ficha.pasos_antorcha_actual = 1
 	if ficha.consumir_paso_antorcha() or ficha.obtener_cantidad_antorchas() != 0:
 		_fallar("La última antorcha no desapareció del inventario.")
+		return
+	hud.actualizar_desde_ficha()
+	if (ranura_antorcha.get_node("Icono") as TextureRect).texture != null:
+		_fallar("La ranura debe vaciarse al consumirse la última antorcha.")
 		return
 	var escenario := load("res://scenes/escenario_base/escenario_base.tscn").instantiate() as Node2D
 	add_child(escenario)
@@ -112,6 +125,51 @@ func _ready() -> void:
 		or vision.capa_oscuridad.get_cell_source_id(coordenada) != -1
 	):
 		_fallar("La celda inicial continúa cubierta por la oscuridad.")
+		return
+	var antorcha_suelo := ItemSuelo.new(ItemInstancia.new(&"antorcha_recogida_prueba", antorcha, 1))
+	if not tablero.registrar_item_suelo(coordenada, antorcha_suelo):
+		_fallar("No se pudo colocar la antorcha de prueba en el suelo.")
+		return
+	var transferidor := escenario.get("transferidor_items") as TransferidorItems
+	var contexto := transferidor.construir_contexto_recoger(
+		ficha_inicio, antorcha_suelo, coordenada
+	)
+	if not transferidor.recoger(contexto).exitosa:
+		_fallar("No se pudo recoger la antorcha de prueba.")
+		return
+	var pila_inicial := ficha_inicio.inventario.obtener_por_id(&"jugador_antorchas_iniciales")
+	var hud_escenario := escenario.get_node("CanvasLayer/HUD") as HUD
+	if (
+		pila_inicial == null
+		or pila_inicial.cantidad != 4
+		or ficha_inicio.inventario.obtener_por_definicion(&"antorcha").size() != 1
+		or ficha_inicio.inventario.obtener_por_id(&"antorcha_recogida_prueba") != null
+		or tablero.obtener_item_suelo(&"antorcha_recogida_prueba") != null
+		or (hud_escenario.items_rapidos[0].get_node("Cantidad") as Label).text != "4"
+	):
+		_fallar("La antorcha recogida debe sumarse a la pila inicial sin duplicarse.")
+		return
+	var piedra := load("res://assets/items/piedra/piedra.tres") as DefinicionItem
+	for indice in 2:
+		var id := StringName("piedra_recogida_%d" % indice)
+		var piedra_suelo := ItemSuelo.new(ItemInstancia.new(id, piedra, 1))
+		if not tablero.registrar_item_suelo(coordenada, piedra_suelo):
+			_fallar("No se pudo colocar la piedra de prueba en el suelo.")
+			return
+		if not transferidor.recoger(transferidor.construir_contexto_recoger(
+			ficha_inicio, piedra_suelo, coordenada
+		)).exitosa:
+			_fallar("No se pudo recoger la piedra de prueba.")
+			return
+	var pila_piedras := ficha_inicio.inventario.obtener_por_id(&"piedra_recogida_0")
+	if (
+		pila_piedras == null
+		or pila_piedras.cantidad != 2
+		or ficha_inicio.inventario.obtener_por_definicion(&"piedra").size() != 1
+		or ficha_inicio.inventario.obtener_por_id(&"piedra_recogida_1") != null
+		or (hud_escenario.items_rapidos[1].get_node("Cantidad") as Label).text != "2"
+	):
+		_fallar("Las piedras recogidas deben acumularse en una sola pila y ranura.")
 		return
 	var definicion := ficha_inicio.obtener_antorcha_activa()
 	var luz := ficha_inicio.get_node("Antorcha") as PointLight2D

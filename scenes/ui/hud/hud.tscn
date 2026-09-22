@@ -459,7 +459,28 @@ offset_right = 86.0
 offset_bottom = 110.0
 theme_override_font_sizes/font_size = 22
 theme_override_styles/normal = SubResource("StyleSlot")
-text = "1"
+
+[node name="Icono" type="TextureRect" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 7.0
+offset_top = 7.0
+offset_right = -7.0
+offset_bottom = -7.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Cantidad" type="Label" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+horizontal_alignment = 2
+vertical_alignment = 2
 
 [node name="Ranura2" type="Button" parent="HUDRoot/SeccionesHUD/SeccionItems" unique_id=940953417]
 layout_mode = 0
@@ -469,7 +490,28 @@ offset_right = 176.0
 offset_bottom = 110.0
 theme_override_font_sizes/font_size = 22
 theme_override_styles/normal = SubResource("StyleSlot")
-text = "2"
+
+[node name="Icono" type="TextureRect" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura2"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 7.0
+offset_top = 7.0
+offset_right = -7.0
+offset_bottom = -7.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Cantidad" type="Label" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura2"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+horizontal_alignment = 2
+vertical_alignment = 2
 
 [node name="Ranura3" type="Button" parent="HUDRoot/SeccionesHUD/SeccionItems" unique_id=1196552575]
 layout_mode = 0
@@ -479,7 +521,28 @@ offset_right = 266.0
 offset_bottom = 110.0
 theme_override_font_sizes/font_size = 22
 theme_override_styles/normal = SubResource("StyleSlot")
-text = "3"
+
+[node name="Icono" type="TextureRect" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura3"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 7.0
+offset_top = 7.0
+offset_right = -7.0
+offset_bottom = -7.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Cantidad" type="Label" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura3"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+horizontal_alignment = 2
+vertical_alignment = 2
 
 [node name="Ranura4" type="Button" parent="HUDRoot/SeccionesHUD/SeccionItems" unique_id=607879074]
 layout_mode = 0
@@ -489,7 +552,28 @@ offset_right = 356.0
 offset_bottom = 110.0
 theme_override_font_sizes/font_size = 22
 theme_override_styles/normal = SubResource("StyleSlot")
-text = "3"
+
+[node name="Icono" type="TextureRect" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura4"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 7.0
+offset_top = 7.0
+offset_right = -7.0
+offset_bottom = -7.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Cantidad" type="Label" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura4"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+horizontal_alignment = 2
+vertical_alignment = 2
 
 [node name="PasarTurno" type="Button" parent="HUDRoot/SeccionesHUD" unique_id=1334498189]
 layout_mode = 0

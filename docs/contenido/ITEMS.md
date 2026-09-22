@@ -122,6 +122,11 @@ unidades ni peso. El jugador usa -1; cada cofre usa columnas × filas.
 | `transferir_a(destino, id_item)` | Mueve pila completa; conserva referencia, ID y cantidad. |
 | `_ordenar()` | Interno: orden lexicográfico por ID de instancia. |
 
+`apilable` y `cantidad_maxima` ya definen si un ítem admite pilas y su límite.
+Al recoger del suelo en `EscenarioBase`, una pila apilable se combina con otra
+de la misma definición si cabe entera; `Inventario.agregar()` y los traslados
+entre inventarios no combinan automáticamente.
+
 Las mutaciones devuelven [ResultadoOperacionInventario](../../scripts/interacciones/items/resultado_operacion_inventario.gd):
 `exitosa`, `motivo`, `item`, `cantidad`, `id_origen`, `id_destino`, expuestos
 mediante getters. Tiene constructor y fábricas `crear_exito(...)` y

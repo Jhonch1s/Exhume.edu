@@ -22,12 +22,17 @@ signal cerrado
 
 var _texto_tirada_pendiente := ""
 var _prueba_pendiente: ResultadoPrueba
+var _dados_lanzados: Array[bool] = []
+var _animaciones_pendientes := 0
 
 
 func _ready() -> void:
 	boton_cerrar.text = texto_boton_cerrar
 	boton_cerrar.pressed.connect(ocultar)
-	vista_dado_1.connect(&"animacion_finalizada", _revelar_tirada)
+	vista_dado_1.connect(&"presionado", _al_presionar_dado.bind(0))
+	vista_dado_1.connect(&"animacion_finalizada", _al_terminar_animacion.bind(0))
+	vista_dado_2.connect(&"presionado", _al_presionar_dado.bind(1))
+	vista_dado_2.connect(&"animacion_finalizada", _al_terminar_animacion.bind(1))
 
 
 func mostrar_resultado(
@@ -74,9 +79,16 @@ func mostrar_tirada(
 		etiqueta_objetivo.visible = true
 		etiqueta_bonos.text = _componer_bonos(resultado)
 		etiqueta_bonos.visible = not resultado.modificadores.is_empty()
-		_texto_tirada_pendiente = separador_mensajes.join(mensajes)
-		etiqueta_mensajes.text = ""
-		etiqueta_mensajes.visible = false
+		# Las consecuencias se muestran en el registro/HUD, no en el panel de dados.
+		_texto_tirada_pendiente = ""
+		etiqueta_mensajes.text = (
+			"Haz clic en cada dado para lanzarlo."
+			if resultado.dados.size() > 1
+			else "Haz clic en el dado para lanzarlo."
+		)
+		etiqueta_mensajes.visible = true
+		etiqueta_veredicto.text = "RESULTADO  -"
+		etiqueta_veredicto.visible = true
 	else:
 		antetitulo.text = "T I R A D A"
 		antetitulo.visible = true
@@ -101,28 +113,52 @@ func _mostrar_dados_prueba(resultado: Variant) -> void:
 	if not resultado is ResultadoPrueba:
 		return
 	var dados: Array[int] = resultado.dados
-	vista_dado_1.call(&"animar_a_valor", dados[0])
+	_dados_lanzados = []
+	for dado in dados:
+		_dados_lanzados.append(false)
+	_animaciones_pendientes = 0
+	vista_dado_1.call(&"mostrar_valor", 1)
 	vista_dado_2.visible = dados.size() > 1
 	vista_dado_1.modulate = Color.WHITE
 	if dados.size() > 1:
-		vista_dado_2.call(&"animar_a_valor", dados[1])
+		vista_dado_2.call(&"mostrar_valor", 1)
 		vista_dado_2.modulate = Color.WHITE
+
+
+func _al_presionar_dado(indice: int) -> void:
+	if _prueba_pendiente == null or indice >= _dados_lanzados.size() or _dados_lanzados[indice]:
+		return
+	_dados_lanzados[indice] = true
+	_animaciones_pendientes += 1
+	var dado: Control = vista_dado_1 if indice == 0 else vista_dado_2
+	dado.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	dado.call(&"animar_a_valor", _prueba_pendiente.dados[indice])
+
+
+func _al_terminar_animacion(indice: int) -> void:
+	var dado: Control = vista_dado_1 if indice == 0 else vista_dado_2
+	dado.mouse_filter = Control.MOUSE_FILTER_STOP
+	_animaciones_pendientes -= 1
+	if _animaciones_pendientes == 0 and _dados_lanzados.all(func(lanzado: bool) -> bool: return lanzado):
+		_revelar_tirada()
 
 
 func _revelar_tirada() -> void:
 	if not visible or _prueba_pendiente == null:
 		return
-	etiqueta_mensajes.text = _texto_tirada_pendiente
-	etiqueta_mensajes.visible = not _texto_tirada_pendiente.is_empty()
+	if not _texto_tirada_pendiente.is_empty():
+		etiqueta_mensajes.text = _texto_tirada_pendiente
+	else:
+		etiqueta_mensajes.text = " "
 	var estado := "ÉXITO" if _prueba_pendiente.exitosa else "FALLO"
 	if _prueba_pendiente.clasificacion == ResultadoPrueba.Clasificacion.CRITICO:
 		estado = "ÉXITO CRÍTICO"
 	elif _prueba_pendiente.clasificacion == ResultadoPrueba.Clasificacion.PIFIA:
 		estado = "PIFIA"
-	etiqueta_veredicto.text = "%d  ·  %s" % [_prueba_pendiente.dado_seleccionado, estado]
+	etiqueta_veredicto.text = "%d  -  %s" % [_prueba_pendiente.dado_seleccionado, estado]
 	etiqueta_veredicto.visible = true
 	etiqueta_veredicto.add_theme_color_override("font_color",
-		Color("365247") if _prueba_pendiente.exitosa else Color("883d32"))
+		Color("9bd6ad") if _prueba_pendiente.exitosa else Color("e6a092"))
 	var dados := _prueba_pendiente.dados
 	if dados.size() > 1 and dados[0] != dados[1]:
 		if dados[0] == _prueba_pendiente.dado_seleccionado:
@@ -134,6 +170,8 @@ func _revelar_tirada() -> void:
 
 
 func _ajustar_altura() -> void:
+	await get_tree().process_frame
+	# El PanelContainer y el SubViewportContainer actualizan sus mínimos en ciclos distintos.
 	await get_tree().process_frame
 	if not visible:
 		return

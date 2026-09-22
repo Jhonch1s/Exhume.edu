@@ -1341,13 +1341,24 @@ func _on_item_suelo_retirado(_coord: Vector2i, item_suelo: ItemSuelo) -> void:
 	var representacion := item_suelo.obtener_representacion()
 	if representacion != null:
 		representacion.queue_free()
-	if (
-		ficha_jugador != null
-		and item_suelo.item.definicion.id_definicion == &"antorcha"
-	):
+	if ficha_jugador == null:
+		return
+	var inventario := ficha_jugador.inventario
+	var recogida := inventario.obtener_por_id(item_suelo.item.id_instancia)
+	if recogida == item_suelo.item and recogida.definicion.apilable:
+		for pila in inventario.obtener_por_definicion(recogida.definicion.id_definicion):
+			if (
+				pila != recogida
+				and pila.definicion == recogida.definicion
+				and pila.cantidad + recogida.cantidad <= pila.definicion.cantidad_maxima
+			):
+				if inventario.combinar(recogida.id_instancia, pila.id_instancia).exitosa:
+					break
+	if item_suelo.item.definicion.id_definicion == &"antorcha":
 		ficha_jugador.activar_antorcha_si_necesario()
-		hud.actualizar_desde_ficha()
 		_actualizar_luz_jugador(ficha_jugador.coordenada_mapa)
+	if recogida != null or item_suelo.item.definicion.id_definicion == &"antorcha":
+		hud.actualizar_desde_ficha()
 
 
 func _soltar_unico_item_prueba() -> void:

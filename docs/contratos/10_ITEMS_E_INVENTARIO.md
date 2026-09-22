@@ -83,6 +83,10 @@ inventario y se devuelve `FALLO`; el item permanece únicamente en el suelo.
 Una recogida confirmada conserva referencia, ID y cantidad y registra un cambio
 `&"item_recogido"`. Un segundo intento se bloquea porque el contenedor ya no está
 registrado. `GestorAcciones` continúa completamente ajeno a estas reglas.
+En la integración de `EscenarioBase`, después de retirar del suelo, las pilas con
+`apilable = true` pueden combinarse con otra pila de la misma definición si
+caben completas: sobrevive el ID de la pila existente. Esto no cambia la
+semántica de `Inventario.agregar()` ni la recogida parcial.
 
 ### Soltar
 

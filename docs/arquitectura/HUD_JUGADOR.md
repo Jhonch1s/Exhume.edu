@@ -45,9 +45,11 @@ de los dados y textos. Véase
   Quemado y veneno explican los dados de daño por tick y los turnos pendientes;
   también hay textos para enredado y caído. Actualmente sólo hay tres espacios
   visuales: si se acumulan más estados, los restantes no se muestran.
-- Las cuatro ranuras de ítems muestran las primeras cuatro pilas que devuelve
-  el inventario, ordenadas por ID de instancia. **Todavía no son accesos rápidos
-  configurables ni activan el ítem al pulsar.** Las cuatro ranuras de habilidades
+- Las cuatro ranuras de ítems muestran el icono y la cantidad (si supera uno) de
+  las primeras cuatro pilas del inventario, ordenadas por ID de instancia; el
+  nombre queda en el tooltip. Si falta el icono, muestran `?`. **Todavía no son
+  accesos rápidos configurables ni activan el ítem al pulsar**: sus botones
+  están deshabilitados. Las cuatro ranuras de habilidades
   están deshabilitadas. La barra de experiencia tiene un valor de muestra y no
   está conectada a un sistema de experiencia. El overlay superior de combate
   existe como maqueta oculta, sin secuencia de turnos funcional.
@@ -59,6 +61,12 @@ en `EscenarioBase.spawnear_ficha_inicial`. `Ficha.consumir_paso_antorcha()`
 descuenta un paso por movimiento; al agotarse una unidad, `Inventario` la consume
 y la ficha carga la duración de la siguiente. Guardado y carga conservan tanto
 el inventario como los pasos pendientes.
+
+Al recoger del suelo un ítem con `apilable = true`, `EscenarioBase` lo combina
+con una pila de la misma definición si cabe completo. Esto incluye antorchas
+(máximo 10 por pila) y piedras (máximo 99). Si no cabe, permanece en otra pila;
+no modifica la regla general de `Inventario.agregar()` ni las transferencias
+entre inventarios, que conservan las pilas separadas.
 
 Para ajustar la iluminación, editar
 [`assets/items/antorcha/antorcha.tres`](../../assets/items/antorcha/antorcha.tres),

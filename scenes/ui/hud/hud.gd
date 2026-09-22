@@ -65,6 +65,8 @@ func _ready() -> void:
 		_conectar_feedback_boton(boton)
 	for habilidad in habilidades:
 		habilidad.disabled = true
+	for ranura in items_rapidos:
+		ranura.disabled = true
 	configurar_ficha(null)
 
 
@@ -303,18 +305,14 @@ func _color_estado(clave: StringName) -> Color:
 
 
 func _actualizar_items() -> void:
-	if ficha == null:
-		for ranura in items_rapidos:
-			ranura.text = "—"
-			ranura.tooltip_text = "Ranura de item rápido vacía"
-		return
-	var contenido := ficha.obtener_inventario().obtener_contenido()
+	var contenido: Array[ItemInstancia] = []
+	if ficha != null:
+		contenido = ficha.obtener_inventario().obtener_contenido()
 	for indice in items_rapidos.size():
 		var ranura := items_rapidos[indice]
-		if indice >= contenido.size():
-			ranura.text = "—"
-			ranura.tooltip_text = "Ranura de item rápido vacía"
-			continue
-		var item := contenido[indice]
-		ranura.text = "%s\n×%d" % [item.definicion.nombre.left(8), item.cantidad]
-		ranura.tooltip_text = item.definicion.nombre
+		var item: ItemInstancia = contenido[indice] if indice < contenido.size() else null
+		var icono := ranura.get_node("Icono") as TextureRect
+		icono.texture = item.definicion.icono if item != null else null
+		(ranura.get_node("Cantidad") as Label).text = str(item.cantidad) if item != null and item.cantidad > 1 else ""
+		ranura.text = "?" if item != null and icono.texture == null else ""
+		ranura.tooltip_text = item.definicion.nombre if item != null else "Ranura de item rápido vacía"
