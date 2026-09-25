@@ -1,0 +1,110 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/personajes/panel_info_npc.gd" id="1_panel"]
+[ext_resource type="FontFile" path="res://assets/ui/fonts/Amarante-Regular.ttf" id="2_fuente"]
+
+[sub_resource type="StyleBoxFlat" id="Fondo_panel"]
+bg_color = Color(0.055, 0.073, 0.094, 0.94)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.56, 0.48, 0.35, 0.9)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="Fondo_barra"]
+bg_color = Color(0.16, 0.12, 0.13, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.34, 0.31, 0.28, 1)
+
+[sub_resource type="StyleBoxFlat" id="Relleno_barra"]
+bg_color = Color(0.66, 0.16, 0.17, 1)
+
+[node name="PanelInfoNPC" type="PanelContainer"]
+visible = false
+custom_minimum_size = Vector2(360, 0)
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -180.0
+offset_top = 18.0
+offset_right = 180.0
+offset_bottom = 94.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("Fondo_panel")
+script = ExtResource("1_panel")
+
+[node name="Margen" type="MarginContainer" parent="."]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 9
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 9
+
+[node name="Contenido" type="VBoxContainer" parent="Margen"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 5
+
+[node name="Cabecera" type="HBoxContainer" parent="Margen/Contenido"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="Nombre" type="Label" parent="Margen/Contenido/Cabecera"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.94, 0.88, 0.75, 1)
+theme_override_fonts/font = ExtResource("2_fuente")
+theme_override_font_sizes/font_size = 21
+text = "Personaje"
+text_overrun_behavior = 3
+
+[node name="Nivel" type="Label" parent="Margen/Contenido/Cabecera"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.7, 0.78, 0.83, 1)
+theme_override_font_sizes/font_size = 16
+text = "Nivel 1"
+vertical_alignment = 1
+
+[node name="BarraVida" type="Control" parent="Margen/Contenido"]
+custom_minimum_size = Vector2(0, 23)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Progreso" type="ProgressBar" parent="Margen/Contenido/BarraVida"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+value = 100.0
+show_percentage = false
+theme_override_styles/background = SubResource("Fondo_barra")
+theme_override_styles/fill = SubResource("Relleno_barra")
+
+[node name="Vida" type="Label" parent="Margen/Contenido/BarraVida"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.91, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 14
+text = "0 / 0 PV"
+horizontal_alignment = 1
+vertical_alignment = 1

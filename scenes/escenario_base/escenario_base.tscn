@@ -17,6 +17,10 @@
 [ext_resource type="PackedScene" uid="uid://ctjcxiiq4gyyg" path="res://assets/characters/knight3d/modelomago2.glb" id="14_lmwd1"]
 [ext_resource type="PackedScene" uid="uid://c87w474pswjrx" path="res://assets/characters/knight3d/ladronmodelo.glb" id="16_0resi"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud/hud.tscn" id="17_hud"]
+[ext_resource type="PackedScene" path="res://scenes/ui/personajes/panel_info_npc.tscn" id="18_info_npc"]
+[ext_resource type="Texture2D" path="res://assets/characters/player/dialogue/guerrero.png" id="19_dialogo_guerrero"]
+[ext_resource type="Texture2D" path="res://assets/characters/player/dialogue/ladron.png" id="20_dialogo_ladron"]
+[ext_resource type="Texture2D" path="res://assets/characters/player/dialogue/mago.png" id="21_dialogo_mago"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_m8dhx"]
 texture = ExtResource("2_85xdd")
@@ -51,6 +55,9 @@ shader_parameter/aspecto = 0.5625
 y_sort_enabled = true
 script = ExtResource("1_3j2a0")
 catalogo_mensajes = ExtResource("10_catalogo_mensajes")
+ilustracion_dialogo_guerrero = ExtResource("19_dialogo_guerrero")
+ilustracion_dialogo_ladron = ExtResource("20_dialogo_ladron")
+ilustracion_dialogo_mago = ExtResource("21_dialogo_mago")
 
 [node name="Zona" parent="." unique_id=1662731053 instance=ExtResource("2_3j2a0")]
 
@@ -87,6 +94,8 @@ mouse_filter = 2
 layer = 2
 
 [node name="HUD" parent="CanvasLayer" unique_id=207001 instance=ExtResource("17_hud")]
+
+[node name="PanelInfoNPC" parent="CanvasLayer" instance=ExtResource("18_info_npc")]
 
 [node name="CanvasLayerModalDados" type="CanvasLayer" parent="."]
 layer = 2

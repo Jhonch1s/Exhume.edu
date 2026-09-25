@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=18
+type="Resource"
+uid="uid://chpnn3nvwuy4l"
+path="res://.godot/imported/trompo.dialogue-3c46ebfa8d2180a2d8dd1f1418994a4d.tres"
+
+[deps]
+
+source_file="res://dialogues/personajes/trompo.dialogue"
+dest_files=["res://.godot/imported/trompo.dialogue-3c46ebfa8d2180a2d8dd1f1418994a4d.tres"]
+
+[params]
+
+defaults=true

@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Exhume · Taller de diálogos</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0a1017;
+      --surface: #111d27;
+      --surface-2: #172631;
+      --surface-3: #20323d;
+      --line: #304451;
+      --text: #e1e6df;
+      --muted: #9baeb5;
+      --gold: #d6a877;
+      --blue: #9ac4d1;
+      --red: #db887c;
+      --green: #9cc6a6;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: radial-gradient(circle at 14% 0, #1c2c3b 0, transparent 38%), var(--bg); color: var(--text); }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .42; }
+    :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+    .shell { max-width: 1680px; margin: auto; padding: 24px clamp(14px, 3vw, 44px) 48px; }
+    header { display: flex; align-items: end; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--line); padding-bottom: 22px; }
+    .eyebrow, .section-kicker, .mini-label { color: var(--gold); font: 700 11px/1.4 system-ui, sans-serif; letter-spacing: .2em; text-transform: uppercase; }
+    h1 { margin: 8px 0 6px; font-size: clamp(26px, 3vw, 42px); font-weight: 500; letter-spacing: .01em; }
+    .lead { margin: 0; color: var(--muted); font: 14px/1.5 system-ui, sans-serif; }
+    .header-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: flex-end; }
+    .status { min-width: 130px; color: var(--muted); font: 12px system-ui, sans-serif; text-align: right; }
+    .button { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; gap: 8px; border: 1px solid var(--line); border-radius: 4px; padding: 8px 13px; background: var(--surface-2); color: var(--text); font: 600 13px system-ui, sans-serif; white-space: nowrap; }
+    .button:hover:not(:disabled) { border-color: var(--gold); background: #223441; }
+    .button.primary { border-color: #977455; background: #76583e; color: #fff7ea; }
+    .button.primary:hover { background: #8b684a; }
+    .button.subtle { background: transparent; }
+    .button.danger:hover { border-color: var(--red); color: #f5b4a9; }
+    .project-bar { display: flex; align-items: end; flex-wrap: wrap; gap: 14px 22px; padding: 18px 0 22px; }
+    label { display: block; }
+    .project-name { flex: 0 1 300px; }
+    .project-name span, .field-label { display: block; margin-bottom: 7px; color: var(--muted); font: 600 11px system-ui, sans-serif; letter-spacing: .06em; text-transform: uppercase; }
+    .filename { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
+    .filename input { width: 100%; border: 0; background: transparent; padding: 10px 11px; color: var(--text); outline: 0; }
+    .filename span { padding: 0 11px 0 0; color: var(--muted); font: 13px system-ui, sans-serif; }
+    .project-hint { max-width: 540px; margin: 0 0 2px; color: var(--muted); font: 13px/1.5 system-ui, sans-serif; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(330px, 430px); align-items: start; gap: 20px; }
+    .panel { min-width: 0; border: 1px solid var(--line); background: rgba(17, 29, 39, .92); box-shadow: 0 16px 42px #0004; }
+    .panel-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 17px 19px; border-bottom: 1px solid var(--line); }
+    h2 { margin: 3px 0 0; font-size: 20px; font-weight: 500; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 7px; padding: 13px 19px; border-bottom: 1px solid var(--line); }
+    .toolbar .button { min-height: 33px; padding: 6px 9px; font-size: 12px; }
+    .rows { padding: 17px 18px 25px; min-height: 380px; }
+    .empty { padding: 42px 24px; border: 1px dashed var(--line); color: var(--muted); text-align: center; }
+    .row { position: relative; margin: 0 0 10px; border: 1px solid var(--line); border-left: 3px solid var(--blue); border-radius: 4px; background: var(--surface-2); padding: 10px 12px 11px; }
+    .row[data-type="cue"] { border-left-color: var(--gold); background: #202b31; }
+    .row[data-type="choice"] { border-left-color: var(--green); }
+    .row[data-type="jump"] { border-left-color: #b5a3db; }
+    .row[data-type="mutation"] { border-left-color: #da957b; }
+    .row[data-type="condition"] { border-left-color: #d4c181; }
+    .row[data-type="raw"] { border-left-color: #697d89; }
+    .row::before { content: ""; position: absolute; top: -11px; bottom: -11px; left: -16px; border-left: 1px dotted #47616e; opacity: .65; }
+    .row[data-depth="0"]::before { display: none; }
+    .row-head { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }
+    .row-index { min-width: 24px; color: #8196a0; font: 12px ui-monospace, Consolas, monospace; }
+    .kind { width: 142px; border: 1px solid var(--line); background: var(--surface-3); color: var(--text); padding: 6px 7px; border-radius: 3px; font: 12px system-ui, sans-serif; }
+    .depth { margin-right: auto; color: var(--muted); font: 11px system-ui, sans-serif; }
+    .icon-button { display: inline-grid; place-items: center; width: 28px; height: 28px; border: 1px solid transparent; border-radius: 3px; background: transparent; color: var(--muted); font: 16px/1 system-ui, sans-serif; }
+    .icon-button:hover:not(:disabled) { border-color: var(--line); background: var(--surface-3); color: var(--text); }
+    .icon-button.remove:hover { color: var(--red); }
+    .fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .field { min-width: 0; }
+    .field.wide { grid-column: 1 / -1; }
+    .field input, .field textarea, .field select { display: block; width: 100%; min-height: 35px; border: 1px solid #3c525e; border-radius: 3px; padding: 7px 9px; background: #0d1922; color: var(--text); outline: 0; font: 14px/1.4 system-ui, sans-serif; }
+    .field textarea { min-height: 40px; resize: vertical; }
+    .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--gold); }
+    .row-actions { display: flex; gap: 7px; margin-top: 10px; }
+    .row-actions .button { min-height: 29px; padding: 5px 8px; font-size: 11px; }
+    .right-column { display: grid; gap: 16px; position: sticky; top: 16px; }
+    .right-body { padding: 16px 18px; }
+    .code { display: block; width: 100%; min-height: 330px; resize: vertical; border: 1px solid var(--line); border-radius: 3px; padding: 15px; background: #09131b; color: #d7e6e7; font: 12px/1.65 ui-monospace, Consolas, monospace; tab-size: 4; white-space: pre; }
+    .preview-actions { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin-top: 11px; }
+    .metrics { color: var(--muted); font: 11px system-ui, sans-serif; }
+    .issues { margin: 0; padding: 0; list-style: none; }
+    .issues li { margin: 0 0 9px; padding: 9px 10px; border-left: 2px solid var(--gold); background: #2b2925; color: #ebdcc7; font: 12px/1.5 system-ui, sans-serif; }
+    .issues li.good { border-color: var(--green); background: #1c2d29; color: #bfddc5; }
+    .guide { margin: 0; display: grid; gap: 10px; }
+    .guide div { display: grid; grid-template-columns: 74px 1fr; gap: 9px; color: var(--muted); font: 12px/1.45 system-ui, sans-serif; }
+    .guide code { color: var(--gold); font: 12px ui-monospace, Consolas, monospace; }
+    .notice { margin: 14px 0 0; color: var(--muted); font: 12px/1.5 system-ui, sans-serif; }
+    .toast { position: fixed; bottom: 18px; right: 18px; z-index: 10; max-width: 340px; padding: 11px 14px; border: 1px solid var(--gold); background: #24313a; box-shadow: 0 12px 35px #0009; color: var(--text); font: 13px system-ui, sans-serif; }
+    [hidden] { display: none !important; }
+    @media (max-width: 1050px) { .layout { grid-template-columns: 1fr; } .right-column { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); } .right-column .preview-panel { grid-column: 1 / -1; } }
+    @media (max-width: 680px) { header { align-items: start; flex-direction: column; } .header-actions { justify-content: flex-start; } .right-column { grid-template-columns: 1fr; } .row { margin-left: 0 !important; } .row::before { display: none; } .fields { grid-template-columns: 1fr; } .field.wide { grid-column: auto; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div>
+        <div class="eyebrow">Exhume · Herramientas de autor</div>
+        <h1>Taller de diálogos</h1>
+        <p class="lead">Escribe conversaciones por bloques y exporta un archivo compatible con Dialogue Manager.</p>
+      </div>
+      <div class="header-actions">
+        <span class="status" id="saveStatus" aria-live="polite">Borrador local</span>
+        <button class="button" id="importButton" type="button">Importar .dialogue</button>
+        <button class="button primary" id="exportButton" type="button">Exportar .dialogue</button>
+        <input id="fileInput" type="file" accept=".dialogue,.txt,text/plain" hidden>
+      </div>
+    </header>
+
+    <div class="project-bar">
+      <label class="project-name">
+        <span>Nombre del archivo</span>
+        <div class="filename"><input id="fileName" aria-label="Nombre del archivo" spellcheck="false" autocomplete="off"><span>.dialogue</span></div>
+      </label>
+      <p class="project-hint">El borrador se guarda en este navegador. Al exportar, guarda el archivo en <strong>dialogues/personajes</strong> dentro del proyecto.</p>
+      <button class="button subtle danger" id="newButton" type="button">Nuevo borrador</button>
+    </div>
+
+    <main class="layout">
+      <section class="panel" aria-labelledby="outlineTitle">
+        <div class="panel-heading">
+          <div><span class="section-kicker">Estructura</span><h2 id="outlineTitle">Bloques del diálogo</h2></div>
+          <span class="metrics" id="blockCount"></span>
+        </div>
+        <div class="toolbar" id="toolbar" aria-label="Añadir bloque"></div>
+        <div class="rows" id="rows"></div>
+      </section>
+
+      <aside class="right-column">
+        <section class="panel preview-panel" aria-labelledby="previewTitle">
+          <div class="panel-heading"><div><span class="section-kicker">Resultado</span><h2 id="previewTitle">Archivo generado</h2></div></div>
+          <div class="right-body">
+            <textarea class="code" id="preview" readonly spellcheck="false" aria-label="Vista previa del archivo Dialogue"></textarea>
+            <div class="preview-actions"><span class="metrics" id="metrics"></span><button class="button" id="copyButton" type="button">Copiar texto</button></div>
+          </div>
+        </section>
+        <section class="panel" aria-labelledby="issuesTitle">
+          <div class="panel-heading"><div><span class="section-kicker">Revisión</span><h2 id="issuesTitle">Avisos</h2></div></div>
+          <div class="right-body"><ul class="issues" id="issues"></ul></div>
+        </section>
+        <section class="panel" aria-labelledby="guideTitle">
+          <div class="panel-heading"><div><span class="section-kicker">Ayuda rápida</span><h2 id="guideTitle">Sintaxis esencial</h2></div></div>
+          <div class="right-body">
+            <div class="guide">
+              <div><code>~ start</code><span>Punto de entrada predeterminado para un diálogo.</span></div>
+              <div><code>Trompo:</code><span>Frase del personaje. Usa el nombre exacto para activar su retrato.</span></div>
+              <div><code>- Opción</code><span>Respuesta del jugador. Usa «+ dentro» para escribir su consecuencia.</span></div>
+              <div><code>=&gt; END</code><span>Termina la conversación. También puede saltar a otro punto.</span></div>
+              <div><code>[if … /]</code><span>Condición opcional de una respuesta; necesita estado expuesto por el juego.</span></div>
+              <div><code>$&gt; …</code><span>Acción del juego. La función debe existir y estar disponible para el diálogo.</span></div>
+            </div>
+            <p class="notice">«Texto libre» conserva sintaxis avanzada que importes y permite escribir cualquier línea válida del plugin.</p>
+          </div>
+        </section>
+      </aside>
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <datalist id="speakerSuggestions"></datalist>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const STORAGE_KEY = "exhume.dialogue.editor.v1";
+      const TYPE_LABELS = {
+        cue: "Punto (~)",
+        dialogue: "Frase",
+        choice: "Opción (-)",
+        jump: "Salto (=>)",
+        condition: "Condición",
+        mutation: "Acción ($>)",
+        raw: "Texto libre"
+      };
+      const dom = Object.fromEntries(["rows", "toolbar", "preview", "issues", "metrics", "blockCount", "fileName", "fileInput", "importButton", "exportButton", "newButton", "copyButton", "saveStatus", "toast"].map(id => [id, document.getElementById(id)]));
+      let serial = 0;
+      let toastTimer;
+
+      function makeRow(type, depth = 0, values = {}) {
+        return { cue: "", speaker: "", text: "", target: "", condition: "", keyword: "if", expression: "", raw: "", ...values, id: values.id || `row-${Date.now()}-${++serial}`, type, depth };
+      }
+
+      function freshDraft() {
+        return { name: "nuevo_dialogo", rows: [makeRow("cue", 0, { cue: "start" }), makeRow("dialogue", 0)] };
+      }
+
+      function restoreDraft() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+          if (saved && Array.isArray(saved.rows) && typeof saved.name === "string") {
+            return {
+              name: saved.name,
+              rows: saved.rows.filter(row => row && TYPE_LABELS[row.type]).map(row => makeRow(row.type, Math.max(0, Math.min(8, Number(row.depth) || 0)), row))
+            };
+          }
+        } catch (_) { /* El editor sigue funcionando si el navegador bloquea el almacenamiento. */ }
+        return freshDraft();
+      }
+
+      let draft = restoreDraft();
+
+      function saveDraft() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+          dom.saveStatus.textContent = "Borrador guardado";
+        } catch (_) {
+          dom.saveStatus.textContent = "Guardado local no disponible";
+        }
+      }
+
+      function notify(message) {
+        dom.toast.textContent = message;
+        dom.toast.hidden = false;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => { dom.toast.hidden = true; }, 3300);
+      }
+
+      function sanitizeFileName(name) {
+        return (name.trim().replace(/\.dialogue$/i, "").replace(/[\\/:*?"<>|\x00-\x1f]/g, "_") || "nuevo_dialogo");
+      }
+
+      function oneLine(value) {
+        return String(value || "").replace(/\r?\n/g, " ");
+      }
+
+      function serializeRow(row) {
+        const indent = "\t".repeat(row.type === "cue" ? 0 : Math.max(0, row.depth));
+        switch (row.type) {
+          case "cue": return `~ ${oneLine(row.cue).trim()}`;
+          case "dialogue": return indent + (row.speaker.trim() ? `${oneLine(row.speaker).trim()}: ` : "") + oneLine(row.text);
+          case "choice": return indent + `- ${oneLine(row.text)}` + (row.condition.trim() ? ` [if ${oneLine(row.condition).trim()} /]` : "") + (row.target.trim() ? ` => ${oneLine(row.target).trim()}` : "");
+          case "jump": return indent + `=> ${oneLine(row.target).trim()}`;
+          case "condition": return indent + row.keyword + (row.keyword === "else" ? "" : ` ${oneLine(row.expression).trim()}`);
+          case "mutation": return indent + `$> ${oneLine(row.expression).trim()}`;
+          case "raw": return indent + row.raw;
+          default: return "";
+        }
+      }
+
+      function outputText() {
+        return draft.rows.map(serializeRow).join("\n") + (draft.rows.length ? "\n" : "");
+      }
+
+      function parseText(text) {
+        return text.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n").split("\n").reduce((rows, original, index, all) => {
+          if (index === all.length - 1 && original === "") return rows;
+          const prefix = original.match(/^[\t ]*/)[0];
+          const depth = Math.min(8, (prefix.match(/\t/g) || []).length + Math.floor((prefix.match(/ /g) || []).length / 4));
+          const line = original.slice(prefix.length);
+          let row;
+          if (/^~\s+/.test(line)) {
+            row = makeRow("cue", 0, { cue: line.replace(/^~\s+/, "") });
+          } else if (/^=>\s*/.test(line)) {
+            row = makeRow("jump", depth, { target: line.replace(/^=>\s*/, "") });
+          } else if (/^\$>\s*/.test(line)) {
+            row = makeRow("mutation", depth, { expression: line.replace(/^\$>\s*/, "") });
+          } else if (/^(if|elif)\s+/.test(line) || line === "else") {
+            const match = line.match(/^(if|elif|else)(?:\s+(.*))?$/);
+            row = makeRow("condition", depth, { keyword: match[1], expression: match[2] || "" });
+          } else if (line.startsWith("- ")) {
+            let rest = line.slice(2);
+            let target = "";
+            let condition = "";
+            const jump = rest.match(/\s+=>\s+(\S+)\s*$/);
+            if (jump) { target = jump[1]; rest = rest.slice(0, jump.index); }
+            const conditionMatch = rest.match(/\s+\[if\s+(.+?)\s*\/\]\s*$/);
+            if (conditionMatch) { condition = conditionMatch[1]; rest = rest.slice(0, conditionMatch.index); }
+            row = makeRow("choice", depth, { text: rest, target, condition });
+          } else if (line === "" || /^(%|#|import\s|using\s)/.test(line)) {
+            row = makeRow("raw", depth, { raw: line });
+          } else {
+            const speaker = line.match(/^([^:\s][^:]*):\s*(.*)$/);
+            row = makeRow("dialogue", depth, speaker ? { speaker: speaker[1], text: speaker[2] } : { text: line });
+          }
+          rows.push(row);
+          return rows;
+        }, []);
+      }
+
+      function blockEnd(index) {
+        const row = draft.rows[index];
+        let end = index + 1;
+        if (row.type === "cue") {
+          while (end < draft.rows.length && draft.rows[end].type !== "cue") end++;
+        } else {
+          while (end < draft.rows.length && draft.rows[end].type !== "cue" && draft.rows[end].depth > row.depth) end++;
+        }
+        return end;
+      }
+
+      function insertRow(type, index, depth) {
+        const defaults = type === "cue" ? { cue: "nuevo_punto" } : type === "jump" ? { target: "END" } : {};
+        const row = makeRow(type, type === "cue" ? 0 : depth, defaults);
+        draft.rows.splice(index, 0, row);
+        renderAll();
+        document.querySelector(`[data-id="${row.id}"] input, [data-id="${row.id}"] textarea`)?.focus();
+      }
+
+      function moveBlock(index, direction) {
+        const end = blockEnd(index);
+        if (direction < 0) {
+          let previous = index - 1;
+          while (previous >= 0 && draft.rows[previous].type !== "cue" && draft.rows[previous].depth > draft.rows[index].depth) previous--;
+          if (previous < 0 || draft.rows[previous].depth !== draft.rows[index].depth) return;
+          if (draft.rows[index].type !== "cue" && draft.rows[previous].type === "cue") return;
+          const block = draft.rows.splice(index, end - index);
+          draft.rows.splice(previous, 0, ...block);
+        } else {
+          if (end >= draft.rows.length || draft.rows[end].depth !== draft.rows[index].depth) return;
+          if (draft.rows[index].type !== "cue" && draft.rows[end].type === "cue") return;
+          const nextEnd = blockEnd(end);
+          const section = draft.rows.slice(index, nextEnd);
+          draft.rows.splice(index, section.length, ...section.slice(end - index), ...section.slice(0, end - index));
+        }
+        renderAll();
+      }
+
+      function changeDepth(index, amount) {
+        const row = draft.rows[index];
+        if (row.type === "cue") return;
+        const nextDepth = row.depth + amount;
+        if (nextDepth < 0 || nextDepth > 8 || (amount > 0 && index === 0)) return;
+        const end = blockEnd(index);
+        for (let i = index; i < end; i++) draft.rows[i].depth += amount;
+        renderAll();
+      }
+
+      function removeBlock(index) {
+        const end = blockEnd(index);
+        if (end > index + 1 && !confirm("Este bloque contiene líneas anidadas. ¿Eliminar toda la rama?")) return;
+        draft.rows.splice(index, end - index);
+        renderAll();
+      }
+
+      function addField(container, row, key, label, options = {}) {
+        const field = document.createElement("label");
+        field.className = "field" + (options.wide ? " wide" : "");
+        const caption = document.createElement("span");
+        caption.className = "field-label";
+        caption.textContent = label;
+        field.append(caption);
+        let control;
+        if (options.select) {
+          control = document.createElement("select");
+          for (const value of options.select) {
+            const option = document.createElement("option");
+            option.value = value;
+            option.textContent = value;
+            control.append(option);
+          }
+        } else if (options.textarea) {
+          control = document.createElement("textarea");
+          control.rows = 2;
+        } else {
+          control = document.createElement("input");
+          control.type = "text";
+        }
+        control.value = row[key] || "";
+        control.placeholder = options.placeholder || "";
+        control.spellcheck = options.spellcheck !== false;
+        if (key === "speaker") control.setAttribute("list", "speakerSuggestions");
+        control.addEventListener(options.select ? "change" : "input", () => {
+          row[key] = options.singleLine ? oneLine(control.value) : control.value;
+          if (options.singleLine && control.value !== row[key]) control.value = row[key];
+          if (key === "keyword") renderAll();
+          else updateOutput();
+        });
+        field.append(control);
+        container.append(field);
+      }
+
+      function iconButton(symbol, title, handler, disabled = false, danger = false) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "icon-button" + (danger ? " remove" : "");
+        button.textContent = symbol;
+        button.title = title;
+        button.setAttribute("aria-label", title);
+        button.disabled = disabled;
+        button.addEventListener("click", handler);
+        return button;
+      }
+
+      function rowButton(label, handler) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "button subtle";
+        button.textContent = label;
+        button.addEventListener("click", handler);
+        return button;
+      }
+
+      function renderRow(row, index) {
+        const card = document.createElement("article");
+        card.className = "row";
+        card.dataset.type = row.type;
+        card.dataset.depth = String(row.depth);
+        card.dataset.id = row.id;
+        card.style.marginLeft = `${Math.min(row.depth, 8) * 22}px`;
+
+        const head = document.createElement("div");
+        head.className = "row-head";
+        const number = document.createElement("span");
+        number.className = "row-index";
+        number.textContent = String(index + 1).padStart(2, "0");
+        const kind = document.createElement("select");
+        kind.className = "kind";
+        kind.setAttribute("aria-label", `Tipo del bloque ${index + 1}`);
+        for (const [value, label] of Object.entries(TYPE_LABELS)) {
+          const option = document.createElement("option");
+          option.value = value;
+          option.textContent = label;
+          kind.append(option);
+        }
+        kind.value = row.type;
+        kind.addEventListener("change", () => {
+          row.type = kind.value;
+          if (row.type === "cue") row.depth = 0;
+          if (row.type === "jump" && !row.target) row.target = "END";
+          renderAll();
+        });
+        const depth = document.createElement("span");
+        depth.className = "depth";
+        depth.textContent = row.depth ? `Sangría ${row.depth}` : "Principal";
+        head.append(number, kind, depth);
+        head.append(
+          iconButton("↑", "Subir bloque con su rama", () => moveBlock(index, -1), index === 0),
+          iconButton("↓", "Bajar bloque con su rama", () => moveBlock(index, 1), index === draft.rows.length - 1),
+          iconButton("←", "Reducir sangría", () => changeDepth(index, -1), row.type === "cue" || row.depth === 0),
+          iconButton("→", "Aumentar sangría", () => changeDepth(index, 1), row.type === "cue" || row.depth >= 8),
+          iconButton("×", "Eliminar bloque", () => removeBlock(index), false, true)
+        );
+        card.append(head);
+
+        const fields = document.createElement("div");
+        fields.className = "fields";
+        switch (row.type) {
+          case "cue": addField(fields, row, "cue", "Nombre del punto", { wide: true, placeholder: "start", singleLine: true, spellcheck: false }); break;
+          case "dialogue":
+            addField(fields, row, "speaker", "Quién habla (vacío = narrador)", { placeholder: "Trompo", singleLine: true });
+            addField(fields, row, "text", "Texto", { wide: true, textarea: true, placeholder: "Escribe la frase...", singleLine: true });
+            break;
+          case "choice":
+            addField(fields, row, "text", "Respuesta del jugador", { wide: true, textarea: true, placeholder: "¿Dónde estoy?", singleLine: true });
+            addField(fields, row, "condition", "Condición opcional", { placeholder: "EstadoPartida.alguna_condicion", singleLine: true, spellcheck: false });
+            addField(fields, row, "target", "Saltar a un punto (opcional)", { placeholder: "start o END", singleLine: true, spellcheck: false });
+            break;
+          case "jump": addField(fields, row, "target", "Destino", { wide: true, placeholder: "END", singleLine: true, spellcheck: false }); break;
+          case "condition":
+            addField(fields, row, "keyword", "Rama", { select: ["if", "elif", "else"] });
+            if (row.keyword !== "else") addField(fields, row, "expression", "Expresión", { placeholder: "EstadoPartida.alguna_condicion", singleLine: true, spellcheck: false });
+            break;
+          case "mutation": addField(fields, row, "expression", "Función o asignación", { wide: true, placeholder: "EstadoPartida.marcar_evento()", singleLine: true, spellcheck: false }); break;
+          case "raw": addField(fields, row, "raw", "Línea literal", { wide: true, textarea: true, placeholder: "Sintaxis avanzada del plugin", singleLine: true }); break;
+        }
+        card.append(fields);
+
+        const actions = document.createElement("div");
+        actions.className = "row-actions";
+        actions.append(rowButton("+ debajo", () => insertRow("dialogue", blockEnd(index), row.type === "cue" ? 0 : row.depth)));
+        actions.append(rowButton("+ opción", () => insertRow("choice", blockEnd(index), row.type === "cue" ? 0 : row.depth)));
+        if (row.type === "choice" || row.type === "condition") actions.append(rowButton("+ dentro", () => insertRow("dialogue", blockEnd(index), row.depth + 1)));
+        card.append(actions);
+        return card;
+      }
+
+      function validate() {
+        const issues = [];
+        const cues = new Set();
+        for (const row of draft.rows) {
+          if (row.type !== "cue") continue;
+          const cue = row.cue.trim();
+          if (!cue) issues.push("Hay un punto de diálogo sin nombre.");
+          else if (/\s/.test(cue)) issues.push(`El punto «${cue}» no puede contener espacios.`);
+          else if (cues.has(cue)) issues.push(`El punto «${cue}» está repetido.`);
+          cues.add(cue);
+        }
+        if (!cues.has("start")) issues.push("Falta «~ start», el punto de entrada predeterminado de DialogoNPC.");
+        draft.rows.forEach((row, index) => {
+          const number = index + 1;
+          if ((row.type === "dialogue" || row.type === "choice") && !row.text.trim()) issues.push(`Bloque ${number}: falta el texto.`);
+          if (row.type === "mutation" && !row.expression.trim()) issues.push(`Bloque ${number}: falta la acción.`);
+          if (row.type === "condition" && row.keyword !== "else" && !row.expression.trim()) issues.push(`Bloque ${number}: falta la condición.`);
+          if (row.type === "cue" && row.depth !== 0) issues.push(`Bloque ${number}: un punto debe estar al nivel principal.`);
+          if (index > 0 && row.depth > draft.rows[index - 1].depth && !["choice", "condition"].includes(draft.rows[index - 1].type)) issues.push(`Bloque ${number}: la sangría debe comenzar después de una opción o condición.`);
+          const target = (row.type === "jump" || row.type === "choice") ? row.target.trim() : "";
+          if (row.type === "jump" && !target) issues.push(`Bloque ${number}: falta el destino del salto.`);
+          if (target && target !== "END" && target !== "END!" && !cues.has(target)) issues.push(`Bloque ${number}: no existe el punto «${target}».`);
+          if (index > 0 && row.depth > draft.rows[index - 1].depth + 1) issues.push(`Bloque ${number}: la sangría salta más de un nivel.`);
+        });
+        return [...new Set(issues)];
+      }
+
+      function updateOutput() {
+        const text = outputText();
+        dom.preview.value = text;
+        dom.metrics.textContent = `${draft.rows.length} líneas · ${new Blob([text]).size} bytes`;
+        dom.blockCount.textContent = `${draft.rows.length} bloques`;
+        dom.issues.replaceChildren();
+        const warnings = validate();
+        if (!warnings.length) {
+          const item = document.createElement("li");
+          item.className = "good";
+          item.textContent = "Sin avisos básicos. Puedes exportar el archivo.";
+          dom.issues.append(item);
+        } else {
+          for (const message of warnings) {
+            const item = document.createElement("li");
+            item.textContent = message;
+            dom.issues.append(item);
+          }
+        }
+        saveDraft();
+      }
+
+      function renderAll() {
+        dom.rows.replaceChildren(...draft.rows.map(renderRow));
+        const suggestions = document.getElementById("speakerSuggestions");
+        suggestions.replaceChildren(...[...new Set(["Trompo", "Jugador", ...draft.rows.map(row => row.speaker.trim()).filter(Boolean)])].map(name => {
+          const option = document.createElement("option");
+          option.value = name;
+          return option;
+        }));
+        if (!draft.rows.length) {
+          const empty = document.createElement("p");
+          empty.className = "empty";
+          empty.textContent = "No hay bloques. Añade un punto de entrada para comenzar.";
+          dom.rows.append(empty);
+        }
+        updateOutput();
+      }
+
+      for (const type of ["cue", "dialogue", "choice", "jump", "condition", "mutation", "raw"]) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "button subtle";
+        button.textContent = `+ ${TYPE_LABELS[type]}`;
+        button.addEventListener("click", () => insertRow(type, draft.rows.length, 0));
+        dom.toolbar.append(button);
+      }
+
+      dom.fileName.value = draft.name;
+      dom.fileName.addEventListener("input", () => { draft.name = dom.fileName.value; saveDraft(); });
+      dom.importButton.addEventListener("click", () => dom.fileInput.click());
+      dom.fileInput.addEventListener("change", async () => {
+        const file = dom.fileInput.files?.[0];
+        if (!file) return;
+        if (!confirm(`¿Importar «${file.name}» y reemplazar el borrador actual?`)) { dom.fileInput.value = ""; return; }
+        try {
+          draft = { name: file.name.replace(/\.dialogue$/i, ""), rows: parseText(await file.text()) };
+          dom.fileName.value = draft.name;
+          renderAll();
+          notify(`Importado: ${file.name}`);
+        } catch (error) {
+          notify(`No se pudo importar: ${error.message}`);
+        }
+        dom.fileInput.value = "";
+      });
+      dom.exportButton.addEventListener("click", () => {
+        const warnings = validate();
+        if (warnings.length && !confirm(`Hay ${warnings.length} aviso(s). ¿Exportar igualmente?`)) return;
+        const name = sanitizeFileName(dom.fileName.value) + ".dialogue";
+        const url = URL.createObjectURL(new Blob([outputText()], { type: "text/plain;charset=utf-8" }));
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = name;
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        notify(`Archivo exportado: ${name}`);
+      });
+      dom.newButton.addEventListener("click", () => {
+        if (!confirm("¿Crear un borrador nuevo? El borrador local actual será reemplazado.")) return;
+        draft = freshDraft();
+        dom.fileName.value = draft.name;
+        renderAll();
+      });
+      dom.copyButton.addEventListener("click", async () => {
+        try {
+          if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(outputText());
+          else { dom.preview.select(); document.execCommand("copy"); }
+          notify("Texto copiado al portapapeles.");
+        } catch (_) { notify("No se pudo copiar. Selecciona el texto del panel manualmente."); }
+      });
+      document.addEventListener("keydown", event => {
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
+          event.preventDefault();
+          dom.exportButton.click();
+        }
+      });
+
+      renderAll();
+    })();
+  </script>
+</body>
+</html>

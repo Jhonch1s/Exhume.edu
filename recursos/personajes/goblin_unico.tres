@@ -1,0 +1,45 @@
+[gd_resource type="Resource" script_class="DefinicionPersonaje" format=3 uid="uid://b1ddiccxvsqe4"]
+
+[ext_resource type="Script" uid="uid://cosqwlc2jnmwe" path="res://scripts/personajes/definicion_personaje.gd" id="1_definicion"]
+[ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="1_lx3bb"]
+[ext_resource type="Script" uid="uid://bccqt6gfe8843" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="1_perfil"]
+[ext_resource type="Texture2D" uid="uid://db2d0vkpx0n6j" path="res://assets/characters/npcs/goblin_unico/sprites/trompo.png" id="2_sprite"]
+[ext_resource type="Texture2D" uid="uid://e4tlnt1j88ff" path="res://assets/characters/npcs/goblin_unico/illustrations/exam/goblin.png" id="3_ilustracion"]
+[ext_resource type="Resource" uid="uid://chpnn3nvwuy4l" path="res://dialogues/personajes/trompo.dialogue" id="4_dialogo"]
+[ext_resource type="Script" uid="uid://bmsmwb5764q7n" path="res://scripts/personajes/dialogo_npc.gd" id="5_dialogo_npc"]
+[ext_resource type="Texture2D" uid="uid://c7evxfquskjau" path="res://assets/characters/npcs/goblin_unico/dialogue/trompo.png" id="6_ilustracion_dialogo"]
+
+[sub_resource type="Resource" id="Dialogo_saludo"]
+script = ExtResource("5_dialogo_npc")
+id_dialogo = &"saludo"
+titulo = "Conversar"
+recurso = ExtResource("4_dialogo")
+
+[sub_resource type="Resource" id="Fragmento_identidad"]
+script = ExtResource("1_lx3bb")
+id_fragmento = &"identidad"
+nivel = 1
+id_mensaje = &"examen.goblin_trompo.basico"
+
+[sub_resource type="Resource" id="Perfil_goblin"]
+script = ExtResource("1_perfil")
+
+[resource]
+script = ExtResource("1_definicion")
+fuerza = 5
+destreza = 5
+voluntad = 5
+vida_maxima = 15
+nivel = 3
+experiencia_recompensa_derrota = 120
+actitud_hacia_jugador_fija = true
+puede_dialogar = true
+puede_tener_inventario = true
+textura_mapa = ExtResource("2_sprite")
+ilustracion_dialogo = ExtResource("6_ilustracion_dialogo")
+dialogos = Array[ExtResource("5_dialogo_npc")]([SubResource("Dialogo_saludo")])
+id_definicion = &"goblin_unico"
+nombre = "Goblin"
+ilustracion_examen = ExtResource("3_ilustracion")
+fragmentos_informacion = Array[ExtResource("1_lx3bb")]([SubResource("Fragmento_identidad")])
+perfil_observacion = SubResource("Perfil_goblin")

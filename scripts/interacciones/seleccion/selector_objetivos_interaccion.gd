@@ -15,11 +15,31 @@ func obtener_objetivos_perceptibles(
 	var candidatos: Array[Object] = []
 	var celda := tablero.obtener_celda(coordenada)
 	if celda != null and celda.visibilidad == Celda.EstadoVisibilidad.VISIBLE:
-		candidatos.append_array(celda.interactuables)
+		for interactuable in celda.interactuables:
+			if not is_instance_valid(interactuable):
+				continue
+			# Los personajes y otros visuales altos se seleccionan por su sprite,
+			# incluso cuando este sobresale de la celda que ocupan.
+			if punto_global is Vector2 and interactuable.has_method(&"contiene_punto_visual"):
+				continue
+			candidatos.append(interactuable)
 		if not punto_global is Vector2:
 			candidatos.append_array(celda.items_suelo)
 
 	if punto_global is Vector2:
+		for interactuable in tablero.interactuables_por_id.values():
+			if not is_instance_valid(interactuable):
+				continue
+			if not interactuable.has_method(&"contiene_punto_visual"):
+				continue
+			var celda_interactuable := tablero.obtener_celda(interactuable.coordenada_mapa)
+			if (
+				celda_interactuable != null
+				and celda_interactuable.visibilidad == Celda.EstadoVisibilidad.VISIBLE
+				and interactuable.call(&"contiene_punto_visual", punto_global)
+				and interactuable not in candidatos
+			):
+				candidatos.append(interactuable)
 		# ponytail: recorrido lineal; usar indice espacial solo si la cantidad de items lo exige.
 		for item_suelo in tablero.items_suelo_por_id.values():
 			var celda_item := tablero.obtener_celda(item_suelo.coordenada_mapa)

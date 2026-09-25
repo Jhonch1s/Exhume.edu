@@ -12,7 +12,7 @@
 [ext_resource type="Resource" uid="uid://bpvm3w36ob568" path="res://assets/interactuables/luces/antorcha_pared_derecha.tres" id="11_pared_der"]
 [ext_resource type="PackedScene" uid="uid://cul4jkns6vh72" path="res://scenes/efectos_superficie/HumoVeneno.tscn" id="12_humo_veneno"]
 [ext_resource type="PackedScene" uid="uid://bxpf3kv60y8yj" path="res://scenes/interactuables/trampas/TrampaSuperficie.tscn" id="13_trampa_superficie"]
-[ext_resource type="PackedScene" path="res://scenes/interactuables/mecanismos/palanca_interactuable.tscn" id="14_palanca"]
+[ext_resource type="PackedScene" uid="uid://c3kd5mb1jp31" path="res://scenes/interactuables/mecanismos/palanca_interactuable.tscn" id="14_palanca"]
 [ext_resource type="Resource" uid="uid://blo5r1ln54gjo" path="res://assets/interactuables/mecanismos/palanca/palanca.tres" id="15_palanca_def"]
 [ext_resource type="PackedScene" path="res://scenes/interactuables/puertas/puerta_interactuable.tscn" id="16_puerta"]
 [ext_resource type="Resource" uid="uid://2lts1rw4c3bs" path="res://assets/interactuables/puertas/puerta/puerta.tres" id="17_puerta_def"]
@@ -151,10 +151,13 @@ id_instancia = &"zona1_trampa_humo_04_03"
 position = Vector2(288, -16)
 id_instancia = &"zona1_trampa_humo_05_03"
 
+[node name="Personajes" type="Node2D" parent="Interactuables" unique_id=507425846]
+
 [node name="EfectosSuperficie" type="Node2D" parent="." unique_id=378389863]
 y_sort_enabled = true
 
 [node name="HumoVeneno" parent="EfectosSuperficie" unique_id=221653413 instance=ExtResource("12_humo_veneno")]
+position = Vector2(-10, -3)
 id_instancia = &"zona1_humo_veneno_00_00"
 
 [node name="CapaColumnas" type="TileMapLayer" parent="." unique_id=1421795526]

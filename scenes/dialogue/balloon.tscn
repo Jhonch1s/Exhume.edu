@@ -3,77 +3,81 @@
 [ext_resource type="Script" uid="uid://cj2cpaite6312" path="res://scenes/dialogue/balloon.gd" id="1_36de5"]
 [ext_resource type="PackedScene" uid="uid://ckvgyvclnwggo" path="res://addons/dialogue_manager/nodes/dialogue_label/dialogue_label.tscn" id="2_a8ve6"]
 [ext_resource type="Script" uid="uid://bb52rsfwhkxbn" path="res://addons/dialogue_manager/nodes/responses_menu/dialogue_responses_menu.gd" id="3_72ixx"]
+[ext_resource type="FontFile" uid="uid://c0l0sby5jy2p4" path="res://assets/ui/fonts/Amarante-Regular.ttf" id="4_fuente_dialogo"]
+[ext_resource type="Texture2D" path="res://assets/ui/panels/dialogue/marco_dialogo.png" id="5_marco_dialogo"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_spyqn"]
-content_margin_left = 20.0
-content_margin_top = 10.0
-content_margin_right = 20.0
-content_margin_bottom = 10.0
-bg_color = Color(0, 0, 0, 1)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.329412, 0.329412, 0.329412, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
+content_margin_left = 18.0
+content_margin_top = 12.0
+content_margin_right = 18.0
+content_margin_bottom = 12.0
+bg_color = Color(0.035, 0.045, 0.055, 0.7)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.28, 0.29, 0.27, 0.7)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ri4m3"]
-content_margin_left = 20.0
-content_margin_top = 10.0
-content_margin_right = 20.0
-content_margin_bottom = 10.0
-bg_color = Color(0.121569, 0.121569, 0.121569, 1)
+content_margin_left = 18.0
+content_margin_top = 12.0
+content_margin_right = 18.0
+content_margin_bottom = 12.0
+bg_color = Color(0.11, 0.13, 0.13, 0.96)
 border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(1, 1, 1, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.77, 0.62, 0.39, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_e0njw"]
-content_margin_left = 20.0
-content_margin_top = 10.0
-content_margin_right = 20.0
-content_margin_bottom = 10.0
-bg_color = Color(0, 0, 0, 1)
+content_margin_left = 18.0
+content_margin_top = 12.0
+content_margin_right = 18.0
+content_margin_bottom = 12.0
+bg_color = Color(0.08, 0.1, 0.11, 0.92)
 border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.6, 0.6, 0.6, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.59, 0.47, 0.31, 0.9)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qkmqt"]
-bg_color = Color(0, 0, 0, 1)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dialogo"]
+content_margin_left = 64.0
+content_margin_top = 44.0
+content_margin_right = 64.0
+content_margin_bottom = 44.0
 
 [sub_resource type="Theme" id="Theme_qq3yp"]
-default_font_size = 20
+default_font = ExtResource("4_fuente_dialogo")
+default_font_size = 21
+Button/colors/font_color = Color(0.86, 0.82, 0.72, 1)
+Button/colors/font_disabled_color = Color(0.48, 0.48, 0.45, 1)
+Button/colors/font_focus_color = Color(1, 0.91, 0.72, 1)
+Button/colors/font_hover_color = Color(1, 0.91, 0.72, 1)
+Button/colors/font_pressed_color = Color(1, 0.91, 0.72, 1)
 Button/styles/disabled = SubResource("StyleBoxFlat_spyqn")
 Button/styles/focus = SubResource("StyleBoxFlat_ri4m3")
 Button/styles/hover = SubResource("StyleBoxFlat_e0njw")
 Button/styles/normal = SubResource("StyleBoxFlat_e0njw")
-MarginContainer/constants/margin_bottom = 15
-MarginContainer/constants/margin_left = 30
-MarginContainer/constants/margin_right = 30
-MarginContainer/constants/margin_top = 15
-PanelContainer/styles/panel = SubResource("StyleBoxFlat_qkmqt")
+Button/styles/pressed = SubResource("StyleBoxFlat_ri4m3")
+MarginContainer/constants/margin_bottom = 8
+MarginContainer/constants/margin_left = 8
+MarginContainer/constants/margin_right = 8
+MarginContainer/constants/margin_top = 8
+PanelContainer/styles/panel = SubResource("StyleBoxEmpty_dialogo")
 
 [sub_resource type="Animation" id="Animation_nlsx6"]
 length = 0.001
@@ -112,7 +116,7 @@ _data = {
 }
 
 [node name="ExampleBalloon" type="CanvasLayer" unique_id=38036521]
-layer = 100
+layer = 2
 script = ExtResource("1_36de5")
 
 [node name="Balloon" type="Control" parent="." unique_id=154399927]
@@ -125,18 +129,86 @@ grow_horizontal = 2
 grow_vertical = 2
 theme = SubResource("Theme_qq3yp")
 
-[node name="MarginContainer" type="MarginContainer" parent="Balloon" unique_id=1302081376]
+[node name="OscurecimientoFondo" type="ColorRect" parent="Balloon"]
 layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -219.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.015, 0.02, 0.035, 0.36)
+
+[node name="IlustracionJugador" type="TextureRect" parent="Balloon" unique_id=1794655291]
+unique_name_in_owner = true
+texture_filter = 1
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.67
+anchor_top = 0.07
+anchor_right = 0.98
+anchor_bottom = 0.84
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 4
+
+[node name="IlustracionNPC" type="TextureRect" parent="Balloon" unique_id=971963276]
+unique_name_in_owner = true
+texture_filter = 1
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.02
+anchor_top = 0.07
+anchor_right = 0.33
+anchor_bottom = 0.84
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 4
+
+[node name="MarcoDialogo" type="NinePatchRect" parent="Balloon" unique_id=675772866]
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -750.0
+offset_top = -318.0
+offset_right = 0.0
+offset_bottom = -168.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(2, 2)
+mouse_filter = 2
+texture = ExtResource("5_marco_dialogo")
+patch_margin_left = 44
+patch_margin_top = 22
+patch_margin_right = 44
+patch_margin_bottom = 22
+axis_stretch_horizontal = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="Balloon" unique_id=1302081376]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -750.0
+offset_top = -318.0
+offset_right = 750.0
+offset_bottom = -18.0
 grow_horizontal = 2
 grow_vertical = 0
 
 [node name="PanelContainer" type="PanelContainer" parent="Balloon/MarginContainer" unique_id=2145270309]
 clip_children = 2
+texture_filter = 1
 layout_mode = 2
 mouse_filter = 1
 
@@ -152,9 +224,10 @@ size_flags_horizontal = 3
 
 [node name="CharacterLabel" type="RichTextLabel" parent="Balloon/MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer" unique_id=1567782692]
 unique_name_in_owner = true
-modulate = Color(1, 1, 1, 0.501961)
 layout_mode = 2
 mouse_filter = 1
+theme_override_colors/default_color = Color(0.81, 0.67, 0.43, 1)
+theme_override_font_sizes/normal_font_size = 24
 bbcode_enabled = true
 text = "Character"
 fit_content = true
@@ -164,6 +237,7 @@ scroll_active = false
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_colors/default_color = Color(0.91, 0.89, 0.83, 1)
 text = "Dialogue..."
 
 [node name="Control" type="Control" parent="Balloon/MarginContainer/PanelContainer/MarginContainer/HBoxContainer" unique_id=418507161]
@@ -179,33 +253,40 @@ polygon = PackedVector2Array(0, 0, 10, 10, 20, 0)
 libraries/ = SubResource("AnimationLibrary_1337t")
 autoplay = &"progress"
 
-[node name="CenterContainer" type="CenterContainer" parent="Balloon" unique_id=1087901387]
+[node name="ResponsesArea" type="Control" parent="Balloon" unique_id=1087901387]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.3
+anchor_top = 0.3
+anchor_right = 0.7
+anchor_bottom = 0.68
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="ResponsesMenu" type="VBoxContainer" parent="Balloon/ResponsesArea" unique_id=1801308483 node_paths=PackedStringArray("response_template")]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 1233.0
-offset_top = 594.0
-offset_right = -202.0
-offset_bottom = -206.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="ResponsesMenu" type="VBoxContainer" parent="Balloon/CenterContainer" unique_id=1801308483 node_paths=PackedStringArray("response_template")]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_vertical = 8
-theme_override_constants/separation = 2
+theme_override_constants/separation = 8
 alignment = 1
 script = ExtResource("3_72ixx")
 response_template = NodePath("ResponseExample")
 
-[node name="ResponseExample" type="Button" parent="Balloon/CenterContainer/ResponsesMenu" unique_id=1446810977]
+[node name="ResponseExample" type="Button" parent="Balloon/ResponsesArea/ResponsesMenu" unique_id=1446810977]
+custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
+size_flags_horizontal = 3
 text = "Response example"
+alignment = 0
+autowrap_mode = 2
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1162558754]
 unique_name_in_owner = true
 
 [connection signal="gui_input" from="Balloon" to="." method="_on_balloon_gui_input"]
-[connection signal="response_selected" from="Balloon/CenterContainer/ResponsesMenu" to="." method="_on_responses_menu_response_selected"]
+[connection signal="response_selected" from="Balloon/ResponsesArea/ResponsesMenu" to="." method="_on_responses_menu_response_selected"]

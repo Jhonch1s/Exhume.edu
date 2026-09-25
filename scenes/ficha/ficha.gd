@@ -25,6 +25,8 @@ const FRAME_POR_CLASE := {"Guerrero": 3, "Ladrón": 0, "Mago": 6}
 var fue: int = 5
 var des: int = 4
 var vol: int = 2
+@export_range(1, 99, 1) var nivel: int = 1
+@export_range(0, 999999, 1) var experiencia_acumulada: int = 0
 var energia_maxima: int = 200
 var energia_actual: int = 200
 @export_range(0, 99, 1) var movimiento_por_turno: int = 7
@@ -252,6 +254,8 @@ func obtener_estado_persistente() -> Dictionary:
 		"fuerza": fue,
 		"destreza": des,
 		"voluntad": vol,
+		"nivel": nivel,
+		"experiencia_acumulada": experiencia_acumulada,
 		"clase": clase,
 		"origen": origen,
 		"id_actor": String(id_actor),
@@ -279,6 +283,13 @@ func validar_estado_persistente(estado: Variant) -> StringName:
 	for atributo in ["fuerza", "destreza", "voluntad"]:
 		if not _es_numero_entero(estado.get(atributo)) or estado[atributo] < 2 or estado[atributo] > 5:
 			return &"atributos_ficha_guardados_invalidos"
+	if (
+		not _es_numero_entero(estado.get("nivel", 1))
+		or estado.get("nivel", 1) < 1
+		or not _es_numero_entero(estado.get("experiencia_acumulada", 0))
+		or estado.get("experiencia_acumulada", 0) < 0
+	):
+		return &"progresion_ficha_guardada_invalida"
 	if estado.get("id_actor") != String(id_actor):
 		return &"id_actor_guardado_no_coincide"
 	if estado.get("id_observador") != String(id_observador):
@@ -347,6 +358,8 @@ func restaurar_estado_persistente(estado: Variant) -> StringName:
 	fue = int(estado["fuerza"])
 	des = int(estado["destreza"])
 	vol = int(estado["voluntad"])
+	nivel = int(estado.get("nivel", 1))
+	experiencia_acumulada = int(estado.get("experiencia_acumulada", 0))
 	clase = estado["clase"]
 	origen = estado["origen"]
 	pv_max = fue + des + vol

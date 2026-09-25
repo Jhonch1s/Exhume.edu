@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40">
+  <!-- A small, readable relic-like pointer for Exhume's dark fantasy UI. -->
+  <path d="M3 2 L27 22 L18 23 L23 34 L17 37 L12 25 L6 31 Z"
+        fill="#171613" stroke="#090909" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M4 3 L24 20 L16.5 20.5 L21 32.5 L18 34 L12.5 22 L7 27 Z"
+        fill="#b89a60" stroke="#e6d5a8" stroke-width="1.2" stroke-linejoin="round"/>
+  <path d="M8 8 L17 16" fill="none" stroke="#f2e4c4" stroke-width="1.3" stroke-linecap="round" opacity="0.9"/>
+</svg>

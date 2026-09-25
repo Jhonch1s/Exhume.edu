@@ -28,6 +28,7 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 @onready var gestor_vision: FOVManager = $GestorVision
 @onready var capa_oscuridad: TileMapLayer = $Zona/CapaOscuridad
 @onready var hud: HUD = $CanvasLayer/HUD
+@onready var panel_info_npc: PanelInfoNPC = $CanvasLayer/PanelInfoNPC
 @onready var panel_registro_narrativo: PanelRegistroNarrativo = (
 	$CanvasLayer/HUD/HUDRoot/LogAcontecimientos
 )
@@ -64,6 +65,10 @@ const SONIDO_GOTERA = preload("res://assets/sonidos/ambiente/gotera dos.wav")
 const SONIDO_LAVA = preload("res://assets/sonidos/ambiente/lava 2.wav")
 const RUTA_GUARDADO := "user://partida.json"
 @export var catalogo_mensajes: CatalogoMensajesInteraccion
+@export_category("Ilustraciones de diálogo del jugador")
+@export var ilustracion_dialogo_guerrero: Texture2D
+@export var ilustracion_dialogo_ladron: Texture2D
+@export var ilustracion_dialogo_mago: Texture2D
 @export_range(0.02, 0.5, 0.01) var duracion_paso_lanzamiento: float = 0.08
 @export_range(1, 12, 1) var radio_audio_lava: int = 6
 @export_range(1, 12, 1) var radio_audio_fuego: int = 4
@@ -101,6 +106,8 @@ var representacion_lanzamiento: Node2D = null
 var ultimo_contexto_contextual: ContextoAccion = null
 var ultimo_resultado_contextual: ResultadoAccion = null
 var interaccion_modal_activa: bool = false
+var dialogo_npc_activo: bool = false
+var recurso_dialogo_npc_activo: DialogueResource
 var estado_seleccion_objetivos: EstadoSeleccionObjetivos = EstadoSeleccionObjetivos.new()
 var objetivos_pendientes_seleccion: Array[Object]:
 	get:
@@ -127,10 +134,10 @@ var generador_azar_audio := RandomNumberGenerator.new()
 var siguiente_paso_usa_variante_uno: bool = true
 var pasos_movimiento_actual: int = 0
 var longitud_movimiento_actual: int = 0
-
 var nombreClase: String = "Guerrero"
 
 func _ready() -> void:
+	CursorJuego.establecer_cursor(CursorJuego.Tipo.DEFAULT)
 	nombreClase = EstadoPartida.aventurero_pendiente.get("clase", nombreClase)
 
 	panel_registro_narrativo.observar(registro_narrativo)
@@ -207,12 +214,14 @@ func _process(_delta: float) -> void:
 		return
 	var coord_actual := capa_suelo.local_to_map(get_global_mouse_position())
 	if item_lanzamiento_pendiente != null:
+		CursorJuego.establecer_cursor(CursorJuego.Tipo.LANZAR)
 		if coord_actual != ultima_coordenada_hover:
 			_actualizar_previsualizacion_lanzamiento(coord_actual)
 			ultima_coordenada_hover = coord_actual
 		return
 	_actualizar_hover_interaccion(coord_actual, get_global_mouse_position())
 	if coord_actual == ultima_coordenada_hover:
+		_actualizar_cursor_movimiento(coord_actual)
 		return
 	capa_selector.clear()
 	if tablero.es_celda_valida(coord_actual):
@@ -234,6 +243,7 @@ func _process(_delta: float) -> void:
 	else:
 		camino_actual_tentativo.clear()
 		capa_camino.clear()
+	_actualizar_cursor_movimiento(coord_actual)
 	ultima_coordenada_hover = coord_actual
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -936,12 +946,63 @@ func _actualizar_hover_interaccion(coord: Vector2i, punto_global: Variant = null
 		ficha_jugador,
 		punto_global
 	)
+	_actualizar_cursor_interaccion()
 	_actualizar_resaltado_interaccion()
+	_actualizar_panel_info_npc()
+
+
+func _actualizar_cursor_interaccion() -> void:
+	var tiene_interaccion := false
+	var tiene_examen := false
+	for objetivo in objetivos_hover:
+		if not is_instance_valid(objetivo):
+			continue
+		for opcion in objetivo.call(&"obtener_opciones_accion", ficha_jugador):
+			if opcion.tipo in [
+				TiposInteraccion.TipoAccion.INTERACTUAR,
+				TiposInteraccion.TipoAccion.RECOGER,
+				TiposInteraccion.TipoAccion.ENTRAR,
+				TiposInteraccion.TipoAccion.SALIR,
+				TiposInteraccion.TipoAccion.USAR_ITEM,
+			]:
+				tiene_interaccion = true
+			elif opcion.tipo == TiposInteraccion.TipoAccion.EXAMINAR:
+				tiene_examen = true
+	if tiene_interaccion:
+		CursorJuego.establecer_cursor(CursorJuego.Tipo.INTERACCION)
+	elif tiene_examen:
+		CursorJuego.establecer_cursor(CursorJuego.Tipo.EXAMINAR)
+	elif not objetivos_hover.is_empty():
+		CursorJuego.establecer_cursor(CursorJuego.Tipo.DEFAULT)
+
+
+func _actualizar_cursor_movimiento(coord: Vector2i) -> void:
+	if not objetivos_hover.is_empty():
+		return
+	if (
+		ficha_jugador != null
+		and coord != ficha_jugador.coordenada_mapa
+		and camino_actual_tentativo.size() > 1
+		and camino_actual_tentativo.back() == coord
+	):
+		CursorJuego.establecer_cursor(CursorJuego.Tipo.MOVIMIENTO)
+	else:
+		CursorJuego.establecer_cursor(CursorJuego.Tipo.DEFAULT)
+
+
+func _actualizar_panel_info_npc() -> void:
+	for objetivo in objetivos_hover:
+		if objetivo is PersonajeNPC:
+			panel_info_npc.mostrar_personaje(objetivo)
+			return
+	panel_info_npc.ocultar()
 
 
 func _limpiar_hover_interaccion() -> void:
 	objetivos_hover.clear()
+	CursorJuego.establecer_cursor(CursorJuego.Tipo.DEFAULT)
 	_actualizar_resaltado_interaccion()
+	panel_info_npc.ocultar()
 
 
 func _solicitar_interaccion_en_celda(coord: Vector2i, punto_global: Variant = null) -> bool:
@@ -952,7 +1013,7 @@ func _solicitar_interaccion_en_celda(coord: Vector2i, punto_global: Variant = nu
 		punto_global
 	)
 	var coord_objetivo := coord
-	if objetivos.size() == 1 and objetivos[0] is ItemSuelo:
+	if objetivos.size() == 1 and (objetivos[0] is ItemSuelo or objetivos[0] is PersonajeNPC):
 		coord_objetivo = objetivos[0].coordenada_mapa
 	var iniciada := estado_seleccion_objetivos.iniciar(coord_objetivo, objetivos)
 	_actualizar_resaltado_interaccion()
@@ -961,7 +1022,7 @@ func _solicitar_interaccion_en_celda(coord: Vector2i, punto_global: Variant = nu
 
 func seleccionar_objetivo_interaccion(objetivo: Object) -> bool:
 	var seleccion_valida := estado_seleccion_objetivos.seleccionar(objetivo)
-	if seleccion_valida and objetivo is ItemSuelo:
+	if seleccion_valida and (objetivo is ItemSuelo or objetivo is PersonajeNPC):
 		estado_seleccion_objetivos.celda_seleccionada = objetivo.coordenada_mapa
 	_actualizar_resaltado_interaccion()
 	return seleccion_valida
@@ -1128,7 +1189,11 @@ func _ejecutar_opcion_contextual(
 	if contexto != null and contexto.tipo in [
 		TiposInteraccion.TipoAccion.INTERACTUAR,
 		TiposInteraccion.TipoAccion.USAR_ITEM,
-	]:
+	] and not (
+		contexto.objetivo is PersonajeNPC
+		and String(contexto.id_accion).begins_with("hablar:")
+		and resultado.exitosa
+	):
 		var etiqueta_atributo := "DES"
 		if opcion.id in [&"desarmar_fue", &"desarmar_des", &"desarmar_vol"]:
 			etiqueta_atributo = String(opcion.id).trim_prefix("desarmar_").to_upper()
@@ -1222,6 +1287,41 @@ func _presentar_resultado_contextual(
 ) -> void:
 	if (
 		contexto != null
+		and contexto.objetivo is PersonajeNPC
+		and String(contexto.id_accion).begins_with("hablar:")
+		and resultado.exitosa
+	):
+		var dialogo := (contexto.objetivo as PersonajeNPC).obtener_dialogo_por_accion(
+			contexto.id_accion
+		)
+		if dialogo == null:
+			return
+		var globo := DisparadorDialogoArea.mostrar(
+			dialogo.recurso,
+			dialogo.punto_inicio,
+			[contexto.objetivo, contexto.actor]
+		)
+		if globo != null:
+			if globo.has_method(&"configurar_participantes"):
+				globo.call(
+					&"configurar_participantes",
+					ficha_jugador.nombre,
+					_obtener_ilustracion_dialogo_jugador(),
+					(contexto.objetivo as PersonajeNPC).obtener_nombre_interaccion(),
+					(contexto.objetivo as PersonajeNPC).obtener_definicion_personaje().ilustracion_dialogo
+				)
+			dialogo_npc_activo = true
+			recurso_dialogo_npc_activo = dialogo.recurso
+			var gestor_dialogos := get_tree().root.get_node_or_null(^"DialogueManager")
+			var al_terminar := Callable(self, &"_on_dialogo_npc_finalizado")
+			if gestor_dialogos != null and not gestor_dialogos.is_connected(
+				&"dialogue_ended", al_terminar
+			):
+				gestor_dialogos.connect(&"dialogue_ended", al_terminar)
+			_actualizar_estado_modal_interaccion()
+			return
+	if (
+		contexto != null
 		and contexto.tipo == TiposInteraccion.TipoAccion.INTERACTUAR
 		and contexto.id_accion == &"abrir_cofre"
 		and contexto.objetivo is CofreInteractuable
@@ -1266,6 +1366,19 @@ func _presentar_resultado_contextual(
 			else String(id_mensaje)
 		)
 	panel_resultado_accion.mostrar_tirada(titulo, resultado.tirada, mensajes)
+
+
+func _obtener_ilustracion_dialogo_jugador() -> Texture2D:
+	if ficha_jugador == null:
+		return null
+	match ficha_jugador.clase:
+		"Guerrero":
+			return ilustracion_dialogo_guerrero
+		"Ladrón":
+			return ilustracion_dialogo_ladron
+		"Mago":
+			return ilustracion_dialogo_mago
+	return null
 
 
 func _on_menu_contextual_cancelado() -> void:
@@ -1647,6 +1760,7 @@ func _cancelar_lanzamiento() -> void:
 func _actualizar_estado_modal_interaccion() -> void:
 	var siguiente := (
 		lanzamiento_en_vuelo
+		or dialogo_npc_activo
 		or (
 			is_instance_valid(panel_inventario_cofre)
 			and panel_inventario_cofre.visible
@@ -1667,7 +1781,17 @@ func _actualizar_estado_modal_interaccion() -> void:
 		return
 	interaccion_modal_activa = siguiente
 	if interaccion_modal_activa:
+		CursorJuego.establecer_cursor(CursorJuego.Tipo.DEFAULT)
 		capa_selector.clear()
 		capa_camino.clear()
 		camino_actual_tentativo.clear()
+		panel_info_npc.ocultar()
 	estado_modal_interaccion_cambiado.emit(interaccion_modal_activa)
+
+
+func _on_dialogo_npc_finalizado(recurso: DialogueResource) -> void:
+	if recurso != recurso_dialogo_npc_activo:
+		return
+	dialogo_npc_activo = false
+	recurso_dialogo_npc_activo = null
+	_actualizar_estado_modal_interaccion()

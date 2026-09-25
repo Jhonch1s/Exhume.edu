@@ -30,6 +30,7 @@
 [ext_resource type="PackedScene" path="res://scenes/zonas/ItemSueloZona.tscn" id="19_njd4s"]
 [ext_resource type="Resource" uid="uid://dcbclcer2wmfn" path="res://assets/items/antorcha/antorcha.tres" id="20_8pgsv"]
 [ext_resource type="PackedScene" uid="uid://gsnmo7fvpda3" path="res://scenes/interactuables/cofres/cofre_interactuable.tscn" id="25_om0fx"]
+[ext_resource type="PackedScene" uid="uid://bqisrtoea4aai" path="res://scenes/personajes/npc.tscn" id="26_trompo"]
 
 [sub_resource type="Resource" id="Resource_5sqel"]
 script = ExtResource("16_hu6da")
@@ -248,6 +249,17 @@ y_sort_enabled = true
 [node name="CofreInteractuable" parent="Interactuables/Cofres" unique_id=1433795063 instance=ExtResource("25_om0fx")]
 position = Vector2(-320, -288)
 contenido_inicial = Array[ExtResource("16_hu6da")]([SubResource("Resource_5sqel"), SubResource("Resource_i1fw8")])
+
+[node name="Personajes" type="Node2D" parent="Interactuables" unique_id=1853873199]
+y_sort_enabled = true
+
+[node name="PersonajeNPC" parent="Interactuables/Personajes" unique_id=151698438 instance=ExtResource("26_trompo")]
+position = Vector2(-635, -244)
+nombre_unico = "Trompo"
+vida_actual = 15
+nivel_actual = 3
+id_instancia = &"goblin_001"
+ajustar_a_celda_en_editor = true
 
 [node name="ItemsSuelo" type="Node2D" parent="." unique_id=64758360 groups=["items_suelo"]]
 y_sort_enabled = true

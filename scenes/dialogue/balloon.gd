@@ -69,10 +69,18 @@ var mutation_cooldown: Timer = Timer.new()
 
 ## Indicator to show that player can progress dialogue.
 @onready var progress: Polygon2D = %Progress
+@onready var ilustracion_jugador: TextureRect = %IlustracionJugador
+@onready var ilustracion_npc: TextureRect = %IlustracionNPC
+
+var nombre_jugador: String = ""
+var nombre_npc: String = ""
+var textura_jugador: Texture2D
+var textura_npc: Texture2D
 
 
 func _ready() -> void:
 	balloon.hide()
+	_actualizar_ilustraciones()
 	Engine.get_singleton("DialogueManager").mutated.connect(_on_mutated)
 
 	# If the responses menu doesn't have a next action set, use this one
@@ -86,6 +94,45 @@ func _ready() -> void:
 		if not is_instance_valid(dialogue_resource):
 			assert(false, DMConstants.get_error_message(DMConstants.ERR_MISSING_RESOURCE_FOR_AUTOSTART))
 		start()
+
+
+func configurar_participantes(
+	nuevo_nombre_jugador: String,
+	nueva_textura_jugador: Texture2D,
+	nuevo_nombre_npc: String,
+	nueva_textura_npc: Texture2D
+) -> void:
+	nombre_jugador = nuevo_nombre_jugador
+	textura_jugador = nueva_textura_jugador
+	nombre_npc = nuevo_nombre_npc
+	textura_npc = nueva_textura_npc
+	if is_node_ready():
+		_actualizar_ilustraciones()
+
+
+func _actualizar_ilustraciones() -> void:
+	ilustracion_jugador.texture = textura_jugador
+	ilustracion_jugador.visible = textura_jugador != null
+	ilustracion_npc.texture = textura_npc
+	ilustracion_npc.visible = textura_npc != null
+	_actualizar_hablante("")
+
+
+func _actualizar_hablante(hablante: String) -> void:
+	var habla_npc := not nombre_npc.is_empty() and hablante == nombre_npc
+	var habla_jugador := (
+		(not nombre_jugador.is_empty() and hablante == nombre_jugador)
+		or hablante == "Jugador"
+	)
+	var hablante_reconocido := habla_jugador or habla_npc
+	ilustracion_jugador.modulate = (
+		Color.WHITE if not hablante_reconocido or habla_jugador
+		else Color(0.55, 0.55, 0.55, 0.85)
+	)
+	ilustracion_npc.modulate = (
+		Color.WHITE if not hablante_reconocido or habla_npc
+		else Color(0.55, 0.55, 0.55, 0.85)
+	)
 
 
 
@@ -133,6 +180,7 @@ func apply_dialogue_line() -> void:
 
 	character_label.visible = not dialogue_line.character.is_empty()
 	character_label.text = tr(dialogue_line.character, "dialogue")
+	_actualizar_hablante(dialogue_line.character)
 
 	dialogue_label.hide()
 	dialogue_label.dialogue_line = dialogue_line
