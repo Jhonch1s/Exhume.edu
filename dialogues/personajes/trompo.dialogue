@@ -1,7 +1,46 @@
 ~ start
-Trompo: ¡Vaya! Has logrado llegar hasta aquí... Tienes idea de dónde estás parado?
-- La verdad que no.
-	Trompo: Me llaman Trompo.
-- ¿La habitación de alguien con muy mal gusto?.
-	Trompo: ¡Hasta luego!
+if EstadoPartida.trompo_conocido == false
+	$> EstadoPartida.trompo_conocido = true
+	Trompo: ¡¡Cuidado con esa losa!!
+	Trompo: ...Ah, no, falsa alarma. Era solo una piedra fea. Hola, forastero.
+	Trompo: Soy Trompo. Y si valoras conservar las cejas intactas, camina arrastrando los pies.
+	Trompo: Estás parado en el taller personal del mismísimo Maese Klink. ¿No te suena? ¡El genio loco de los resortes!
+	Trompo: Los villanos más ricos le pagaban fortunas para asegurar sus bóvedas, pero Klink... Klink venía a esta cueva solo a inventar disparates para divertirse.
+else
+	=> charlar_de_nuevo
+- ¿Y qué haces tú aquí solo?
+	=> sobre_trompo
+- ¿Hay tesoros escondidos?
+	=> sobre_tesoros
+- ¿Cómo evito morir aquí dentro?
+	=> consejos_trampas
+~ charlar_de_nuevo
+Trompo: ¿Sigues con todas tus extremidades pegadas al cuerpo? Bien. ¿Qué necesitas?
+- ¿Qué haces aquí exactamente?
+	=> sobre_trompo
+- Háblame de los tesoros otra vez.
+	=> sobre_tesoros
+- Dame un consejo para no explotar.
+	=> consejos_trampas
+- Me voy a explorar por mi cuenta.
+	=> despedida
+~ sobre_trompo
+Trompo: ¿Yo? Investigación de campo... con fines altamente lucrativos.
+Trompo: Verás, Klink armaba prototipos, los testeaba y tiraba chucherías caras adentro solo para ver si sus secuaces lograban alcanzarlas.
+Trompo: Llevo días explorando. Avanzo despacio porque una flecha en la rodilla es molesta, pero dos flechas en la rodilla te arruinan la carrera de saqueador.
+=> charlar_de_nuevo
+~ sobre_tesoros
+Trompo: ¡Oro, joyas, baratijas raras! Klink salpicó el lugar con algunos cofres.
+Trompo: El problema es que a ese desquiciado le fascinaba la mampostería tramposa.
+Trompo: Te lo juro por mi abuela: ¡en alguna parte de este piso hay una pared que en realidad es una puerta secreta!
+Trompo: Ya he golpeado como cuarenta muros con una cuchara de palo. Todas piedras sólidas... por ahora. Pero está ahí, lo presiento en mis orejas.
+- Si encuentro algo, ¿repartimos?
+	Trompo: ¡Setenta para ti, treinta para mí por la información y el apoyo moral! No acepto ofertas peores.
+=> charlar_de_nuevo
+~ consejos_trampas
+Trompo: Regla de oro de Klink: si brilla demasiado, no lo toques con la mano desnuda; úsalo para lanzárselo a otra cosa.
+Trompo: Y si escuchas un *click* bajo tu bota... reza para que sea un interruptor de luz y no una carga de veneno o pólvora.
+=> charlar_de_nuevo
+~ despedida
+Trompo: Adelante, camina tú primero. Si el suelo se abre, tomaré notas detalladas. ¡Mucha suerte!
 => END

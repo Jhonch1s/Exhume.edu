@@ -26,6 +26,15 @@
 La implementación de cofres es un incremento adicional; no cambia retroactivamente
 el cierre histórico de la fase 7 ni certifica un nuevo cierre de pruebas.
 
+### Continuidad de NPC — 26 de septiembre de 2026
+
+El estado implementado y los siguientes incrementos de personajes no jugadores
+se registran en [NPC y diálogos](docs/contenido/NPC_Y_DIALOGOS.md). Trompo ya está
+en el templo con interacción, hover, ficha informativa y diálogo ilustrado. La
+actitud, el combate de NPC, la recompensa de XP y la persistencia de su estado
+siguen pendientes; los campos de definición existentes no implican que esos
+sistemas estén conectados.
+
 ### Progreso por fases
 
 - [x] Fase 0 — Contratos y vocabulario.

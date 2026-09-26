@@ -53,6 +53,11 @@
     h2 { margin: 3px 0 0; font-size: 20px; font-weight: 500; }
     .toolbar { display: flex; flex-wrap: wrap; gap: 7px; padding: 13px 19px; border-bottom: 1px solid var(--line); }
     .toolbar .button { min-height: 33px; padding: 6px 9px; font-size: 12px; }
+    .toolbar-group { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; padding-right: 14px; margin-right: 7px; border-right: 1px solid var(--line); }
+    .toolbar-group:last-child { border-right: 0; }
+    .toolbar-label { width: 100%; color: var(--muted); font: 700 10px system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+    .intro { margin: 0; padding: 13px 19px; border-bottom: 1px solid var(--line); color: var(--muted); font: 13px/1.55 system-ui, sans-serif; }
+    .intro strong { color: var(--text); }
     .rows { padding: 17px 18px 25px; min-height: 380px; }
     .empty { padding: 42px 24px; border: 1px dashed var(--line); color: var(--muted); text-align: center; }
     .row { position: relative; margin: 0 0 10px; border: 1px solid var(--line); border-left: 3px solid var(--blue); border-radius: 4px; background: var(--surface-2); padding: 10px 12px 11px; }
@@ -62,12 +67,16 @@
     .row[data-type="mutation"] { border-left-color: #da957b; }
     .row[data-type="condition"] { border-left-color: #d4c181; }
     .row[data-type="raw"] { border-left-color: #697d89; }
+    .row[data-type="cue"] { margin-top: 22px; }
+    .row[data-type="cue"]:first-child { margin-top: 0; }
     .row::before { content: ""; position: absolute; top: -11px; bottom: -11px; left: -16px; border-left: 1px dotted #47616e; opacity: .65; }
     .row[data-depth="0"]::before { display: none; }
     .row-head { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }
     .row-index { min-width: 24px; color: #8196a0; font: 12px ui-monospace, Consolas, monospace; }
     .kind { width: 142px; border: 1px solid var(--line); background: var(--surface-3); color: var(--text); padding: 6px 7px; border-radius: 3px; font: 12px system-ui, sans-serif; }
     .depth { margin-right: auto; color: var(--muted); font: 11px system-ui, sans-serif; }
+    .row-description { margin: -2px 0 11px 31px; color: var(--muted); font: 12px/1.45 system-ui, sans-serif; }
+    .row-description code, .field-help code, .intro code { color: var(--gold); font: 12px ui-monospace, Consolas, monospace; }
     .icon-button { display: inline-grid; place-items: center; width: 28px; height: 28px; border: 1px solid transparent; border-radius: 3px; background: transparent; color: var(--muted); font: 16px/1 system-ui, sans-serif; }
     .icon-button:hover:not(:disabled) { border-color: var(--line); background: var(--surface-3); color: var(--text); }
     .icon-button.remove:hover { color: var(--red); }
@@ -76,6 +85,7 @@
     .field.wide { grid-column: 1 / -1; }
     .field input, .field textarea, .field select { display: block; width: 100%; min-height: 35px; border: 1px solid #3c525e; border-radius: 3px; padding: 7px 9px; background: #0d1922; color: var(--text); outline: 0; font: 14px/1.4 system-ui, sans-serif; }
     .field textarea { min-height: 40px; resize: vertical; }
+    .field-help { display: block; margin-top: 5px; color: var(--muted); font: 11px/1.4 system-ui, sans-serif; }
     .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--gold); }
     .row-actions { display: flex; gap: 7px; margin-top: 10px; }
     .row-actions .button { min-height: 29px; padding: 5px 8px; font-size: 11px; }
@@ -128,6 +138,7 @@
           <div><span class="section-kicker">Estructura</span><h2 id="outlineTitle">Bloques del diálogo</h2></div>
           <span class="metrics" id="blockCount"></span>
         </div>
+        <p class="intro"><strong>Cómo se lee:</strong> cada punto <code>~</code> es una escena. Las líneas debajo se ejecutan en orden; la sangría indica qué ocurre dentro de una opción o condición. La vista de la derecha es exactamente el archivo que exportarás.</p>
         <div class="toolbar" id="toolbar" aria-label="Añadir bloque"></div>
         <div class="rows" id="rows"></div>
       </section>
@@ -152,10 +163,11 @@
               <div><code>Trompo:</code><span>Frase del personaje. Usa el nombre exacto para activar su retrato.</span></div>
               <div><code>- Opción</code><span>Respuesta del jugador. Usa «+ dentro» para escribir su consecuencia.</span></div>
               <div><code>=&gt; END</code><span>Termina la conversación. También puede saltar a otro punto.</span></div>
-              <div><code>[if … /]</code><span>Condición opcional de una respuesta; necesita estado expuesto por el juego.</span></div>
-              <div><code>$&gt; …</code><span>Acción del juego. La función debe existir y estar disponible para el diálogo.</span></div>
+              <div><code>if …</code><span>Rama condicional, sin dos puntos. Las líneas afectadas llevan un nivel más de sangría.</span></div>
+              <div><code>[if … /]</code><span>Muestra una respuesta solo si se cumple esa condición.</span></div>
+              <div><code>$&gt; …</code><span>Cambia una variable o llama una función. Por ejemplo: <code>EstadoPartida.trompo_conocido = true</code>.</span></div>
             </div>
-            <p class="notice">«Texto libre» conserva sintaxis avanzada que importes y permite escribir cualquier línea válida del plugin.</p>
+            <p class="notice">Para recordar algo entre conversaciones, declara la variable en un autoload y escribe su nombre completo, como <code>EstadoPartida.trompo_conocido</code>. «Texto libre» conserva sintaxis avanzada importada.</p>
           </div>
         </section>
       </aside>
@@ -177,6 +189,15 @@
         condition: "Condición",
         mutation: "Acción ($>)",
         raw: "Texto libre"
+      };
+      const TYPE_HELP = {
+        cue: "Punto de entrada o escena a la que puedes saltar. Duplicarlo copia toda su escena.",
+        dialogue: "Línea pronunciada por un personaje. El nombre debe coincidir con el configurado en Godot.",
+        choice: "Respuesta seleccionable del jugador. Puedes saltar a otro punto o escribir consecuencias dentro.",
+        jump: "Continúa en otro punto; END cierra la conversación.",
+        condition: "Ejecuta las líneas sangradas solo si se cumple la expresión. No escribas ':' al final.",
+        mutation: "Cambia una variable o llama una función. Usa el autoload completo: EstadoPartida.variable = valor.",
+        raw: "Línea avanzada conservada tal como se escribió; revisa su sintaxis antes de exportar."
       };
       const dom = Object.fromEntries(["rows", "toolbar", "preview", "issues", "metrics", "blockCount", "fileName", "fileInput", "importButton", "exportButton", "newButton", "copyButton", "saveStatus", "toast"].map(id => [id, document.getElementById(id)]));
       let serial = 0;
@@ -229,15 +250,19 @@
         return String(value || "").replace(/\r?\n/g, " ");
       }
 
+      function normalizeExpression(value) {
+        return oneLine(value).trim().replace(/(^|[^.\w])trompo_conocido\b/g, "$1EstadoPartida.trompo_conocido");
+      }
+
       function serializeRow(row) {
         const indent = "\t".repeat(row.type === "cue" ? 0 : Math.max(0, row.depth));
         switch (row.type) {
           case "cue": return `~ ${oneLine(row.cue).trim()}`;
           case "dialogue": return indent + (row.speaker.trim() ? `${oneLine(row.speaker).trim()}: ` : "") + oneLine(row.text);
-          case "choice": return indent + `- ${oneLine(row.text)}` + (row.condition.trim() ? ` [if ${oneLine(row.condition).trim()} /]` : "") + (row.target.trim() ? ` => ${oneLine(row.target).trim()}` : "");
+          case "choice": return indent + `- ${oneLine(row.text)}` + (row.condition.trim() ? ` [if ${normalizeExpression(row.condition).replace(/:$/, "")} /]` : "") + (row.target.trim() ? ` => ${oneLine(row.target).trim()}` : "");
           case "jump": return indent + `=> ${oneLine(row.target).trim()}`;
-          case "condition": return indent + row.keyword + (row.keyword === "else" ? "" : ` ${oneLine(row.expression).trim()}`);
-          case "mutation": return indent + `$> ${oneLine(row.expression).trim()}`;
+          case "condition": return indent + row.keyword + (row.keyword === "else" ? "" : ` ${normalizeExpression(row.expression).replace(/:$/, "")}`);
+          case "mutation": return indent + `$> ${normalizeExpression(row.expression).replace(/^set\s+/, "")}`;
           case "raw": return indent + row.raw;
           default: return "";
         }
@@ -258,11 +283,11 @@
             row = makeRow("cue", 0, { cue: line.replace(/^~\s+/, "") });
           } else if (/^=>\s*/.test(line)) {
             row = makeRow("jump", depth, { target: line.replace(/^=>\s*/, "") });
-          } else if (/^\$>\s*/.test(line)) {
-            row = makeRow("mutation", depth, { expression: line.replace(/^\$>\s*/, "") });
+          } else if (/^(?:\$>|set\s)\s*/.test(line)) {
+            row = makeRow("mutation", depth, { expression: normalizeExpression(line.replace(/^(?:\$>\s*|set\s+)/, "")) });
           } else if (/^(if|elif)\s+/.test(line) || line === "else") {
             const match = line.match(/^(if|elif|else)(?:\s+(.*))?$/);
-            row = makeRow("condition", depth, { keyword: match[1], expression: match[2] || "" });
+            row = makeRow("condition", depth, { keyword: match[1], expression: normalizeExpression(match[2] || "").replace(/:$/, "") });
           } else if (line.startsWith("- ")) {
             let rest = line.slice(2);
             let target = "";
@@ -270,7 +295,7 @@
             const jump = rest.match(/\s+=>\s+(\S+)\s*$/);
             if (jump) { target = jump[1]; rest = rest.slice(0, jump.index); }
             const conditionMatch = rest.match(/\s+\[if\s+(.+?)\s*\/\]\s*$/);
-            if (conditionMatch) { condition = conditionMatch[1]; rest = rest.slice(0, conditionMatch.index); }
+            if (conditionMatch) { condition = normalizeExpression(conditionMatch[1]); rest = rest.slice(0, conditionMatch.index); }
             row = makeRow("choice", depth, { text: rest, target, condition });
           } else if (line === "" || /^(%|#|import\s|using\s)/.test(line)) {
             row = makeRow("raw", depth, { raw: line });
@@ -300,6 +325,31 @@
         draft.rows.splice(index, 0, row);
         renderAll();
         document.querySelector(`[data-id="${row.id}"] input, [data-id="${row.id}"] textarea`)?.focus();
+      }
+
+      function uniqueCueName(base) {
+        const names = new Set(draft.rows.filter(row => row.type === "cue").map(row => row.cue.trim()));
+        let candidate = `${base || "nuevo_punto"}_copia`;
+        let suffix = 2;
+        while (names.has(candidate)) candidate = `${base || "nuevo_punto"}_copia_${suffix++}`;
+        return candidate;
+      }
+
+      function duplicateBlock(index) {
+        const end = blockEnd(index);
+        const copies = draft.rows.slice(index, end).map(row => makeRow(row.type, row.depth, { ...row, id: undefined }));
+        if (copies[0].type === "cue") {
+          const oldName = copies[0].cue.trim();
+          const newName = uniqueCueName(oldName);
+          copies[0].cue = newName;
+          for (const copy of copies) {
+            if ((copy.type === "jump" || copy.type === "choice") && copy.target.trim() === oldName) copy.target = newName;
+          }
+        }
+        draft.rows.splice(end, 0, ...copies);
+        renderAll();
+        document.querySelector(`[data-id="${copies[0].id}"] input`)?.focus();
+        notify(copies[0].type === "cue" ? `Punto duplicado como ~ ${copies[0].cue}.` : "Bloque y contenido duplicados.");
       }
 
       function moveBlock(index, direction) {
@@ -372,6 +422,12 @@
           else updateOutput();
         });
         field.append(control);
+        if (options.help) {
+          const help = document.createElement("small");
+          help.className = "field-help";
+          help.textContent = options.help;
+          field.append(help);
+        }
         container.append(field);
       }
 
@@ -427,45 +483,51 @@
         });
         const depth = document.createElement("span");
         depth.className = "depth";
-        depth.textContent = row.depth ? `Sangría ${row.depth}` : "Principal";
+        depth.textContent = row.depth ? `Dentro · nivel ${row.depth}` : "Nivel principal";
         head.append(number, kind, depth);
         head.append(
           iconButton("↑", "Subir bloque con su rama", () => moveBlock(index, -1), index === 0),
           iconButton("↓", "Bajar bloque con su rama", () => moveBlock(index, 1), index === draft.rows.length - 1),
           iconButton("←", "Reducir sangría", () => changeDepth(index, -1), row.type === "cue" || row.depth === 0),
           iconButton("→", "Aumentar sangría", () => changeDepth(index, 1), row.type === "cue" || row.depth >= 8),
+          iconButton("⧉", row.type === "cue" ? "Duplicar punto y todo su diálogo" : "Duplicar bloque con sus líneas internas", () => duplicateBlock(index)),
           iconButton("×", "Eliminar bloque", () => removeBlock(index), false, true)
         );
         card.append(head);
+        const description = document.createElement("p");
+        description.className = "row-description";
+        description.textContent = TYPE_HELP[row.type];
+        card.append(description);
 
         const fields = document.createElement("div");
         fields.className = "fields";
         switch (row.type) {
-          case "cue": addField(fields, row, "cue", "Nombre del punto", { wide: true, placeholder: "start", singleLine: true, spellcheck: false }); break;
+          case "cue": addField(fields, row, "cue", "Identificador del punto", { wide: true, placeholder: "start", singleLine: true, spellcheck: false, help: "Sin espacios. El inicio habitual se llama start; los saltos usan este nombre." }); break;
           case "dialogue":
             addField(fields, row, "speaker", "Quién habla (vacío = narrador)", { placeholder: "Trompo", singleLine: true });
             addField(fields, row, "text", "Texto", { wide: true, textarea: true, placeholder: "Escribe la frase...", singleLine: true });
             break;
           case "choice":
             addField(fields, row, "text", "Respuesta del jugador", { wide: true, textarea: true, placeholder: "¿Dónde estoy?", singleLine: true });
-            addField(fields, row, "condition", "Condición opcional", { placeholder: "EstadoPartida.alguna_condicion", singleLine: true, spellcheck: false });
-            addField(fields, row, "target", "Saltar a un punto (opcional)", { placeholder: "start o END", singleLine: true, spellcheck: false });
+            addField(fields, row, "condition", "Visible solo si… (opcional)", { placeholder: "EstadoPartida.trompo_conocido == true", singleLine: true, spellcheck: false, help: "Escribe solo la expresión; el editor añade [if … /]." });
+            addField(fields, row, "target", "Ir al punto (opcional)", { placeholder: "sobre_trompo o END", singleLine: true, spellcheck: false, help: "Si escribes líneas dentro, deja vacío este campo y añade un bloque Salto al final de la rama." });
             break;
-          case "jump": addField(fields, row, "target", "Destino", { wide: true, placeholder: "END", singleLine: true, spellcheck: false }); break;
+          case "jump": addField(fields, row, "target", "Punto de destino", { wide: true, placeholder: "END", singleLine: true, spellcheck: false, help: "Escribe el identificador de un punto existente o END para terminar." }); break;
           case "condition":
             addField(fields, row, "keyword", "Rama", { select: ["if", "elif", "else"] });
-            if (row.keyword !== "else") addField(fields, row, "expression", "Expresión", { placeholder: "EstadoPartida.alguna_condicion", singleLine: true, spellcheck: false });
+            if (row.keyword !== "else") addField(fields, row, "expression", "Comprobar si…", { placeholder: "EstadoPartida.trompo_conocido == false", singleLine: true, spellcheck: false, help: "Sin 'if' ni ':'; usa el nombre completo del autoload." });
             break;
-          case "mutation": addField(fields, row, "expression", "Función o asignación", { wide: true, placeholder: "EstadoPartida.marcar_evento()", singleLine: true, spellcheck: false }); break;
+          case "mutation": addField(fields, row, "expression", "Cambio de estado o función", { wide: true, placeholder: "EstadoPartida.trompo_conocido = true", singleLine: true, spellcheck: false, help: "Sin 'set' ni '$>'; el editor añade $> automáticamente." }); break;
           case "raw": addField(fields, row, "raw", "Línea literal", { wide: true, textarea: true, placeholder: "Sintaxis avanzada del plugin", singleLine: true }); break;
         }
         card.append(fields);
 
         const actions = document.createElement("div");
         actions.className = "row-actions";
-        actions.append(rowButton("+ debajo", () => insertRow("dialogue", blockEnd(index), row.type === "cue" ? 0 : row.depth)));
-        actions.append(rowButton("+ opción", () => insertRow("choice", blockEnd(index), row.type === "cue" ? 0 : row.depth)));
-        if (row.type === "choice" || row.type === "condition") actions.append(rowButton("+ dentro", () => insertRow("dialogue", blockEnd(index), row.depth + 1)));
+        actions.append(rowButton("+ frase debajo", () => insertRow("dialogue", blockEnd(index), row.type === "cue" ? 0 : row.depth)));
+        actions.append(rowButton("+ respuesta debajo", () => insertRow("choice", blockEnd(index), row.type === "cue" ? 0 : row.depth)));
+        if (row.type === "choice" || row.type === "condition") actions.append(rowButton("+ frase dentro de esta rama", () => insertRow("dialogue", blockEnd(index), row.depth + 1)));
+        actions.append(rowButton(row.type === "cue" ? "Duplicar punto completo" : "Duplicar bloque", () => duplicateBlock(index)));
         card.append(actions);
         return card;
       }
@@ -485,13 +547,21 @@
         draft.rows.forEach((row, index) => {
           const number = index + 1;
           if ((row.type === "dialogue" || row.type === "choice") && !row.text.trim()) issues.push(`Bloque ${number}: falta el texto.`);
+          if (row.type === "dialogue" && row.speaker.trim() && row.text.trim().startsWith(`${row.speaker.trim()}:`)) issues.push(`Bloque ${number}: el nombre del hablante está repetido dentro del texto.`);
           if (row.type === "mutation" && !row.expression.trim()) issues.push(`Bloque ${number}: falta la acción.`);
           if (row.type === "condition" && row.keyword !== "else" && !row.expression.trim()) issues.push(`Bloque ${number}: falta la condición.`);
+          for (const expression of [row.type === "condition" ? row.expression : "", row.type === "choice" ? row.condition : "", row.type === "mutation" ? row.expression : ""].filter(Boolean)) {
+            if (/\b(?:if|elif)\s+/.test(expression) && row.type !== "mutation") issues.push(`Bloque ${number}: escribe solo la expresión; el editor añade if.`);
+            if (/:\s*$/.test(expression)) issues.push(`Bloque ${number}: quita los dos puntos finales de la expresión.`);
+            if (/^\s*(?:set|\$>)\s+/.test(expression)) issues.push(`Bloque ${number}: quita «set» o «$>» del campo; el editor ya añade $>.`);
+            if (/^\s*[a-zA-Z_]\w*\s*(?:=|==|!=|>=|<=|>|<)/.test(expression) && !/^\s*(?:true|false)\b/.test(expression)) issues.push(`Bloque ${number}: la variable parece no indicar su autoload. Escribe, por ejemplo, EstadoPartida.trompo_conocido.`);
+          }
           if (row.type === "cue" && row.depth !== 0) issues.push(`Bloque ${number}: un punto debe estar al nivel principal.`);
           if (index > 0 && row.depth > draft.rows[index - 1].depth && !["choice", "condition"].includes(draft.rows[index - 1].type)) issues.push(`Bloque ${number}: la sangría debe comenzar después de una opción o condición.`);
           const target = (row.type === "jump" || row.type === "choice") ? row.target.trim() : "";
           if (row.type === "jump" && !target) issues.push(`Bloque ${number}: falta el destino del salto.`);
           if (target && target !== "END" && target !== "END!" && !cues.has(target)) issues.push(`Bloque ${number}: no existe el punto «${target}».`);
+          if (row.type === "choice" && target && index + 1 < draft.rows.length && draft.rows[index + 1].type !== "cue" && draft.rows[index + 1].depth > row.depth) issues.push(`Bloque ${number}: la respuesta tiene un salto y líneas internas. Usa solo una de esas dos formas.`);
           if (index > 0 && row.depth > draft.rows[index - 1].depth + 1) issues.push(`Bloque ${number}: la sangría salta más de un nivel.`);
         });
         return [...new Set(issues)];
@@ -536,13 +606,23 @@
         updateOutput();
       }
 
-      for (const type of ["cue", "dialogue", "choice", "jump", "condition", "mutation", "raw"]) {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "button subtle";
-        button.textContent = `+ ${TYPE_LABELS[type]}`;
-        button.addEventListener("click", () => insertRow(type, draft.rows.length, 0));
-        dom.toolbar.append(button);
+      for (const [groupName, types] of [["Estructura", ["cue"]], ["Conversación", ["dialogue", "choice"]], ["Flujo", ["jump", "condition", "mutation"]], ["Avanzado", ["raw"]]]) {
+        const group = document.createElement("div");
+        group.className = "toolbar-group";
+        const label = document.createElement("span");
+        label.className = "toolbar-label";
+        label.textContent = groupName;
+        group.append(label);
+        for (const type of types) {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "button subtle";
+          button.textContent = `+ ${TYPE_LABELS[type]}`;
+          button.title = TYPE_HELP[type];
+          button.addEventListener("click", () => insertRow(type, draft.rows.length, 0));
+          group.append(button);
+        }
+        dom.toolbar.append(group);
       }
 
       dom.fileName.value = draft.name;
@@ -556,7 +636,7 @@
           draft = { name: file.name.replace(/\.dialogue$/i, ""), rows: parseText(await file.text()) };
           dom.fileName.value = draft.name;
           renderAll();
-          notify(`Importado: ${file.name}`);
+          notify(`Importado: ${file.name}. Las formas antiguas de Trompo se adaptaron; revisa los avisos.`);
         } catch (error) {
           notify(`No se pudo importar: ${error.message}`);
         }

@@ -3,12 +3,14 @@ extends Node
 const CLASES_VALIDAS := ["Guerrero", "Ladrón", "Mago"]
 
 var aventurero_pendiente: Dictionary = {}
+var trompo_conocido: bool = false
 
 
 func establecer_aventurero(datos: Dictionary) -> bool:
 	if validar_aventurero(datos) != &"":
 		return false
 	aventurero_pendiente = datos.duplicate(true)
+	trompo_conocido = false
 	return true
 
 
