@@ -31,6 +31,20 @@ Las decisiones vigentes están desarrolladas en
   no se incluyen en el snapshot de contenido dinámico. Pinchos hacen `1d3` sin
   salvación; telaraña usa DES y `enredado`; lodo e hielo comparten DES y caída; el
   fuego estático aplica quemado y funciona como fuente de luz sin fog propio.
+- El estado de cada NPC pertenece a su instancia y se guarda como datos planos
+  identificados por su ID estable; su definición aporta los valores iniciales.
+  PV cero significa derrotado por ahora, y la inicialización no debe sobrescribir
+  ese estado restaurado.
+- Un NPC de actitud fija conserva la actitud de su definición. La actitud
+  dinámica se persiste hacia el jugador actual; el diseño podrá ampliarse a
+  relaciones por jugador si el juego deja de ser singleplayer.
+- La memoria narrativa de `trompo_conocido` pertenece al estado de partida y se
+  incluye en el guardado. Ejecutar la escena con F6 inicia una prueba fresca y no
+  carga automáticamente un guardado de usuario; cargar progreso sigue siendo una
+  operación explícita.
+- Estados temporales de NPC se incorporarán a persistencia después de definir sus
+  reglas de duración y expiración. Las capacidades de combate e inventario siguen
+  siendo opcionales y sus datos no forman parte obligatoria del estado común.
 
 Si una decisión cambia, debe registrarse primero en el roadmap y después corregirse
 en contratos, código y pruebas dentro del mismo cambio.

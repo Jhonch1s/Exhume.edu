@@ -62,25 +62,65 @@ como valores iniciales cuando la instancia no trae otros valores configurados.
   pero aún no hay una acción de diálogo conectada a tiradas de dados ni una
   presentación específica del resultado de una tirada dentro del diálogo.
 
+## Decisiones acordadas para el modelo de estado (26-09-2026)
+
+- **Definición:** `DefinicionPersonaje` es la plantilla compartida con valores
+  base, actitud inicial, capacidades y presentación. No recibe cambios propios
+  de una instancia durante la partida.
+- **Instancia:** cada `PersonajeNPC` conserva identidad y ubicación, y tendrá
+  estado de ejecución independiente inicializado desde su definición.
+- **Estado guardado:** se serializa como datos planos asociados al ID estable de
+  la instancia, usando los métodos de estado persistente que ya delega
+  `PersistenciaInteractuables`. No se serializan nodos ni referencias a recursos.
+- **Derrota:** por ahora equivale a `vida_actual == 0`. La inicialización desde
+  la definición debe distinguirse explícitamente de la restauración para no
+  reponer PV a una instancia derrotada.
+- **Actitud:** la actitud fija de Trompo prevalece sobre cualquier sistema de
+  relaciones y permanece neutral. Para NPC dinámicos se guarda la actitud
+  efectiva hacia el jugador; el juego es actualmente de un solo jugador.
+- **Memoria narrativa:** `trompo_conocido` también se guardará en el snapshot de
+  partida, separado del estado individual de Trompo.
+- **Capacidades opcionales:** combate e inventario no se vuelven requisitos del
+  estado común. Sus datos específicos se incorporarán cuando esas capacidades
+  tengan implementación.
+- **Estados temporales:** quedan fuera del primer incremento de persistencia.
+  Antes de guardarlos definiremos duración, ticks, expiración y qué ocurre al
+  cambiar de zona o cargar una partida.
+- **Prueba de desarrollo:** F6 debe iniciar la escena desde valores iniciales,
+  como primera visita, sin cargar automáticamente `user://partida.json`. La
+  carga de progreso guardado seguirá siendo explícita. Actualmente el proyecto
+  no tiene un cargador automático en `_ready`; `EstadoPartida` empieza con
+  `trompo_conocido = false` y solo se carga guardado mediante
+  `EscenarioBase.cargar_partida()`.
+
 ## Próximos incrementos sugeridos
 
-1. **Estado persistente del NPC y memoria narrativa.** Definir qué variables
-   pertenecen a cada NPC y cuáles a la partida; guardar/restaurar PV, estados y
-   `trompo_conocido` con validación y una versión de snapshot compatible.
-2. **Ciclo vital común.** Añadir aplicación de daño, curación, estados, derrota
-   y reglas para NPC con capacidades opcionales. Evitar que `vida_actual == 0`
-   se interprete como «sin inicializar» cuando represente una derrota real.
-3. **Relaciones.** Resolver actitud efectiva hacia el jugador a partir de la
-   definición y cambios de partida; impedir cambios en NPC de actitud fija.
-   Mantener a Trompo como caso neutral inmutable.
-4. **Combate inicial.** Integrar jugador contra NPC hostiles en las rondas,
-   selección de acciones e IA mínima. Dejar alianzas y terceros neutrales para
-   una ampliación posterior.
-5. **Progresión.** Conceder XP al derrotar NPC, definir umbrales de nivel y
-   conectar la barra del HUD con la XP que falta para el siguiente nivel.
-6. **Diálogos con tiradas.** Definir una solicitud de prueba desde el diálogo,
-   mostrar el dado y ramificar por resultado sin acoplar Dialogue Manager al
+1. **Estado común del NPC y memoria narrativa persistentes.** Añadir estado de
+   ejecución por NPC para PV, atributos y nivel; guardar/restaurar esos valores
+   con validación, más la actitud solo cuando sea dinámica. Guardar y restaurar
+   `trompo_conocido` en la sección de partida. Comprobar el caso de PV cero y que
+   la ejecución de desarrollo con F6 no restaure un guardado anterior.
+2. **Ciclo vital común.** Incorporar operaciones de daño y curación; mantener la
+   derrota definida por PV cero. No añadir todavía reglas de combate.
+3. **Estados temporales.** Acordar su contrato de duración y expiración antes de
+   incorporarlos al estado persistente del NPC.
+4. **Relaciones dinámicas.** Resolver la actitud efectiva respetando la actitud
+   fija y persistir la relación del jugador cuando corresponda.
+5. **Combate inicial.** Integrar NPC combatientes en rondas y acciones; mantener
+   combate e inventario como capacidades opcionales.
+6. **Progresión y diálogos con tiradas.** Conceder XP y definir niveles; luego
+   conectar solicitudes de tirada al diálogo sin acoplar Dialogue Manager al
    motor de reglas.
+
+## Progreso de planificación
+
+- **Completado:** inspección de `DefinicionPersonaje`, `PersonajeNPC`, `Ficha`,
+  `EstadoActor` y los contratos actuales de persistencia. Se acordó el modelo
+  definición/instancia/snapshot, la derrota por PV cero, la persistencia de
+  actitud dinámica y memoria narrativa, y el reinicio limpio de F6.
+- **Pendiente:** elegir el tipo concreto del objeto de estado de ejecución y
+  cerrar el esquema/versionado del snapshot al iniciar la implementación.
+- **Pendiente:** definir semántica y persistencia de estados temporales.
 
 Al continuar esta línea de trabajo, actualizar aquí el estado real de cada
 incremento y registrar decisiones de arquitectura en
