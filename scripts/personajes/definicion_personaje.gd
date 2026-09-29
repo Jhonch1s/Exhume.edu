@@ -27,6 +27,7 @@ enum OrientacionMapa {
 @export_range(0, 999, 1) var vida_maxima: int = 0
 @export_range(1, 99, 1) var nivel: int = 1
 @export_range(0, 999999, 1) var experiencia_recompensa_derrota: int = 0
+@export var iniciativa_base: int = 0
 
 @export_category("Relación con el jugador")
 @export var actitud_inicial_jugador: ActitudInicialJugador = ActitudInicialJugador.NEUTRAL
@@ -36,6 +37,12 @@ enum OrientacionMapa {
 @export var puede_dialogar: bool = false
 @export var puede_combatir: bool = false
 @export var puede_tener_inventario: bool = false
+
+@export_category("Recursos de combate")
+@export_range(0, 99, 1) var movimiento_por_turno: int = 7
+@export_range(0, 9, 1) var acciones_principales_por_turno: int = 1
+@export_range(0, 9, 1) var acciones_adicionales_por_turno: int = 1
+@export_range(0, 9, 1) var reacciones_por_turno: int = 1
 
 @export_category("Presentación")
 @export var textura_mapa: Texture2D

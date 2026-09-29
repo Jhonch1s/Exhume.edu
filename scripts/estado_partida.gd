@@ -20,6 +20,27 @@ func consumir_aventurero() -> Dictionary:
 	return datos
 
 
+func obtener_estado_persistente() -> Dictionary:
+	return {"trompo_conocido": trompo_conocido}
+
+
+func validar_estado_persistente(estado: Variant) -> StringName:
+	if (
+		not estado is Dictionary or estado.size() != 1
+		or not estado.get("trompo_conocido") is bool
+	):
+		return &"memoria_narrativa_guardada_invalida"
+	return &""
+
+
+func restaurar_estado_persistente(estado: Variant) -> StringName:
+	var motivo := validar_estado_persistente(estado)
+	if motivo != &"":
+		return motivo
+	trompo_conocido = estado["trompo_conocido"]
+	return &""
+
+
 func validar_aventurero(datos: Dictionary) -> StringName:
 	if (
 		not datos.get("nombre") is String or datos["nombre"].strip_edges().is_empty()

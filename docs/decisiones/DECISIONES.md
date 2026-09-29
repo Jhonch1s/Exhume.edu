@@ -34,7 +34,10 @@ Las decisiones vigentes están desarrolladas en
 - El estado de cada NPC pertenece a su instancia y se guarda como datos planos
   identificados por su ID estable; su definición aporta los valores iniciales.
   PV cero significa derrotado por ahora, y la inicialización no debe sobrescribir
-  ese estado restaurado.
+  ese estado restaurado. La implementación usa un `EstadoPersonajeNPC` de tipo
+  `RefCounted` por instancia y escribe snapshots v2; al cargar v1 reconstruye el
+  estado de NPC desde la definición. Daño y curación limitan los PV a cero y al
+  máximo de la definición; curar por encima de cero revierte la derrota.
 - Un NPC de actitud fija conserva la actitud de su definición. La actitud
   dinámica se persiste hacia el jugador actual; el diseño podrá ampliarse a
   relaciones por jugador si el juego deja de ser singleplayer.
@@ -45,6 +48,30 @@ Las decisiones vigentes están desarrolladas en
 - Estados temporales de NPC se incorporarán a persistencia después de definir sus
   reglas de duración y expiración. Las capacidades de combate e inventario siguen
   siendo opcionales y sus datos no forman parte obligatoria del estado común.
+- Las acciones de NPC se incorporan por casos completos mediante `OpcionAccion`,
+  `ContextoAccion` y `ResultadoAccion`. El primer caso usa `puede_combatir` y la
+  actitud hostil para ofrecer un ataque básico; no se crea todavía un catálogo
+  general de habilidades.
+- A 0 PV, un NPC permanece visible y registrado, conserva `Examinar` si tiene
+  contenido de observación, deja de hablar y actuar, y su celda se vuelve
+  caminable. Curarlo por encima de cero revierte esos comportamientos. Pose de
+  derrota, cadáver, botín y XP quedan para incrementos posteriores.
+- Al iniciarse un combate, el juego entra en un modo de combate explícito. La
+  interfaz muestra arriba el orden de turnos y destaca a quién le toca. Durante
+  su turno, cada participante puede decidir cómo gastar sus recursos disponibles.
+  La integración jugable del modo precede a las acciones autónomas del NPC.
+- Primer corte jugable: seleccionar `Atacar` contra un NPC hostil inicia un
+  encuentro de ficha y objetivo; iniciativa base descendente, empate por ID.
+  El NPC pasa automáticamente, `Pasar turno` avanza la ficha y el encuentro
+  termina al quedar el objetivo a 0 PV o incapacitarse la ficha. Se guardan
+  ronda, orden y actor activo; la carga no inicia turnos de nuevo. Detección,
+  varios rivales, huida y acciones de NPC quedaron para cortes posteriores.
+- Segundo corte del encuentro aislado: un NPC hostil combatiente ataca al
+  jugador si está adyacente y conserva una acción principal; usa tirada de
+  FUE, daño provisional de 1 PV y paga la acción al intentar. Si no alcanza,
+  pasa sin moverse. Sus reservas de turno pertenecen al estado de instancia y
+  se guardan; cargar durante su turno no debe repetir una acción consumida.
+  Defensa, reacciones y decisiones tácticas del NPC siguen abiertas.
 
 Si una decisión cambia, debe registrarse primero en el roadmap y después corregirse
 en contratos, código y pruebas dentro del mismo cambio.

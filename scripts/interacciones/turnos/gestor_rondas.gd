@@ -36,6 +36,19 @@ func iniciar(actores: Array[Object]) -> ResultadoAvanceTurno:
 	)
 
 
+## Prepara el orden para validar un guardado sin iniciar turnos ni reponer recursos.
+func preparar_restauracion(actores: Array[Object]) -> StringName:
+	var motivo := _validar_actores(actores)
+	if motivo != &"":
+		return motivo
+	_actores = actores.duplicate()
+	_actores.sort_custom(_va_antes)
+	_indice_activo = -1
+	actor_activo = null
+	ronda_actual = 0
+	return &""
+
+
 func finalizar_turno_activo() -> ResultadoAvanceTurno:
 	if actor_activo == null or _indice_activo < 0:
 		return ResultadoAvanceTurno.new(false, &"sin_actor_activo", ronda_actual)
@@ -44,7 +57,12 @@ func finalizar_turno_activo() -> ResultadoAvanceTurno:
 		if motivo_superficies != &"":
 			return ResultadoAvanceTurno.new(false, motivo_superficies, ronda_actual)
 	var id_finalizado := _id(actor_activo)
-	var resultado := servicio_turnos.avanzar_turno(actor_activo)
+	# El procesamiento de estados es una capacidad opcional del actor.
+	var resultado := (
+		servicio_turnos.avanzar_turno(actor_activo)
+		if actor_activo.has_method(&"obtener_claves_estado")
+		else ResultadoAccion.crear_exito()
+	)
 	if not resultado.exitosa:
 		return ResultadoAvanceTurno.new(
 			false,

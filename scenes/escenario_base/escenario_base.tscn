@@ -17,6 +17,7 @@
 [ext_resource type="PackedScene" uid="uid://ctjcxiiq4gyyg" path="res://assets/characters/knight3d/modelomago2.glb" id="14_lmwd1"]
 [ext_resource type="PackedScene" uid="uid://c87w474pswjrx" path="res://assets/characters/knight3d/ladronmodelo.glb" id="16_0resi"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud/hud.tscn" id="17_hud"]
+[ext_resource type="PackedScene" path="res://scenes/ui/combate/panel_orden_combate.tscn" id="17_orden_combate"]
 [ext_resource type="PackedScene" path="res://scenes/ui/personajes/panel_info_npc.tscn" id="18_info_npc"]
 [ext_resource type="Texture2D" path="res://assets/characters/player/dialogue/guerrero.png" id="19_dialogo_guerrero"]
 [ext_resource type="Texture2D" path="res://assets/characters/player/dialogue/ladron.png" id="20_dialogo_ladron"]
@@ -94,6 +95,8 @@ mouse_filter = 2
 layer = 2
 
 [node name="HUD" parent="CanvasLayer" unique_id=207001 instance=ExtResource("17_hud")]
+
+[node name="PanelOrdenCombate" parent="CanvasLayer" instance=ExtResource("17_orden_combate")]
 
 [node name="PanelInfoNPC" parent="CanvasLayer" instance=ExtResource("18_info_npc")]
 

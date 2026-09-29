@@ -256,8 +256,6 @@ y_sort_enabled = true
 [node name="PersonajeNPC" parent="Interactuables/Personajes" unique_id=151698438 instance=ExtResource("26_trompo")]
 position = Vector2(-635, -244)
 nombre_unico = "Trompo"
-vida_actual = 15
-nivel_actual = 3
 id_instancia = &"goblin_001"
 ajustar_a_celda_en_editor = true
 

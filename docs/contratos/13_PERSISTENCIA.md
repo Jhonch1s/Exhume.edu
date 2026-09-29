@@ -85,9 +85,38 @@ existe conserva ronda, orden por IDs y actor activo. Restaurarlo no llama
 la ficha, `TableroGrid` corrige su ocupación y el escenario recalcula pathfinding y
 visión.
 
-La versión 1 se acepta de forma estricta. No hay migraciones hasta que exista una
-segunda versión real. Tampoco se guardan animaciones, tweens, hover, menús, rutas
-tentativas ni otras presentaciones transitorias.
+El escenario ya guarda `rondas` durante combate. Al cargar primero reconstruye
+un `GestorRondas` temporal con la ficha y los NPC identificados en el orden
+guardado; valida el snapshot completo antes de cambiar el modo del escenario.
+Una carga con `rondas = null` vuelve a exploración. Si el actor activo guardado
+es un NPC, reanuda su decisión automática; cargar no consume un turno ni
+repone los recursos de la ficha. El estado de cada NPC combatiente guarda
+`recursos_turno` como cuatro reservas restantes. Así, cargar después de su
+ataque no repite esa acción. Los snapshots v2 anteriores a este campo se
+aceptan y reponen los recursos iniciales del NPC al restaurar.
+
+La versión 2 es el formato de escritura actual. La versión 1 se acepta al cargar:
+los NPC con estado vacío se inicializan desde su definición y la memoria narrativa
+se inicia con `trompo_conocido = false`. Tampoco se guardan animaciones, tweens,
+hover, menús, rutas tentativas ni otras presentaciones transitorias.
+
+### Estado de NPC y memoria narrativa — septiembre de 2026
+
+Cada `PersonajeNPC` tiene un `EstadoPersonajeNPC` propio, inicializado una vez
+desde `DefinicionPersonaje` y los valores iniciales opcionales de la escena. Su
+entrada en `interactuables` guarda `vida_actual`, `atributos` (fuerza, destreza y
+voluntad) y `nivel_actual`. Solo un NPC de actitud dinámica guarda
+`actitud_hacia_jugador`. La actitud fija se obtiene siempre de la definición.
+Un NPC combatiente también guarda las cuatro reservas restantes de
+`RecursosTurnoActor`; un NPC sin capacidad de combate no tiene ese bloque.
+PV cero significa derrotado y no se usa como señal de falta de inicialización.
+La caminabilidad, la disponibilidad de diálogo y la capacidad de actuar se
+derivan de los PV restaurados; no se guardan indicadores de derrota duplicados.
+
+El snapshot v2 incluye `memoria_narrativa: {"trompo_conocido": bool}` como
+estado de partida, separado del estado del NPC. La validación de estos datos se
+completa antes de restaurar. Ejecutar la escena con F6 no carga el archivo de
+usuario; `cargar_partida()` sigue siendo una operación explícita.
 
 ### Cofres — septiembre de 2026
 

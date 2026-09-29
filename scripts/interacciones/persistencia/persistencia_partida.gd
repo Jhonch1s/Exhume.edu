@@ -20,6 +20,7 @@ func crear_snapshot(
 		return {}
 	snapshot["ficha"] = ficha.obtener_estado_persistente()
 	snapshot["conocimiento"] = conocimiento.obtener_estado_persistente()
+	snapshot["memoria_narrativa"] = EstadoPartida.obtener_estado_persistente()
 	snapshot["items_suelo"] = contenido_dinamico.obtener_items_suelo(tablero)
 	snapshot["superficies"] = contenido_dinamico.obtener_superficies(tablero)
 	snapshot["rondas"] = gestor_rondas.obtener_estado_persistente() if gestor_rondas != null else null
@@ -74,6 +75,13 @@ func validar_restauracion(
 	motivo = conocimiento.validar_estado_persistente(snapshot.get("conocimiento"))
 	if motivo != &"":
 		return motivo
+	if snapshot["version"] == PersistenciaInteractuables.VERSION_ANTERIOR:
+		if snapshot.has("memoria_narrativa"):
+			return &"memoria_narrativa_guardada_invalida"
+	else:
+		motivo = EstadoPartida.validar_estado_persistente(snapshot.get("memoria_narrativa"))
+		if motivo != &"":
+			return motivo
 	if gestor_rondas == null:
 		return &"" if snapshot.get("rondas") == null else &"gestor_rondas_ausente"
 	return gestor_rondas.validar_estado_persistente(snapshot.get("rondas"))
@@ -99,6 +107,11 @@ func restaurar(
 	tablero.liberar_celda(coordenada_anterior, ficha)
 	tablero.ocupar_celda(ficha.coordenada_mapa, ficha)
 	conocimiento.restaurar_estado_persistente(snapshot["conocimiento"])
+	EstadoPartida.restaurar_estado_persistente(
+		{"trompo_conocido": false}
+		if snapshot["version"] == PersistenciaInteractuables.VERSION_ANTERIOR
+		else snapshot["memoria_narrativa"]
+	)
 	return (
 		gestor_rondas.restaurar_estado_persistente(snapshot["rondas"])
 		if gestor_rondas != null else &""

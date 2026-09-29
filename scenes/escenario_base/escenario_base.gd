@@ -29,6 +29,7 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 @onready var capa_oscuridad: TileMapLayer = $Zona/CapaOscuridad
 @onready var hud: HUD = $CanvasLayer/HUD
 @onready var panel_info_npc: PanelInfoNPC = $CanvasLayer/PanelInfoNPC
+@onready var panel_orden_combate: PanelOrdenCombate = $CanvasLayer/PanelOrdenCombate
 @onready var panel_registro_narrativo: PanelRegistroNarrativo = (
 	$CanvasLayer/HUD/HUDRoot/LogAcontecimientos
 )
@@ -122,6 +123,9 @@ var camino_actual_tentativo: Array[Vector2i] = []
 var ultimo_resultado_salir: ResultadoReacciones
 var ultimo_resultado_entrar: ResultadoReacciones
 var en_combate: bool = false
+var gestor_rondas: GestorRondas
+var _restaurando_partida: bool = false
+var _secuencia_turno_npc: int = 0
 var persistencia_partida := PersistenciaPartida.new()
 var reproductor_pasos: AudioStreamPlayer2D
 var reproductor_lava: AudioStreamPlayer2D
@@ -208,6 +212,12 @@ func _process(_delta: float) -> void:
 		capa_camino.clear()
 		camino_actual_tentativo.clear()
 		return
+	if en_combate and not _es_turno_jugador():
+		capa_selector.clear()
+		capa_camino.clear()
+		camino_actual_tentativo.clear()
+		_limpiar_hover_interaccion()
+		return
 
 	var capa_suelo: TileMapLayer = zona_actual.get_node_or_null("CapaSuelo")
 	if not capa_suelo or not ficha_jugador:
@@ -262,6 +272,9 @@ func _unhandled_input(event: InputEvent) -> void:
 				panel_resultado_accion.ocultar()
 		get_viewport().set_input_as_handled()
 		return
+	if en_combate and not _es_turno_jugador():
+		get_viewport().set_input_as_handled()
+		return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F3:
 		_imprimir_celda_bajo_cursor()
 		get_viewport().set_input_as_handled()
@@ -295,8 +308,10 @@ func _imprimir_celda_bajo_cursor() -> void:
 func _manejar_clic_izquierdo(coord: Vector2i, punto_global: Variant = null) -> void:
 	if (
 		ficha_jugador == null
+		or not ficha_jugador.puede_actuar()
 		or ficha_jugador.esta_moviendose
 		or interaccion_modal_activa
+		or (en_combate and not _es_turno_jugador())
 	):
 		return
 	if item_lanzamiento_pendiente != null:
@@ -309,6 +324,10 @@ func _manejar_clic_izquierdo(coord: Vector2i, punto_global: Variant = null) -> v
 
 func _manejar_clic_derecho(coord: Vector2i) -> void:
 	if not ficha_jugador:
+		return
+	if not ficha_jugador.puede_actuar():
+		return
+	if en_combate and not _es_turno_jugador():
 		return
 	if item_lanzamiento_pendiente != null:
 		return
@@ -394,24 +413,73 @@ func guardar_partida(ruta: String = RUTA_GUARDADO) -> StringName:
 	if ficha_jugador == null or ficha_jugador.esta_moviendose or interaccion_modal_activa:
 		return &"partida_no_disponible_para_guardar"
 	return persistencia_partida.guardar_archivo(
-		ruta, tablero, &"zona1", ficha_jugador, registro_conocimiento
+		ruta, tablero, &"zona1", ficha_jugador, registro_conocimiento, gestor_rondas
 	)
 
 
 func cargar_partida(ruta: String = RUTA_GUARDADO) -> StringName:
 	if ficha_jugador == null or ficha_jugador.esta_moviendose or interaccion_modal_activa:
 		return &"partida_no_disponible_para_cargar"
-	var motivo := persistencia_partida.cargar_archivo(
-		ruta, tablero, &"zona1", ficha_jugador, registro_conocimiento
+	var snapshot: Variant = persistencia_partida.archivos.cargar(ruta)
+	if snapshot is StringName:
+		return snapshot
+	var gestor_guardado: GestorRondas = null
+	if snapshot.get("rondas") != null:
+		var preparacion: Variant = _preparar_gestor_guardado(snapshot["rondas"])
+		if preparacion is StringName:
+			return preparacion
+		gestor_guardado = preparacion as GestorRondas
+	_restaurando_partida = true
+	var motivo := persistencia_partida.restaurar(
+		snapshot, tablero, &"zona1", ficha_jugador, registro_conocimiento,
+		gestor_guardado
 	)
+	_restaurando_partida = false
 	if motivo != &"":
 		return motivo
+	_secuencia_turno_npc += 1
+	if gestor_guardado == null:
+		_terminar_combate(false)
+	else:
+		gestor_rondas = gestor_guardado
+		en_combate = true
+		_conectar_derrota_combate()
+		if not _resolver_fin_combate(false):
+			_actualizar_ui_combate()
+			_programar_turno_npc()
 	pathfinding.inicializar(tablero.datos)
 	hud.actualizar_desde_ficha()
 	call_deferred("_actualizar_luz_al_cargar")
 	camino_actual_tentativo.clear()
 	capa_camino.clear()
 	return &""
+
+
+func _preparar_gestor_guardado(estado_rondas: Variant) -> Variant:
+	if not estado_rondas is Dictionary:
+		return &"estado_rondas_guardado_invalido"
+	var orden: Variant = estado_rondas.get("orden_actores")
+	if not orden is Array or orden.size() < 2:
+		return &"estado_rondas_guardado_invalido"
+	var actores: Array[Object] = []
+	var incluye_jugador := false
+	for id_guardado in orden:
+		if not id_guardado is String:
+			return &"estado_rondas_guardado_invalido"
+		if id_guardado == String(ficha_jugador.obtener_id_actor()):
+			actores.append(ficha_jugador)
+			incluye_jugador = true
+			continue
+		var npc := tablero.obtener_interactuable(StringName(id_guardado)) as PersonajeNPC
+		if npc == null or npc.obtener_definicion_personaje() == null:
+			return &"actores_ronda_guardados_no_coinciden"
+		actores.append(npc)
+	if not incluye_jugador:
+		return &"actores_ronda_guardados_no_coinciden"
+	var nuevo_gestor := GestorRondas.new(servicio_turnos, procesador_superficies)
+	var motivo := nuevo_gestor.preparar_restauracion(actores)
+	return motivo if motivo != &"" else nuevo_gestor
+
 
 func _preparar_paso_ficha(_origen: Vector2i, destino: Vector2i, ficha: Ficha) -> bool:
 	return tablero.reservar_celda(destino, ficha)
@@ -707,9 +775,160 @@ func _on_ficha_paso_dado(nueva_coord: Vector2i) -> void:
 	_actualizar_luz_jugador(nueva_coord)
 
 func _on_pasar_turno_hud() -> void:
-	if ficha_jugador == null or ficha_jugador.esta_moviendose or interaccion_modal_activa:
+	if ficha_jugador == null or not ficha_jugador.puede_actuar() or ficha_jugador.esta_moviendose or interaccion_modal_activa:
+		return
+	if en_combate:
+		if _es_turno_jugador():
+			_finalizar_turno_combate()
 		return
 	_avanzar_turno_exploracion(ficha_jugador)
+
+
+func _es_turno_jugador() -> bool:
+	return gestor_rondas != null and gestor_rondas.actor_activo == ficha_jugador
+
+
+func _iniciar_combate(objetivo: PersonajeNPC) -> bool:
+	if objetivo == null:
+		return false
+	if en_combate:
+		return objetivo.obtener_id_actor() in gestor_rondas.obtener_ids_ordenados()
+	if objetivo.esta_derrotado() or ficha_jugador == null:
+		return false
+	var nuevo_gestor := GestorRondas.new(servicio_turnos, procesador_superficies)
+	var actores: Array[Object] = [ficha_jugador, objetivo]
+	var inicio := nuevo_gestor.iniciar(actores)
+	if not inicio.exitoso:
+		push_warning("No se pudo iniciar combate: %s" % inicio.motivo)
+		return false
+	gestor_rondas = nuevo_gestor
+	en_combate = true
+	_conectar_derrota_combate()
+	_actualizar_ui_combate()
+	_programar_turno_npc()
+	return true
+
+
+func _finalizar_turno_combate() -> void:
+	if not en_combate or gestor_rondas == null:
+		return
+	var avance := gestor_rondas.finalizar_turno_activo()
+	if not avance.exitoso:
+		push_warning("No se pudo avanzar turno de combate: %s" % avance.motivo)
+		return
+	if avance.resultado_turno != null:
+		var resultado: ResultadoAccion = avance.resultado_turno
+		if resultado.tirada != null:
+			historial_tiradas.registrar(resultado.tirada)
+		if not resultado.mensajes.is_empty() or not resultado.efectos_aplicados.is_empty():
+			_registrar_resultado_narrativo(
+				"Estados", resultado, EntradaRegistroNarrativo.Categoria.ESTADO
+			)
+	if avance.resultado_superficies != null:
+		_registrar_transformaciones_superficies(avance.resultado_superficies)
+	if _resolver_fin_combate():
+		return
+	_actualizar_ui_combate()
+	_programar_turno_npc()
+
+
+func _programar_turno_npc() -> void:
+	_secuencia_turno_npc += 1
+	if not en_combate or _es_turno_jugador() or gestor_rondas.actor_activo == null:
+		return
+	var secuencia := _secuencia_turno_npc
+	await get_tree().create_timer(0.6).timeout
+	if secuencia != _secuencia_turno_npc or not is_inside_tree() or not en_combate:
+		return
+	if _resolver_fin_combate():
+		return
+	var npc := gestor_rondas.actor_activo as PersonajeNPC
+	if npc != null and npc.obtener_recurso_turno(RecursosTurnoActor.ACCION_PRINCIPAL) > 0:
+		var distancia := npc.coordenada_mapa - ficha_jugador.coordenada_mapa
+		if abs(distancia.x) + abs(distancia.y) == 1:
+			var ataque := AccionAtaqueNPC.new(ficha_jugador)
+			var resultado := gestor_acciones.procesar_accion(ataque.construir_contexto(npc))
+			if resultado.tirada != null:
+				historial_tiradas.registrar(resultado.tirada)
+			_registrar_resultado_narrativo(
+				"Ataque de %s" % npc.obtener_nombre_interaccion(),
+				resultado, EntradaRegistroNarrativo.Categoria.DANO, "FUE"
+			)
+			if _resolver_fin_combate():
+				return
+			await get_tree().create_timer(0.6).timeout
+			if secuencia != _secuencia_turno_npc or not is_inside_tree() or not en_combate:
+				return
+	_finalizar_turno_combate()
+
+
+func _conectar_derrota_combate() -> void:
+	if gestor_rondas == null:
+		return
+	for id_actor in gestor_rondas.obtener_ids_ordenados():
+		var npc := tablero.obtener_interactuable(id_actor) as PersonajeNPC
+		if npc != null and not npc.derrota_cambiada.is_connected(_on_derrota_npc_combate):
+			npc.derrota_cambiada.connect(_on_derrota_npc_combate)
+
+
+func _on_derrota_npc_combate(_derrotado: bool) -> void:
+	if not _restaurando_partida:
+		call_deferred("_resolver_fin_combate")
+
+
+func _resolver_fin_combate(reponer_recursos: bool = true) -> bool:
+	if not en_combate or gestor_rondas == null:
+		return false
+	var queda_oponente := false
+	for id_actor in gestor_rondas.obtener_ids_ordenados():
+		var npc := tablero.obtener_interactuable(id_actor) as PersonajeNPC
+		if npc != null and npc.puede_actuar():
+			queda_oponente = true
+			break
+	if queda_oponente and ficha_jugador.puede_actuar():
+		return false
+	_terminar_combate(reponer_recursos)
+	return true
+
+
+func _terminar_combate(reponer_recursos: bool = true) -> void:
+	_secuencia_turno_npc += 1
+	en_combate = false
+	gestor_rondas = null
+	panel_orden_combate.ocultar()
+	panel_info_npc.offset_top = 18.0
+	panel_info_npc.offset_bottom = 94.0
+	hud.pasar_turno.disabled = ficha_jugador == null or not ficha_jugador.puede_actuar()
+	if reponer_recursos and ficha_jugador != null and ficha_jugador.puede_actuar():
+		ficha_jugador.iniciar_turno()
+
+
+func _actualizar_ui_combate() -> void:
+	if not en_combate or gestor_rondas == null:
+		return
+	var entradas: Array[Dictionary] = []
+	for id_actor in gestor_rondas.obtener_ids_ordenados():
+		var actor: Object = (
+			ficha_jugador if id_actor == ficha_jugador.obtener_id_actor()
+			else tablero.obtener_interactuable(id_actor)
+		)
+		if actor == null:
+			continue
+		entradas.append({
+			"id": id_actor,
+			"nombre": ficha_jugador.nombre if actor == ficha_jugador
+				else (actor as PersonajeNPC).obtener_nombre_interaccion(),
+			"derrotado": not actor.call(&"puede_actuar"),
+		})
+	panel_orden_combate.mostrar(
+		gestor_rondas.ronda_actual, entradas,
+		gestor_rondas.actor_activo.call(&"obtener_id_actor")
+		if gestor_rondas.actor_activo != null else &""
+	)
+	panel_info_npc.offset_top = 115.0
+	panel_info_npc.offset_bottom = 191.0
+	hud.pasar_turno.disabled = not _es_turno_jugador()
+
 
 func _actualizar_luz_jugador(coordenada: Vector2i) -> void:
 	var antorcha := ficha_jugador.obtener_antorcha_activa()
@@ -1093,6 +1312,13 @@ func _on_objetivo_contextual_elegido(objetivo: Object) -> void:
 func _on_opcion_contextual_elegida(opcion: OpcionAccion) -> void:
 	ultima_opcion_contextual_seleccionada = opcion
 	opcion_contextual_seleccionada.emit(opcion)
+	if opcion != null and opcion.habilitada and opcion.id == &"ataque_basico":
+		if not opcion.objetivo is PersonajeNPC or not _iniciar_combate(opcion.objetivo):
+			_cerrar_menu_contextual()
+			return
+		if not _es_turno_jugador():
+			_cerrar_menu_contextual()
+			return
 	if opcion != null and opcion.tipo == TiposInteraccion.TipoAccion.USAR_ITEM:
 		opcion_uso_item_pendiente = opcion
 		menu_contextual.mostrar(
@@ -1126,6 +1352,9 @@ func _ejecutar_opcion_contextual(
 	opcion: OpcionAccion,
 	item_seleccionado: ItemInstancia = null
 ) -> void:
+	if en_combate and not _es_turno_jugador():
+		_cerrar_menu_contextual()
+		return
 	var contexto: ContextoAccion = null
 	var resultado: ResultadoAccion
 	if opcion == null or not opcion.habilitada:
@@ -1197,6 +1426,8 @@ func _ejecutar_opcion_contextual(
 		var etiqueta_atributo := "DES"
 		if opcion.id in [&"desarmar_fue", &"desarmar_des", &"desarmar_vol"]:
 			etiqueta_atributo = String(opcion.id).trim_prefix("desarmar_").to_upper()
+		elif opcion.id == &"ataque_basico":
+			etiqueta_atributo = "FUE"
 		_registrar_resultado_narrativo(
 			titulo_resultado,
 			resultado,
