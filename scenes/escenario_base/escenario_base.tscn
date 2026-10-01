@@ -7,20 +7,19 @@
 [ext_resource type="AudioStream" uid="uid://b64t4hje6pskj" path="res://assets/music/Echoes of Time v2.mp3" id="7_541xx"]
 [ext_resource type="Script" uid="uid://dmxu10ah1q6vf" path="res://scripts/fov_manager.gd" id="7_t484h"]
 [ext_resource type="Shader" uid="uid://cmw1kk6ofvqkm" path="res://scenes/menu/filtro_crt_luminancia.gdshader" id="8_crt"]
-[ext_resource type="PackedScene" path="res://scenes/ui/interacciones/panel_resultado_accion.tscn" id="9_panel_resultado"]
+[ext_resource type="PackedScene" uid="uid://qsn46qnxpghl" path="res://scenes/ui/interacciones/panel_resultado_accion.tscn" id="9_panel_resultado"]
 [ext_resource type="Resource" uid="uid://fstyo5e070o6" path="res://assets/interactuables/mensajes_interacciones.tres" id="10_catalogo_mensajes"]
 [ext_resource type="PackedScene" uid="uid://bxk3q10ej5gkm" path="res://scenes/ui/inventario/panel_inventario_cofre.tscn" id="11_e1m65"]
-[ext_resource type="PackedScene" path="res://scenes/ui/interacciones/menu_contextual_interacciones.tscn" id="11_menu_contextual"]
+[ext_resource type="PackedScene" uid="uid://c64qchxwoxucd" path="res://scenes/ui/interacciones/menu_contextual_interacciones.tscn" id="11_menu_contextual"]
 [ext_resource type="PackedScene" uid="uid://ggjbjoxbbphg" path="res://assets/characters/knight3d/caballero20.glb" id="12_jpvkn"]
-[ext_resource type="PackedScene" path="res://scenes/ui/interacciones/panel_registro_narrativo.tscn" id="12_registro_narrativo"]
 [ext_resource type="PackedScene" uid="uid://cj78e6l5ebb42" path="res://scenes/ui/interacciones/panel_examen_ilustrado.tscn" id="13_panel_examen"]
 [ext_resource type="PackedScene" uid="uid://ctjcxiiq4gyyg" path="res://assets/characters/knight3d/modelomago2.glb" id="14_lmwd1"]
 [ext_resource type="PackedScene" uid="uid://c87w474pswjrx" path="res://assets/characters/knight3d/ladronmodelo.glb" id="16_0resi"]
-[ext_resource type="PackedScene" path="res://scenes/ui/hud/hud.tscn" id="17_hud"]
+[ext_resource type="PackedScene" uid="uid://cj6cokkjw74c" path="res://scenes/ui/hud/hud.tscn" id="17_hud"]
 [ext_resource type="PackedScene" path="res://scenes/ui/personajes/panel_info_npc.tscn" id="18_info_npc"]
-[ext_resource type="Texture2D" path="res://assets/characters/player/dialogue/guerrero.png" id="19_dialogo_guerrero"]
-[ext_resource type="Texture2D" path="res://assets/characters/player/dialogue/ladron.png" id="20_dialogo_ladron"]
-[ext_resource type="Texture2D" path="res://assets/characters/player/dialogue/mago.png" id="21_dialogo_mago"]
+[ext_resource type="Texture2D" uid="uid://e66ncuwpvtq4" path="res://assets/characters/player/dialogue/guerrero.png" id="19_dialogo_guerrero"]
+[ext_resource type="Texture2D" uid="uid://gequfsg3lbdd" path="res://assets/characters/player/dialogue/ladron.png" id="20_dialogo_ladron"]
+[ext_resource type="Texture2D" uid="uid://fqjiksle3nk6" path="res://assets/characters/player/dialogue/mago.png" id="21_dialogo_mago"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_m8dhx"]
 texture = ExtResource("2_85xdd")
@@ -95,18 +94,19 @@ layer = 2
 
 [node name="HUD" parent="CanvasLayer" unique_id=207001 instance=ExtResource("17_hud")]
 
-[node name="PanelInfoNPC" parent="CanvasLayer" instance=ExtResource("18_info_npc")]
-
-[node name="CanvasLayerModalDados" type="CanvasLayer" parent="."]
-layer = 2
-
-[node name="PanelResultadoAccion" parent="CanvasLayerModalDados" unique_id=1054421084 instance=ExtResource("9_panel_resultado")]
+[node name="PanelInfoNPC" parent="CanvasLayer" unique_id=445964116 instance=ExtResource("18_info_npc")]
+anchors_preset = 5
 
 [node name="PanelExamenIlustrado" parent="CanvasLayer" unique_id=1214408067 instance=ExtResource("13_panel_examen")]
 
 [node name="MenuContextualInteracciones" parent="CanvasLayer" unique_id=1288888575 instance=ExtResource("11_menu_contextual")]
 
 [node name="PanelInventarioCofre" parent="CanvasLayer" unique_id=131137301 instance=ExtResource("11_e1m65")]
+
+[node name="CanvasLayerModalDados" type="CanvasLayer" parent="." unique_id=234662010]
+layer = 2
+
+[node name="PanelResultadoAccion" parent="CanvasLayerModalDados" unique_id=1054421084 instance=ExtResource("9_panel_resultado")]
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1734531678]
 stream = ExtResource("7_541xx")

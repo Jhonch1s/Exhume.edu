@@ -4,6 +4,7 @@ class_name Ficha
 
 var texturas_por_direccion: Dictionary = {}
 var sprite_render: Sprite2D = null
+var particulasDanio: CPUParticles2D = CPUParticles2D.new()
 
 
 
@@ -63,6 +64,8 @@ signal estado_cambiado(clave: StringName, estado: EstadoActor)
 signal recursos_turno_cambiados(recursos: RecursosTurnoActor)
 
 
+
+
 func obtener_id_observador() -> StringName:
 	return id_observador
 
@@ -118,9 +121,14 @@ func recibir_danio(cantidad: int, _fuente: Object = null) -> int:
 	pv_actual = maxi(0, pv_actual - cantidad)
 	var aplicado := anterior - pv_actual
 	if aplicado > 0:
+		reproducir_efecto_danio()
 		print("Vida de %s: %d/%d" % [nombre, pv_actual, pv_max])
 		puntos_vida_cambiados.emit(pv_actual, pv_max)
 	return aplicado
+	
+func reproducir_efecto_danio() -> void:
+	if is_instance_valid(particulasDanio):
+		particulasDanio.restart()
 
 func obtener_estado(clave: StringName) -> EstadoActor:
 	return _estados.get(clave) as EstadoActor
@@ -473,6 +481,8 @@ func _es_numero_entero(valor: Variant) -> bool:
 func _ready() -> void:
 	pv_max = fue + des + vol
 	pv_actual = pv_max
+	_setear_atributos_particula()
+	
 	#_aplicar_visual_clase()
 	iniciar_turno()
 
@@ -489,6 +499,26 @@ func configurar_creacion(datos: Dictionary) -> bool:
 	origen = datos["origen"]
 	return true
 
+func _setear_atributos_particula() -> void:
+	particulasDanio.scale = Vector2(2.5, 2.5)
+	particulasDanio.explosiveness = 1
+	particulasDanio.scale_amount_min = 3
+	particulasDanio.scale_amount_max = 5
+	particulasDanio.amount = 20
+	particulasDanio.color = Color(0.58, 0.02, 0.02,1)
+	particulasDanio.gravity.y = 100
+	particulasDanio.spread = 180
+	particulasDanio.initial_velocity_min = 100
+	particulasDanio.initial_velocity_max = 100
+	particulasDanio.one_shot = true
+	particulasDanio.lifetime = 1
+	particulasDanio.local_coords = false
+	particulasDanio.emitting = false
+	var curva_escala := Curve.new()
+	curva_escala.add_point(Vector2(0.0, 1.0)) # Inicio: Tamaño máximo
+	curva_escala.add_point(Vector2(1.0, 0.0)) # Final: Tamaño cero
+	particulasDanio.scale_amount_curve = curva_escala
+
 
 func _aplicar_visual_clase() -> void:
 	
@@ -500,6 +530,7 @@ func _aplicar_visual_clase() -> void:
 	if texturas_por_direccion.has(0):
 		sprite_render.texture = texturas_por_direccion[0]
 		sprite_render.visible = true
+		sprite_render.add_child(particulasDanio)
 		add_child(sprite_render)
 		
 	else:
@@ -603,8 +634,6 @@ func mover_por_camino(
 		if angulo_redondeado < 0:
 			angulo_redondeado += 360
 		if sprite_render and texturas_por_direccion.has(angulo_redondeado):
-			print("se ejecuta cambio de textura")
-			print("angulo seleccionado", angulo_redondeado)
 			sprite_render.texture = texturas_por_direccion[angulo_redondeado]
 
 

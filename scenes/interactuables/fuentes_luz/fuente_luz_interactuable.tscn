@@ -1,15 +1,19 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://cau0w88c37mf2"]
 
 [ext_resource type="Script" uid="uid://cl5u1p3hlirr2" path="res://scripts/interacciones/interactuables/fuentes_luz/fuente_luz_interactuable.gd" id="1_script"]
-[ext_resource type="Resource" path="res://assets/interactuables/luces/antorcha_pie.tres" id="2_definicion"]
+[ext_resource type="Resource" uid="uid://cy0feigq6rh0i" path="res://assets/interactuables/luces/antorcha_pie.tres" id="2_definicion"]
+[ext_resource type="Texture2D" uid="uid://c83kuwdscr0ds" path="res://assets/tiles/lighting/sources/lights_isometric.png" id="3_0s51w"]
 
-[node name="FuenteLuzInteractuable" type="Node2D" groups=["interactuables"]]
+[node name="FuenteLuzInteractuable" type="Node2D" unique_id=1644532973 groups=["interactuables"]]
 script = ExtResource("1_script")
 definicion = ExtResource("2_definicion")
 ajustar_a_celda_en_editor = true
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=798001169]
 texture_filter = 1
+position = Vector2(0, -32)
+texture = ExtResource("3_0s51w")
 region_enabled = true
+region_rect = Rect2(0, 192, 64, 96)
 
-[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="." unique_id=195702075]
