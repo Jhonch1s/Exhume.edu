@@ -2,8 +2,10 @@
 
 [ext_resource type="TileSet" uid="uid://d1nvkie7qevtr" path="res://assets/tile_sets/terrain/cave_terrain.tres" id="1_gu20q"]
 [ext_resource type="TileSet" uid="uid://ppf8ki7fg8h8" path="res://assets/tile_sets/structures/walls_cave.tres" id="2_kv68o"]
-[ext_resource type="PackedScene" path="res://scenes/interactuables/fuentes_luz/fuente_luz_interactuable.tscn" id="3_fuente_luz"]
+[ext_resource type="Script" uid="uid://djd7c15wl4cxh" path="res://scenes/Zona1/capa_lava.gd" id="3_aevxn"]
+[ext_resource type="PackedScene" uid="uid://cau0w88c37mf2" path="res://scenes/interactuables/fuentes_luz/fuente_luz_interactuable.tscn" id="3_fuente_luz"]
 [ext_resource type="TileSet" uid="uid://6tn667rbykno" path="res://assets/tile_sets/structures/cave_columns.tres" id="4_d77le"]
+[ext_resource type="PackedScene" uid="uid://2i3cbhvvxgs6" path="res://scenes/efectos_superficie/particulas_lava.tscn" id="4_ko8bm"]
 [ext_resource type="TileSet" uid="uid://cy3mjhp85u73y" path="res://assets/tile_sets/decorations/stalagmites_medium.tres" id="5_gu20q"]
 [ext_resource type="TileSet" uid="uid://bvv3o4iyhffgu" path="res://assets/tile_sets/decorations/cave_floor_decorations.tres" id="6_gu20q"]
 [ext_resource type="TileSet" uid="uid://cja2guulmaygb" path="res://assets/tile_sets/fog/cave_fog.tres" id="7_gu20q"]
@@ -24,6 +26,39 @@
 [ext_resource type="TileSet" uid="uid://dr6pcgl80juta" path="res://assets/tile_sets/surface_effects/fire.tres" id="23_a8yjn"]
 [ext_resource type="TileSet" uid="uid://b2soug6txnn72" path="res://assets/tile_sets/surface_effects/web.tres" id="24_igs8u"]
 [ext_resource type="Script" uid="uid://dkkd0pruoa4im" path="res://scripts/zonas/zona_explorable.gd" id="25_zona"]
+[ext_resource type="Texture2D" uid="uid://kg0ilecnb3sn" path="res://scenes/efectos_superficie/venenoburbuja.png" id="27_a8yjn"]
+
+[sub_resource type="Curve" id="Curve_baiil"]
+_data = [Vector2(0.16770187, 1), 0.0, 0.0, 0, 0, Vector2(0.99378884, 0.125), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="Gradient" id="Gradient_jkr0w"]
+offsets = PackedFloat32Array(0, 0.17578125, 0.34765625, 1)
+colors = PackedColorArray(0.91764706, 0.39607844, 0.09019608, 1, 0.93333334, 0.5019608, 0.1764706, 1, 0.9490196, 0.9019608, 0.34901962, 1, 1, 1, 1, 0)
+
+[sub_resource type="Curve" id="Curve_v6c5f"]
+_data = [Vector2(0.24844721, 1), 0.0, 0.0, 0, 0, Vector2(1, 0.19642866), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="Gradient" id="Gradient_ko8bm"]
+offsets = PackedFloat32Array(0, 0.45081967, 1)
+colors = PackedColorArray(0.7137255, 0.0627451, 0, 1, 0.7490196, 0.5568628, 0.12156863, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_5jynw"]
+gradient = SubResource("Gradient_ko8bm")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_baiil"]
+particle_flag_disable_z = true
+emission_shape = 3
+emission_box_extents = Vector3(10, 1, 1)
+angle_min = 1.0728835e-05
+angle_max = 268.30002
+gravity = Vector3(0, -80, 0)
+linear_accel_min = -52.08
+linear_accel_max = 14.449998
+scale_min = 1.5
+scale_max = 3.0
+color_ramp = SubResource("GradientTexture1D_5jynw")
 
 [node name="Zona1" type="Node2D" unique_id=1662731053]
 y_sort_enabled = true
@@ -40,6 +75,8 @@ z_index = -2
 texture_filter = 1
 tile_map_data = PackedByteArray("AAAiAPT/AAAAAAMAAAAjAPT/AAAAAAMAAAAkAPT/AAAAAAMAAAAkAPP/AAAAAAMAAAAlAPP/AAAAAAMAAAAlAPT/AAAAAAMAAAAmAPT/AAAAAAMAAAAnAPT/AAAAAAMAAAAnAPX/AAAAAAMAAAAoAPX/AAAAAAMAAAApAPX/AAAAAAMAAAApAPT/AAAAAAMAAAAoAPT/AAAAAAMAAAAoAPP/AAAAAAMAAAAnAPP/AAAAAAMAAAAnAPL/AAAAAAMAAAAnAPH/AAAAAAMAAAAmAPH/AAAAAAMAAAAlAPH/AAAAAAMAAAAlAPD/AAAAAAMAAAAkAPD/AAAAAAMAAAAkAO//AAAAAAMAAAAjAO//AAAAAAMAAAAiAO//AAAAAAMAAAAiAPD/AAAAAAMAAAAhAPD/AAAAAAMAAAAgAO//AAAAAAMAAAAfAO//AAAAAAMAAAAfAO7/AAAAAAMAAAAfAO3/AAAAAAMAAAAeAO3/AAAAAAMAAAAdAO3/AAAAAAMAAAAeAO7/AAAAAAMAAAAeAO//AAAAAAMAAAAeAPD/AAAAAAMAAAAfAPD/AAAAAAMAAAAgAPD/AAAAAAMAAAAgAPH/AAAAAAMAAAAgAPL/AAAAAAMAAAAgAPP/AAAAAAMAAAAhAPL/AAAAAAMAAAAhAPH/AAAAAAMAAAAjAPD/AAAAAAMAAAAiAPH/AAAAAAMAAAAhAO//AAAAAAMAAAAgAO7/AAAAAAMAAAAeAOz/AAAAAAMAAAAdAOz/AAAAAAMAAAAkAPH/AAAAAAMAAAAkAPL/AAAAAAMAAAAlAPL/AAAAAAMAAAAmAPP/AAAAAAMAAAAmAPL/AAAAAAMAAAAjAPP/AAAAAAMAAAAmAPX/AAAAAAMAAAAlAPX/AAAAAAMAAAAkAPX/AAAAAAMAAAApAPP/AAAAAAMAAAApAPL/AAAAAAMAAAAoAPL/AAAAAAMAAAAnAPD/AAAAAAMAAAAnAO//AAAAAAMAAAAlAO//AAAAAAMAAAAkAO7/AAAAAAMAAAAmAO//AAAAAAMAAAAmAPD/AAAAAAMAAAAjAO7/AAAAAAMAAAAjAO3/AAAAAAMAAAAiAO3/AAAAAAMAAAAiAO7/AAAAAAMAAAAhAO7/AAAAAAMAAAAhAO3/AAAAAAMAAAAgAO3/AAAAAAMAAAAgAOz/AAAAAAMAAAAfAOz/AAAAAAMAAAAhAOz/AAAAAAMAAAAiAOz/AAAAAAMAAAAjAOz/AAAAAAMAAAAjAOv/AAAAAAMAAAAlAOz/AAAAAAMAAAAlAO7/AAAAAAMAAAAkAO3/AAAAAAMAAAAlAO3/AAAAAAMAAAAmAO3/AAAAAAMAAAAmAO7/AAAAAAMAAAAfAOv/AAAAAAMAAAAdAOv/AAAAAAMAAAAhAOv/AAAAAAMAAAA=")
 tile_set = ExtResource("1_gu20q")
+script = ExtResource("3_aevxn")
+escena_capa_lava = ExtResource("4_ko8bm")
 
 [node name="CapaSuelo" type="TileMapLayer" parent="." unique_id=603619509]
 z_index = -1
@@ -60,54 +97,207 @@ y_sort_enabled = true
 [node name="FuentesLuz" type="Node2D" parent="Interactuables" unique_id=1007831137]
 y_sort_enabled = true
 
-[node name="AntorchaPie_02_01" parent="Interactuables/FuentesLuz" unique_id=2021354243 instance=ExtResource("3_fuente_luz")]
+[node name="AntorchaPie_02_01" parent="Interactuables/FuentesLuz" unique_id=2021354243 node_paths=PackedStringArray("particulas") instance=ExtResource("3_fuente_luz")]
 position = Vector2(128, 0)
+particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pie_02_01"
 
-[node name="AntorchaParedIzq_07_m05" parent="Interactuables/FuentesLuz" unique_id=1240586124 instance=ExtResource("3_fuente_luz")]
+[node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaPie_02_01" unique_id=2008938200]
+position = Vector2(1, -48)
+amount = 200
+emission_shape = 1
+emission_sphere_radius = 5.0
+spread = 180.0
+gravity = Vector2(0, -100)
+radial_accel_min = -40.0
+scale_amount_min = 0.5
+scale_amount_max = 2.0
+scale_amount_curve = SubResource("Curve_baiil")
+color_ramp = SubResource("Gradient_jkr0w")
+
+[node name="AntorchaParedIzq_07_m05" parent="Interactuables/FuentesLuz" unique_id=1240586124 node_paths=PackedStringArray("particulas") instance=ExtResource("3_fuente_luz")]
 position = Vector2(96, -176)
+particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pared_izq_07_m05"
 definicion = ExtResource("10_pared_izq")
 
-[node name="AntorchaParedDer_22_10" parent="Interactuables/FuentesLuz" unique_id=2035536546 instance=ExtResource("3_fuente_luz")]
+[node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaParedIzq_07_m05" unique_id=1971366450]
+position = Vector2(-9, -56)
+amount = 200
+emission_shape = 1
+emission_sphere_radius = 5.0
+spread = 180.0
+gravity = Vector2(0, -100)
+radial_accel_min = -40.0
+scale_amount_min = 0.5
+scale_amount_max = 2.0
+scale_amount_curve = SubResource("Curve_baiil")
+color_ramp = SubResource("Gradient_jkr0w")
+
+[node name="AntorchaParedDer_22_10" parent="Interactuables/FuentesLuz" unique_id=2035536546 node_paths=PackedStringArray("particulas") instance=ExtResource("3_fuente_luz")]
 position = Vector2(1056, -176)
+particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pared_der_22_10"
 definicion = ExtResource("11_pared_der")
 
-[node name="AntorchaPie_16_18" parent="Interactuables/FuentesLuz" unique_id=64803054 instance=ExtResource("3_fuente_luz")]
+[node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaParedDer_22_10" unique_id=1624143862]
+position = Vector2(9, -56)
+amount = 200
+emission_shape = 1
+emission_sphere_radius = 5.0
+spread = 180.0
+gravity = Vector2(0, -100)
+radial_accel_min = -40.0
+scale_amount_min = 0.5
+scale_amount_max = 2.0
+scale_amount_curve = SubResource("Curve_baiil")
+color_ramp = SubResource("Gradient_jkr0w")
+
+[node name="AntorchaPie_16_18" parent="Interactuables/FuentesLuz" unique_id=64803054 node_paths=PackedStringArray("particulas") instance=ExtResource("3_fuente_luz")]
 position = Vector2(1120, 48)
+particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pie_16_18"
+
+[node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaPie_16_18" unique_id=995889327]
+position = Vector2(1, -48)
+amount = 200
+emission_shape = 1
+emission_sphere_radius = 5.0
+spread = 180.0
+gravity = Vector2(0, -100)
+radial_accel_min = -40.0
+scale_amount_min = 0.5
+scale_amount_max = 2.0
+scale_amount_curve = SubResource("Curve_baiil")
+color_ramp = SubResource("Gradient_jkr0w")
 
 [node name="Fogata_22_m19" parent="Interactuables/FuentesLuz" unique_id=1266512033 instance=ExtResource("3_fuente_luz")]
 position = Vector2(128, -640)
 id_instancia = &"zona1_fogata_22_m19"
 definicion = ExtResource("9_fogata")
 
-[node name="AntorchaPie_30_m01" parent="Interactuables/FuentesLuz" unique_id=1712437000 instance=ExtResource("3_fuente_luz")]
+[node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/Fogata_22_m19" unique_id=1959538116]
+position = Vector2(0, -10)
+amount = 400
+emission_shape = 1
+emission_sphere_radius = 15.0
+spread = 180.0
+gravity = Vector2(0, -100)
+radial_accel_min = -40.0
+scale_amount_min = 0.5
+scale_amount_max = 4.0
+scale_amount_curve = SubResource("Curve_baiil")
+color_ramp = SubResource("Gradient_jkr0w")
+
+[node name="AntorchaPie_30_m01" parent="Interactuables/FuentesLuz" unique_id=1712437000 node_paths=PackedStringArray("particulas") instance=ExtResource("3_fuente_luz")]
 position = Vector2(960, -480)
+particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pie_30_m01"
 
-[node name="AntorchaPie_38_m01" parent="Interactuables/FuentesLuz" unique_id=1829080441 instance=ExtResource("3_fuente_luz")]
+[node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaPie_30_m01" unique_id=1369276793]
+position = Vector2(1, -48)
+amount = 200
+emission_shape = 1
+emission_sphere_radius = 5.0
+spread = 180.0
+gravity = Vector2(0, -100)
+radial_accel_min = -40.0
+scale_amount_min = 0.5
+scale_amount_max = 2.0
+scale_amount_curve = SubResource("Curve_baiil")
+color_ramp = SubResource("Gradient_jkr0w")
+
+[node name="AntorchaPie_38_m01" parent="Interactuables/FuentesLuz" unique_id=1829080441 node_paths=PackedStringArray("particulas") instance=ExtResource("3_fuente_luz")]
 position = Vector2(1216, -608)
+particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pie_38_m01"
 
-[node name="AntorchaPie_30_06" parent="Interactuables/FuentesLuz" unique_id=172770575 instance=ExtResource("3_fuente_luz")]
+[node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaPie_38_m01" unique_id=1940974010]
+position = Vector2(1, -48)
+amount = 200
+emission_shape = 1
+emission_sphere_radius = 5.0
+spread = 180.0
+gravity = Vector2(0, -100)
+radial_accel_min = -40.0
+scale_amount_min = 0.5
+scale_amount_max = 2.0
+scale_amount_curve = SubResource("Curve_baiil")
+color_ramp = SubResource("Gradient_jkr0w")
+
+[node name="AntorchaPie_30_06" parent="Interactuables/FuentesLuz" unique_id=172770575 node_paths=PackedStringArray("particulas") instance=ExtResource("3_fuente_luz")]
 position = Vector2(1184, -368)
+particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pie_30_06"
 
-[node name="AntorchaPie_38_06" parent="Interactuables/FuentesLuz" unique_id=1953442644 instance=ExtResource("3_fuente_luz")]
+[node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaPie_30_06" unique_id=963063108]
+position = Vector2(1, -48)
+amount = 200
+emission_shape = 1
+emission_sphere_radius = 5.0
+spread = 180.0
+gravity = Vector2(0, -100)
+radial_accel_min = -40.0
+scale_amount_min = 0.5
+scale_amount_max = 2.0
+scale_amount_curve = SubResource("Curve_baiil")
+color_ramp = SubResource("Gradient_jkr0w")
+
+[node name="AntorchaPie_38_06" parent="Interactuables/FuentesLuz" unique_id=1953442644 node_paths=PackedStringArray("particulas") instance=ExtResource("3_fuente_luz")]
 position = Vector2(1440, -496)
+particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pie_38_06"
 
-[node name="AntorchaParedDer_57_05" parent="Interactuables/FuentesLuz" unique_id=2043679805 instance=ExtResource("3_fuente_luz")]
+[node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaPie_38_06" unique_id=1499029479]
+position = Vector2(1, -48)
+amount = 200
+emission_shape = 1
+emission_sphere_radius = 5.0
+spread = 180.0
+gravity = Vector2(0, -100)
+radial_accel_min = -40.0
+scale_amount_min = 0.5
+scale_amount_max = 2.0
+scale_amount_curve = SubResource("Curve_baiil")
+color_ramp = SubResource("Gradient_jkr0w")
+
+[node name="AntorchaParedDer_57_05" parent="Interactuables/FuentesLuz" unique_id=2043679805 node_paths=PackedStringArray("particulas") instance=ExtResource("3_fuente_luz")]
 position = Vector2(2016, -816)
+particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pared_der_57_05"
 definicion = ExtResource("11_pared_der")
 
-[node name="AntorchaParedDer_57_12" parent="Interactuables/FuentesLuz" unique_id=960796075 instance=ExtResource("3_fuente_luz")]
+[node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaParedDer_57_05" unique_id=1543410646]
+position = Vector2(9, -57)
+amount = 200
+emission_shape = 1
+emission_sphere_radius = 5.0
+spread = 180.0
+gravity = Vector2(0, -100)
+radial_accel_min = -40.0
+scale_amount_min = 0.5
+scale_amount_max = 2.0
+scale_amount_curve = SubResource("Curve_baiil")
+color_ramp = SubResource("Gradient_jkr0w")
+
+[node name="AntorchaParedDer_57_12" parent="Interactuables/FuentesLuz" unique_id=960796075 node_paths=PackedStringArray("particulas") instance=ExtResource("3_fuente_luz")]
 position = Vector2(2240, -704)
+particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pared_der_57_12"
 definicion = ExtResource("11_pared_der")
+
+[node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaParedDer_57_12" unique_id=1512025311]
+position = Vector2(9, -56)
+amount = 200
+emission_shape = 1
+emission_sphere_radius = 5.0
+spread = 180.0
+gravity = Vector2(0, -100)
+radial_accel_min = -40.0
+scale_amount_min = 0.5
+scale_amount_max = 2.0
+scale_amount_curve = SubResource("Curve_baiil")
+color_ramp = SubResource("Gradient_jkr0w")
 
 [node name="Mecanismos" type="Node2D" parent="Interactuables" unique_id=320316507]
 y_sort_enabled = true
@@ -207,3 +397,42 @@ tile_set = ExtResource("23_a8yjn")
 texture_filter = 1
 tile_map_data = PackedByteArray("AAAHAAsAAAAAAAAAAAAIAAsAAAAAAAAAAAAJAAsAAAAAAAAAAAAGAAsAAAAAAAAAAAA=")
 tile_set = ExtResource("24_igs8u")
+
+[node name="particulaSangreTest" type="CPUParticles2D" parent="." unique_id=1419123034]
+position = Vector2(60, 0)
+emitting = false
+amount = 10
+one_shot = true
+explosiveness = 1.0
+spread = 180.0
+gravity = Vector2(0, 200)
+initial_velocity_min = 50.0
+initial_velocity_max = 50.0
+scale_amount_min = 3.0
+scale_amount_max = 5.0
+scale_amount_curve = SubResource("Curve_v6c5f")
+color = Color(0.59, 0.029500006, 0.029500006, 1)
+
+[node name="particulaLavaTest" type="GPUParticles2D" parent="." unique_id=1368332108]
+position = Vector2(607.8682, -720.24445)
+emitting = false
+amount = 20
+process_material = SubResource("ParticleProcessMaterial_baiil")
+
+[node name="venenoTest" type="CPUParticles2D" parent="." unique_id=267076803]
+texture_filter = 1
+position = Vector2(91.98872, 129.80408)
+amount = 3
+texture = ExtResource("27_a8yjn")
+explosiveness = 0.67
+randomness = 1.0
+gravity = Vector2(0, -100)
+initial_velocity_min = 10.0
+initial_velocity_max = 20.0
+linear_accel_min = -73.05
+linear_accel_max = -44.68
+radial_accel_min = -60.99
+radial_accel_max = 14.9
+scale_amount_min = 0.5
+scale_amount_max = 0.5
+color = Color(0.4832725, 0.00016455904, 0.48341298, 1)

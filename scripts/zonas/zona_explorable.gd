@@ -33,3 +33,4 @@ func _iniciar_prueba_individual() -> void:
 	escenario.add_child(self)
 	raiz.add_child(escenario)
 	arbol.current_scene = escenario
+	

@@ -5,6 +5,8 @@ extends Interactuable
 signal estado_luz_cambiado(encendida: bool)
 
 @export_category("Fuente de luz")
+@export var particulas: CPUParticles2D
+
 @export var encendida: bool = true:
 	set(valor):
 		if encendida == valor:
@@ -20,6 +22,7 @@ signal estado_luz_cambiado(encendida: bool)
 
 
 func _ready() -> void:
+	print("Antorcha: ", name, " | Partículas asignadas: ", particulas)
 	set_process(Engine.is_editor_hint())
 	_actualizar_representacion()
 
@@ -124,6 +127,12 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 
 	var estado_anterior := encendida
 	encendida = contexto.id_accion == &"encender"
+	if is_instance_valid(particulas):
+		if encendida == false:
+			particulas.emitting = false
+		else:
+			particulas.emitting = true
+	print(sprite.get_children())
 	_reproducir_sonido_estado()
 	return ResultadoAccion.crear_exito(
 		[&"fuente_luz.encendida" if encendida else &"fuente_luz.apagada"],
