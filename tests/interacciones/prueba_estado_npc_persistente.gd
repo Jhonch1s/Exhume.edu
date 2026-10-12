@@ -14,21 +14,32 @@ func _ejecutar() -> void:
 		not EstadoPartida.trompo_conocido,
 		"Un proceso nuevo debe iniciar sin memoria narrativa previa."
 	)
-	var zona := (load("res://scenes/zona1/zona_1.tscn") as PackedScene).instantiate()
+	var zona := Node2D.new()
+	var suelo := TileMapLayer.new()
+	suelo.name = "CapaSuelo"
+	suelo.tile_set = TileSet.new()
+	zona.add_child(suelo)
+	var superficies := Node2D.new()
+	superficies.name = "EfectosSuperficie"
+	zona.add_child(superficies)
 	get_tree().root.add_child(zona)
 	var tablero := TableroGrid.new()
 	get_tree().root.add_child(tablero)
-	tablero.generar_desde_zona(zona)
-	tablero.registrar_interactuables_desde_zona(zona, zona.get_node("CapaSuelo"))
+	tablero.capa_referencia = suelo
+	tablero.zona_referencia = zona
+	# Suelo propio: el mapa jugable ya no garantiza estas casillas de prueba.
+	for coordenada in [Vector2i(2, 1), Vector2i(3, 1), Vector2i(2, 2)]:
+		tablero.datos[coordenada] = Celda.new()
 	var ficha := (load("res://scenes/ficha/ficha.tscn") as PackedScene).instantiate() as Ficha
 	get_tree().root.add_child(ficha)
+	ficha.texturas_por_direccion[0] = preload("res://icon.svg")
 	ficha.inicializar(Vector2i(2, 1), zona.get_node("CapaSuelo"))
 	var conocimiento := RegistroConocimiento.new()
 	var trompo := (load("res://scenes/personajes/npc.tscn") as PackedScene).instantiate() as PersonajeNPC
 	trompo.id_instancia = &"goblin_001"
 	zona.add_child(trompo)
 	_comprobar(
-		tablero.registrar_interactuable(Vector2i(2, 1), trompo)
+		tablero.registrar_interactuable(Vector2i(3, 1), trompo)
 		and tablero.obtener_interactuable(&"goblin_001") == trompo,
 		"El NPC debe registrarse y resolverse por su ID estable."
 	)
@@ -47,6 +58,7 @@ func _ejecutar() -> void:
 		),
 		"Trompo inicia desde su definición y su actitud fija no cambia."
 	)
+	var estado_inicial := trompo.obtener_estado_persistente()
 	var cambios_vida: Array[int] = []
 	var cambios_derrota: Array[bool] = []
 	trompo.puntos_vida_cambiados.connect(
@@ -56,16 +68,18 @@ func _ejecutar() -> void:
 		func(derrotado: bool): cambios_derrota.append(derrotado)
 	)
 	_comprobar(
-		trompo.recibir_danio(5) == 5 and trompo.recibir_danio(20) == 10
+		trompo.recibir_danio(5) == 5 and trompo.curar(3) == 3 and trompo.curar(99) == 2
+		and trompo.recibir_danio(20) == 15
 		and trompo.recibir_danio(1) == 0 and trompo.esta_derrotado()
-		and trompo.curar(3) == 3 and trompo.curar(99) == 12
-		and trompo.vida_actual == 15
-		and cambios_vida == [10, 0, 3, 15]
-		and cambios_derrota == [true, false]
+		and trompo.curar(3) == 0 and trompo.curar(99) == 0
+		and trompo.vida_actual == 0
+		and cambios_vida == [10, 13, 15, 0]
+		and cambios_derrota == [true]
 		and trompo.obtener_actitud_hacia_jugador()
 		== DefinicionPersonaje.ActitudInicialJugador.NEUTRAL,
-		"Daño y curación respetan límites, derrota, señales y actitud fija."
+		"Daño y curación respetan límites, muerte irreversible, señales y actitud fija."
 	)
+	trompo.restaurar_estado_persistente(estado_inicial)
 	var solicitud := SolicitudEfecto.new(
 		&"prueba", &"dano", trompo, &"impacto_npc_prueba", 2.0
 	)
@@ -102,7 +116,7 @@ func _ejecutar() -> void:
 		"El estado del NPC y la memoria narrativa deben producir JSON válido."
 	)
 
-	trompo.vida_actual = 15
+	trompo.restaurar_estado_persistente(estado_inicial)
 	trompo.nivel_actual = 3
 	trompo.atributos_actuales[&"fuerza"] = 5
 	EstadoPartida.trompo_conocido = false
@@ -177,6 +191,8 @@ func _ejecutar() -> void:
 	definicion_enemigo.id_definicion = &"enemigo_prueba"
 	definicion_enemigo.nombre = "Enemigo de prueba"
 	definicion_enemigo.vida_maxima = 3
+	definicion_enemigo.fuerza = 2
+	definicion_enemigo.destreza = 2
 	definicion_enemigo.puede_combatir = true
 	definicion_enemigo.actitud_inicial_jugador = DefinicionPersonaje.ActitudInicialJugador.HOSTIL
 	var enemigo := (load("res://scenes/personajes/npc.tscn") as PackedScene).instantiate() as PersonajeNPC
@@ -196,19 +212,24 @@ func _ejecutar() -> void:
 		and not trompo.obtener_opciones_accion(ficha).any(
 			func(opcion: OpcionAccion): return opcion.id == &"ataque_basico"
 		),
-		"Solo el NPC hostil combatiente ofrece el ataque básico."
+		"El NPC combatiente ofrece ataque; Trompo no combatiente no lo ofrece."
 	)
 	enemigo.establecer_actitud_hacia_jugador(DefinicionPersonaje.ActitudInicialJugador.NEUTRAL)
 	_comprobar(
-		not enemigo.obtener_opciones_accion(ficha).any(
+		enemigo.obtener_opciones_accion(ficha).any(
 			func(opcion: OpcionAccion): return opcion.id == &"ataque_basico"
 		),
-		"Un NPC que deja de ser hostil retira la opción de ataque."
+		"Un NPC neutral combatiente también admite que el jugador lo agreda."
 	)
 	enemigo.establecer_actitud_hacia_jugador(DefinicionPersonaje.ActitudInicialJugador.HOSTIL)
 	if opcion_ataque != null:
 		var rng := RandomNumberGenerator.new()
-		rng.seed = 1234
+		# Acierto de FUE seguido de esquiva fallida para comprobar el daño.
+		for semilla in range(1, 100):
+			rng.seed = semilla
+			if rng.randi_range(1, 6) <= 5 and rng.randi_range(1, 6) > 2:
+				rng.seed = semilla
+				break
 		enemigo.motor_dados = MotorDados.new(rng)
 		ficha.fue = 5
 		ficha.iniciar_turno()
@@ -237,8 +258,9 @@ func _ejecutar() -> void:
 			_comprobar(
 				resultado.exitosa and resultado.tirada is ResultadoPrueba
 				and resultado.tirada.exitosa and enemigo.vida_actual == 2
+				and resultado.tirada_defensa != null and not resultado.tirada_defensa.exitosa
 				and ficha.obtener_recurso_turno(RecursosTurnoActor.ACCION_PRINCIPAL) == 0,
-				"El ataque acertado debe tirar FUE, causar 1 PV y consumir una acción."
+				"El ataque acertado con esquiva fallida debe causar 1 PV y consumir una acción."
 			)
 			var rng_fallo := RandomNumberGenerator.new()
 			for semilla in range(1, 100):
@@ -252,6 +274,7 @@ func _ejecutar() -> void:
 			_comprobar(
 				resultado_fallo.exitosa and resultado_fallo.tirada is ResultadoPrueba
 				and not resultado_fallo.tirada.exitosa and enemigo.vida_actual == 2
+				and resultado_fallo.tirada_defensa == null
 				and ficha.obtener_recurso_turno(RecursosTurnoActor.ACCION_PRINCIPAL) == 0,
 				"Un ataque fallido no causa daño y también consume una acción."
 			)

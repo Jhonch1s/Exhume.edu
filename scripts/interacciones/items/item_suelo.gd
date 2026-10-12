@@ -23,6 +23,7 @@ var _esta_registrado: bool = false
 var _desplazamiento_visual := Vector2.ZERO
 var _transferidor_items: TransferidorItems
 var _representacion: Node2D
+var variante_visual: int = -1
 
 
 func _init(item_inicial: ItemInstancia) -> void:
@@ -51,6 +52,8 @@ func obtener_nombre_interaccion() -> String:
 
 func vincular_representacion(nueva_representacion: Node2D) -> void:
 	_representacion = nueva_representacion
+	if nueva_representacion is RepresentacionItemSuelo:
+		variante_visual = nueva_representacion.variante_visual
 
 
 func obtener_representacion() -> Node2D:

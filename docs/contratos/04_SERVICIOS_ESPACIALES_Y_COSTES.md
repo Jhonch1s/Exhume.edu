@@ -12,6 +12,11 @@ Devuelve `&""` si la línea está despejada o un motivo de bloqueo. La validaci�
 
 `ValidadorEspacialTablero` implementa actualmente la línea `VISUAL` sobre `TableroGrid`. Usa `GeometriaGrid.trazar_linea()`, utilidad Bresenham compartida con `FOVManager`, y aplica estas reglas: origen y destino deben existir; un hueco intermedio bloquea; las celdas intermedias con bloqueo efectivo de visión bloquean; la celda de destino puede ser opaca porque debe ser posible examinar una pared. `FISICA` devuelve `linea_fisica_no_implementada` hasta definir obstáculos, alturas y colisiones apropiados.
 
+La línea visual despejada no equivale por sí sola a percepción ni iluminación.
+El diseño acordado para separarlas está en
+[Visión, iluminación y niebla de guerra](../contenido/VISION_ILUMINACION_Y_NIEBLA.md)
+y sigue pendiente de implementación.
+
 ## Servicio de costes
 
 `GestorAcciones` recibe un servicio independiente mediante `configurar_proveedor_costes()`. Solo lo exige cuando `ContextoAccion.costes_solicitados` no está vacío. El proveedor debe cumplir:

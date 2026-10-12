@@ -45,10 +45,13 @@ func validar_accion(contexto: ContextoAccion) -> StringName:
 		return &"accion_no_admitida"
 	if contexto.celda_objetivo != coordenada_mapa:
 		return &"celda_objetivo_invalida"
-	if not contexto.actor is Ficha:
-		return &"actor_no_es_ficha"
-	var destreza: int = contexto.actor.call(&"obtener_destreza")
-	return &"" if destreza >= 1 and destreza <= 5 else &"destreza_actor_invalida"
+	if (
+		contexto.actor == null or not contexto.actor.has_method(&"obtener_destreza")
+		or not contexto.actor.has_method(&"aplicar_o_renovar_estado")
+	):
+		return &"actor_no_admite_estados"
+	var destreza: Variant = contexto.actor.call(&"obtener_destreza")
+	return &"" if destreza is int and destreza >= 1 and destreza <= 5 else &"destreza_actor_invalida"
 
 
 func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:

@@ -9,6 +9,7 @@ var servicio_examen: ServicioExamen
 var transferidor_items: TransferidorItems
 var zona_referencia: Node2D
 var capa_referencia: TileMapLayer
+var revision_rutas: int = 0
 
 # Puntos de extension para trampas, encuentros, puertas y otros triggers.
 signal celda_reservada(coord: Vector2i, contenido: Object)
@@ -24,6 +25,20 @@ signal efecto_superficie_retirado(coord: Vector2i, efecto: Object)
 signal item_suelo_registrado(coord: Vector2i, item_suelo: ItemSuelo)
 signal item_suelo_retirado(coord: Vector2i, item_suelo: ItemSuelo)
 signal iluminacion_cambiada(coord: Vector2i)
+
+
+func _init() -> void:
+	for evento in [
+		&"celda_reservada", &"reserva_cancelada", &"reserva_confirmada",
+		&"celda_ocupada", &"celda_desocupada", &"interactuable_registrado",
+		&"interactuable_retirado", &"efecto_superficie_registrado", &"efecto_superficie_retirado",
+	]:
+		connect(evento, _actualizar_revision_rutas.unbind(2))
+	presencia_interactuable_cambiada.connect(_actualizar_revision_rutas.unbind(1))
+
+
+func _actualizar_revision_rutas() -> void:
+	revision_rutas += 1
 
 func generar_desde_zona(zona: Node2D) -> void:
 	zona_referencia = zona
@@ -601,10 +616,43 @@ func cancelar_reserva(coord: Vector2i, contenido: Object) -> void:
 func confirmar_movimiento(origen: Vector2i, destino: Vector2i, contenido: Object) -> bool:
 	if not datos.has(destino) or contenido not in datos[destino].reservas:
 		return false
+	if not puede_entrar(destino, contenido):
+		return false
+	if contenido is Interactuable:
+		if contenido.coordenada_mapa != origen or not reubicar_interactuable(contenido, destino):
+			return false
 	datos[destino].reservas.erase(contenido)
 	reserva_confirmada.emit(destino, contenido)
-	liberar_celda(origen, contenido)
-	ocupar_celda(destino, contenido)
+	if not contenido is Interactuable:
+		liberar_celda(origen, contenido)
+		ocupar_celda(destino, contenido)
+	return true
+
+
+## Cambia la ubicación conservando identidad y conexiones del interactuable.
+## El movimiento valida/reserva antes; la carga prevalida el conjunto del snapshot.
+func reubicar_interactuable(entidad: Interactuable, destino: Vector2i) -> bool:
+	if entidad == null or interactuables_por_id.get(entidad.id_instancia) != entidad:
+		return false
+	var anteriores := entidad.obtener_coordenadas_ocupadas()
+	var siguientes := entidad.obtener_coordenadas_ocupadas(destino)
+	for coord in siguientes:
+		if not datos.has(coord):
+			return false
+	var origen := entidad.coordenada_mapa
+	for coord in anteriores:
+		if datos.has(coord):
+			datos[coord].interactuables.erase(entidad)
+	entidad.coordenada_mapa = destino
+	for coord in siguientes:
+		if entidad not in datos[coord].interactuables:
+			datos[coord].interactuables.append(entidad)
+	entidad.coordenada_cambiada.emit(origen, destino)
+	for coord in anteriores:
+		presencia_interactuable_cambiada.emit(coord)
+	for coord in siguientes:
+		presencia_interactuable_cambiada.emit(coord)
+	entidad.actualizar_presentacion_visibilidad(datos[destino].visibilidad)
 	return true
 
 func registrar_luz(coord: Vector2i, fuente: FuenteLuzInteractuable) -> void:

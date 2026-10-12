@@ -30,7 +30,9 @@ var vol: int = 2
 @export_range(0, 999999, 1) var experiencia_acumulada: int = 0
 var energia_maxima: int = 200
 var energia_actual: int = 200
-@export_range(0, 99, 1) var movimiento_por_turno: int = 7
+var movimiento_por_turno: int:
+	get:
+		return RecursosTurnoActor.calcular_movimiento(des)
 @export_range(0, 9, 1) var acciones_principales_por_turno: int = 1
 @export_range(0, 9, 1) var acciones_adicionales_por_turno: int = 1
 @export_range(0, 9, 1) var reacciones_por_turno: int = 1
@@ -38,7 +40,7 @@ var recursos_turno: RecursosTurnoActor
 
 var pv_max: int
 var pv_actual: int
-var _estados: Dictionary[StringName, EstadoActor] = {}
+var estados_temporales := EstadosTemporalesActor.new()
 var clase: String = "Guerrero"
 var origen: String = ""
 
@@ -50,8 +52,15 @@ var inventario: Inventario = Inventario.new()
 
 var coordenada_mapa: Vector2i = Vector2i.ZERO
 var capa_referencia: TileMapLayer = null
-var esta_moviendose: bool = false
-var interrupcion_solicitada: bool = false
+var movimiento := MovimientoPorCasillas.new()
+var esta_moviendose: bool:
+	get:
+		return movimiento.esta_moviendose
+var interrupcion_solicitada: bool:
+	get:
+		return movimiento.interrupcion_solicitada
+	set(valor):
+		movimiento.interrupcion_solicitada = valor
 
 var jugador_esta_cerca: bool = false
 
@@ -64,6 +73,14 @@ signal estado_cambiado(clave: StringName, estado: EstadoActor)
 signal recursos_turno_cambiados(recursos: RecursosTurnoActor)
 
 
+
+
+func _init() -> void:
+	estados_temporales.estado_cambiado.connect(_on_estado_temporal_cambiado)
+
+
+func _on_estado_temporal_cambiado(clave: StringName, estado: EstadoActor) -> void:
+	estado_cambiado.emit(clave, estado)
 
 
 func obtener_id_observador() -> StringName:
@@ -131,22 +148,14 @@ func reproducir_efecto_danio() -> void:
 		particulasDanio.restart()
 
 func obtener_estado(clave: StringName) -> EstadoActor:
-	return _estados.get(clave) as EstadoActor
+	return estados_temporales.obtener_estado(clave)
 
 func obtener_claves_estado() -> Array[StringName]:
-	var claves: Array[StringName] = []
-	claves.assign(_estados.keys())
-	claves.sort_custom(func(a, b): return String(a) < String(b))
-	return claves
+	return estados_temporales.obtener_claves_estado()
 
 
 func retirar_estado(clave: StringName) -> bool:
-	var estado := obtener_estado(clave)
-	if estado == null:
-		return false
-	_estados.erase(clave)
-	estado_cambiado.emit(clave, estado)
-	return true
+	return estados_temporales.retirar_estado(clave)
 
 
 func puede_moverse() -> bool:
@@ -160,56 +169,27 @@ func aplicar_o_renovar_estado(
 	_fuente: Object = null,
 	terminos_dano_tick: Array[Dictionary] = []
 ) -> Dictionary:
-	if (
-		clave == &"" or magnitud < 0.0 or duracion_total <= 0 or ticks_pendientes < 0
-		or (magnitud == 0.0 and terminos_dano_tick.is_empty())
-		or _validar_terminos_dano(terminos_dano_tick) != &""
-	):
-		return {}
-	var estado := obtener_estado(clave)
-	var creado := estado == null
-	if creado:
-		estado = EstadoActor.new(
-			clave, magnitud, duracion_total, ticks_pendientes, terminos_dano_tick
-		)
-		_estados[clave] = estado
-	else:
-		estado.renovar(magnitud, duracion_total, ticks_pendientes, terminos_dano_tick)
-	estado_cambiado.emit(clave, estado)
-	return {
-		&"clave": clave,
-		&"creado": creado,
-		&"duracion_total": estado.duracion_total,
-		&"ticks_pendientes": estado.ticks_pendientes,
-	}
+	return estados_temporales.aplicar_o_renovar_estado(
+		clave, magnitud, duracion_total, ticks_pendientes, _fuente, terminos_dano_tick
+	)
 
 func consumir_tick_estado(clave: StringName) -> Dictionary:
-	var estado := obtener_estado(clave)
-	if estado == null or estado.ticks_pendientes <= 0:
-		return {}
-	var restantes := estado.consumir_tick()
-	var expirado := restantes == 0
-	if expirado:
-		_estados.erase(clave)
-	estado_cambiado.emit(clave, estado)
-	return {
-		&"tipo": &"estado_tick",
-		&"clave": clave,
-		&"ticks_restantes": restantes,
-		&"expirado": expirado,
-	}
+	return estados_temporales.consumir_tick_estado(clave)
 
 func iniciar_turno() -> void:
 	if recursos_turno == null:
-		recursos_turno = RecursosTurnoActor.new(
-			movimiento_por_turno,
-			acciones_principales_por_turno,
-			acciones_adicionales_por_turno,
-			reacciones_por_turno
-		)
+		recursos_turno = _crear_recursos_turno(des)
 	else:
-		recursos_turno.reponer()
+		recursos_turno.reponer(movimiento_por_turno)
 	recursos_turno_cambiados.emit(recursos_turno)
+
+
+func _crear_recursos_turno(destreza: int) -> RecursosTurnoActor:
+	return RecursosTurnoActor.new(
+		RecursosTurnoActor.calcular_movimiento(destreza),
+		acciones_principales_por_turno, acciones_adicionales_por_turno, reacciones_por_turno
+	)
+
 
 func obtener_recurso_turno(clave: StringName) -> int:
 	if recursos_turno == null:
@@ -238,16 +218,6 @@ func agotar_recursos_turno() -> void:
 
 
 func obtener_estado_persistente() -> Dictionary:
-	var estados: Array[Dictionary] = []
-	for clave in obtener_claves_estado():
-		var estado := obtener_estado(clave)
-		estados.append({
-			"clave": String(clave),
-			"magnitud": estado.magnitud,
-			"duracion_total": estado.duracion_total,
-			"ticks_pendientes": estado.ticks_pendientes,
-			"terminos_dano_tick": estado.terminos_dano_tick,
-		})
 	var items: Array[Dictionary] = []
 	for item in inventario.obtener_contenido():
 		items.append({
@@ -273,7 +243,8 @@ func obtener_estado_persistente() -> Dictionary:
 		"energia_actual": energia_actual,
 		"pasos_antorcha_actual": pasos_antorcha_actual,
 		"recursos_turno": recursos_turno.obtener_restantes(),
-		"estados": estados,
+		"movimiento_maximo": recursos_turno.obtener_maximo(RecursosTurnoActor.MOVIMIENTO),
+		"estados": estados_temporales.obtener_estado_persistente(),
 		"inventario": items,
 	}
 
@@ -329,7 +300,14 @@ func validar_estado_persistente(estado: Variant) -> StringName:
 		return &"recurso_antorcha_guardado_invalido"
 	if not estado.get("recursos_turno") is Dictionary:
 		return &"recursos_turno_guardados_invalidos"
-	var motivo := recursos_turno.validar_restauracion(estado["recursos_turno"])
+	var movimiento_guardado: Variant = estado.get("movimiento_maximo", 7)
+	var recursos_guardados := _crear_recursos_turno(int(estado["destreza"]))
+	if (
+		not _es_numero_entero(movimiento_guardado)
+		or (estado.has("movimiento_maximo") and movimiento_guardado != recursos_guardados.obtener_maximo(RecursosTurnoActor.MOVIMIENTO))
+	):
+		return &"recursos_turno_guardados_invalidos"
+	var motivo := recursos_guardados.validar_restauracion(estado["recursos_turno"], int(movimiento_guardado))
 	if motivo != &"":
 		return motivo
 	motivo = _validar_estados_guardados(estado.get("estados"))
@@ -348,19 +326,6 @@ func restaurar_estado_persistente(estado: Variant) -> StringName:
 		inventario_nuevo.agregar(ItemInstancia.new(
 			StringName(datos["id"]), definicion, int(datos["cantidad"])
 		))
-	var estados_nuevos: Dictionary[StringName, EstadoActor] = {}
-	for datos: Dictionary in estado["estados"]:
-		var clave := StringName(datos["clave"])
-		if datos.has("terminos_dano_tick") and not datos["terminos_dano_tick"] is Array:
-			return &"estados_ficha_guardados_invalidos"
-		var terminos := _copiar_terminos_dano(datos.get("terminos_dano_tick", []))
-		estados_nuevos[clave] = EstadoActor.new(
-			clave,
-			float(datos["magnitud"]),
-			int(datos["duracion_total"]),
-			int(datos["ticks_pendientes"]),
-			terminos
-		)
 	nombre = estado["nombre"]
 	titulo = estado["titulo"]
 	fue = int(estado["fuerza"])
@@ -374,81 +339,25 @@ func restaurar_estado_persistente(estado: Variant) -> StringName:
 	_aplicar_visual_clase()
 	coordenada_mapa = Vector2i(estado["coordenada"][0], estado["coordenada"][1])
 	if capa_referencia != null:
-		global_position = capa_referencia.map_to_local(coordenada_mapa)
+		global_position = capa_referencia.to_global(capa_referencia.map_to_local(coordenada_mapa))
 	pv_actual = int(estado["pv_actual"])
 	energia_actual = int(estado["energia_actual"])
 	pasos_antorcha_actual = int(estado.get("pasos_antorcha_actual", 0))
-	recursos_turno.restaurar(estado["recursos_turno"])
+	recursos_turno = _crear_recursos_turno(des)
+	recursos_turno.restaurar(estado["recursos_turno"], int(estado.get("movimiento_maximo", 7)))
 	inventario = inventario_nuevo
 	activar_antorcha_si_necesario()
-	_estados = estados_nuevos
+	estados_temporales.restaurar_estado_persistente(estado["estados"])
 	puntos_vida_cambiados.emit(pv_actual, pv_max)
 	recursos_turno_cambiados.emit(recursos_turno)
-	for clave in obtener_claves_estado():
-		estado_cambiado.emit(clave, _estados[clave])
 	return &""
 
 
 func _validar_estados_guardados(datos_estados: Variant) -> StringName:
-	if not datos_estados is Array:
-		return &"estados_ficha_guardados_invalidos"
-	var claves: Dictionary[String, bool] = {}
-	for datos: Variant in datos_estados:
-		if not datos is Dictionary:
-			return &"estados_ficha_guardados_invalidos"
-		var clave: Variant = datos.get("clave")
-		var magnitud: Variant = datos.get("magnitud")
-		if (
-			not clave is String or clave.is_empty() or claves.has(clave)
-			or not (magnitud is int or magnitud is float)
-			or not is_finite(float(magnitud)) or magnitud < 0.0
-			or not _es_numero_entero(datos.get("duracion_total"))
-			or datos["duracion_total"] <= 0
-			or not _es_numero_entero(datos.get("ticks_pendientes"))
-			or datos["ticks_pendientes"] < 0
-		):
-			return &"estados_ficha_guardados_invalidos"
-		if datos.has("terminos_dano_tick") and not datos["terminos_dano_tick"] is Array:
-			return &"estados_ficha_guardados_invalidos"
-		var terminos_guardados: Variant = datos.get("terminos_dano_tick", [])
-		var terminos := _copiar_terminos_dano(terminos_guardados)
-		if (
-			(magnitud == 0.0 and terminos.is_empty())
-			or (not terminos_guardados.is_empty() and terminos.is_empty())
-			or _validar_terminos_dano(terminos) != &""
-		):
-			return &"estados_ficha_guardados_invalidos"
-		claves[clave] = true
-	return &""
-
-
-func _validar_terminos_dano(terminos: Array[Dictionary]) -> StringName:
-	if terminos.is_empty():
-		return &""
-	var motivo := MotorDados.new().validar_cantidad(
-		terminos,
-		0,
-		TiposTirada.Origen.AUTOMATICA,
-		TiposTirada.Presentacion.SOLO_LOG
+	return (
+		&"" if estados_temporales.validar_estado_persistente(datos_estados) == &""
+		else &"estados_ficha_guardados_invalidos"
 	)
-	if motivo != &"":
-		return motivo
-	for termino in terminos:
-		if termino[&"signo"] != 1:
-			return &"signo_dano_tick_invalido"
-	return &""
-
-
-func _copiar_terminos_dano(valor: Variant) -> Array[Dictionary]:
-	var terminos: Array[Dictionary] = []
-	if not valor is Array:
-		return terminos
-	for termino in valor:
-		if not termino is Dictionary:
-			return []
-		terminos.append(termino.duplicate(true))
-	return terminos
-
 
 func _validar_inventario_guardado(datos_items: Variant) -> StringName:
 	if not datos_items is Array:
@@ -521,18 +430,16 @@ func _setear_atributos_particula() -> void:
 
 
 func _aplicar_visual_clase() -> void:
-	
 	if sprite_render == null:
 		sprite_render = Sprite2D.new()
 		sprite_render.name = "SpriteRender"
+	if sprite_render.get_parent() == null:
 		add_child(sprite_render)
-		print("sprite render es null")
 	if texturas_por_direccion.has(0):
 		sprite_render.texture = texturas_por_direccion[0]
 		sprite_render.visible = true
-		sprite_render.add_child(particulasDanio)
-		add_child(sprite_render)
-		
+		if particulasDanio.get_parent() == null:
+			sprite_render.add_child(particulasDanio)
 	else:
 		push_warning("No hay textura para dirección 0")
 
@@ -541,7 +448,7 @@ func inicializar(coordenada_inicial: Vector2i, capa: TileMapLayer) -> void:
 	capa_referencia = capa
 	coordenada_mapa = coordenada_inicial
 	if capa_referencia:
-		global_position = capa_referencia.map_to_local(coordenada_mapa)
+		global_position = capa_referencia.to_global(capa_referencia.map_to_local(coordenada_mapa))
 
 func consumir_paso_antorcha() -> bool:
 	var antorchas := inventario.obtener_por_definicion(ID_ANTORCHA)
@@ -565,8 +472,7 @@ func consumir_paso_antorcha() -> bool:
 	return true
 
 func solicitar_interrupcion() -> void:
-	if esta_moviendose:
-		interrupcion_solicitada = true
+	movimiento.solicitar_interrupcion()
 
 
 
@@ -583,95 +489,38 @@ func mover_por_camino(
 	avanzar_turno: Callable = Callable(),
 	en_combate: bool = false
 ) -> bool:
-	if camino.is_empty() or esta_moviendose or not capa_referencia or not puede_moverse():
-		return false
-
-	esta_moviendose = true
-	interrupcion_solicitada = false
-	var fue_interrumpido := false
-
-	for siguiente_coord in camino:
-		# AStar incluye el origen: no cuenta como paso ni consume recursos.
-		if siguiente_coord == coordenada_mapa:
-			continue
-		if interrupcion_solicitada:
-			fue_interrumpido = true
-			break
-		var origen := coordenada_mapa
-		var coste_paso := 1
-		if calcular_coste_paso.is_valid():
-			var coste_calculado: Variant = calcular_coste_paso.call(
-				origen,
-				siguiente_coord,
-				self
-			)
-			if not coste_calculado is int or coste_calculado < 1:
-				fue_interrumpido = true
-				break
-			coste_paso = coste_calculado
-		if energia_actual < coste_paso:
-			print("sin energia para caminar mas")
-			fue_interrumpido = true
-			break
-		if coste_paso > movimiento_por_turno:
-			fue_interrumpido = true
-			break
-		if validar_coste_turno(RecursosTurnoActor.MOVIMIENTO, coste_paso) != &"":
-			if en_combate or not avanzar_turno.is_valid() or not avanzar_turno.call(self):
-				fue_interrumpido = true
-				break
-
-		# La ruta puede quedar obsoleta; reservamos cada destino antes de usarlo.
-		if not preparar_paso.call(origen, siguiente_coord, self):
-			fue_interrumpido = true
-			break
-		var dir_vector2 = Vector2(siguiente_coord.x - origen.x, siguiente_coord.y - origen.y)
-		var angulo_grados = rad_to_deg(dir_vector2.angle())
-		
-		var angulo_redondeado = int(round(angulo_grados / 90.0) * 90)
-		# Normalizar a 0-360
-		angulo_redondeado = angulo_redondeado % 360
-		if angulo_redondeado < 0:
-			angulo_redondeado += 360
-		if sprite_render and texturas_por_direccion.has(angulo_redondeado):
-			sprite_render.texture = texturas_por_direccion[angulo_redondeado]
+	if not movimiento.paso_dado.is_connected(_on_paso_compartido):
+		movimiento.paso_dado.connect(_on_paso_compartido)
+		movimiento.movimiento_terminado.connect(_on_movimiento_compartido_terminado)
+	return await movimiento.mover_por_camino(
+		self, camino, capa_referencia, preparar_paso, confirmar_paso, cancelar_paso,
+		procesar_salida, procesar_entrada, calcular_coste_paso, avanzar_turno, en_combate
+	)
 
 
-		var destino_pixeles := capa_referencia.map_to_local(siguiente_coord)
-		var tween := create_tween()
-		tween.tween_property(
-			self,
-			"global_position",
-			destino_pixeles,
-			calcular_duracion_paso(coste_paso)
-		)
-		await tween.finished
+func validar_paso_movimiento(coste: int) -> bool:
+	return coste >= 1 and energia_actual >= coste and coste <= movimiento_por_turno
 
-		if procesar_salida.is_valid():
-			procesar_salida.call(origen, siguiente_coord, self)
 
-		if not confirmar_paso.call(origen, siguiente_coord, self):
-			cancelar_paso.call(siguiente_coord, self)
-			global_position = capa_referencia.map_to_local(origen)
-			fue_interrumpido = true
-			break
+func consumir_paso_movimiento(coste: int) -> void:
+	energia_actual -= coste
+	consumir_recurso_turno(RecursosTurnoActor.MOVIMIENTO, coste)
 
-		# El paso se vuelve definitivo solamente al llegar.
-		coordenada_mapa = siguiente_coord
-		energia_actual -= coste_paso
-		consumir_recurso_turno(RecursosTurnoActor.MOVIMIENTO, coste_paso)
-		print("energia actual: ", energia_actual)
-		if procesar_entrada.is_valid():
-			procesar_entrada.call(origen, siguiente_coord, self)
-		paso_dado.emit(coordenada_mapa)
-		if interrupcion_solicitada:
-			fue_interrumpido = true
-			break
 
-	esta_moviendose = false
-	interrupcion_solicitada = false
-	movimiento_terminado.emit(fue_interrumpido)
-	return not fue_interrumpido
+func orientar_paso_movimiento(origen: Vector2i, destino: Vector2i) -> void:
+	var direccion := Vector2(destino - origen)
+	var angulo := posmod(int(round(rad_to_deg(direccion.angle()) / 90.0) * 90), 360)
+	if sprite_render != null and texturas_por_direccion.has(angulo):
+		sprite_render.texture = texturas_por_direccion[angulo]
+
+
+func _on_paso_compartido(coordenada: Vector2i) -> void:
+	paso_dado.emit(coordenada)
+
+
+func _on_movimiento_compartido_terminado(interrumpido: bool) -> void:
+	movimiento_terminado.emit(interrumpido)
+
 
 func calcular_duracion_paso(coste_paso: int) -> float:
 	return velocidad_paso * (2.0 if coste_paso > 1 else 1.0)

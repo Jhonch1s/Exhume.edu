@@ -7,14 +7,19 @@ var ronda_actual: int = 0
 var actor_activo: Object
 var _actores: Array[Object] = []
 var _indice_activo: int = -1
+var _motor_iniciativa: MotorDados
+var _iniciativas: Dictionary[StringName, Dictionary] = {}
+var _tiradas_iniciativa: Array[ResultadoTirada] = []
 
 
 func _init(
 	servicio_inicial: ServicioTurnos,
-	procesador_inicial: ProcesadorSuperficies = null
+	procesador_inicial: ProcesadorSuperficies = null,
+	motor_iniciativa: MotorDados = null
 ) -> void:
 	servicio_turnos = servicio_inicial
 	procesador_superficies = procesador_inicial
+	_motor_iniciativa = motor_iniciativa
 
 
 func iniciar(actores: Array[Object]) -> ResultadoAvanceTurno:
@@ -22,10 +27,12 @@ func iniciar(actores: Array[Object]) -> ResultadoAvanceTurno:
 	if motivo != &"":
 		return ResultadoAvanceTurno.new(false, motivo)
 	var ordenados := actores.duplicate()
-	ordenados.sort_custom(_va_antes)
-	var primer_indice := _buscar_activo(ordenados, -1)
-	if primer_indice < 0:
+	if _buscar_activo(ordenados, -1) < 0:
 		return ResultadoAvanceTurno.new(false, &"sin_actores_activos")
+	motivo = _ordenar_ronda(ordenados)
+	if motivo != &"":
+		return ResultadoAvanceTurno.new(false, motivo)
+	var primer_indice := _buscar_activo(ordenados, -1)
 	_actores = ordenados
 	_indice_activo = primer_indice
 	actor_activo = _actores[_indice_activo]
@@ -42,16 +49,45 @@ func preparar_restauracion(actores: Array[Object]) -> StringName:
 	if motivo != &"":
 		return motivo
 	_actores = actores.duplicate()
-	_actores.sort_custom(_va_antes)
+	if _motor_iniciativa == null:
+		_actores.sort_custom(_va_antes)
+	_iniciativas.clear()
+	_tiradas_iniciativa.clear()
 	_indice_activo = -1
 	actor_activo = null
 	ronda_actual = 0
 	return &""
 
 
+## Se añade al final sin renovar recursos ni alterar el turno en curso.
+func incorporar_actor(actor: Object) -> StringName:
+	if actor_activo == null:
+		return &"sin_actor_activo"
+	var ampliados := _actores.duplicate()
+	ampliados.append(actor)
+	var motivo := _validar_actores(ampliados)
+	if motivo != &"":
+		return motivo
+	if not actor.call(&"puede_actuar"):
+		return &"actor_ronda_inactivo"
+	_actores.append(actor)
+	return &""
+
+
+func obtener_iniciativa_ronda(id_actor: StringName) -> Dictionary:
+	return _iniciativas.get(id_actor, {}).duplicate()
+
+
+func obtener_tiradas_iniciativa() -> Array[ResultadoTirada]:
+	return _tiradas_iniciativa.duplicate()
+
+
 func finalizar_turno_activo() -> ResultadoAvanceTurno:
 	if actor_activo == null or _indice_activo < 0:
 		return ResultadoAvanceTurno.new(false, &"sin_actor_activo", ronda_actual)
+	var motivo_actores := _validar_actores(_actores)
+	if motivo_actores != &"":
+		return ResultadoAvanceTurno.new(false, motivo_actores, ronda_actual)
 	if procesador_superficies != null:
 		var motivo_superficies := procesador_superficies.validar()
 		if motivo_superficies != &"":
@@ -96,7 +132,18 @@ func finalizar_turno_activo() -> ResultadoAvanceTurno:
 					resultado,
 					resultado_superficies
 				)
+		if _motor_iniciativa != null:
+			var motivo_orden := _ordenar_ronda(_actores)
+			if motivo_orden != &"":
+				return ResultadoAvanceTurno.new(false, motivo_orden, ronda_actual)
+			siguiente = _buscar_activo(_actores, -1)
 		ronda_actual += 1
+	if siguiente < 0:
+		actor_activo = null
+		_indice_activo = -1
+		return ResultadoAvanceTurno.new(
+			true, &"", ronda_actual, id_finalizado, &"", nueva_ronda, resultado, resultado_superficies
+		)
 	_indice_activo = siguiente
 	actor_activo = _actores[_indice_activo]
 	actor_activo.call(&"iniciar_turno")
@@ -125,11 +172,21 @@ func obtener_estado_persistente() -> Variant:
 	var orden: Array[String] = []
 	for id_actor in obtener_ids_ordenados():
 		orden.append(String(id_actor))
-	return {
+	var estado := {
 		"ronda": ronda_actual,
 		"actor_activo_id": String(_id(actor_activo)),
 		"orden_actores": orden,
 	}
+	if _motor_iniciativa != null:
+		var iniciativas: Array[Dictionary] = []
+		for id_actor in obtener_ids_ordenados():
+			if not _iniciativas.has(id_actor):
+				continue
+			var entrada := obtener_iniciativa_ronda(id_actor)
+			entrada["id"] = String(id_actor)
+			iniciativas.append(entrada)
+		estado["iniciativas"] = iniciativas
+	return estado
 
 
 func validar_estado_persistente(estado: Variant) -> StringName:
@@ -149,6 +206,26 @@ func validar_estado_persistente(estado: Variant) -> StringName:
 		if not orden[indice] is String or orden[indice] != String(actuales[indice]):
 			return &"actores_ronda_guardados_no_coinciden"
 		activo_encontrado = activo_encontrado or orden[indice] == id_activo
+	var iniciativas: Variant = estado.get("iniciativas", [])
+	if not iniciativas is Array:
+		return &"iniciativas_guardadas_invalidas"
+	var vistos: Dictionary = {}
+	for entrada in iniciativas:
+		if not entrada is Dictionary:
+			return &"iniciativas_guardadas_invalidas"
+		var id: Variant = entrada.get("id")
+		if not id is String or not id in orden or vistos.has(id):
+			return &"iniciativas_guardadas_invalidas"
+		for clave in ["dado", "destreza", "total"]:
+			if not _es_numero_entero(entrada.get(clave)):
+				return &"iniciativas_guardadas_invalidas"
+		if (
+			entrada["dado"] < 1 or entrada["dado"] > 6
+			or entrada["destreza"] < 0 or entrada["destreza"] > 99
+			or entrada["total"] != entrada["dado"] + entrada["destreza"]
+		):
+			return &"iniciativas_guardadas_invalidas"
+		vistos[id] = true
 	return &"" if activo_encontrado else &"actor_activo_guardado_invalido"
 
 
@@ -159,6 +236,13 @@ func restaurar_estado_persistente(estado: Variant) -> StringName:
 	if estado == null:
 		return &""
 	ronda_actual = int(estado["ronda"])
+	_iniciativas.clear()
+	_tiradas_iniciativa.clear()
+	for entrada: Dictionary in estado.get("iniciativas", []):
+		_iniciativas[StringName(entrada["id"])] = {
+			"dado": int(entrada["dado"]), "destreza": int(entrada["destreza"]),
+			"total": int(entrada["total"]),
+		}
 	for indice in range(_actores.size()):
 		if String(_id(_actores[indice])) == estado["actor_activo_id"]:
 			_indice_activo = indice
@@ -188,7 +272,50 @@ func _validar_actores(actores: Array[Object]) -> StringName:
 			return &"id_actor_ronda_invalido"
 		if not iniciativa is int or not activo is bool:
 			return &"contrato_actor_ronda_invalido"
+		if _motor_iniciativa != null:
+			if not actor.has_method(&"obtener_destreza"):
+				return &"contrato_actor_ronda_invalido"
+			var destreza: Variant = actor.call(&"obtener_destreza")
+			if not destreza is int or destreza < 0 or destreza > 99:
+				return &"destreza_iniciativa_invalida"
 		ids[id_actor] = true
+	return &""
+
+
+func _ordenar_ronda(actores: Array[Object]) -> StringName:
+	if _motor_iniciativa == null:
+		actores.sort_custom(_va_antes)
+		return &""
+	var iniciativas: Dictionary[StringName, Dictionary] = {}
+	var tiradas: Array[ResultadoTirada] = []
+	var por_id := actores.duplicate()
+	por_id.sort_custom(func(a: Object, b: Object) -> bool: return String(_id(a)) < String(_id(b)))
+	for actor in por_id:
+		if not actor.call(&"puede_actuar"):
+			continue
+		var tirada := _motor_iniciativa.resolver(
+			[{&"cantidad": 1, &"caras": 6, &"signo": 1}], 0,
+			TiposTirada.Origen.AUTOMATICA, TiposTirada.Presentacion.SOLO_LOG
+		)
+		if not tirada.valida:
+			return tirada.motivo
+		tiradas.append(tirada)
+		var destreza: int = actor.call(&"obtener_destreza")
+		iniciativas[_id(actor)] = {
+			"dado": tirada.total_calculado, "destreza": destreza,
+			"total": tirada.total_calculado + destreza,
+		}
+	actores.sort_custom(func(a: Object, b: Object) -> bool:
+		var valor_a: Dictionary = iniciativas.get(_id(a), {"total": -1, "destreza": -1})
+		var valor_b: Dictionary = iniciativas.get(_id(b), {"total": -1, "destreza": -1})
+		if valor_a["total"] != valor_b["total"]:
+			return valor_a["total"] > valor_b["total"]
+		if valor_a["destreza"] != valor_b["destreza"]:
+			return valor_a["destreza"] > valor_b["destreza"]
+		return String(_id(a)) < String(_id(b))
+	)
+	_iniciativas = iniciativas
+	_tiradas_iniciativa = tiradas
 	return &""
 
 
@@ -213,4 +340,4 @@ func _id(actor: Object) -> StringName:
 
 
 func _es_numero_entero(valor: Variant) -> bool:
-	return valor is int or (valor is float and is_equal_approx(valor, roundf(valor)))
+	return valor is int or (valor is float and is_finite(valor) and valor == roundf(valor))

@@ -1,0 +1,146 @@
+[gd_resource type="BehaviorTree" format=3 uid="uid://d0kbfhqqcrt02"]
+
+[ext_resource type="Script" uid="uid://bjs63o2bmbow6" path="res://ai/tasks/compartidas/comprobar_condicion.gd" id="1_condicion"]
+[ext_resource type="Script" uid="uid://dmwevxiowvh15" path="res://ai/tasks/compartidas/elegir_accion.gd" id="2_accion"]
+
+[sub_resource type="BlackboardPlan" id="BlackboardPlan_memoria"]
+
+[sub_resource type="BTCondition" id="BTCondition_enredado"]
+custom_name = "¿Estoy atrapado?"
+script = ExtResource("1_condicion")
+variable = &"esta_enredado"
+
+[sub_resource type="BTAction" id="BTAction_liberarse"]
+custom_name = "Liberarme primero"
+script = ExtResource("2_accion")
+decision = &"liberarse"
+
+[sub_resource type="BTSequence" id="BTSequence_liberarse"]
+custom_name = "1. Liberarme antes de actuar"
+children = [SubResource("BTCondition_enredado"), SubResource("BTAction_liberarse")]
+
+[sub_resource type="BTCondition" id="BTCondition_atacar"]
+custom_name = "¿Veo al jugador adyacente y tengo acción?"
+script = ExtResource("1_condicion")
+variable = &"puede_atacar"
+
+[sub_resource type="BTAction" id="BTAction_atacar"]
+custom_name = "Atacar"
+script = ExtResource("2_accion")
+decision = &"atacar"
+
+[sub_resource type="BTSequence" id="BTSequence_atacar"]
+custom_name = "2. Atacar si puedo"
+children = [SubResource("BTCondition_atacar"), SubResource("BTAction_atacar")]
+
+[sub_resource type="BTCondition" id="BTCondition_acercarse"]
+custom_name = "¿Tengo movimiento y ruta a su posición observada?"
+script = ExtResource("1_condicion")
+variable = &"puede_acercarse"
+
+[sub_resource type="BTAction" id="BTAction_acercarse"]
+custom_name = "Acercarse"
+script = ExtResource("2_accion")
+decision = &"acercarse"
+
+[sub_resource type="BTSequence" id="BTSequence_acercarse"]
+custom_name = "3. Acercarme si puedo"
+children = [SubResource("BTCondition_acercarse"), SubResource("BTAction_acercarse")]
+
+[sub_resource type="BTCondition" id="BTCondition_buscar"]
+custom_name = "¿Tengo un recuerdo pendiente y movimiento?"
+script = ExtResource("1_condicion")
+variable = &"puede_buscar"
+
+[sub_resource type="BTAction" id="BTAction_buscar"]
+custom_name = "Buscar en la casilla recordada"
+script = ExtResource("2_accion")
+decision = &"buscar"
+
+[sub_resource type="BTSequence" id="BTSequence_buscar"]
+custom_name = "4. Buscar al perder al jugador"
+children = [SubResource("BTCondition_buscar"), SubResource("BTAction_buscar")]
+
+[sub_resource type="BTCondition" id="BTCondition_abandonar"]
+custom_name = "¿La búsqueda terminó sin encontrarlo?"
+script = ExtResource("1_condicion")
+variable = &"busqueda_terminada"
+
+[sub_resource type="BTAction" id="BTAction_abandonar"]
+custom_name = "Olvidar la última posición"
+script = ExtResource("2_accion")
+decision = &"terminar_busqueda"
+
+[sub_resource type="BTSequence" id="BTSequence_abandonar"]
+custom_name = "5. Terminar la búsqueda"
+children = [SubResource("BTCondition_abandonar"), SubResource("BTAction_abandonar")]
+
+[sub_resource type="BTCondition" id="BTCondition_esperar_patrulla"]
+custom_name = "¿Estoy esperando en un punto?"
+script = ExtResource("1_condicion")
+variable = &"esperando_patrulla"
+
+[sub_resource type="BTAction" id="BTAction_esperar_patrulla"]
+custom_name = "Esperar un turno de exploración"
+script = ExtResource("2_accion")
+decision = &"esperar_patrulla"
+
+[sub_resource type="BTSequence" id="BTSequence_esperar_patrulla"]
+custom_name = "6. Respetar la espera de patrulla"
+children = [SubResource("BTCondition_esperar_patrulla"), SubResource("BTAction_esperar_patrulla")]
+
+[sub_resource type="BTCondition" id="BTCondition_avanzar_patrulla"]
+custom_name = "¿Llegué al punto de patrulla?"
+script = ExtResource("1_condicion")
+variable = &"punto_patrulla_alcanzado"
+
+[sub_resource type="BTAction" id="BTAction_avanzar_patrulla"]
+custom_name = "Elegir el siguiente punto del circuito"
+script = ExtResource("2_accion")
+decision = &"avanzar_patrulla"
+
+[sub_resource type="BTSequence" id="BTSequence_avanzar_patrulla"]
+custom_name = "7. Avanzar el punto alcanzado"
+children = [SubResource("BTCondition_avanzar_patrulla"), SubResource("BTAction_avanzar_patrulla")]
+
+[sub_resource type="BTCondition" id="BTCondition_patrullar"]
+custom_name = "¿Tengo un punto pendiente y movimiento?"
+script = ExtResource("1_condicion")
+variable = &"puede_patrullar"
+
+[sub_resource type="BTAction" id="BTAction_patrullar"]
+custom_name = "Caminar hacia el punto de patrulla"
+script = ExtResource("2_accion")
+decision = &"patrullar"
+
+[sub_resource type="BTSequence" id="BTSequence_patrullar"]
+custom_name = "8. Patrullar fuera del combate"
+children = [SubResource("BTCondition_patrullar"), SubResource("BTAction_patrullar")]
+
+[sub_resource type="BTCondition" id="BTCondition_regresar"]
+custom_name = "¿Debo regresar y tengo movimiento?"
+script = ExtResource("1_condicion")
+variable = &"puede_regresar"
+
+[sub_resource type="BTAction" id="BTAction_regresar"]
+custom_name = "Regresar al origen"
+script = ExtResource("2_accion")
+decision = &"regresar"
+
+[sub_resource type="BTSequence" id="BTSequence_regresar"]
+custom_name = "9. Regresar si no tengo patrulla"
+children = [SubResource("BTCondition_regresar"), SubResource("BTAction_regresar")]
+
+[sub_resource type="BTAction" id="BTAction_terminar"]
+custom_name = "Terminar turno"
+script = ExtResource("2_accion")
+decision = &"terminar_turno"
+
+[sub_resource type="BTSelector" id="BTSelector_prioridad"]
+custom_name = "Elegir por prioridad"
+children = [SubResource("BTSequence_liberarse"), SubResource("BTSequence_atacar"), SubResource("BTSequence_acercarse"), SubResource("BTSequence_buscar"), SubResource("BTSequence_abandonar"), SubResource("BTSequence_esperar_patrulla"), SubResource("BTSequence_avanzar_patrulla"), SubResource("BTSequence_patrullar"), SubResource("BTSequence_regresar"), SubResource("BTAction_terminar")]
+
+[resource]
+description = "Liberarse primero. Atacar con visión propia y perseguir la posición observada por el grupo; fuera de combate, buscar el recuerdo y retomar la patrulla con sus esperas, o regresar al origen si no hay circuito."
+blackboard_plan = SubResource("BlackboardPlan_memoria")
+root_task = SubResource("BTSelector_prioridad")

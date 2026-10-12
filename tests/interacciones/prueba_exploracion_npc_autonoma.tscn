@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tests/interacciones/prueba_exploracion_npc_autonoma.gd" id="1_prueba"]
+
+[node name="PruebaExploracionNPCAutonoma" type="Node"]
+script = ExtResource("1_prueba")

@@ -1,0 +1,48 @@
+[gd_resource type="BehaviorTree" format=3 uid="uid://ch41ixn1f1fsf"]
+
+[ext_resource type="Script" uid="uid://bjs63o2bmbow6" path="res://ai/tasks/compartidas/comprobar_condicion.gd" id="1_condicion"]
+[ext_resource type="Script" uid="uid://dmwevxiowvh15" path="res://ai/tasks/compartidas/elegir_accion.gd" id="2_accion"]
+
+[sub_resource type="BlackboardPlan" id="BlackboardPlan_fcybs"]
+
+[sub_resource type="BTCondition" id="BTCondition_atacar"]
+custom_name = "¿Tengo acción y jugador adyacente?"
+script = ExtResource("1_condicion")
+variable = &"puede_atacar"
+
+[sub_resource type="BTAction" id="BTAction_atacar"]
+custom_name = "Atacar"
+script = ExtResource("2_accion")
+decision = &"atacar"
+
+[sub_resource type="BTSequence" id="BTSequence_atacar"]
+custom_name = "1. Atacar si puedo"
+children = [SubResource("BTCondition_atacar"), SubResource("BTAction_atacar")]
+
+[sub_resource type="BTCondition" id="BTCondition_acercarse"]
+custom_name = "¿Estoy lejos y tengo movimiento y camino?"
+script = ExtResource("1_condicion")
+variable = &"puede_acercarse"
+
+[sub_resource type="BTAction" id="BTAction_acercarse"]
+custom_name = "Acercarse"
+script = ExtResource("2_accion")
+decision = &"acercarse"
+
+[sub_resource type="BTSequence" id="BTSequence_acercarse"]
+custom_name = "2. Acercarme si puedo"
+children = [SubResource("BTCondition_acercarse"), SubResource("BTAction_acercarse")]
+
+[sub_resource type="BTAction" id="BTAction_terminar"]
+custom_name = "Terminar turno"
+script = ExtResource("2_accion")
+decision = &"terminar_turno"
+
+[sub_resource type="BTSelector" id="BTSelector_prioridades"]
+custom_name = "Elegir por prioridad"
+children = [SubResource("BTSequence_atacar"), SubResource("BTSequence_acercarse"), SubResource("BTAction_terminar")]
+
+[resource]
+description = "Ejemplo didáctico: decidir entre atacar, acercarse o terminar turno. La escena permite variar las condiciones y evaluar manualmente."
+blackboard_plan = SubResource("BlackboardPlan_fcybs")
+root_task = SubResource("BTSelector_prioridades")

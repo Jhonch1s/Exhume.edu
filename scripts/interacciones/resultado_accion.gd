@@ -45,6 +45,10 @@ var tirada: Variant:
 	get:
 		return _tirada
 
+var tirada_defensa: ResultadoPrueba:
+	get:
+		return _tirada_defensa
+
 var exitosa: bool:
 	get:
 		return _estado == TiposInteraccion.EstadoResolucion.EXITO
@@ -60,6 +64,7 @@ var _interrumpe_movimiento: bool
 var _terminal: bool
 var _destino_item: Variant
 var _tirada: Variant
+var _tirada_defensa: ResultadoPrueba
 
 
 func _init(
@@ -73,7 +78,8 @@ func _init(
 	terminal_inicial: bool = false,
 	solicitudes_iniciales: Array[SolicitudEfecto] = [],
 	destino_item_inicial: Variant = null,
-	tirada_inicial: Variant = null
+	tirada_inicial: Variant = null,
+	tirada_defensa_inicial: ResultadoPrueba = null
 ) -> void:
 	_estado = estado_inicial
 	if _estado == TiposInteraccion.EstadoResolucion.EXITO:
@@ -102,6 +108,7 @@ func _init(
 	_terminal = terminal_inicial
 	_destino_item = destino_item_inicial
 	_tirada = tirada_inicial
+	_tirada_defensa = tirada_defensa_inicial
 
 
 static func crear_exito(
@@ -186,7 +193,8 @@ func con_costes_consumidos(
 		_terminal,
 		_solicitudes_efecto,
 		_destino_item,
-		_tirada
+		_tirada,
+		_tirada_defensa
 	)
 
 
@@ -207,5 +215,16 @@ func con_tirada(nueva_tirada: Variant) -> ResultadoAccion:
 		_terminal,
 		_solicitudes_efecto,
 		_destino_item,
-		nueva_tirada
+		nueva_tirada,
+		_tirada_defensa
+	)
+
+
+func con_tirada_defensa(nueva_defensa: ResultadoPrueba) -> ResultadoAccion:
+	if nueva_defensa == null or not nueva_defensa.valida:
+		return self
+	return ResultadoAccion.new(
+		_estado, _motivo, _mensajes, _efectos_aplicados, _cambios_estado,
+		_costes_consumidos, _interrumpe_movimiento, _terminal,
+		_solicitudes_efecto, _destino_item, _tirada, nueva_defensa
 	)

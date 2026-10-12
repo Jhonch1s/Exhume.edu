@@ -9,6 +9,9 @@
 - [Cofres e inventarios de almacenamiento](contenido/COFRES.md).
 - [Personajes y modelos 3D](contenido/PERSONAJES.md).
 - [NPC y diálogos](contenido/NPC_Y_DIALOGOS.md) — estado de Trompo y próximos incrementos.
+- [Patrullas de NPC](contenido/PATRULLAS_NPC.md) — rutas visuales, esperas, retorno y persistencia.
+- [Comprobación de actitud de NPC](pruebas/ACTITUD_NPC.md) — escena manual, transiciones, defensa y guardado compatible.
+- [Visión, iluminación y niebla de guerra](contenido/VISION_ILUMINACION_Y_NIEBLA.md) — diseño acordado, diagnóstico actual y decisiones pendientes.
 - [HUD del jugador y antorcha en mano](arquitectura/HUD_JUGADOR.md).
 - [Continuidad: pulido de interfaces](PENDIENTES_INTERFAZ.md) — punto de partida para el próximo chat.
 - [Roadmap de implementación](../ROADMAP_SISTEMA_INTERACCIONES.md)

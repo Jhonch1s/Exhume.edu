@@ -51,6 +51,11 @@ func validar_restauracion(
 	var coordenada: Array = snapshot["ficha"]["coordenada"]
 	if not tablero.es_celda_valida(Vector2i(coordenada[0], coordenada[1])):
 		return &"coordenada_ficha_fuera_del_tablero"
+	motivo = interactuables.validar_posiciones(
+		snapshot, tablero, Vector2i(coordenada[0], coordenada[1])
+	)
+	if motivo != &"":
+		return motivo
 	var ids_inventario: Dictionary[String, bool] = {}
 	for item: Dictionary in snapshot["ficha"]["inventario"]:
 		ids_inventario[item["id"]] = true
@@ -58,9 +63,16 @@ func validar_restauracion(
 		var entidad := tablero.obtener_interactuable(
 			StringName(datos_interactuable["id"])
 		)
-		if not entidad is CofreInteractuable:
+		if entidad is PersonajeNPC:
+			var recuerdo: Variant = datos_interactuable["estado"].get("ultima_posicion_conocida")
+			if recuerdo is Array and not tablero.es_celda_valida(Vector2i(int(recuerdo[0]), int(recuerdo[1]))):
+				return &"memoria_npc_fuera_del_tablero"
+			var origen: Variant = datos_interactuable["estado"].get("coordenada_origen")
+			if origen is Array and not tablero.es_celda_valida(Vector2i(int(origen[0]), int(origen[1]))):
+				return &"origen_npc_fuera_del_tablero"
+		if not (entidad is CofreInteractuable or entidad is PersonajeNPC):
 			continue
-		for item: Dictionary in datos_interactuable["estado"]["inventario"]:
+		for item: Dictionary in datos_interactuable["estado"].get("inventario", []):
 			if ids_inventario.has(item["id"]):
 				return &"id_item_guardado_duplicado"
 			ids_inventario[item["id"]] = true
@@ -100,7 +112,9 @@ func restaurar(
 	)
 	if motivo != &"":
 		return motivo
-	interactuables.restaurar(snapshot, tablero, id_zona)
+	motivo = interactuables.restaurar(snapshot, tablero, id_zona)
+	if motivo != &"":
+		return motivo
 	contenido_dinamico.restaurar(snapshot["items_suelo"], snapshot["superficies"], tablero)
 	var coordenada_anterior := ficha.coordenada_mapa
 	ficha.restaurar_estado_persistente(snapshot["ficha"])

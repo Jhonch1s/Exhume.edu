@@ -7,6 +7,7 @@ extends Interactuable
 
 signal puntos_vida_cambiados(actual: int, maximo: int)
 signal derrota_cambiada(derrotado: bool)
+signal estado_cambiado(clave: StringName, estado: EstadoActor)
 
 @export_category("Identidad del personaje")
 @export var nombre_unico: String = ""
@@ -16,9 +17,23 @@ signal derrota_cambiada(derrotado: bool)
 @export var atributos_iniciales: Dictionary[StringName, int] = {}
 @export_range(0, 99, 1) var nivel_inicial: int = 0
 
+@export_category("Botín")
+@export var contenido_inicial: Array[EntradaInventarioInicial] = []
+@export var presentacion_botin: DefinicionCofre = preload("res://scenes/interactuables/cofres/cofre_pequeno.tres")
+
+var _inventario: Inventario
+
 var estado_personaje: EstadoPersonajeNPC
+## Se reconstruye desde rondas al cargar; no es la relación persistente.
+var en_oposicion_encuentro: bool = false
+var _origen_inicial: Variant = null
 var motor_dados: MotorDados = MotorDados.new()
 var aplicador_efectos: AplicadorEfectos = AplicadorEfectos.new()
+var movimiento := MovimientoPorCasillas.new()
+var esta_moviendose: bool:
+	get:
+		return movimiento.esta_moviendose
+@export_range(0.01, 2.0, 0.01) var velocidad_paso: float = 0.2
 var vida_actual: int:
 	get:
 		var estado := _asegurar_estado()
@@ -53,21 +68,137 @@ var nivel_actual: int:
 func _ready() -> void:
 	if definicion is DefinicionPersonaje:
 		var perfil := definicion as DefinicionPersonaje
-		if sprite_personaje != null and perfil.textura_mapa != null:
-			sprite_personaje.texture = perfil.textura_mapa
-			sprite_personaje.hframes = 2
-			sprite_personaje.vframes = 2
-			sprite_personaje.frame = perfil.orientacion_mapa_inicial
-			sprite_personaje.offset = perfil.offset_sprite_mapa
+		_actualizar_representacion(true)
 		if Engine.is_editor_hint():
 			return
 		_asegurar_estado()
+		if perfil.puede_tener_inventario:
+			obtener_inventario()
+
+
+func _actualizar_representacion(inicializar: bool = false) -> void:
+	var perfil := obtener_definicion_personaje()
+	if perfil == null or not is_instance_valid(sprite_personaje):
+		return
+	var muerto := vida_inicial == 0 if Engine.is_editor_hint() else esta_muerto()
+	var usa_cadaver := muerto and perfil.textura_cadaver != null
+	var textura := perfil.textura_cadaver if usa_cadaver else perfil.textura_mapa
+	if textura == null:
+		return
+	var cambiar_frame := inicializar or sprite_personaje.texture != textura
+	sprite_personaje.texture = textura
+	sprite_personaje.hframes = 1 if usa_cadaver else 2
+	sprite_personaje.vframes = 1 if usa_cadaver else 2
+	if cambiar_frame:
+		sprite_personaje.frame = 0 if usa_cadaver else perfil.orientacion_mapa_inicial
+	sprite_personaje.offset = perfil.offset_sprite_mapa
+
+
+func obtener_presentacion_inventario() -> DefinicionCofre:
+	return presentacion_botin
+
+
+func _crear_inventario_inicial() -> Inventario:
+	var perfil := obtener_definicion_personaje()
+	if perfil == null or not perfil.puede_tener_inventario:
+		return null
+	if (
+		id_instancia == &"" or presentacion_botin == null
+		or presentacion_botin.columnas < 1 or presentacion_botin.filas < 1
+	):
+		push_error("Botín de %s: inventario no configurado." % id_instancia)
+		return null
+	var preparado := Inventario.new()
+	preparado.capacidad = presentacion_botin.columnas * presentacion_botin.filas
+	for indice in range(contenido_inicial.size()):
+		var entrada := contenido_inicial[indice]
+		if entrada == null:
+			push_error("Botín de %s: entrada inicial vacía." % id_instancia)
+			return null
+		var resultado := preparado.agregar(ItemInstancia.new(
+			StringName("%s:contenido:%d" % [id_instancia, indice]),
+			entrada.definicion, entrada.cantidad
+		))
+		if not resultado.exitosa:
+			push_error("Botín de %s: %s" % [id_instancia, resultado.motivo])
+			return null
+	return preparado
+
+
+func obtener_inventario() -> Inventario:
+	if _inventario == null:
+		_inventario = _crear_inventario_inicial()
+	return _inventario
 
 
 func _asegurar_estado() -> EstadoPersonajeNPC:
 	if estado_personaje == null:
 		estado_personaje = _crear_estado_inicial()
+		if estado_personaje != null:
+			estado_personaje.coordenada_origen = _origen_inicial
+			estado_personaje.estados_temporales.estado_cambiado.connect(_on_estado_temporal_cambiado)
 	return estado_personaje
+
+
+func configurar_registro(tablero_inicial: TableroGrid, coordenada_inicial: Vector2i) -> void:
+	super.configurar_registro(tablero_inicial, coordenada_inicial)
+	var patrulla := obtener_patrulla()
+	if patrulla != null:
+		var motivo := patrulla.configurar(tablero_inicial)
+		if motivo != &"":
+			push_warning("Patrulla de %s desactivada: %s" % [id_instancia, motivo])
+	if _origen_inicial == null:
+		_origen_inicial = coordenada_inicial
+	var estado := _asegurar_estado()
+	if estado != null and patrulla != null and patrulla.esta_configurada():
+		estado.habilitar_movimiento()
+	if estado != null and estado.coordenada_origen == null:
+		estado.coordenada_origen = _origen_inicial
+
+
+func obtener_coordenada_origen() -> Variant:
+	var estado := _asegurar_estado()
+	return estado.coordenada_origen if estado != null else null
+
+
+func obtener_patrulla() -> PatrullaNPC:
+	return get_node_or_null(^"Patrulla") as PatrullaNPC
+
+
+func _on_estado_temporal_cambiado(clave: StringName, estado: EstadoActor) -> void:
+	estado_cambiado.emit(clave, estado)
+
+
+func obtener_estado(clave: StringName) -> EstadoActor:
+	var estado := _asegurar_estado()
+	return estado.estados_temporales.obtener_estado(clave) if estado != null else null
+
+
+func obtener_claves_estado() -> Array[StringName]:
+	var estado := _asegurar_estado()
+	return estado.estados_temporales.obtener_claves_estado() if estado != null else []
+
+
+func retirar_estado(clave: StringName) -> bool:
+	var estado := _asegurar_estado()
+	return estado != null and estado.estados_temporales.retirar_estado(clave)
+
+
+func aplicar_o_renovar_estado(
+	clave: StringName, magnitud: float, duracion_total: int, ticks_pendientes: int,
+	fuente: Object = null, terminos_dano_tick: Array[Dictionary] = []
+) -> Dictionary:
+	var estado := _asegurar_estado()
+	return (
+		estado.estados_temporales.aplicar_o_renovar_estado(
+			clave, magnitud, duracion_total, ticks_pendientes, fuente, terminos_dano_tick
+		) if estado != null else {}
+	)
+
+
+func consumir_tick_estado(clave: StringName) -> Dictionary:
+	var estado := _asegurar_estado()
+	return estado.estados_temporales.consumir_tick_estado(clave) if estado != null else {}
 
 
 func _crear_estado_inicial() -> EstadoPersonajeNPC:
@@ -77,17 +208,89 @@ func _crear_estado_inicial() -> EstadoPersonajeNPC:
 		definicion as DefinicionPersonaje,
 		vida_inicial,
 		atributos_iniciales,
-		nivel_inicial
+		nivel_inicial,
+		obtener_patrulla() != null and obtener_patrulla().esta_configurada()
 	)
 
 
 func esta_derrotado() -> bool:
+	return esta_muerto()
+
+
+func esta_muerto() -> bool:
 	var estado := _asegurar_estado()
-	return estado != null and estado.esta_derrotado()
+	return estado != null and estado.esta_muerto()
 
 
 func puede_actuar() -> bool:
 	return not esta_derrotado()
+
+
+func puede_moverse() -> bool:
+	return (
+		puede_actuar() and obtener_estado(&"enredado") == null
+		and obtener_estado(&"caido") == null
+		and obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO) >= 0
+	)
+
+
+func validar_paso_movimiento(coste: int) -> bool:
+	var estado := _asegurar_estado()
+	return (
+		estado != null and estado.recursos_turno != null and coste >= 1
+		and coste <= estado.recursos_turno.obtener_maximo(RecursosTurnoActor.MOVIMIENTO)
+	)
+
+
+func consumir_paso_movimiento(coste: int) -> void:
+	consumir_recurso_turno(RecursosTurnoActor.MOVIMIENTO, coste)
+
+
+func orientar_paso_movimiento(origen: Vector2i, destino: Vector2i) -> void:
+	if sprite_personaje == null:
+		return
+	match destino - origen:
+		Vector2i.RIGHT:
+			sprite_personaje.frame = DefinicionPersonaje.OrientacionMapa.ABAJO_DERECHA
+		Vector2i.DOWN:
+			sprite_personaje.frame = DefinicionPersonaje.OrientacionMapa.ABAJO_IZQUIERDA
+		Vector2i.LEFT:
+			sprite_personaje.frame = DefinicionPersonaje.OrientacionMapa.ARRIBA_IZQUIERDA
+		Vector2i.UP:
+			sprite_personaje.frame = DefinicionPersonaje.OrientacionMapa.ARRIBA_DERECHA
+
+
+func calcular_duracion_paso(coste: int) -> float:
+	return velocidad_paso * (2.0 if coste > 1 else 1.0)
+
+
+func solicitar_interrupcion() -> void:
+	movimiento.solicitar_interrupcion()
+
+
+func mover_por_camino(
+	camino: Array[Vector2i], preparar_paso: Callable, confirmar_paso: Callable,
+	cancelar_paso: Callable, procesar_salida: Callable, procesar_entrada: Callable,
+	calcular_coste_paso: Callable, recalcular_camino: Callable = Callable(),
+	esperar_ruta: Callable = Callable(), destino_final: Variant = null
+) -> bool:
+	return await movimiento.mover_por_camino(
+		self, camino, tablero.capa_referencia, preparar_paso, confirmar_paso,
+		cancelar_paso, procesar_salida, procesar_entrada, calcular_coste_paso,
+		Callable(), true, recalcular_camino, esperar_ruta, destino_final
+	)
+
+
+func admite_restaurar_posicion() -> bool:
+	return true
+
+
+func permite_caminar_estado_guardado(estado: Dictionary) -> bool:
+	if estado.is_empty():
+		# Un snapshot v1 restaura el estado inicial, no los PV vivos actuales.
+		var inicial := _crear_estado_inicial()
+		return inicial != null and inicial.esta_derrotado()
+	return int(estado["vida_actual"]) == 0
 
 
 func obtener_id_actor() -> StringName:
@@ -99,10 +302,75 @@ func obtener_iniciativa() -> int:
 	return perfil.iniciativa_base if perfil != null else 0
 
 
+func obtener_fuerza() -> int:
+	return atributos_actuales.get(&"fuerza", 0)
+
+
+func obtener_destreza() -> int:
+	return atributos_actuales.get(&"destreza", 0)
+
+
+func obtener_voluntad() -> int:
+	return atributos_actuales.get(&"voluntad", 0)
+
+
+func puede_detectar_jugador(jugador: Ficha, validador: ValidadorEspacialTablero) -> bool:
+	var perfil := obtener_definicion_personaje()
+	if (
+		perfil == null or not perfil.puede_combatir or perfil.radio_agro <= 0
+		or not puede_actuar() or jugador == null or not jugador.puede_actuar()
+		or validador == null
+		or not se_opone_al_jugador()
+	):
+		return false
+	return puede_ver_coordenada(jugador.coordenada_mapa, validador)
+
+
+func puede_ver_coordenada(
+	coordenada: Vector2i, validador: ValidadorEspacialTablero, radio_maximo: int = -1
+) -> bool:
+	var perfil := obtener_definicion_personaje()
+	if perfil == null or perfil.radio_agro <= 0 or not puede_actuar() or validador == null:
+		return false
+	var radio := perfil.radio_agro if radio_maximo < 0 else mini(perfil.radio_agro, radio_maximo)
+	if Vector2(coordenada - coordenada_mapa).length_squared() > radio * radio:
+		return false
+	return validador.validar_linea_visual(coordenada_mapa, coordenada) == &""
+
+
+func obtener_ultima_posicion_conocida() -> Variant:
+	var estado := _asegurar_estado()
+	return estado.ultima_posicion_conocida if estado != null else null
+
+
+func recordar_posicion_jugador(coordenada: Vector2i) -> void:
+	var estado := _asegurar_estado()
+	if estado != null:
+		estado.ultima_posicion_conocida = coordenada
+	var patrulla := obtener_patrulla()
+	if patrulla != null:
+		patrulla.cancelar_espera()
+
+
+func olvidar_posicion_jugador() -> void:
+	var estado := _asegurar_estado()
+	if estado != null:
+		estado.ultima_posicion_conocida = null
+
+
+func agotar_recursos_turno() -> void:
+	for clave in RecursosTurnoActor.CLAVES:
+		var restante := obtener_recurso_turno(clave)
+		if restante > 0:
+			consumir_recurso_turno(clave, restante)
+
+
 func iniciar_turno() -> void:
+	if not puede_actuar():
+		return
 	var estado := _asegurar_estado()
 	if estado != null and estado.recursos_turno != null:
-		estado.recursos_turno.reponer()
+		estado.recursos_turno.reponer(estado.definicion.calcular_movimiento(obtener_destreza()))
 
 
 func obtener_recurso_turno(clave: StringName) -> int:
@@ -149,6 +417,11 @@ func curar(cantidad: int, _fuente: Object = null) -> int:
 func _notificar_cambio_vida(anterior: int, actual: int) -> void:
 	if anterior == actual:
 		return
+	if actual == 0:
+		solicitar_interrupcion()
+		olvidar_posicion_jugador()
+		agotar_recursos_turno()
+	_actualizar_representacion()
 	puntos_vida_cambiados.emit(actual, estado_personaje.definicion.vida_maxima)
 	if (anterior == 0) != (actual == 0):
 		derrota_cambiada.emit(actual == 0)
@@ -165,19 +438,53 @@ func establecer_actitud_hacia_jugador(nueva_actitud: int) -> bool:
 	return estado != null and estado.establecer_actitud_hacia_jugador(nueva_actitud)
 
 
+func obtener_puntos_actitud() -> int:
+	var estado := _asegurar_estado()
+	return estado.obtener_puntos_actitud() if estado != null else 0
+
+
+## Operación compartida por acciones y mutaciones de Dialogue Manager.
+func modificar_actitud_hacia_jugador(delta: int) -> int:
+	var estado := _asegurar_estado()
+	return estado.modificar_actitud_hacia_jugador(delta) if estado != null else 0
+
+
+func se_opone_al_jugador() -> bool:
+	return en_oposicion_encuentro or obtener_actitud_hacia_jugador() == DefinicionPersonaje.ActitudInicialJugador.HOSTIL
+
+
 func obtener_estado_persistente() -> Dictionary:
 	var estado := _asegurar_estado()
-	return estado.obtener_estado_persistente() if estado != null else {}
+	var datos := estado.obtener_estado_persistente() if estado != null else {}
+	var inventario := obtener_inventario()
+	if not datos.is_empty() and inventario != null:
+		datos["inventario"] = inventario.obtener_estado_persistente()
+	var patrulla := obtener_patrulla()
+	if not datos.is_empty() and patrulla != null and patrulla.esta_configurada():
+		datos["patrulla"] = patrulla.obtener_estado_persistente()
+	return datos
 
 
 func validar_estado_persistente(datos: Dictionary) -> StringName:
 	var estado := estado_personaje
 	if estado == null:
 		estado = _crear_estado_inicial()
-	return (
-		estado.validar_estado_persistente(datos)
-		if estado != null else &"definicion_npc_invalida"
-	)
+	if estado == null:
+		return &"definicion_npc_invalida"
+	var datos_actor := datos.duplicate()
+	datos_actor.erase("patrulla")
+	datos_actor.erase("inventario")
+	var motivo := estado.validar_estado_persistente(datos_actor)
+	if motivo == &"" and (estado.definicion.puede_tener_inventario or datos.has("inventario")):
+		var inventario := _crear_inventario_inicial()
+		if inventario == null:
+			return &"inventario_npc_no_configurado"
+		if datos.has("inventario"):
+			motivo = inventario.validar_estado_persistente(datos["inventario"])
+	if motivo != &"" or not datos.has("patrulla"):
+		return motivo
+	var patrulla := obtener_patrulla()
+	return patrulla.validar_estado_persistente(datos["patrulla"]) if patrulla != null else &"patrulla_guardada_invalida"
 
 
 func restaurar_estado_persistente(datos: Dictionary) -> StringName:
@@ -185,24 +492,52 @@ func restaurar_estado_persistente(datos: Dictionary) -> StringName:
 	if datos.is_empty():
 		# Los guardados v1 no tenían estado de NPC.
 		estado_personaje = null
+		_inventario = null
 		if _asegurar_estado() == null:
 			return &"definicion_npc_invalida"
+		var patrulla_inicial := obtener_patrulla()
+		if patrulla_inicial != null:
+			patrulla_inicial.restaurar_estado_persistente()
 		_notificar_cambio_vida(anterior, vida_actual)
 		return &""
 	var estado := _asegurar_estado()
-	var motivo := (
-		estado.restaurar_estado_persistente(datos)
-		if estado != null else &"definicion_npc_invalida"
-	)
+	var motivo := validar_estado_persistente(datos)
+	if motivo != &"":
+		return motivo
+	var datos_actor := datos.duplicate()
+	datos_actor.erase("patrulla")
+	datos_actor.erase("inventario")
+	motivo = estado.restaurar_estado_persistente(datos_actor)
 	if motivo == &"":
+		# Los guardados anteriores al botín recuperan el contenido inicial.
+		_inventario = _crear_inventario_inicial()
+		if datos.has("inventario"):
+			_inventario.restaurar_estado_persistente(datos["inventario"])
+		var patrulla := obtener_patrulla()
+		if patrulla != null:
+			patrulla.restaurar_estado_persistente(datos.get("patrulla", {}))
+		if not datos.has("coordenada_origen"):
+			estado.coordenada_origen = _origen_inicial
 		_notificar_cambio_vida(anterior, vida_actual)
 	return motivo
 
 
 func obtener_nombre_interaccion() -> String:
+	var nombre := super.obtener_nombre_interaccion()
 	if not nombre_unico.strip_edges().is_empty():
-		return nombre_unico.strip_edges()
-	return super.obtener_nombre_interaccion()
+		nombre = nombre_unico.strip_edges()
+	return "Cadáver de %s" % nombre if esta_muerto() else nombre
+
+
+func obtener_fragmentos_informacion() -> Array[FragmentoInformacion]:
+	var fragmentos := super.obtener_fragmentos_informacion()
+	if esta_muerto():
+		var muerte := FragmentoInformacion.new()
+		muerte.id_fragmento = &"estado_muerte"
+		muerte.id_mensaje = &"examen.npc.cadaver"
+		muerte.se_recuerda = false
+		fragmentos.append(muerte)
+	return fragmentos
 
 
 func permite_caminar_interactuable() -> bool:
@@ -216,6 +551,11 @@ func obtener_opciones_accion(actor: Object = null) -> Array[OpcionAccion]:
 		for opcion in opciones:
 			if opcion.id == &"examinar":
 				opciones_derrotado.append(opcion)
+		if obtener_inventario() != null and _obtener_inventario_actor(actor) != null:
+			opciones_derrotado.append(OpcionAccion.crear_habilitada(
+				&"recoger_botin", TiposInteraccion.TipoAccion.INTERACTUAR,
+				&"interaccion.recoger_botin", self
+			))
 		return opciones_derrotado
 	var perfil := obtener_definicion_personaje()
 	if perfil == null:
@@ -223,7 +563,6 @@ func obtener_opciones_accion(actor: Object = null) -> Array[OpcionAccion]:
 	if (
 		perfil.puede_combatir
 		and not esta_derrotado()
-		and obtener_actitud_hacia_jugador() == DefinicionPersonaje.ActitudInicialJugador.HOSTIL
 		and actor is Ficha
 		and actor.puede_actuar()
 	):
@@ -261,7 +600,7 @@ func obtener_opciones_accion(actor: Object = null) -> Array[OpcionAccion]:
 
 func obtener_alcance_maximo_opcion(opcion: OpcionAccion) -> float:
 	if opcion != null and (
-		String(opcion.id).begins_with("hablar:") or opcion.id == &"ataque_basico"
+		String(opcion.id).begins_with("hablar:") or opcion.id in [&"ataque_basico", &"recoger_botin"]
 	):
 		return 1.0
 	return super.obtener_alcance_maximo_opcion(opcion)
@@ -288,6 +627,16 @@ func validar_accion(contexto: ContextoAccion) -> StringName:
 		return super.validar_accion(contexto)
 	if contexto.objetivo != self or contexto.celda_objetivo != coordenada_mapa:
 		return &"objetivo_no_coincide"
+	if contexto.id_accion == &"recoger_botin":
+		if not esta_derrotado():
+			return &"npc_no_derrotado"
+		if obtener_inventario() == null:
+			return &"inventario_npc_no_configurado"
+		if _obtener_inventario_actor(contexto.actor) == null:
+			return &"actor_sin_inventario"
+		if contexto.alcance_maximo != 1.0 or not contexto.costes_solicitados.is_empty() or contexto.item != null:
+			return &"contexto_botin_invalido"
+		return &""
 	if contexto.id_accion == &"ataque_basico":
 		return _validar_ataque_basico(contexto)
 	if not String(contexto.id_accion).begins_with("hablar:"):
@@ -316,12 +665,11 @@ func _validar_ataque_basico(contexto: ContextoAccion) -> StringName:
 		return &"npc_no_combatiente"
 	if esta_derrotado():
 		return &"npc_derrotado"
-	if obtener_actitud_hacia_jugador() != DefinicionPersonaje.ActitudInicialJugador.HOSTIL:
-		return &"npc_no_hostil"
 	if not contexto.actor is Ficha or not contexto.actor.puede_actuar():
 		return &"actor_no_puede_atacar"
-	if contexto.actor.obtener_fuerza() < 1 or contexto.actor.obtener_fuerza() > 5:
-		return &"atributo_prueba_invalido"
+	var motivo_atributos := ResolverAtaqueBasico.validar_atributos(contexto.actor, self)
+	if motivo_atributos != &"":
+		return motivo_atributos
 	if (
 		contexto.alcance_maximo != 1.0
 		or contexto.item != null
@@ -333,24 +681,25 @@ func _validar_ataque_basico(contexto: ContextoAccion) -> StringName:
 
 
 func _resolver_ataque_basico(contexto: ContextoAccion) -> ResultadoAccion:
-	var prueba := motor_dados.resolver_prueba(
-		contexto.actor.obtener_fuerza(), [], [],
-		TiposTirada.Origen.SOLICITADA, TiposTirada.Presentacion.PRIMER_PLANO
+	var resultado := ResolverAtaqueBasico.resolver(contexto, self, motor_dados, aplicador_efectos)
+	if resultado.tirada == null:
+		return resultado
+	# El intento cuenta también al fallar o ser esquivado; el daño no lo duplica.
+	en_oposicion_encuentro = true
+	var delta := modificar_actitud_hacia_jugador(EstadoPersonajeNPC.PENALIZACION_AGRESION)
+	if delta == 0:
+		return resultado
+	var cambios := resultado.cambios_estado
+	cambios.append({
+		"id_instancia": id_instancia, "clave": &"puntos_actitud", "delta": delta,
+		"valor": obtener_puntos_actitud(), "actitud": obtener_actitud_hacia_jugador(),
+	})
+	return ResultadoAccion.new(
+		resultado.estado, resultado.motivo, resultado.mensajes, resultado.efectos_aplicados,
+		cambios, resultado.costes_consumidos, resultado.interrumpe_movimiento,
+		resultado.terminal, resultado.solicitudes_efecto, resultado.destino_item,
+		resultado.tirada, resultado.tirada_defensa
 	)
-	if not prueba.valida:
-		return ResultadoAccion.crear_fallo(prueba.motivo)
-	if not prueba.exitosa:
-		return ResultadoAccion.crear_exito([&"combate.ataque_fallido"]).con_tirada(prueba)
-	var solicitud := SolicitudEfecto.new(
-		&"ataque_basico", &"dano", self, &"ataque_basico", 1.0,
-		0, TiposInteraccion.PoliticaApilado.NO_APILAR_Y_RENOVAR, contexto.actor
-	)
-	var efecto: Variant = aplicador_efectos.aplicar(solicitud)
-	if efecto is StringName:
-		return ResultadoAccion.crear_fallo(efecto).con_tirada(prueba)
-	return ResultadoAccion.crear_exito(
-		[&"combate.ataque_acertado"], [efecto]
-	).con_tirada(prueba)
 
 
 func contiene_punto_visual(punto_global: Vector2) -> bool:

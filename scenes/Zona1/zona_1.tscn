@@ -342,6 +342,7 @@ position = Vector2(288, -16)
 id_instancia = &"zona1_trampa_humo_05_03"
 
 [node name="Personajes" type="Node2D" parent="Interactuables" unique_id=507425846]
+y_sort_enabled = true
 
 [node name="EfectosSuperficie" type="Node2D" parent="." unique_id=378389863]
 y_sort_enabled = true

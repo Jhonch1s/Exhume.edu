@@ -59,6 +59,10 @@ func permite_caminar_interactuable() -> bool:
 	return abierta
 
 
+func permite_caminar_estado_guardado(estado: Dictionary) -> bool:
+	return estado.get("abierta", false)
+
+
 func bloquea_vision_interactuable() -> bool:
 	return not abierta
 

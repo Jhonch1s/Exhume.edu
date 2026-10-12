@@ -25,13 +25,14 @@ func validar_linea_efecto(contexto: ContextoAccion) -> StringName:
 
 
 func _validar_linea_visual(contexto: ContextoAccion) -> StringName:
-	if tablero == null or not is_instance_valid(tablero):
-		return &"tablero_espacial_no_configurado"
 	if not contexto.tiene_origen() or not contexto.tiene_celda_objetivo():
 		return &"coordenadas_incompletas"
+	return validar_linea_visual(contexto.origen, contexto.celda_objetivo)
 
-	var origen: Vector2i = contexto.origen
-	var destino: Vector2i = contexto.celda_objetivo
+
+func validar_linea_visual(origen: Vector2i, destino: Vector2i) -> StringName:
+	if tablero == null or not is_instance_valid(tablero):
+		return &"tablero_espacial_no_configurado"
 	if not tablero.es_celda_valida(origen) or not tablero.es_celda_valida(destino):
 		return &"celda_espacial_invalida"
 

@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://dc3xt7wm72cqa"]
+
+[ext_resource type="BehaviorTree" uid="uid://ch41ixn1f1fsf" path="res://prueba_ia.tres" id="1_vc0g1"]
+[ext_resource type="Script" path="res://scenes/pruebas LimboAI/prueba_ia.gd" id="2_ejemplo"]
+
+[sub_resource type="BlackboardPlan" id="BlackboardPlan_5jg8g"]
+
+[node name="PruebaIA" type="Node" unique_id=518302446]
+script = ExtResource("2_ejemplo")
+
+[node name="BTPlayer" type="BTPlayer" parent="." unique_id=979051773]
+behavior_tree = ExtResource("1_vc0g1")
+update_mode = 2
+blackboard_plan = SubResource("BlackboardPlan_5jg8g")

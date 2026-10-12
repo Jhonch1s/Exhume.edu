@@ -3,11 +3,13 @@ extends Node2D
 
 @onready var sprite: Sprite2D = $Sprite2D
 var resaltador: ResaltadorOutline2D
+var variante_visual: int = -1
 
 
 func _ready() -> void:
-	if sprite.hframes > 1:
-		sprite.frame = randi_range(0, sprite.hframes - 1)
+	if variante_visual < 0:
+		variante_visual = randi_range(0, sprite.hframes * sprite.vframes - 1)
+	sprite.frame = variante_visual
 
 
 func establecer_resaltado(activo: bool) -> void:

@@ -1,7 +1,7 @@
 class_name AccionAtaqueNPC
 extends RefCounted
 
-## Primer ataque automático del NPC: sólo adyacente y sin regla de defensa.
+## Ataque automático adyacente del NPC, con la misma regla de esquiva del jugador.
 
 var ficha: Ficha
 var motor_dados := MotorDados.new()
@@ -44,13 +44,13 @@ func validar_accion(contexto: ContextoAccion) -> StringName:
 	var perfil := npc.obtener_definicion_personaje()
 	if perfil == null or not perfil.puede_combatir:
 		return &"npc_no_combatiente"
-	if npc.obtener_actitud_hacia_jugador() != DefinicionPersonaje.ActitudInicialJugador.HOSTIL:
+	if not npc.se_opone_al_jugador():
 		return &"npc_no_hostil"
 	if ficha == null or not is_instance_valid(ficha) or not ficha.puede_actuar():
 		return &"objetivo_derrotado"
-	var fuerza: int = npc.atributos_actuales.get(&"fuerza", 0)
-	if fuerza < 1 or fuerza > 5:
-		return &"atributo_prueba_invalido"
+	var motivo_atributos := ResolverAtaqueBasico.validar_atributos(npc, ficha)
+	if motivo_atributos != &"":
+		return motivo_atributos
 	if (
 		contexto.origen != npc.coordenada_mapa
 		or contexto.celda_objetivo != ficha.coordenada_mapa
@@ -67,23 +67,4 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 	var motivo := validar_accion(contexto)
 	if motivo != &"":
 		return ResultadoAccion.crear_bloqueo(motivo)
-	var npc := contexto.actor as PersonajeNPC
-	var fuerza: int = npc.atributos_actuales.get(&"fuerza", 0)
-	var prueba := motor_dados.resolver_prueba(
-		fuerza, [], [], TiposTirada.Origen.AUTOMATICA,
-		TiposTirada.Presentacion.SOLO_LOG
-	)
-	if not prueba.valida:
-		return ResultadoAccion.crear_fallo(prueba.motivo)
-	if not prueba.exitosa:
-		return ResultadoAccion.crear_exito([&"combate.npc_ataque_fallido"]).con_tirada(prueba)
-	var solicitud := SolicitudEfecto.new(
-		&"ataque_basico_npc", &"dano", ficha, contexto.id_evento,
-		1.0, 0, TiposInteraccion.PoliticaApilado.NO_APILAR_Y_RENOVAR, npc
-	)
-	var efecto: Variant = aplicador_efectos.aplicar(solicitud)
-	if efecto is StringName:
-		return ResultadoAccion.crear_fallo(efecto).con_tirada(prueba)
-	return ResultadoAccion.crear_exito(
-		[&"combate.npc_ataque_acertado"], [efecto]
-	).con_tirada(prueba)
+	return ResolverAtaqueBasico.resolver(contexto, ficha, motor_dados, aplicador_efectos)

@@ -14,26 +14,29 @@ const ESCENA_CASILLA := preload(
 @onready var detalle_cantidad: Label = $DetalleItem/Margen/Contenido/Cantidad
 @onready var detalle_descripcion: Label = $DetalleItem/Margen/Contenido/Descripcion
 
-var cofre: CofreInteractuable
+var cofre: Interactuable
 var inventario_destino: Inventario
 var _arrastrando := false
 
 
 func mostrar(
-	nuevo_cofre: CofreInteractuable,
+	nuevo_cofre: Interactuable,
 	destino: Inventario
 ) -> void:
 	if not is_instance_valid(nuevo_cofre):
 		return
 
-	var datos := nuevo_cofre.definicion as DefinicionCofre
+	var datos := nuevo_cofre.obtener_presentacion_inventario()
 	if datos == null or datos.columnas < 1 or datos.filas < 1:
 		return
 
-	var items := nuevo_cofre.obtener_inventario().obtener_contenido()
+	var inventario := nuevo_cofre.obtener_inventario()
+	if inventario == null:
+		return
+	var items := inventario.obtener_contenido()
 	var capacidad := datos.columnas * datos.filas
 	if items.size() > capacidad:
-		push_error("El cofre tiene más pilas que espacios disponibles.")
+		push_error("El contenedor tiene más pilas que espacios disponibles.")
 		return
 
 	cofre = nuevo_cofre

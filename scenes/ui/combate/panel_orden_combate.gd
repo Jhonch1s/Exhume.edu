@@ -15,6 +15,12 @@ func mostrar(ronda: int, entradas: Array[Dictionary], id_activo: StringName) -> 
 		var id: StringName = entrada.get("id", &"")
 		var derrotado: bool = entrada.get("derrotado", false)
 		etiqueta.text = ("▶ " if id == id_activo else "· ") + nombre
+		var iniciativa: Dictionary = entrada.get("iniciativa", {})
+		if not iniciativa.is_empty():
+			etiqueta.text += " [%d]" % iniciativa["total"]
+			etiqueta.tooltip_text = "1d6 (%d) + DES %d = %d" % [
+				iniciativa["dado"], iniciativa["destreza"], iniciativa["total"],
+			]
 		etiqueta.add_theme_color_override(
 			&"font_color",
 			Color("#777573") if derrotado else (

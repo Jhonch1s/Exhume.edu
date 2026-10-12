@@ -89,3 +89,22 @@ el servicio procesa `quemado` y `veneno` en ese orden estable. Prevalida todas l
 claves, estados y solicitudes de daño antes de aplicar el primer efecto; una clave
 desconocida bloquea el lote sin daño ni consumo de ticks. Cada estado conserva su
 propio contador y expira independientemente dentro del mismo `ResultadoAccion`.
+
+### Capacidad compartida por actor — 08-10-2026
+
+`EstadosTemporalesActor` conserva los estados de cada `Ficha` y `PersonajeNPC`.
+Los actores delegan `obtener_estado`, `obtener_claves_estado`, `retirar_estado`,
+`aplicar_o_renovar_estado` y `consumir_tick_estado`, y reenvían `estado_cambiado`.
+La capacidad también valida y restaura los datos persistentes. `ServicioTurnos`
+conserva la autoridad sobre daño, ticks y expiración al finalizar cada turno.
+
+Los estados admitidos en el guardado son `enredado`, `caido`, `quemado` y `veneno`.
+`enredado` usa cero ticks y permanece hasta liberarse; guardados antiguos con
+ticks positivos se normalizan a cero al restaurar. `caido` conserva un tick:
+interrumpe el movimiento y termina el turno, cuyo cierre lo retira. Quemado y
+veneno conservan sus términos de daño y ticks restantes. Cargar no simula ticks.
+
+Telaraña y lodo consultan DES mediante el contrato del actor, sin exigir `Ficha`.
+La acción compartida de destrabarse usa DES y cobra una acción principal al
+intentar. El NPC resuelve la tirada automáticamente en el registro y siempre
+prioriza liberarse antes de atacar o acercarse.
