@@ -3,13 +3,15 @@ extends RefCounted
 
 ## Ataque automático adyacente del NPC, con la misma regla de esquiva del jugador.
 
-var ficha: Ficha
+var objetivo: Object
+var encuentro: GestorRondas
 var motor_dados := MotorDados.new()
 var aplicador_efectos := AplicadorEfectos.new()
 
 
-func _init(ficha_objetivo: Ficha) -> void:
-	ficha = ficha_objetivo
+func _init(actor_objetivo: Object, gestor: GestorRondas = null) -> void:
+	objetivo = actor_objetivo
+	encuentro = gestor
 
 
 func construir_contexto(npc: PersonajeNPC) -> ContextoAccion:
@@ -17,7 +19,7 @@ func construir_contexto(npc: PersonajeNPC) -> ContextoAccion:
 		TiposInteraccion.TipoAccion.INTERACTUAR,
 		npc,
 		npc.coordenada_mapa,
-		ficha.coordenada_mapa,
+		objetivo.coordenada_mapa,
 		self,
 		null,
 		&"ataque_basico_npc",
@@ -44,16 +46,18 @@ func validar_accion(contexto: ContextoAccion) -> StringName:
 	var perfil := npc.obtener_definicion_personaje()
 	if perfil == null or not perfil.puede_combatir:
 		return &"npc_no_combatiente"
-	if not npc.se_opone_al_jugador():
-		return &"npc_no_hostil"
-	if ficha == null or not is_instance_valid(ficha) or not ficha.puede_actuar():
+	if objetivo == null or not is_instance_valid(objetivo) or not (objetivo is Ficha or objetivo is PersonajeNPC) or not objetivo.puede_actuar():
 		return &"objetivo_derrotado"
-	var motivo_atributos := ResolverAtaqueBasico.validar_atributos(npc, ficha)
+	if encuentro != null and not encuentro.son_oponentes(npc, objetivo):
+		return &"npc_no_hostil"
+	if encuentro == null and (not objetivo is Ficha or not npc.se_opone_al_jugador()):
+		return &"npc_no_hostil"
+	var motivo_atributos := ResolverAtaqueBasico.validar_atributos(npc, objetivo)
 	if motivo_atributos != &"":
 		return motivo_atributos
 	if (
 		contexto.origen != npc.coordenada_mapa
-		or contexto.celda_objetivo != ficha.coordenada_mapa
+		or contexto.celda_objetivo != objetivo.coordenada_mapa
 		or contexto.alcance_maximo != 1.0
 		or contexto.item != null
 		or contexto.costes_solicitados != {RecursosTurnoActor.ACCION_PRINCIPAL: 1.0}
@@ -67,4 +71,4 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 	var motivo := validar_accion(contexto)
 	if motivo != &"":
 		return ResultadoAccion.crear_bloqueo(motivo)
-	return ResolverAtaqueBasico.resolver(contexto, ficha, motor_dados, aplicador_efectos)
+	return ResolverAtaqueBasico.resolver(contexto, objetivo, motor_dados, aplicador_efectos)

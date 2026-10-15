@@ -30,6 +30,8 @@ enum OrientacionMapa {
 @export var iniciativa_base: int = 0
 
 @export_category("Relación con el jugador")
+## Vacío significa sin facción; no reúne a los demás NPC sin facción.
+@export var faccion_id: StringName = &""
 @export var actitud_inicial_jugador: ActitudInicialJugador = ActitudInicialJugador.NEUTRAL
 @export var actitud_hacia_jugador_fija: bool = false
 

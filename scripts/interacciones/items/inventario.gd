@@ -33,7 +33,7 @@ func validar_estado_persistente(datos: Variant) -> StringName:
 		if (
 			not id_item is String or id_item.is_empty() or ids.has(id_item)
 			or not id_definicion is String or id_definicion.is_empty()
-			or not ruta is String or not ruta.begins_with("res://")
+			or not ruta is String or ruta.is_empty()
 			or not ResourceLoader.exists(ruta)
 			or not (cantidad is int or (cantidad is float and is_finite(cantidad) and cantidad == roundf(cantidad)))
 		):

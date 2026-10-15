@@ -218,14 +218,6 @@ func agotar_recursos_turno() -> void:
 
 
 func obtener_estado_persistente() -> Dictionary:
-	var items: Array[Dictionary] = []
-	for item in inventario.obtener_contenido():
-		items.append({
-			"id": String(item.id_instancia),
-			"definicion_id": String(item.definicion.id_definicion),
-			"definicion_path": item.definicion.resource_path,
-			"cantidad": item.cantidad,
-		})
 	return {
 		"nombre": nombre,
 		"titulo": titulo,
@@ -245,7 +237,7 @@ func obtener_estado_persistente() -> Dictionary:
 		"recursos_turno": recursos_turno.obtener_restantes(),
 		"movimiento_maximo": recursos_turno.obtener_maximo(RecursosTurnoActor.MOVIMIENTO),
 		"estados": estados_temporales.obtener_estado_persistente(),
-		"inventario": items,
+		"inventario": inventario.obtener_estado_persistente(),
 	}
 
 
@@ -313,7 +305,7 @@ func validar_estado_persistente(estado: Variant) -> StringName:
 	motivo = _validar_estados_guardados(estado.get("estados"))
 	if motivo != &"":
 		return motivo
-	return _validar_inventario_guardado(estado.get("inventario"))
+	return Inventario.new().validar_estado_persistente(estado.get("inventario"))
 
 
 func restaurar_estado_persistente(estado: Variant) -> StringName:
@@ -321,11 +313,7 @@ func restaurar_estado_persistente(estado: Variant) -> StringName:
 	if motivo != &"":
 		return motivo
 	var inventario_nuevo := Inventario.new()
-	for datos: Dictionary in estado["inventario"]:
-		var definicion := ResourceLoader.load(datos["definicion_path"]) as DefinicionItem
-		inventario_nuevo.agregar(ItemInstancia.new(
-			StringName(datos["id"]), definicion, int(datos["cantidad"])
-		))
+	inventario_nuevo.restaurar_estado_persistente(estado["inventario"])
 	nombre = estado["nombre"]
 	titulo = estado["titulo"]
 	fue = int(estado["fuerza"])
@@ -358,31 +346,6 @@ func _validar_estados_guardados(datos_estados: Variant) -> StringName:
 		&"" if estados_temporales.validar_estado_persistente(datos_estados) == &""
 		else &"estados_ficha_guardados_invalidos"
 	)
-
-func _validar_inventario_guardado(datos_items: Variant) -> StringName:
-	if not datos_items is Array:
-		return &"inventario_guardado_invalido"
-	var ids: Dictionary[String, bool] = {}
-	for datos: Variant in datos_items:
-		if not datos is Dictionary:
-			return &"inventario_guardado_invalido"
-		var id_item: Variant = datos.get("id")
-		var id_definicion: Variant = datos.get("definicion_id")
-		var ruta: Variant = datos.get("definicion_path")
-		if (
-			not id_item is String or id_item.is_empty() or ids.has(id_item)
-			or not id_definicion is String or id_definicion.is_empty()
-			or not ruta is String or ruta.is_empty() or not ResourceLoader.exists(ruta)
-			or not _es_numero_entero(datos.get("cantidad"))
-		):
-			return &"inventario_guardado_invalido"
-		var definicion := ResourceLoader.load(ruta) as DefinicionItem
-		var item := ItemInstancia.new(StringName(id_item), definicion, int(datos["cantidad"]))
-		if definicion == null or String(definicion.id_definicion) != id_definicion or not item.es_valida():
-			return &"definicion_item_guardada_invalida"
-		ids[id_item] = true
-	return &""
-
 
 func _es_numero_entero(valor: Variant) -> bool:
 	return valor is int or (valor is float and is_equal_approx(valor, roundf(valor)))

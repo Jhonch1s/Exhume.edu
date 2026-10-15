@@ -2,6 +2,7 @@ extends SceneTree
 
 const DEFINICION_LLAVE_PRUEBA = preload("res://assets/items/llave_prueba/llave_prueba.tres")
 const DEFINICION_BOMBA_HUMO = preload("res://assets/items/bomba_humo/bomba_humo.tres")
+const ESCENARIO_SIN_RENDER := preload("res://tests/soporte/escenario_sin_render.gd")
 
 var _fallos: Array[String] = []
 
@@ -13,14 +14,20 @@ func _init() -> void:
 func _ejecutar_pruebas() -> void:
 	var escena := load("res://scenes/escenario_base/escenario_base.tscn") as PackedScene
 	var escenario = escena.instantiate()
+	escenario.set_script(ESCENARIO_SIN_RENDER)
+	escenario.catalogo_mensajes = load("res://assets/interactuables/mensajes_interacciones.tres")
 	root.add_child(escenario)
-	await process_frame
-	await process_frame
-	if escenario.ficha_jugador == null:
+	for _intento in range(200):
+		await process_frame
+		if escenario.ficha_jugador != null and escenario.hud.ficha == escenario.ficha_jugador:
+			break
+	escenario.set_process(false)
+	if escenario.ficha_jugador == null or escenario.hud.ficha != escenario.ficha_jugador:
 		_comprobar(false, "La integración necesita la ficha del jugador.")
 		escenario.free()
 		_finalizar()
 		return
+	escenario.ficha_jugador.inventario.restaurar_estado_persistente([])
 	_comprobar(
 		escenario.tablero.obtener_item_suelo(&"zona1_llave_prueba") == null
 		and escenario.tablero.obtener_item_suelo(&"zona1_bomba_humo") == null,
@@ -121,7 +128,11 @@ func _ejecutar_pruebas() -> void:
 	await process_frame
 
 	_probar_multiples_objetivos(escenario, fuente)
-	escenario.free()
+	await process_frame
+	await process_frame
+	await process_frame
+	escenario.queue_free()
+	await process_frame
 	_finalizar()
 
 
@@ -393,12 +404,9 @@ func _probar_lanzamiento_desde_inventario(escenario: Variant) -> void:
 	escenario._manejar_clic_izquierdo(destino)
 	botones = escenario.menu_contextual.obtener_botones()
 	_comprobar(
-		botones.size() == 3
-		and botones[0].text == "Piso"
-		and botones[1].text == "Trampa",
-		"Una celda con objetivo debe ofrecer Piso y el objetivo."
+		not escenario.menu_contextual.visible and escenario.lanzamiento_en_vuelo,
+		"Una trampa oculta no debe aparecer en el selector: el impacto se dirige al piso."
 	)
-	botones[1].pressed.emit()
 	_comprobar(
 		escenario.lanzamiento_en_vuelo
 		and escenario.interaccion_modal_activa
@@ -690,10 +698,18 @@ func _buscar_origen_adyacente(escenario: Variant, destino: Vector2i) -> Vector2i
 
 
 func _buscar_origen_lejano(escenario: Variant, destino: Vector2i) -> Vector2i:
-	for coordenada in escenario.tablero.datos:
-		var candidato: Vector2i = coordenada
-		if abs(candidato.x - destino.x) + abs(candidato.y - destino.y) > 1:
+	# El recorrido cabe en un turno y no atraviesa trampas ni superficies del mapa.
+	for direccion in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
+		var cercano: Vector2i = destino + direccion
+		var candidato: Vector2i = destino + direccion * 2
+		var despejado := true
+		for coord in [cercano, candidato]:
+			var celda: Celda = escenario.tablero.obtener_celda(coord)
+			if celda == null or not celda.es_caminable_efectiva() or not celda.interactuables.is_empty() or not celda.efectos_superficie.is_empty() or not celda.ocupantes.is_empty():
+				despejado = false
+		if despejado:
 			return candidato
+	_comprobar(false, "Debe existir un recorrido corto y despejado junto a la antorcha.")
 	return destino + Vector2i(2, 0)
 
 

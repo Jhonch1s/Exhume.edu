@@ -6,6 +6,8 @@ común no requiere modificar `GestorAcciones`.
 Para almacenamiento, seguir [Cofres](contenido/COFRES.md): escena reutilizable,
 definición de tamaño e imagen, contenido por instancia y máscaras de niebla.
 Para la representación del jugador, ver [Personajes](contenido/PERSONAJES.md).
+Para crear diálogos de NPC con tiradas y consecuencias, seguir la
+[guía permanente de autoría](contenido/CONSECUENCIAS_DIALOGO_NPC.md).
 
 ## Crear una zona
 
@@ -76,6 +78,24 @@ Las escenas base ya pertenecen al grupo correcto. Si se crea una escena desde ce
 los interactuables deben heredar `Interactuable`; las superficies deben pertenecer
 al grupo `efectos_superficie` e implementar `obtener_id_reaccion()` y
 `configurar_registro()`.
+
+## Crear un NPC con diálogo
+
+1. Instanciar `scenes/personajes/npc.tscn` bajo `Interactuables/Personajes` de la
+   zona, asignar un `id_instancia` único y colocarlo sobre una celda válida.
+2. Asignar una `DefinicionPersonaje` con identidad, atributos, PV y capacidades.
+   Habilitar `puede_dialogar` y añadir sus temas `DialogoNPC` con el recurso de
+   Dialogue Manager y su punto de inicio. Para una variante, crear otra definición
+   o hacer único el recurso antes de editarlo.
+3. Seguir [Configurar pruebas y consecuencias de diálogo](contenido/CONSECUENCIAS_DIALOGO_NPC.md)
+   para añadir pruebas por ID, atributo, listas de éxito/fallo y la opción de
+   intento único. Incluye el catálogo de actitud e información y ejemplos de texto.
+4. Si necesita una ruta, seguir [Patrullas de NPC](contenido/PATRULLAS_NPC.md).
+   Consultar [NPC y diálogos](contenido/NPC_Y_DIALOGOS.md) para las reglas vigentes
+   de relación, combate y persistencia.
+
+La guía de pruebas y consecuencias es la referencia de autoría que se mantiene
+al evolucionar esos recursos. Su uso se extiende a los NPC de las zonas del juego.
 
 ## Conectar una palanca
 

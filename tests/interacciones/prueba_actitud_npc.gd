@@ -4,23 +4,8 @@ const NEUTRAL := DefinicionPersonaje.ActitudInicialJugador.NEUTRAL
 const AMISTOSA := DefinicionPersonaje.ActitudInicialJugador.AMISTOSA
 const HOSTIL := DefinicionPersonaje.ActitudInicialJugador.HOSTIL
 const RUTA := "user://prueba_actitud_npc_automatica.json"
+const EscenarioSinRender := preload("res://tests/soporte/escenario_sin_render.gd")
 var _fallos: Array[String] = []
-
-
-class EscenarioSinRender:
-	extends "res://scenes/escenario_base/escenario_base.gd"
-	var ejecutar_turnos: bool = false
-
-	func capturar_textura(_angulo: float, _jugador: String) -> ImageTexture:
-		return ImageTexture.create_from_image(Image.create(2, 2, false, Image.FORMAT_RGBA8))
-
-	func _inicializar_audio_ambiente() -> void:
-		pass
-
-	# Las decisiones se ejecutan explícitamente para comprobar la carga sin timers.
-	func _programar_turno_npc() -> void:
-		if ejecutar_turnos:
-			super._programar_turno_npc()
 
 
 func _ready() -> void:

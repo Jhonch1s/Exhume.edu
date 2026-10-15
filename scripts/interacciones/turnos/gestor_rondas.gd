@@ -1,6 +1,12 @@
 class_name GestorRondas
 extends RefCounted
 
+enum Bando { NEUTRAL, JUGADOR, OPONENTE }
+
+var bandos: Dictionary[StringName, int] = {}
+## Víctimas/amenazados que permiten auxilio local; no son puntos de relación.
+var defendidos: Array[StringName] = []
+
 var servicio_turnos: ServicioTurnos
 var procesador_superficies: ProcesadorSuperficies
 var ronda_actual: int = 0
@@ -34,6 +40,8 @@ func iniciar(actores: Array[Object]) -> ResultadoAvanceTurno:
 		return ResultadoAvanceTurno.new(false, motivo)
 	var primer_indice := _buscar_activo(ordenados, -1)
 	_actores = ordenados
+	bandos.clear()
+	defendidos.clear()
 	_indice_activo = primer_indice
 	actor_activo = _actores[_indice_activo]
 	ronda_actual = 1
@@ -49,6 +57,8 @@ func preparar_restauracion(actores: Array[Object]) -> StringName:
 	if motivo != &"":
 		return motivo
 	_actores = actores.duplicate()
+	bandos.clear()
+	defendidos.clear()
 	if _motor_iniciativa == null:
 		_actores.sort_custom(_va_antes)
 	_iniciativas.clear()
@@ -166,6 +176,16 @@ func obtener_ids_ordenados() -> Array[StringName]:
 	return ids
 
 
+func obtener_bando(actor: Object) -> int:
+	return bandos.get(_id(actor), Bando.NEUTRAL)
+
+
+func son_oponentes(actor: Object, otro: Object) -> bool:
+	var bando := obtener_bando(actor)
+	var otro_bando := obtener_bando(otro)
+	return bando != Bando.NEUTRAL and otro_bando != Bando.NEUTRAL and bando != otro_bando
+
+
 func obtener_estado_persistente() -> Variant:
 	if actor_activo == null or _indice_activo < 0 or ronda_actual < 1:
 		return null
@@ -177,6 +197,15 @@ func obtener_estado_persistente() -> Variant:
 		"actor_activo_id": String(_id(actor_activo)),
 		"orden_actores": orden,
 	}
+	if not bandos.is_empty():
+		var bandos_guardados := {}
+		for id_actor in obtener_ids_ordenados():
+			bandos_guardados[String(id_actor)] = bandos.get(id_actor, Bando.NEUTRAL)
+		estado["bandos"] = bandos_guardados
+		var ids_defendidos: Array[String] = []
+		for id_actor in defendidos:
+			ids_defendidos.append(String(id_actor))
+		estado["defendidos"] = ids_defendidos
 	if _motor_iniciativa != null:
 		var iniciativas: Array[Dictionary] = []
 		for id_actor in obtener_ids_ordenados():
@@ -207,6 +236,24 @@ func validar_estado_persistente(estado: Variant) -> StringName:
 			return &"actores_ronda_guardados_no_coinciden"
 		activo_encontrado = activo_encontrado or orden[indice] == id_activo
 	var iniciativas: Variant = estado.get("iniciativas", [])
+	if estado.has("bandos"):
+		var guardados: Variant = estado["bandos"]
+		if not guardados is Dictionary or guardados.size() != orden.size():
+			return &"bandos_guardados_invalidos"
+		for id_actor in orden:
+			var bando: Variant = guardados.get(id_actor)
+			if not _es_numero_entero(bando) or not int(bando) in [Bando.JUGADOR, Bando.OPONENTE]:
+				return &"bandos_guardados_invalidos"
+		var ids_defendidos: Variant = estado.get("defendidos", [])
+		if not ids_defendidos is Array:
+			return &"bandos_guardados_invalidos"
+		var unicos := {}
+		for id_actor in ids_defendidos:
+			if not id_actor is String or not id_actor in orden or unicos.has(id_actor):
+				return &"bandos_guardados_invalidos"
+			unicos[id_actor] = true
+	elif estado.has("defendidos"):
+		return &"bandos_guardados_invalidos"
 	if not iniciativas is Array:
 		return &"iniciativas_guardadas_invalidas"
 	var vistos: Dictionary = {}
@@ -236,6 +283,14 @@ func restaurar_estado_persistente(estado: Variant) -> StringName:
 	if estado == null:
 		return &""
 	ronda_actual = int(estado["ronda"])
+	# Sin este bloque se conservan los bandos preparados para migrar el encuentro.
+	if estado.has("bandos"):
+		bandos.clear()
+		for id_actor: String in estado["bandos"]:
+			bandos[StringName(id_actor)] = int(estado["bandos"][id_actor])
+	defendidos.clear()
+	for id_actor: String in estado.get("defendidos", []):
+		defendidos.append(StringName(id_actor))
 	_iniciativas.clear()
 	_tiradas_iniciativa.clear()
 	for entrada: Dictionary in estado.get("iniciativas", []):

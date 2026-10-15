@@ -618,11 +618,11 @@ offset_top = 1058.0
 offset_right = 1560.0
 offset_bottom = 1066.0
 material = SubResource("MaterialBarAnimated")
-tooltip_text = "Experiencia (sistema pendiente)"
+tooltip_text = "Experiencia acumulada: 0 XP"
 mouse_filter = 2
 theme_override_styles/background = SubResource("StyleBarEmpty")
 theme_override_styles/fill = SubResource("StyleBarExperience")
-value = 45.0
+value = 0.0
 show_percentage = false
 
 [node name="LogAcontecimientos" parent="HUDRoot" unique_id=155326214 instance=ExtResource("4_log")]

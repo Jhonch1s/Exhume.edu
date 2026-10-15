@@ -114,6 +114,8 @@ func _actualizar_todo() -> void:
 		energia_objetivo = 0.0
 		energia_texto.text = "-- / --"
 		antorcha.text = "ANTORCHA   --"
+		experiencia_barra.value = 0.0
+		experiencia_barra.tooltip_text = "Experiencia acumulada: 0 XP"
 		_actualizar_estados()
 		_actualizar_recursos_turno(null)
 		_actualizar_items()
@@ -122,6 +124,7 @@ func _actualizar_todo() -> void:
 	nombre.text = ficha.nombre
 	_actualizar_vida(ficha.pv_actual, ficha.pv_max)
 	_actualizar_recursos_persistentes()
+	_actualizar_experiencia()
 	_actualizar_estados()
 	_actualizar_recursos_turno(ficha.recursos_turno)
 	_actualizar_items()
@@ -159,6 +162,18 @@ func _actualizar_recursos_persistentes() -> void:
 			"Antorchas: %d | Desgaste: %d/%d"
 			% [cantidad_antorchas, ficha.pasos_antorcha_actual, Ficha.PASOS_MAX_ANTORCHA]
 		)
+
+
+func _actualizar_experiencia() -> void:
+	var umbral_actual := 50 * ficha.nivel * (ficha.nivel - 1)
+	var umbral_siguiente := 50 * ficha.nivel * (ficha.nivel + 1)
+	experiencia_barra.max_value = umbral_siguiente - umbral_actual
+	experiencia_barra.value = clampi(
+		ficha.experiencia_acumulada - umbral_actual, 0, umbral_siguiente - umbral_actual
+	)
+	experiencia_barra.tooltip_text = "%d XP acumulada | Umbral siguiente: %d XP (niveles pendientes)" % [
+		ficha.experiencia_acumulada, umbral_siguiente
+	]
 
 
 func _actualizar_recursos_turno(recursos: RecursosTurnoActor) -> void:

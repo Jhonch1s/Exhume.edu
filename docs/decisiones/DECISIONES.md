@@ -1,5 +1,108 @@
 # Decisiones arquitectónicas
 
+- El 15-10-2026 se consolidó NPC después de la auditoría crítica: normalización
+  de términos JSON sin relajar el motor de dados y descarte del gestor anterior
+  sin borrar memoria restaurada. La decisión táctica reutiliza su ruta dentro
+  de una evaluación y FOV distingue opacidad de ocupación. Se conserva la
+  composición actual sin fragmentar PersonajeNPC ni añadir una jerarquía de IA.
+  [Detalle y regresiones](../pruebas/CONSOLIDACION_NPC.md). Huida/humo y medios de
+  apoyo siguen aplazados; no se cambian reglas de XP ni consecuencias de diálogo.
+
+- El 15-10-2026, tras confirmar el diálogo básico en juego, el usuario pidió
+  consecuencias previstas para construir NPC con menos código y confirmó
+  actitud e información como primer catálogo. Se añaden recursos por prueba
+  con listas de éxito/fallo y opción de intento único. Se validan ambas ramas
+  antes de tirar y se aplican al cerrar los dados. El intento único recuerda
+  éxito o fallo por instancia en `pruebas_dialogo`, opcional en snapshots v2;
+  K/C conserva intento, actitud y conocimiento sin reaplicar consecuencias.
+  No hay callbacks arbitrarios ni catálogo de premios inventado. Pasaron 162
+  comprobaciones y regresiones; revisión jugable de consecuencias pendiente.
+
+- El 15-10-2026 se implementó el primer diálogo de prueba con VOL. Una mutación
+  asíncrona del escenario resuelve y registra la prueba con `MotorDados`, presenta
+  el resultado ya resuelto y espera el cierre del panel antes de continuar la
+  rama de Dialogue Manager. El globo impide una segunda selección mientras espera.
+  Se conserva K/C bloqueado durante la conversación completa. El resultado es
+  temporal y se limpia al terminar: no hay premios, cambios de relación ni dato
+  nuevo persistente; reabrir permite volver a intentar. Prueba automática de 87
+  comprobaciones y regresiones aprobadas; el usuario confirmó posteriormente su
+  funcionamiento en juego, sin detallar la cobertura manual.
+
+- El 15-10-2026 se implementó la regla de XP por muerte indirecta: cada NPC
+  participante oponente que muera durante el encuentro activo concede su premio
+  completo a la ficha sin daño previo ni autoría mortal. Estados, explosión y
+  fuentes sin autor cuentan; fuera de combate, aliados y ajenos no conceden XP
+  al jugador. La señal de muerte y el guardado actual evitan premios duplicados,
+  sin nuevas contribuciones ni marcadores. Sólo la ficha acumula XP por ahora.
+  `Explosion` incorpora los NPC interactuables a sus objetivos y los deduplica.
+  Esta entrega sustituye la restricción histórica a muertes directas atribuibles.
+
+- El 15-10-2026 el usuario solicitó curación y buffs prioritarios en la IA:
+  autocurarse bajo el 50 % si tiene un medio, curar a NPC aliados antes de atacar
+  y buffarse con item/habilidad si no está buffado. Se registra como política de
+  apoyo pendiente de medios reales: hoy sólo existe la operación básica de PV,
+  sin consumibles curativos, buffs ni habilidades de combate utilizables.
+  No equivale a curación gratuita ni autoriza asumir un catálogo de pociones o
+  habilidades. Elegir el primer medio y sus reglas permite concretar ese corte;
+  no reabre la huida aplazada.
+
+- El 15-10-2026, tras probar la huida en juego, el usuario decidió dejarla
+  incompleta y aplazada porque no es esencial. Observó humo, movimiento al centro,
+  pérdida de detección y regreso a la posición habitual con reentrada automática
+  en combate. Se retiran la huida y el humo automático del árbol/ejecutor y el
+  booleano provisional; se conserva la selección táctica de objetivos, el
+  lanzamiento del jugador y los sistemas anteriores de exploración y persistencia.
+  Esta decisión sustituye la activación y el estado de entrega descritos en las
+  dos entradas anteriores de este mismo día. Si se retoma, sigue siendo preferible
+  una activación opcional por perfil, con continuidad de huida todavía por diseñar.
+
+- El 15-10-2026 el usuario pidió que retirarse con poca vida sea opcional.
+  `DefinicionPersonaje.retirarse_con_poca_vida` es false por defecto; sólo los
+  perfiles que lo activan usan retirada y humo defensivo bajo el umbral actual
+  de un tercio. El resto continúa combatiendo. Es configuración del perfil,
+  sin campo nuevo en persistencia; la escena manual permite alternarlo.
+
+- El 15-10-2026 se implementa el primer corte táctico NPC sobre LimboAI, bandos,
+  percepción y acciones existentes. Balance provisional elegido en implementación:
+  priorizar adyacentes/rutas útiles y menor PV visible; retirarse a un tercio de
+  vida mediante pasos que alejen de amenazas visibles; después usar una bomba de
+  humo real por una acción principal al éxito. Liberarse prevalece; un bloqueo
+  permite seguir decidiendo. No hay nueva memoria persistente ni coste adicional.
+  La calibración de umbral/prioridades queda para revisión jugable. XP indirecta
+  y diálogos con tiradas corresponden a los dos cortes siguientes.
+
+- El 15-10-2026 se acotó la consolidación NPC a decisiones tácticas y bomba de
+  humo para la IA, XP por muertes indirectas y un diálogo de prueba con tirada
+  y ramas de éxito/fallo. La regla nueva de XP, aún por implementar, entrega la
+  recompensa completa al lado opuesto de una muerte durante encuentro activo,
+  sin exigir daño previo de sus miembros. Hoy sólo la ficha acumulará XP; los
+  NPC no tendrán contador hasta que exista el grupo. Fuera de combate no se
+  entrega. Esta decisión reemplaza la atribución por autor del golpe mortal
+  descrita en la entrada anterior cuando se implemente el nuevo corte.
+
+- El 15-10-2026 se acuerda V para alternar los campos de visión de NPC visibles
+  ahora. El campo se recorta a casillas con visibilidad actual para el jugador y
+  usa alcance y obstáculos reales de cada NPC. Rojo: hostil u oponente vigente;
+  verde: amistoso o aliado vigente; gris: neutral. Durante el encuentro prevalece
+  el bando sobre la actitud persistente. La capa no cambia detección ni niebla.
+
+- El 15-10-2026 el usuario decidió XP íntegra para cada integrante del futuro
+  grupo, sin dividir recompensas. Hasta que exista ese grupo, la ficha recibe la
+  cantidad declarada por cada oponente muerto por daño directo suyo o de un
+  aliado del encuentro. Se acredita sólo en la transición a cadáver y queda en
+  el guardado actual de la ficha; cargar no entrega nuevamente ni premia
+  cadáveres previos. Las muertes sin responsable directo y la autoría de efectos
+  quedan para otro acuerdo. La barra muestra XP real, sin subir niveles todavía.
+
+- El 14-10-2026 el usuario aprobó facción fija por definición y bando temporal
+  separado de actitud. Auxilio por visión; prioridad defensa propia, compañero
+  de facción agredido y relación con jugador. Amistosos ayudan contra amenazas
+  hostiles, sin acompañar automáticamente agresiones a neutrales. Sólo cambia
+  la relación del agredido/interlocutor; no hay contagio de puntos. Bandos y
+  objetivos se conservan al cargar, con migración de encuentros anteriores.
+  Este corte requiere jugador presente; encuentros autónomos sin jugador y
+  diplomacia entre facciones siguen pendientes. Acuerdo completo en roadmap.
+
 - El 11-10-2026 el usuario confirmó la revisión manual y el funcionamiento de
   actitud de NPC con «ya quedó todo testeado, veo que funciona». El bloque queda
   cerrado junto con las pruebas automáticas registradas. Facciones y bandos,

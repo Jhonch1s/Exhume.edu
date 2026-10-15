@@ -64,6 +64,9 @@ func validar_restauracion(
 			StringName(datos_interactuable["id"])
 		)
 		if entidad is PersonajeNPC:
+			var objetivo: Variant = datos_interactuable["estado"].get("objetivo_recordado_id")
+			if objetivo != null and not tablero.obtener_interactuable(StringName(objetivo)) is PersonajeNPC:
+				return &"memoria_npc_guardada_invalida"
 			var recuerdo: Variant = datos_interactuable["estado"].get("ultima_posicion_conocida")
 			if recuerdo is Array and not tablero.es_celda_valida(Vector2i(int(recuerdo[0]), int(recuerdo[1]))):
 				return &"memoria_npc_fuera_del_tablero"
@@ -96,6 +99,17 @@ func validar_restauracion(
 			return motivo
 	if gestor_rondas == null:
 		return &"" if snapshot.get("rondas") == null else &"gestor_rondas_ausente"
+	var rondas: Variant = snapshot.get("rondas")
+	if rondas is Dictionary and rondas.has("bandos"):
+		var bandos: Variant = rondas["bandos"]
+		if not bandos is Dictionary or bandos.get(String(ficha.obtener_id_actor())) != GestorRondas.Bando.JUGADOR:
+			return &"bandos_guardados_invalidos"
+		for id_actor in bandos:
+			if id_actor == String(ficha.obtener_id_actor()):
+				continue
+			var npc := tablero.obtener_interactuable(StringName(id_actor)) as PersonajeNPC if id_actor is String else null
+			if npc == null or npc.obtener_definicion_personaje() == null or not npc.obtener_definicion_personaje().puede_combatir:
+				return &"bandos_guardados_invalidos"
 	return gestor_rondas.validar_estado_persistente(snapshot.get("rondas"))
 
 

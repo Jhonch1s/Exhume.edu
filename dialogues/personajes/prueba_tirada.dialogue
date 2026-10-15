@@ -1,0 +1,16 @@
+~ start
+Custodio de prueba: Puedes intentar convencerme. Pondré a prueba tu voluntad.
+- Intentar convencerlo [VOL].
+	do realizar_prueba_dialogo("voluntad", "Convencer al custodio [VOL]")
+	if prueba_dialogo_exitosa
+		=> exito
+	else
+		=> fallo
+- Despedirse sin tirar.
+	=> END
+~ exito
+Custodio de prueba: Has logrado convencerme. Confío en tu palabra.
+=> END
+~ fallo
+Custodio de prueba: No me has convencido. Mantengo mis dudas.
+=> END

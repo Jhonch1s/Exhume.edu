@@ -1,0 +1,18 @@
+~ start
+if conoce_informacion_dialogo("confidencia")
+	Custodio de prueba: Ya te confié mi secreto: guardo una llave de repuesto en mi bota.
+else
+	Custodio de prueba: No confío mis secretos a cualquiera.
+- Intentar ganarse su confianza [VOL].
+	do realizar_prueba_dialogo_configurada("confianza_custodio")
+	if not prueba_dialogo_resuelta
+		Custodio de prueba: No podemos resolver esa prueba ahora.
+		=> END
+	elif prueba_dialogo_exitosa
+		Custodio de prueba: Has logrado convencerme. Guardo una llave de repuesto en mi bota.
+		=> END
+	else
+		Custodio de prueba: No me has convencido. Mantengo mis secretos.
+		=> END
+- Despedirse sin tirar.
+	=> END

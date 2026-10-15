@@ -305,6 +305,7 @@ func _crear_entorno(tablero_inicial: TableroGrid = null) -> Dictionary:
 	for paso in range(1, 13):
 		tablero.datos[Vector2i(paso, paso)] = Celda.new()
 	var ficha := Ficha.new()
+	ficha.fue = 3
 	ficha.coordenada_mapa = Vector2i.ZERO
 	tablero.datos[Vector2i.ZERO].ocupantes.append(ficha)
 	var definicion := DefinicionItem.new()

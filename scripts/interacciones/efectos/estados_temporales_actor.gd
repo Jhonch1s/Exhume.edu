@@ -102,14 +102,9 @@ func validar_estado_persistente(datos_estados: Variant) -> StringName:
 			or datos["ticks_pendientes"] > datos["duracion_total"]
 		):
 			return &"estados_actor_guardados_invalidos"
-		var terminos_guardados: Variant = datos.get("terminos_dano_tick", [])
-		if not terminos_guardados is Array:
+		var terminos: Variant = _leer_terminos_guardados(datos.get("terminos_dano_tick", []))
+		if terminos == null:
 			return &"estados_actor_guardados_invalidos"
-		var terminos: Array[Dictionary] = []
-		for termino: Variant in terminos_guardados:
-			if not termino is Dictionary:
-				return &"estados_actor_guardados_invalidos"
-			terminos.append(termino)
 		if (
 			(magnitud == 0.0 and terminos.is_empty())
 			or _validar_terminos_dano(terminos) != &""
@@ -129,9 +124,7 @@ func restaurar_estado_persistente(datos_estados: Variant) -> StringName:
 	var nuevos: Dictionary[StringName, EstadoActor] = {}
 	for datos: Dictionary in datos_estados:
 		var clave := StringName(datos["clave"])
-		var terminos: Array[Dictionary] = []
-		for termino: Dictionary in datos.get("terminos_dano_tick", []):
-			terminos.append(termino.duplicate(true))
+		var terminos: Array[Dictionary] = _leer_terminos_guardados(datos.get("terminos_dano_tick", []))
 		nuevos[clave] = EstadoActor.new(
 			clave, float(datos["magnitud"]), int(datos["duracion_total"]),
 			0 if clave == &"enredado" else int(datos["ticks_pendientes"]), terminos
@@ -144,6 +137,25 @@ func restaurar_estado_persistente(datos_estados: Variant) -> StringName:
 	for clave in obtener_claves_estado():
 		estado_cambiado.emit(clave, _estados[clave])
 	return &""
+
+
+func _leer_terminos_guardados(datos: Variant) -> Variant:
+	if not datos is Array:
+		return null
+	var terminos: Array[Dictionary] = []
+	for termino: Variant in datos:
+		if not termino is Dictionary:
+			return null
+		for clave in [&"cantidad", &"caras", &"signo"]:
+			if not _es_entero(termino.get(clave)):
+				return null
+		# JSON representa los enteros como float; el motor conserva su contrato int.
+		terminos.append({
+			&"cantidad": int(termino["cantidad"]),
+			&"caras": int(termino["caras"]),
+			&"signo": int(termino["signo"]),
+		})
+	return terminos
 
 
 func _validar_terminos_dano(terminos: Array[Dictionary]) -> StringName:
@@ -161,4 +173,4 @@ func _validar_terminos_dano(terminos: Array[Dictionary]) -> StringName:
 
 
 func _es_entero(valor: Variant) -> bool:
-	return valor is int or (valor is float and is_finite(valor) and is_equal_approx(valor, roundf(valor)))
+	return valor is int or (valor is float and is_finite(valor) and valor == roundf(valor))

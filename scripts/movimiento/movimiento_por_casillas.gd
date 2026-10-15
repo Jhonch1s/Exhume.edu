@@ -29,7 +29,6 @@ func mover_por_camino(
 	avanzar_turno: Callable = Callable(),
 	en_combate: bool = false,
 	recalcular_camino: Callable = Callable(),
-	esperar_ruta: Callable = Callable(),
 	destino_final: Variant = null
 ) -> bool:
 	if (
@@ -74,10 +73,8 @@ func mover_por_camino(
 			ruta = nueva_ruta
 			indice = 0
 			if ruta.is_empty():
-				if not esperar_ruta.is_valid() or not await esperar_ruta.call(actor):
-					interrumpido = true
-					break
-				continue
+				interrumpido = true
+				break
 		var destino := ruta[indice]
 		if destino == origen:
 			indice += 1

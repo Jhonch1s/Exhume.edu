@@ -41,6 +41,10 @@ de los dados y textos. Véase
   `RecursosTurnoActor` y se apagan según las restantes. La barra blanca lee el
   movimiento restante. `Pasar turno` solicita al escenario avanzar el turno;
   el escenario lo ignora durante movimiento o una interacción modal.
+- Desde el 15-10-2026 la barra de experiencia lee la XP acumulada de la ficha.
+  Muestra el avance entre los umbrales de la curva `50 × N × (N − 1)` y el
+  tooltip informa el total y el siguiente umbral. Queda llena si se alcanza
+  ese umbral; subir nivel todavía no está implementado.
 - Los estados visibles muestran una inicial y un tooltip de aspecto pétreo.
   Quemado y veneno explican los dados de daño por tick y los turnos pendientes;
   también hay textos para enredado y caído. Actualmente sólo hay tres espacios
@@ -50,8 +54,7 @@ de los dados y textos. Véase
   nombre queda en el tooltip. Si falta el icono, muestran `?`. **Todavía no son
   accesos rápidos configurables ni activan el ítem al pulsar**: sus botones
   están deshabilitados. Las cuatro ranuras de habilidades
-  están deshabilitadas. La barra de experiencia tiene un valor de muestra y no
-  está conectada a un sistema de experiencia. El overlay superior de combate
+  están deshabilitadas. El overlay superior de combate
   existe como maqueta oculta, sin secuencia de turnos funcional.
 
 ## Antorcha en mano: una sola fuente de datos

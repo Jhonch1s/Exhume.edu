@@ -40,20 +40,28 @@ func _ejecutar() -> void:
 		and panel.etiqueta_titulo.text == "Prueba de percepción"
 		and panel.etiqueta_objetivo.text == "OBJETIVO  ·  5 O MENOS"
 		and "Base 3 +2 Anillo  =  5" in panel.etiqueta_bonos.text
-		and not panel.etiqueta_veredicto.visible
+		and panel.etiqueta_veredicto.visible
+		and panel.etiqueta_veredicto.text == "RESULTADO  -"
 		and panel.contenedor_dados.visible
 		and panel.vista_dado_2.visible == (prueba.dados.size() == 2)
 		and presentadas[0] == 1
 		and generador.state == estado_resuelto,
 		"El panel debe presentar la prueba ya resuelta sin volver a tirar."
 	)
-	await create_timer(1.5).timeout
+	panel.vista_dado_1.emit_signal(&"presionado")
+	panel.vista_dado_1.emit_signal(&"presionado")
+	if prueba.dados.size() > 1:
+		panel.vista_dado_2.emit_signal(&"presionado")
+	for _intento in range(200):
+		if panel.etiqueta_veredicto.text != "RESULTADO  -":
+			break
+		await create_timer(0.02).timeout
 	_comprobar(
 		panel.etiqueta_veredicto.visible
-		and "%d" % prueba.dado_seleccionado in panel.etiqueta_veredicto.text
+		and panel.etiqueta_veredicto.text.begins_with("%d  -  " % prueba.dado_seleccionado)
 		and panel.etiqueta_objetivo.visible
 		and generador.state == estado_resuelto,
-		"La animación debe revelar el resultado resuelto sin consumir azar adicional."
+		"Pulsar los dados, incluso dos veces, debe revelar el resultado sin consumir azar adicional."
 	)
 	panel.ocultar()
 	panel.vista_dado_1.call(&"mostrar_valor", 1)

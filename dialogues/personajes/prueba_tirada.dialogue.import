@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=18
+type="Resource"
+uid="uid://ud133mrsa8qt"
+path="res://.godot/imported/prueba_tirada.dialogue-5e9e3f23b2378518e1bee7dcec024e33.tres"
+
+[deps]
+
+source_file="res://dialogues/personajes/prueba_tirada.dialogue"
+dest_files=["res://.godot/imported/prueba_tirada.dialogue-5e9e3f23b2378518e1bee7dcec024e33.tres"]
+
+[params]
+
+defaults=true

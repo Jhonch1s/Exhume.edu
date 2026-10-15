@@ -14,7 +14,8 @@ func _ejecutar_prueba() -> void:
 	root.add_child(tablero)
 	root.add_child(capa_oscuridad)
 	for x in range(3):
-		tablero.datos[Vector2i(x, 0)] = Celda.new()
+		for y in range(2):
+			tablero.datos[Vector2i(x, y)] = Celda.new()
 
 	var fov := FOVManager.new()
 	root.add_child(fov)
@@ -76,6 +77,43 @@ func _ejecutar_prueba() -> void:
 		tablero.obtener_celda(Vector2i(2, 0)).visibilidad == Celda.EstadoVisibilidad.VISIBLE,
 		"Retirar el último humo debe recalcular y restaurar visión."
 	)
+	var npc := (load("res://scenes/personajes/npc.tscn") as PackedScene).instantiate() as PersonajeNPC
+	npc.id_instancia = &"fov_npc_prueba"
+	root.add_child(npc)
+	var revision := fov.revision_vision
+	_comprobar(tablero.registrar_interactuable(Vector2i(2, 0), npc) and tablero.reubicar_interactuable(npc, Vector2i.ZERO), "Registrar y trasladar un NPC que no bloquea visión.")
+	npc.recibir_danio(99)
+	_comprobar(fov.revision_vision == revision and npc.visible, "Traslado y muerte del NPC actualizan su presentación sin recalcular FOV.")
+	var puerta := (load("res://scenes/interactuables/puertas/puerta_interactuable.tscn") as PackedScene).instantiate() as PuertaInteractuable
+	puerta.id_instancia = &"fov_puerta_prueba"
+	puerta.definicion = load("res://assets/interactuables/puertas/puerta/puerta.tres")
+	root.add_child(puerta)
+	_comprobar(tablero.registrar_interactuable(Vector2i(1, 0), puerta) and tablero.obtener_celda(Vector2i(2, 0)).visibilidad != Celda.EstadoVisibilidad.VISIBLE, "Registrar una puerta opaca oculta inmediatamente lo que hay detrás.")
+	puerta.abierta = true
+	puerta.presencia_cambiada.emit()
+	_comprobar(tablero.obtener_celda(Vector2i(2, 0)).visibilidad == Celda.EstadoVisibilidad.VISIBLE, "Abrir una puerta vuelve a proyectar visión.")
+	puerta.abierta = false
+	puerta.presencia_cambiada.emit()
+	_comprobar(tablero.obtener_celda(Vector2i(2, 0)).visibilidad != Celda.EstadoVisibilidad.VISIBLE, "Cerrar una puerta vuelve a ocultar el fondo.")
+	tablero.retirar_interactuable(puerta)
+	_comprobar(tablero.obtener_celda(Vector2i(2, 0)).visibilidad == Celda.EstadoVisibilidad.VISIBLE, "Retirar una puerta opaca restaura visión.")
+	puerta.huella_celdas = [Vector2i.ZERO, Vector2i.DOWN]
+	fov.actualizar_vision(Vector2i(0, 1), 3)
+	revision = fov.revision_vision
+	tablero.registrar_interactuable(Vector2i(1, 0), puerta)
+	_comprobar(fov.revision_vision == revision + 1 and tablero.obtener_celda(Vector2i(2, 1)).visibilidad != Celda.EstadoVisibilidad.VISIBLE, "Registrar un bloqueador de dos casillas actualiza visión una sola vez.")
+	var solapada := (load("res://scenes/interactuables/puertas/puerta_interactuable.tscn") as PackedScene).instantiate() as PuertaInteractuable
+	solapada.id_instancia = &"fov_puerta_solapada"
+	root.add_child(solapada)
+	tablero.registrar_interactuable(Vector2i(1, 0), solapada)
+	revision = fov.revision_vision
+	tablero.retirar_interactuable(puerta)
+	_comprobar(fov.revision_vision == revision + 1 and tablero.obtener_celda(Vector2i(2, 1)).visibilidad == Celda.EstadoVisibilidad.VISIBLE, "Retirar una huella recalcula también su segunda casilla aunque el origen siga opaco.")
+	tablero.retirar_interactuable(solapada)
+	solapada.queue_free()
+	tablero.retirar_interactuable(npc)
+	npc.queue_free()
+	puerta.queue_free()
 
 	humo_a.queue_free()
 	humo_b.queue_free()

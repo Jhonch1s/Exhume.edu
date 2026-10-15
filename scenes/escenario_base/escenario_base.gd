@@ -10,6 +10,7 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 
 @onready var zona_actual: Node2D = $Zona
 @onready var capa_selector: TileMapLayer = $CapaSelector
+@onready var capa_vision_npc: CapaVisionNPC = $CapaVisionNPC
 @onready var panel_resultado_accion: PanelResultadoAccion = (
 	$CanvasLayerModalDados/PanelResultadoAccion
 )
@@ -110,6 +111,16 @@ var ultimo_resultado_contextual: ResultadoAccion = null
 var interaccion_modal_activa: bool = false
 var dialogo_npc_activo: bool = false
 var recurso_dialogo_npc_activo: DialogueResource
+var tema_dialogo_npc_activo: DialogoNPC
+var npc_dialogo_activo: PersonajeNPC
+var motor_dados_dialogo := MotorDados.new()
+var ultima_prueba_dialogo: ResultadoPrueba
+var prueba_dialogo_resuelta := false
+var _exito_prueba_dialogo := false
+var prueba_dialogo_exitosa: bool:
+	get:
+		return prueba_dialogo_resuelta and _exito_prueba_dialogo
+var _prueba_dialogo_en_curso := false
 var estado_seleccion_objetivos: EstadoSeleccionObjetivos = EstadoSeleccionObjetivos.new()
 var objetivos_pendientes_seleccion: Array[Object]:
 	get:
@@ -154,6 +165,7 @@ func _ready() -> void:
 	nombreClase = EstadoPartida.aventurero_pendiente.get("clase", nombreClase)
 
 	panel_registro_narrativo.observar(registro_narrativo)
+	gestor_acciones.accion_finalizada.connect(_on_agresion_resuelta)
 	hud.pasar_turno_solicitado.connect(_on_pasar_turno_hud)
 	menu_contextual.opcion_accion_elegida.connect(_on_opcion_contextual_elegida)
 	menu_contextual.objetivo_elegido.connect(_on_objetivo_contextual_elegido)
@@ -200,12 +212,15 @@ func _ready() -> void:
 	await spawnear_ficha_inicial()
 	if ficha_jugador:
 		hud.configurar_ficha(ficha_jugador)
+		capa_vision_npc.configurar(tablero, validador_espacial, ficha_jugador, gestor_vision)
 		_colocar_piedra_prueba()
 		_actualizar_luz_jugador(ficha_jugador.coordenada_mapa)
 		_actualizar_audio_proximidad()
 
 func _process(delta: float) -> void:
 	centrar_camara_en_ficha()
+	if capa_vision_npc.visible:
+		capa_vision_npc.actualizar(gestor_rondas)
 	if ficha_jugador and capa_paredes_oclusivas:
 		capa_paredes_oclusivas.actualizar_occlusion(ficha_jugador.global_position)
 	_actualizar_audio_proximidad()
@@ -270,6 +285,10 @@ func _process(delta: float) -> void:
 	ultima_coordenada_hover = coord_actual
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_V and not interaccion_modal_activa and item_lanzamiento_pendiente == null and ficha_jugador != null:
+		capa_vision_npc.alternar(gestor_rondas)
+		get_viewport().set_input_as_handled()
+		return
 	if en_combate and _turno_exploracion_en_curso:
 		get_viewport().set_input_as_handled()
 		return
@@ -545,7 +564,7 @@ func _procesar_turno_npc_exploracion(npc: PersonajeNPC, secuencia: int) -> bool:
 	npc.iniciar_turno()
 	var decisor := _obtener_decisor_npc(npc)
 	while _exploracion_npc_vigente(secuencia) and npc.puede_actuar() and npc.obtener_estado(&"caido") == null:
-		var plan := decisor.elegir(npc, ficha_jugador, tablero, pathfinding, false)
+		var plan := decisor.elegir(npc, tablero, pathfinding)
 		var decision: StringName = plan["decision"]
 		if decision == &"liberarse":
 			if not _liberar_npc(npc):
@@ -570,7 +589,7 @@ func _procesar_turno_npc_exploracion(npc: PersonajeNPC, secuencia: int) -> bool:
 				camino, _preparar_paso_actor, _confirmar_paso_actor,
 				_cancelar_paso_actor, _procesar_salida_paso_actor,
 				procesar_entrada, _calcular_coste_paso_actor,
-				_recalcular_ruta_npc, Callable(), plan["destino"]
+				_recalcular_ruta_npc, plan["destino"]
 			)
 			if not _exploracion_npc_vigente(secuencia):
 				return false
@@ -662,15 +681,16 @@ func cargar_partida(ruta: String = RUTA_GUARDADO) -> StringName:
 	for entidad in tablero.interactuables_por_id.values():
 		if entidad is PersonajeNPC:
 			entidad.en_oposicion_encuentro = false
+	# El encuentro anterior no debe limpiar la memoria recién restaurada.
+	gestor_rondas = gestor_guardado
 	if gestor_guardado == null:
-		_terminar_combate(false, true)
+		_terminar_combate(false)
 	else:
-		gestor_rondas = gestor_guardado
 		en_combate = true
 		for id_actor in gestor_rondas.obtener_ids_ordenados():
 			var npc := tablero.obtener_interactuable(id_actor) as PersonajeNPC
 			if npc != null:
-				npc.en_oposicion_encuentro = true
+				npc.bando_encuentro = gestor_rondas.obtener_bando(npc)
 		_conectar_derrota_combate()
 		if not _resolver_fin_combate(false):
 			_actualizar_ui_combate()
@@ -706,6 +726,10 @@ func _preparar_gestor_guardado(estado_rondas: Variant) -> Variant:
 		return &"actores_ronda_guardados_no_coinciden"
 	var nuevo_gestor := GestorRondas.new(servicio_turnos, procesador_superficies, MotorDados.new())
 	var motivo := nuevo_gestor.preparar_restauracion(actores)
+	for actor in actores:
+		nuevo_gestor.bandos[actor.obtener_id_actor()] = (
+			GestorRondas.Bando.JUGADOR if actor == ficha_jugador else GestorRondas.Bando.OPONENTE
+		)
 	return motivo if motivo != &"" else nuevo_gestor
 
 
@@ -1027,21 +1051,49 @@ func _on_ficha_paso_dado(nueva_coord: Vector2i) -> void:
 	_evaluar_agro_npc()
 
 
-func _actualizar_memoria_combate() -> bool:
-	var participantes: Array[PersonajeNPC] = []
-	var alguien_detecta := false
+func _actores_combate() -> Array[Object]:
+	var actores: Array[Object] = []
 	for id_actor in gestor_rondas.obtener_ids_ordenados():
-		var npc := tablero.obtener_interactuable(id_actor) as PersonajeNPC
-		if npc == null or not npc.puede_actuar():
+		var actor: Object = ficha_jugador if id_actor == ficha_jugador.obtener_id_actor() else tablero.obtener_interactuable(id_actor)
+		if actor != null and actor.puede_actuar():
+			actores.append(actor)
+	actores.sort_custom(func(a: Object, b: Object) -> bool: return String(a.obtener_id_actor()) < String(b.obtener_id_actor()))
+	return actores
+
+
+func _objetivo_recordado(npc: PersonajeNPC) -> Object:
+	var id := npc.obtener_id_objetivo_recordado()
+	var objetivo: Object = ficha_jugador if id == &"" else tablero.obtener_interactuable(id)
+	return objetivo if objetivo != null and objetivo.puede_actuar() and gestor_rondas.son_oponentes(npc, objetivo) else null
+
+
+func _actualizar_memoria_combate() -> bool:
+	var actores := _actores_combate()
+	var observados := {GestorRondas.Bando.JUGADOR: {}, GestorRondas.Bando.OPONENTE: {}}
+	for actor in actores:
+		if not actor is PersonajeNPC:
 			continue
-		participantes.append(npc)
-		if npc.puede_detectar_jugador(ficha_jugador, validador_espacial):
-			alguien_detecta = true
-	# Sólo se comparte una posición observada por un miembro vivo del encuentro.
-	if alguien_detecta:
-		for npc in participantes:
-			npc.recordar_posicion_jugador(ficha_jugador.coordenada_mapa)
-	return alguien_detecta
+		for objetivo in actores:
+			if gestor_rondas.son_oponentes(actor, objetivo) and actor.puede_ver_coordenada(objetivo.coordenada_mapa, validador_espacial):
+				observados[gestor_rondas.obtener_bando(actor)][objetivo.obtener_id_actor()] = objetivo.coordenada_mapa
+	for actor in actores:
+		if not actor is PersonajeNPC:
+			continue
+		var vistos: Dictionary = observados[gestor_rondas.obtener_bando(actor)]
+		var elegido: Object = null
+		var menor_distancia := INF
+		for objetivo in actores:
+			if not vistos.has(objetivo.obtener_id_actor()):
+				continue
+			var distancia := Vector2(actor.coordenada_mapa - vistos[objetivo.obtener_id_actor()]).length_squared()
+			if elegido == null or distancia < menor_distancia or (distancia == menor_distancia and String(objetivo.obtener_id_actor()) < String(elegido.obtener_id_actor())):
+				elegido = objetivo
+				menor_distancia = distancia
+		if elegido != null:
+			actor.recordar_objetivo(elegido, vistos[elegido.obtener_id_actor()])
+		elif _objetivo_recordado(actor) == null:
+			actor.olvidar_posicion_jugador()
+	return not observados[GestorRondas.Bando.JUGADOR].is_empty() or not observados[GestorRondas.Bando.OPONENTE].is_empty()
 
 
 func _resolver_perdida_agro() -> bool:
@@ -1061,46 +1113,103 @@ func _resolver_perdida_agro() -> bool:
 	return true
 
 
-func _incorporar_npc_al_combate() -> void:
-	var ids := gestor_rondas.obtener_ids_ordenados()
-	var posiciones: Array[Vector2i] = []
-	for id_actor in ids:
-		var actor: Object = (
-			ficha_jugador if id_actor == ficha_jugador.obtener_id_actor()
-			else tablero.obtener_interactuable(id_actor)
-		)
-		if actor != null and actor.call(&"puede_actuar"):
-			posiciones.append(actor.get("coordenada_mapa"))
-	var candidatos: Array[PersonajeNPC] = []
-	for entidad in tablero.interactuables_por_id.values():
-		if not entidad is PersonajeNPC or entidad.obtener_id_actor() in ids:
-			continue
-		var perfil: DefinicionPersonaje = entidad.obtener_definicion_personaje()
-		if (
-			perfil == null or not perfil.puede_combatir or not entidad.puede_actuar()
-			or entidad.obtener_actitud_hacia_jugador() != DefinicionPersonaje.ActitudInicialJugador.HOSTIL
-		):
-			continue
-		for posicion in posiciones:
-			if entidad.puede_ver_coordenada(posicion, validador_espacial, 7):
-				candidatos.append(entidad)
-				break
-	candidatos.sort_custom(func(a: PersonajeNPC, b: PersonajeNPC) -> bool:
-		return String(a.obtener_id_actor()) < String(b.obtener_id_actor())
-	)
-	for npc in candidatos:
+func _asignar_bando(npc: PersonajeNPC, bando: int) -> void:
+	gestor_rondas.bandos[npc.obtener_id_actor()] = bando
+	if npc.bando_encuentro != bando:
+		npc.bando_encuentro = bando
+		npc.solicitar_interrupcion()
+		npc.olvidar_posicion_jugador()
+
+
+func _incorporar_con_bando(npc: PersonajeNPC, bando: int) -> void:
+	if npc.obtener_id_actor() not in gestor_rondas.obtener_ids_ordenados():
 		var motivo := gestor_rondas.incorporar_actor(npc)
 		if motivo != &"":
 			push_warning("No se pudo incorporar NPC: %s" % motivo)
-			continue
-		npc.en_oposicion_encuentro = true
-		npc.solicitar_interrupcion()
-		npc.olvidar_posicion_jugador()
+			return
 		registro_narrativo.registrar(
 			EntradaRegistroNarrativo.Categoria.SISTEMA, "Se une %s" % npc.obtener_nombre_interaccion(),
 			"Ha visto el encuentro. Actuará al final de esta ronda."
 		)
+	_asignar_bando(npc, bando)
+
+
+func _bando_auxilio(npc: PersonajeNPC, actores: Array[Object]) -> int:
+	# La defensa de un compañero precede a la relación individual con el jugador.
+	for actor in actores:
+		if (
+			actor is PersonajeNPC and actor.obtener_id_actor() in gestor_rondas.defendidos
+			and npc.comparte_faccion(actor)
+			and npc.puede_ver_coordenada(actor.coordenada_mapa, validador_espacial, 7)
+		):
+			return gestor_rondas.obtener_bando(actor)
+	var actitud := npc.obtener_actitud_hacia_jugador()
+	for actor in actores:
+		if not npc.puede_ver_coordenada(actor.coordenada_mapa, validador_espacial, 7):
+			continue
+		if actitud == DefinicionPersonaje.ActitudInicialJugador.HOSTIL:
+			return GestorRondas.Bando.OPONENTE
+		if actitud == DefinicionPersonaje.ActitudInicialJugador.AMISTOSA and ficha_jugador.obtener_id_actor() in gestor_rondas.defendidos:
+			if gestor_rondas.obtener_bando(actor) == GestorRondas.Bando.JUGADOR or (actor is PersonajeNPC and actor.obtener_actitud_hacia_jugador() == DefinicionPersonaje.ActitudInicialJugador.HOSTIL):
+				return GestorRondas.Bando.JUGADOR
+	return GestorRondas.Bando.NEUTRAL
+
+
+func _incorporar_npc_al_combate() -> void:
+	var ids := gestor_rondas.obtener_ids_ordenados()
+	var actores := _actores_combate()
+	var candidatos: Array[PersonajeNPC] = []
+	var bandos := {}
+	for entidad in tablero.interactuables_por_id.values():
+		if not entidad is PersonajeNPC or entidad.obtener_id_actor() in ids:
+			continue
+		var perfil: DefinicionPersonaje = entidad.obtener_definicion_personaje()
+		if perfil == null or not perfil.puede_combatir or not entidad.puede_actuar():
+			continue
+		var bando := _bando_auxilio(entidad, actores)
+		if bando != GestorRondas.Bando.NEUTRAL:
+			candidatos.append(entidad)
+			bandos[entidad.obtener_id_actor()] = bando
+	candidatos.sort_custom(func(a: PersonajeNPC, b: PersonajeNPC) -> bool: return String(a.obtener_id_actor()) < String(b.obtener_id_actor()))
+	for npc in candidatos:
+		_incorporar_con_bando(npc, bandos[npc.obtener_id_actor()])
 	if not candidatos.is_empty():
+		_conectar_derrota_combate()
+		_actualizar_ui_combate()
+
+
+func _on_agresion_resuelta(contexto: ContextoAccion, resultado: ResultadoAccion) -> void:
+	if not en_combate or resultado.tirada == null:
+		return
+	var victima: Object = null
+	if contexto.id_accion == &"ataque_basico" and contexto.objetivo is PersonajeNPC:
+		victima = contexto.objetivo
+	elif contexto.id_accion == &"ataque_basico_npc" and contexto.objetivo is AccionAtaqueNPC:
+		victima = contexto.objetivo.objetivo
+	if victima == null:
+		return
+	if victima.obtener_id_actor() not in gestor_rondas.defendidos:
+		gestor_rondas.defendidos.append(victima.obtener_id_actor())
+	var testigos: Array[PersonajeNPC] = []
+	for entidad in tablero.interactuables_por_id.values():
+		if not entidad is PersonajeNPC or entidad == victima or entidad == contexto.actor:
+			continue
+		var perfil: DefinicionPersonaje = entidad.obtener_definicion_personaje()
+		if perfil == null or not perfil.puede_combatir or not entidad.puede_actuar():
+			continue
+		if entidad.puede_ver_coordenada(contexto.origen, validador_espacial) and entidad.puede_ver_coordenada(contexto.celda_objetivo, validador_espacial):
+			if (victima is PersonajeNPC and entidad.comparte_faccion(victima)) or (
+				victima == ficha_jugador
+				and entidad.obtener_actitud_hacia_jugador() == DefinicionPersonaje.ActitudInicialJugador.AMISTOSA
+				and contexto.actor.obtener_actitud_hacia_jugador() == DefinicionPersonaje.ActitudInicialJugador.HOSTIL
+			):
+				testigos.append(entidad)
+	testigos.sort_custom(func(a: PersonajeNPC, b: PersonajeNPC) -> bool: return String(a.obtener_id_actor()) < String(b.obtener_id_actor()))
+	for npc in testigos:
+		# La defensa propia ya establecida no se sustituye por auxilio a otro actor.
+		if npc.obtener_id_actor() not in gestor_rondas.defendidos:
+			_incorporar_con_bando(npc, gestor_rondas.obtener_bando(victima))
+	if not testigos.is_empty():
 		_conectar_derrota_combate()
 		_actualizar_ui_combate()
 
@@ -1124,7 +1233,7 @@ func _evaluar_agro_npc() -> void:
 		):
 			objetivo = entidad
 			menor_distancia = distancia
-	if objetivo != null and _iniciar_combate(objetivo):
+	if objetivo != null and _iniciar_combate(objetivo, false):
 		ficha_jugador.solicitar_interrupcion()
 		camino_actual_tentativo.clear()
 		capa_camino.clear()
@@ -1149,20 +1258,16 @@ func _es_turno_jugador() -> bool:
 	return gestor_rondas != null and gestor_rondas.actor_activo == ficha_jugador
 
 
-func _iniciar_combate(objetivo: PersonajeNPC) -> bool:
+func _iniciar_combate(objetivo: PersonajeNPC, agresion_jugador: bool = true) -> bool:
 	if objetivo == null or objetivo.esta_derrotado() or ficha_jugador == null:
 		return false
 	var perfil := objetivo.obtener_definicion_personaje()
 	if perfil == null or not perfil.puede_combatir:
 		return false
 	if en_combate:
-		if objetivo.obtener_id_actor() not in gestor_rondas.obtener_ids_ordenados():
-			if gestor_rondas.incorporar_actor(objetivo) != &"":
-				return false
-			objetivo.en_oposicion_encuentro = true
-			objetivo.solicitar_interrupcion()
-			_conectar_derrota_combate()
-			_actualizar_ui_combate()
+		_incorporar_con_bando(objetivo, GestorRondas.Bando.OPONENTE)
+		_conectar_derrota_combate()
+		_actualizar_ui_combate()
 		return true
 	var nuevo_gestor := GestorRondas.new(servicio_turnos, procesador_superficies, MotorDados.new())
 	var actores: Array[Object] = [ficha_jugador, objetivo]
@@ -1178,13 +1283,17 @@ func _iniciar_combate(objetivo: PersonajeNPC) -> bool:
 		return false
 	gestor_rondas = nuevo_gestor
 	en_combate = true
+	gestor_rondas.bandos[ficha_jugador.obtener_id_actor()] = GestorRondas.Bando.JUGADOR
+	if not agresion_jugador:
+		gestor_rondas.defendidos.append(ficha_jugador.obtener_id_actor())
 	_cancelar_exploracion_npc()
 	ficha_jugador.solicitar_interrupcion()
 	for actor in actores:
 		if actor is PersonajeNPC:
-			actor.en_oposicion_encuentro = true
+			_asignar_bando(actor, GestorRondas.Bando.OPONENTE)
 			actor.solicitar_interrupcion()
 			actor.olvidar_posicion_jugador()
+	_incorporar_npc_al_combate()
 	_actualizar_memoria_combate()
 	_conectar_derrota_combate()
 	_registrar_iniciativa_combate()
@@ -1222,6 +1331,15 @@ func _finalizar_turno_combate() -> void:
 	_programar_turno_npc()
 
 
+func _plan_combate_npc(npc: PersonajeNPC) -> Dictionary:
+	var visibles: Array[Object] = []
+	for actor in _actores_combate():
+		if gestor_rondas.son_oponentes(npc, actor) and npc.puede_ver_coordenada(actor.coordenada_mapa, validador_espacial):
+			visibles.append(actor)
+	var decisor := _obtener_decisor_npc(npc)
+	return decisor.elegir(npc, tablero, pathfinding, visibles, true)
+
+
 func _programar_turno_npc() -> void:
 	_secuencia_turno_npc += 1
 	if not en_combate or _es_turno_jugador() or gestor_rondas.actor_activo == null:
@@ -1243,24 +1361,21 @@ func _programar_turno_npc() -> void:
 	if npc == null:
 		_finalizar_turno_combate()
 		return
-	var decisor := _obtener_decisor_npc(npc)
 	while _turno_npc_vigente(secuencia) and npc.puede_actuar():
 		if _resolver_perdida_agro():
 			return
 		if npc.obtener_estado(&"caido") != null:
 			npc.agotar_recursos_turno()
 			break
-		var plan := decisor.elegir(
-			npc, ficha_jugador, tablero, pathfinding,
-			npc.puede_detectar_jugador(ficha_jugador, validador_espacial), true
-		)
+		var plan := _plan_combate_npc(npc)
+		var objetivo: Object = plan["objetivo"]
 		var decision: StringName = plan["decision"]
 		if decision == &"liberarse":
 			if not _liberar_npc(npc):
 				break
 			await get_tree().create_timer(0.6).timeout
 		elif decision == &"atacar":
-			var ataque := AccionAtaqueNPC.new(ficha_jugador)
+			var ataque := AccionAtaqueNPC.new(objetivo, gestor_rondas)
 			var resultado := gestor_acciones.procesar_accion(ataque.construir_contexto(npc))
 			if resultado.tirada != null:
 				historial_tiradas.registrar(resultado.tirada)
@@ -1304,7 +1419,7 @@ func _programar_turno_npc() -> void:
 				not completo and npc.obtener_estado(&"enredado") == null
 				and (
 					(ultimo_resultado_entrar != null and ultimo_resultado_entrar.interrumpe_movimiento)
-					or npc.puede_detectar_jugador(ficha_jugador, validador_espacial) == plan["objetivo_visible"]
+					or (objetivo != null and npc.puede_ver_coordenada(objetivo.coordenada_mapa, validador_espacial)) == plan["objetivo_visible"]
 				)
 			):
 				break
@@ -1337,6 +1452,26 @@ func _conectar_derrota_combate() -> void:
 		var npc := tablero.obtener_interactuable(id_actor) as PersonajeNPC
 		if npc != null and not npc.derrota_cambiada.is_connected(_on_derrota_npc_combate):
 			npc.derrota_cambiada.connect(_on_derrota_npc_combate)
+		if npc != null and not npc.muerte_por_danio.is_connected(_on_muerte_npc_con_xp.bind(npc)):
+			npc.muerte_por_danio.connect(_on_muerte_npc_con_xp.bind(npc))
+
+
+func _on_muerte_npc_con_xp(_fuente: Object, victima: PersonajeNPC) -> void:
+	if _restaurando_partida or not en_combate or gestor_rondas == null or ficha_jugador == null:
+		return
+	if gestor_rondas.obtener_bando(victima) != GestorRondas.Bando.OPONENTE:
+		return
+	# El bando de la víctima determina la recompensa; no exige autor ni daño previo.
+	var recompensa: int = victima.obtener_definicion_personaje().experiencia_recompensa_derrota
+	if recompensa <= 0:
+		return
+	ficha_jugador.experiencia_acumulada += recompensa
+	hud.actualizar_desde_ficha()
+	registro_narrativo.registrar(
+		EntradaRegistroNarrativo.Categoria.SISTEMA,
+		"Experiencia",
+		"Ganas %d XP por derrotar a %s." % [recompensa, victima.obtener_nombre_interaccion()]
+	)
 
 
 func _on_derrota_npc_combate(_derrotado: bool) -> void:
@@ -1350,7 +1485,7 @@ func _resolver_fin_combate(reponer_recursos: bool = true) -> bool:
 	var queda_oponente := false
 	for id_actor in gestor_rondas.obtener_ids_ordenados():
 		var npc := tablero.obtener_interactuable(id_actor) as PersonajeNPC
-		if npc != null and npc.puede_actuar():
+		if npc != null and npc.puede_actuar() and gestor_rondas.son_oponentes(ficha_jugador, npc):
 			queda_oponente = true
 			break
 	if queda_oponente and ficha_jugador.puede_actuar():
@@ -1367,7 +1502,7 @@ func _terminar_combate(reponer_recursos: bool = true, conservar_memoria: bool = 
 			if npc != null:
 				npc.solicitar_interrupcion()
 				npc.en_oposicion_encuentro = false
-				if not conservar_memoria or npc.obtener_actitud_hacia_jugador() != DefinicionPersonaje.ActitudInicialJugador.HOSTIL:
+				if not conservar_memoria or gestor_rondas.obtener_bando(npc) == GestorRondas.Bando.JUGADOR or npc.obtener_actitud_hacia_jugador() != DefinicionPersonaje.ActitudInicialJugador.HOSTIL:
 					npc.olvidar_posicion_jugador()
 	en_combate = false
 	gestor_rondas = null
@@ -1396,6 +1531,7 @@ func _actualizar_ui_combate() -> void:
 				else (actor as PersonajeNPC).obtener_nombre_interaccion(),
 			"derrotado": not actor.call(&"puede_actuar"),
 			"iniciativa": gestor_rondas.obtener_iniciativa_ronda(id_actor),
+			"bando": "Aliado" if gestor_rondas.obtener_bando(actor) == GestorRondas.Bando.JUGADOR else "Oponente",
 		})
 	panel_orden_combate.mostrar(
 		gestor_rondas.ronda_actual, entradas,
@@ -2039,10 +2175,12 @@ func _presentar_resultado_contextual(
 		)
 		if dialogo == null:
 			return
+		ultima_prueba_dialogo = null
+		prueba_dialogo_resuelta = false
 		var globo := DisparadorDialogoArea.mostrar(
 			dialogo.recurso,
 			dialogo.punto_inicio,
-			[contexto.objetivo, contexto.actor]
+			[contexto.objetivo, contexto.actor, self]
 		)
 		if globo != null:
 			if globo.has_method(&"configurar_participantes"):
@@ -2055,6 +2193,8 @@ func _presentar_resultado_contextual(
 				)
 			dialogo_npc_activo = true
 			recurso_dialogo_npc_activo = dialogo.recurso
+			tema_dialogo_npc_activo = dialogo
+			npc_dialogo_activo = contexto.objetivo as PersonajeNPC
 			var gestor_dialogos := get_tree().root.get_node_or_null(^"DialogueManager")
 			var al_terminar := Callable(self, &"_on_dialogo_npc_finalizado")
 			if gestor_dialogos != null and not gestor_dialogos.is_connected(
@@ -2113,6 +2253,92 @@ func _presentar_resultado_contextual(
 			else String(id_mensaje)
 		)
 	panel_resultado_accion.mostrar_tirada(titulo, resultado.tirada, mensajes)
+
+
+## Mutation de Dialogue Manager: resuelve una vez y espera la presentación existente.
+func realizar_prueba_dialogo(atributo: String, titulo: String) -> void:
+	if not _puede_realizar_prueba_dialogo():
+		return
+	ultima_prueba_dialogo = null
+	prueba_dialogo_resuelta = false
+	if atributo not in ["fuerza", "destreza", "voluntad"]:
+		return
+	_prueba_dialogo_en_curso = true
+	await _resolver_prueba_dialogo(atributo, titulo)
+	_prueba_dialogo_en_curso = false
+
+
+func _puede_realizar_prueba_dialogo() -> bool:
+	return dialogo_npc_activo and not _prueba_dialogo_en_curso and ficha_jugador != null and ficha_jugador.puede_actuar()
+
+
+func conoce_informacion_dialogo(id_fragmento: StringName) -> bool:
+	return (
+		dialogo_npc_activo and is_instance_valid(npc_dialogo_activo) and ficha_jugador != null
+		and registro_conocimiento.conoce_fragmento(ficha_jugador.id_observador, npc_dialogo_activo.id_instancia, id_fragmento)
+	)
+
+
+## El diálogo sólo necesita conocer el ID configurado en su tema.
+func realizar_prueba_dialogo_configurada(id_prueba: StringName) -> void:
+	if not _puede_realizar_prueba_dialogo():
+		return
+	ultima_prueba_dialogo = null
+	prueba_dialogo_resuelta = false
+	if tema_dialogo_npc_activo == null or not is_instance_valid(npc_dialogo_activo) or npc_dialogo_activo.esta_muerto():
+		return
+	var prueba := tema_dialogo_npc_activo.obtener_prueba(id_prueba)
+	if prueba == null:
+		push_warning("Prueba de diálogo ausente, inválida o duplicada: %s." % id_prueba)
+		return
+	var coincidencias := 0
+	for tema in npc_dialogo_activo.obtener_definicion_personaje().dialogos:
+		if tema == null:
+			continue
+		for candidata in tema.pruebas:
+			if candidata != null and candidata.id_prueba == id_prueba:
+				coincidencias += 1
+	if coincidencias != 1:
+		push_warning("El ID de prueba debe ser único en el NPC: %s." % id_prueba)
+		return
+	var npc := npc_dialogo_activo
+	var recordado: Variant = npc.obtener_resultado_prueba_dialogo(id_prueba)
+	if prueba.una_sola_vez and recordado is bool:
+		_exito_prueba_dialogo = recordado
+		prueba_dialogo_resuelta = true
+		return
+	var motivo := prueba.validar_consecuencias(npc, ficha_jugador, registro_conocimiento)
+	if motivo != &"":
+		push_warning("Prueba de diálogo %s: %s." % [id_prueba, motivo])
+		return
+	_prueba_dialogo_en_curso = true
+	await _resolver_prueba_dialogo(prueba.atributo, prueba.titulo)
+	if prueba_dialogo_resuelta and dialogo_npc_activo and npc_dialogo_activo == npc:
+		var consecuencias := prueba.consecuencias_exito if _exito_prueba_dialogo else prueba.consecuencias_fallo
+		for consecuencia in consecuencias:
+			var mensaje := consecuencia.aplicar(npc, ficha_jugador, registro_conocimiento, catalogo_mensajes)
+			if not mensaje.is_empty():
+				registro_narrativo.registrar(EntradaRegistroNarrativo.Categoria.SISTEMA, prueba.titulo, mensaje)
+		if prueba.una_sola_vez:
+			npc.recordar_resultado_prueba_dialogo(id_prueba, _exito_prueba_dialogo)
+	_prueba_dialogo_en_curso = false
+
+
+func _resolver_prueba_dialogo(atributo: String, titulo: String) -> void:
+	var valor: int = ficha_jugador.call(StringName("obtener_" + atributo))
+	ultima_prueba_dialogo = motor_dados_dialogo.resolver_prueba(valor)
+	if not ultima_prueba_dialogo.valida:
+		return
+	prueba_dialogo_resuelta = true
+	_exito_prueba_dialogo = ultima_prueba_dialogo.exitosa
+	historial_tiradas.registrar(ultima_prueba_dialogo)
+	_registrar_resultado_narrativo(
+		titulo, ResultadoAccion.crear_exito().con_tirada(ultima_prueba_dialogo),
+		EntradaRegistroNarrativo.Categoria.TIRADA, atributo.left(3).to_upper()
+	)
+	panel_resultado_accion.mostrar_tirada(titulo, ultima_prueba_dialogo)
+	if panel_resultado_accion.visible:
+		await panel_resultado_accion.cerrado
 
 
 func _obtener_ilustracion_dialogo_jugador() -> Texture2D:
@@ -2543,4 +2769,8 @@ func _on_dialogo_npc_finalizado(recurso: DialogueResource) -> void:
 		return
 	dialogo_npc_activo = false
 	recurso_dialogo_npc_activo = null
+	tema_dialogo_npc_activo = null
+	npc_dialogo_activo = null
+	ultima_prueba_dialogo = null
+	prueba_dialogo_resuelta = false
 	_actualizar_estado_modal_interaccion()

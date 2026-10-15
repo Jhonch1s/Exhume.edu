@@ -1,7 +1,21 @@
 # Visión, iluminación y niebla de guerra
 
-Diseño acordado el 09-10-2026. Pendiente de implementación; este documento no
-describe como existentes las capacidades propuestas.
+Diseño acordado el 09-10-2026. La separación general de iluminación, percepción
+del jugador y niebla de guerra sigue pendiente. La superposición de visión NPC
+descrita abajo sí está implementada.
+
+## Superposición de campos NPC — 15-10-2026
+
+V alterna campos de los NPC actualmente visibles. Usa el radio y la línea visual
+de cada NPC; sólo dibuja casillas `VISIBLE` del tablero. Un oculto, un cadáver o
+una casilla sólo recordada no aparecen. Colores: rojo para hostil u oponente,
+verde para amistoso o aliado, gris para neutral. Si un neutral defiende al bando
+oponente, se pinta rojo mientras dure el encuentro. No se cambia la detección,
+la iluminación ni el guardado. [Prueba manual](../pruebas/VISION_NPC.md).
+
+El estado `VISIBLE` todavía procede del proyector de luz actual, como explica el
+diagnóstico inferior. Por eso esta capa respeta la visibilidad actual del juego,
+pero no resuelve por sí misma la separación futura de luz y percepción del jugador.
 
 ## Tres conceptos distintos
 

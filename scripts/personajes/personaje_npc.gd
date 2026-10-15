@@ -7,6 +7,7 @@ extends Interactuable
 
 signal puntos_vida_cambiados(actual: int, maximo: int)
 signal derrota_cambiada(derrotado: bool)
+signal muerte_por_danio(fuente: Object)
 signal estado_cambiado(clave: StringName, estado: EstadoActor)
 
 @export_category("Identidad del personaje")
@@ -25,7 +26,12 @@ var _inventario: Inventario
 
 var estado_personaje: EstadoPersonajeNPC
 ## Se reconstruye desde rondas al cargar; no es la relación persistente.
-var en_oposicion_encuentro: bool = false
+var bando_encuentro: int = GestorRondas.Bando.NEUTRAL
+var en_oposicion_encuentro: bool:
+	get:
+		return bando_encuentro == GestorRondas.Bando.OPONENTE
+	set(valor):
+		bando_encuentro = GestorRondas.Bando.OPONENTE if valor else GestorRondas.Bando.NEUTRAL
 var _origen_inicial: Variant = null
 var motor_dados: MotorDados = MotorDados.new()
 var aplicador_efectos: AplicadorEfectos = AplicadorEfectos.new()
@@ -272,12 +278,12 @@ func mover_por_camino(
 	camino: Array[Vector2i], preparar_paso: Callable, confirmar_paso: Callable,
 	cancelar_paso: Callable, procesar_salida: Callable, procesar_entrada: Callable,
 	calcular_coste_paso: Callable, recalcular_camino: Callable = Callable(),
-	esperar_ruta: Callable = Callable(), destino_final: Variant = null
+	destino_final: Variant = null
 ) -> bool:
 	return await movimiento.mover_por_camino(
 		self, camino, tablero.capa_referencia, preparar_paso, confirmar_paso,
 		cancelar_paso, procesar_salida, procesar_entrada, calcular_coste_paso,
-		Callable(), true, recalcular_camino, esperar_ruta, destino_final
+		Callable(), true, recalcular_camino, destino_final
 	)
 
 
@@ -347,6 +353,7 @@ func recordar_posicion_jugador(coordenada: Vector2i) -> void:
 	var estado := _asegurar_estado()
 	if estado != null:
 		estado.ultima_posicion_conocida = coordenada
+		estado.objetivo_recordado_id = &""
 	var patrulla := obtener_patrulla()
 	if patrulla != null:
 		patrulla.cancelar_espera()
@@ -356,6 +363,24 @@ func olvidar_posicion_jugador() -> void:
 	var estado := _asegurar_estado()
 	if estado != null:
 		estado.ultima_posicion_conocida = null
+		estado.objetivo_recordado_id = &""
+
+
+func recordar_objetivo(objetivo: Object, coordenada: Vector2i) -> void:
+	recordar_posicion_jugador(coordenada)
+	if objetivo is PersonajeNPC:
+		_asegurar_estado().objetivo_recordado_id = objetivo.obtener_id_actor()
+
+
+func obtener_id_objetivo_recordado() -> StringName:
+	var estado := _asegurar_estado()
+	return estado.objetivo_recordado_id if estado != null else &""
+
+
+func comparte_faccion(otro: PersonajeNPC) -> bool:
+	var perfil := obtener_definicion_personaje()
+	var otro_perfil := otro.obtener_definicion_personaje() if otro != null else null
+	return perfil != null and otro_perfil != null and perfil.faccion_id != &"" and perfil.faccion_id == otro_perfil.faccion_id
 
 
 func agotar_recursos_turno() -> void:
@@ -394,13 +419,15 @@ func consumir_recurso_turno(clave: StringName, cantidad: int) -> bool:
 	)
 
 
-func recibir_danio(cantidad: int, _fuente: Object = null) -> int:
+func recibir_danio(cantidad: int, fuente: Object = null) -> int:
 	var estado := _asegurar_estado()
 	if estado == null:
 		return 0
 	var anterior := estado.vida_actual
 	var aplicado := estado.recibir_danio(cantidad)
 	_notificar_cambio_vida(anterior, estado.vida_actual)
+	if anterior > 0 and estado.vida_actual == 0:
+		muerte_por_danio.emit(fuente)
 	return aplicado
 
 
@@ -449,8 +476,21 @@ func modificar_actitud_hacia_jugador(delta: int) -> int:
 	return estado.modificar_actitud_hacia_jugador(delta) if estado != null else 0
 
 
+func obtener_resultado_prueba_dialogo(id_prueba: StringName) -> Variant:
+	var estado := _asegurar_estado()
+	return estado.resultados_pruebas_dialogo.get(id_prueba) if estado != null else null
+
+
+func recordar_resultado_prueba_dialogo(id_prueba: StringName, exito: bool) -> void:
+	var estado := _asegurar_estado()
+	if estado != null:
+		estado.resultados_pruebas_dialogo[id_prueba] = exito
+
+
 func se_opone_al_jugador() -> bool:
-	return en_oposicion_encuentro or obtener_actitud_hacia_jugador() == DefinicionPersonaje.ActitudInicialJugador.HOSTIL
+	if bando_encuentro != GestorRondas.Bando.NEUTRAL:
+		return en_oposicion_encuentro
+	return obtener_actitud_hacia_jugador() == DefinicionPersonaje.ActitudInicialJugador.HOSTIL
 
 
 func obtener_estado_persistente() -> Dictionary:

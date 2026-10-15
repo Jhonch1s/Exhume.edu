@@ -13,6 +13,7 @@ static func crear_solicitudes(
 	var solicitudes: Array[SolicitudEfecto] = []
 	if tablero == null or radio < 0 or magnitud <= 0 or id_evento == &"":
 		return solicitudes
+	var alcanzados: Dictionary[Object, bool] = {}
 	for y in range(-radio, radio + 1):
 		for x in range(-radio, radio + 1):
 			if absi(x) + absi(y) > radio:
@@ -20,12 +21,15 @@ static func crear_solicitudes(
 			var celda := tablero.obtener_celda(centro + Vector2i(x, y))
 			if celda == null:
 				continue
-			for objetivo in celda.ocupantes.duplicate():
+			# Los NPC están registrados como interactuables, la ficha como ocupante.
+			for objetivo in celda.ocupantes.duplicate() + celda.interactuables.duplicate():
 				if (
 					objetivo != null
 					and is_instance_valid(objetivo)
 					and objetivo.has_method(&"recibir_danio")
+					and not alcanzados.has(objetivo)
 				):
+					alcanzados[objetivo] = true
 					solicitudes.append(SolicitudEfecto.new(
 						&"explosion",
 						&"dano",

@@ -1,5 +1,53 @@
 # Pruebas
 
+La [consolidación de NPC del 15-10-2026](CONSOLIDACION_NPC.md) registra las
+correcciones de estados JSON y carga desde otro encuentro, la prueba de archivo
+recuperada y los conteos de rutas/FOV. Las cifras siguientes incluyen ese corte.
+
+Consecuencias configurables: `prueba_consecuencias_dialogo_npc.tscn` pasó 162
+comprobaciones de ramas, actitud/información, intento único o repetible, K/C,
+guardados anteriores, memoria inválida y configuración inválida sin efectos
+parciales. Escena manual: `escena_consecuencias_dialogo_npc.tscn`;
+[construcción en Inspector](../contenido/CONSECUENCIAS_DIALOGO_NPC.md) y
+[recorrido jugable](DIALOGOS_CON_TIRADAS.md). También pasaron el diálogo base
+(87), estado NPC (21 grupos), actitud, conocimiento (6 casos) y diálogos
+interactuables. Revisión manual del catálogo pendiente (15-10-2026).
+
+Diálogo con tirada: `prueba_dialogo_tirada_npc.tscn` pasó 87 comprobaciones de
+éxito/fallo, crítico/pifia, una sola presentación y registro por elección, doble
+clic, animación sin azar adicional y bloqueo/liberación de K/C. Escena manual:
+`escena_dialogo_tirada_npc.tscn`; [guía](DIALOGOS_CON_TIRADAS.md). También pasaron
+actitud, diálogos interactuables, motor de dados, pruebas Exhume e historial.
+El usuario confirmó su funcionamiento en juego (15-10-2026), sin detallar pasos.
+
+Táctica NPC: `prueba_tactica_npc.tscn` pasó 68 comprobaciones de objetivos por
+visión/bando, estados, combate real con poca vida sin huida/humo automático,
+inventario, K/C y cadáver/botín. Huida y uso automático de humo quedan incompletos
+y aplazados tras el problema de regreso/reentrada en combate observado por el
+usuario. Escena manual: `escena_tactica_npc.tscn`; [guía vigente](TACTICA_NPC.md).
+Los scripts antiguos `SceneTree` con autoloads pueden ejecutarse mediante
+`tests/ejecutar_con_autoloads.gd -- res://ruta.gd`.
+
+Campos de visión NPC: `prueba_facciones_npc.tscn` comprueba colores por relación
+y bando vigente, ocultación de NPC y casillas, pared, Trompo, cadáver y alternancia.
+La revisión visual de V se describe en [Campos de visión de NPC](VISION_NPC.md).
+El 15-10-2026 el usuario confirmó que funciona en juego, sin detallar pasos.
+
+XP directa/indirecta: `prueba_xp_indirecta_npc.tscn` pasó 231 comprobaciones de
+veneno y quemado al cerrar turno, explosión múltiple, fuentes sin autor, bando,
+exclusiones, entrega única, cierre, K/C y guardados anteriores. Escena manual:
+`escena_xp_indirecta_npc.tscn`. `prueba_facciones_npc.tscn` conserva la cobertura
+de daño directo, barra, aliados, entrega única y persistencia. Recorrido jugable en
+[XP de NPC](XP_NPC.md). El usuario confirmó recepción de XP el 15-10-2026;
+no detalló todas las fuentes ni los casos de carga del recorrido manual.
+
+Facciones y bandos: `prueba_facciones_npc.tscn` pasó 287 comprobaciones de auxilio por visión,
+prioridades, bandos, iniciativa, memoria compartida sólo entre aliados, turno
+real entre NPC, K/C y migración, atomicidad, cadáver y botín. Escena manual:
+`escena_facciones_npc.tscn`; [guía](FACCIONES_NPC.md). Implementación y revisión
+automática del 14-10-2026. El 15-10-2026 el usuario probó la escena y comunicó
+que las pruebas parecen funcionar, sin detallar la cobertura manual.
+
 Actitud: `prueba_actitud_npc.tscn` cubre puntos, migración, defensa, mutaciones
 reales de Dialogue Manager y K/C sin repetir consecuencias. La escena manual
 `escena_actitud_npc.tscn` y su [guía](ACTITUD_NPC.md) permiten revisar el neutral

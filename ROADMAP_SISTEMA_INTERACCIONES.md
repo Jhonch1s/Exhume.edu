@@ -6,10 +6,252 @@
 
 ## Estado general
 
-- Estado actual: bloque de actitud de NPC cerrado, con pruebas automáticas y revisión manual confirmada por el usuario.
-- Próximo paso: facciones y bandos en un nuevo chat. Después XP por muerte y presentación del alcance de visión en chats separados. Niveles y habilidades siguen aplazados.
-- Última comprobación jugable del usuario: actitud de NPC, 11-10-2026, con «ya quedó todo testeado, veo que funciona». K conserva últimas casillas confirmadas durante movimiento; C exige reposo.
-- Última actualización: 11-10-2026.
+### Consolidación tras auditoría NPC — 15-10-2026
+
+Se corrigieron los guardados con estados de dados y la pérdida de memoria al
+cargar exploración desde otro encuentro. Se recuperó la integración de archivo,
+se compartió persistencia de inventario y se retiró la espera de ruta sin uso.
+La selección reutiliza rutas en la misma decisión; mover un NPC no opaco no
+recalcula FOV. [Resultados, alcance y límites](docs/pruebas/CONSOLIDACION_NPC.md).
+Se conserva el catálogo de consecuencias y su guía permanente. No se integra
+la rama ni se activan huida, humo, curación o buffs durante esta consolidación.
+
+### Consecuencias de diálogo configurables — 15-10-2026
+
+El usuario confirmó el funcionamiento del primer diálogo y pidió facilitar la
+construcción de otros NPC mediante consecuencias previstas. Confirmó un catálogo
+inicial de cambios de actitud y revelación de información. `DialogoNPC.pruebas`
+contiene recursos con atributo, título, ID, opción de intento único y listas de
+consecuencias de éxito/fallo editables en el Inspector. El texto solicita la
+prueba por ID; el escenario reutiliza el motor y valida ambas listas antes de tirar.
+
+Al cerrar el panel se aplican las consecuencias antes de continuar la respuesta.
+El intento único conserva éxito o fallo por NPC; volver a pedirlo reutiliza la
+rama sin dado ni efectos nuevos. Desactivarlo permite repetir la prueba. El
+campo opcional `pruebas_dialogo` amplía el estado de NPC sin cambiar versión:
+guardados anteriores lo restauran vacío. K/C conserva intento, actitud y
+conocimiento juntos y mantiene el bloqueo durante la conversación completa.
+
+Escena F6: `tests/interacciones/escena_consecuencias_dialogo_npc.tscn`.
+[Guía de construcción](docs/contenido/CONSECUENCIAS_DIALOGO_NPC.md) y
+[prueba manual](docs/pruebas/DIALOGOS_CON_TIRADAS.md). Pasaron 162 comprobaciones
+dirigidas, las 87 del diálogo base y regresiones de estado NPC, actitud,
+conocimiento y diálogos. Revisión jugable del catálogo pendiente. No se añaden
+objetos, XP, misiones ni efectos arbitrarios como consecuencias en este corte.
+
+### Primer diálogo con tirada — implementado el 15-10-2026
+
+El custodio de prueba ofrece convencerlo con VOL o despedirse sin tirar. La
+elección solicita una prueba normal de 1d6 al motor existente, registra una sola
+entrada en historial y registro narrativo y abre el panel de dados. El diálogo
+espera su cierre y continúa por éxito o fallo; crítico y pifia conservan las
+reglas existentes. La animación no decide ni repite la prueba. El globo bloquea
+selecciones repetidas mientras espera la línea.
+
+K/C permanece bloqueado durante toda la conversación, incluso después de cerrar
+los dados; vuelve a habilitarse al terminar. El resultado es temporal, sin nuevos
+campos de guardado, premios ni cambios de actitud. Reabrir la conversación permite
+otra elección y otra prueba. No se define todavía un intento único persistente.
+
+Prueba dirigida: 87 comprobaciones de ramas, crítico/pifia, registro, presentación,
+doble clic y K/C repetida. También pasaron actitud, diálogos interactuables y motor,
+pruebas e historial de dados. Escena manual:
+`tests/interacciones/escena_dialogo_tirada_npc.tscn`; [guía](docs/pruebas/DIALOGOS_CON_TIRADAS.md).
+El usuario confirmó el 15-10-2026 que funcionó muy bien en juego, sin detallar cada
+paso manual. El catálogo posterior de consecuencias se registra por separado arriba.
+
+### XP por muertes indirectas — implementado el 15-10-2026
+
+Durante un encuentro activo, la muerte de un NPC participante del bando oponente
+concede su recompensa completa a la ficha, sin exigir daño previo ni autor del
+golpe mortal. Incluye veneno, quemado, explosión, terreno, daño sin fuente y daño
+de otro oponente. Aliados, ajenos al encuentro y muertes fuera de combate no
+premian al jugador; los NPC todavía no acumulan XP propia.
+
+Se conserva la señal de transición de vivo a cadáver y el snapshot actual:
+K/C rebobina muerte, estados y XP juntos; cargar cadáveres no vuelve a entregar
+la recompensa. No hay historial de contribuciones, marcador nuevo ni cambio de
+versión. También se corrigió que `Explosion` sólo consultaba ocupantes: ahora
+alcanza a los NPC interactuables y evita duplicar una víctima entre registros.
+
+Prueba dirigida: 197 comprobaciones de fuentes, estados reales, explosión
+múltiple, último oponente, bandos, exclusiones, K/C repetida, migración y controles
+manuales. Escena: `tests/interacciones/escena_xp_indirecta_npc.tscn`; guía:
+[XP de NPC](docs/pruebas/XP_NPC.md). Entrega básica confirmada en juego. La entrega directa
+descrita en la entrada histórica «XP por derrota de NPC» queda ampliada por ésta.
+
+El 15-10-2026 el usuario confirmó que funcionan en juego el agro automático,
+la persecución de los dos duendes y la recepción de XP en esta escena. No detalló
+las fuentes de muerte ni los pasos de K/C revisados manualmente; esos casos
+conservan la cobertura automática registrada, sin atribuirle una revisión completa.
+
+### Curación y buffs de NPC — prioridad solicitada el 15-10-2026
+
+El usuario pidió autocuración con menos del 50 % de PV si existe un medio real;
+curar a sí mismo u otros NPC aliados antes de atacar; y usar item/habilidad para
+buffarse cuando no haya un buff activo, antes de atacar u otras acciones.
+Se registra la prioridad de curación por delante del buff y del ataque, siempre
+respetando capacidades, estados, recursos, alcance, percepción y bandos.
+
+No está implementado el apoyo en combate. La operación básica `curar()` existe,
+pero no hay objetos curativos, buffs utilizables ni habilidades de combate.
+Falta elegir el primer medio concreto, su efecto/coste y qué constituye un buff
+activo; no se agregan pociones, habilidades ni efectos ficticios para aparentar
+esta decisión. Detalle y cuestiones pendientes en
+[NPC y diálogos](docs/contenido/NPC_Y_DIALOGOS.md). La huida continúa aplazada.
+
+### Primer corte táctico NPC — alcance reducido el 15-10-2026
+
+Se conserva la selección táctica de objetivos durante encuentros existentes:
+oponentes visibles, adyacentes primero, después acercamiento pagable, menor PV,
+distancia e ID. Liberarse y caída conservan prioridad. No cambia bandos, actitud,
+iniciativa, recursos, formato de guardado, Trompo, cadáver/botín ni patrullas.
+
+**Huida y uso automático de humo: incompletos y aplazados por decisión del usuario.**
+En juego observó que el NPC lanzó humo, se movió al centro y, al perder visión y
+salir del combate, quiso regresar a su posición habitual y volvió a entrar en
+combate automáticamente. El prototipo no resuelve la continuidad entre huida,
+búsqueda y retorno. El usuario indicó que no es esencial y pidió dejarlo pendiente.
+
+Se retiraron del árbol y del ejecutor la retirada y el lanzamiento automático;
+se retiró también el booleano provisional `retirarse_con_poca_vida`. Tener poca
+vida no cambia el ataque/acercamiento normal ni consume bombas. El objeto y su
+lanzamiento por el jugador siguen disponibles. Si se retoma la huida, la preferencia
+anterior era una opción por perfil, con umbral por revisar; no una regla universal.
+Guía vigente: [Táctica NPC](docs/pruebas/TACTICA_NPC.md).
+
+Prueba dirigida vigente: 50 comprobaciones de selección, estados, combate real
+con poca vida sin huida/humo automático, inventario, K/C y cadáver. Las 95 pruebas
+del prototipo anterior no acreditan una huida cerrada: la revisión jugable reveló
+este problema. La XP indirecta se implementó en el segundo corte descrito al
+comienzo; el primer diálogo con tirada también está implementado para revisión.
+También pasaron facciones/XP/visión (215 comprobaciones), exploración autónoma,
+lanzamiento lógico del jugador (seis pruebas) y bloqueo de visión por humo.
+
+### Próximo alcance de consolidación NPC — 15-10-2026
+
+El usuario eligió trabajar en tres frentes, en este orden de definición:
+
+1. Más decisiones de IA durante encuentros existentes: el usuario eligió ambas
+   líneas propuestas, selección táctica de objetivos y retirada con poca vida,
+   más uso de objetos del inventario. Se ampliará el selector LimboAI y su
+   ejecución sin cambiar iniciativa, bandos, percepción, recursos o actitud.
+   Actualización posterior: sólo se conserva selección táctica; huida y humo
+   automático quedan aplazados. Pociones bebibles
+   todavía no tienen mecánica de uso y quedan fuera de este corte.
+2. XP por muertes indirectas: la regla final sustituye la atribución por daño
+   previo. Si un participante muere durante un encuentro activo, cada integrante
+   combatiente del bando opuesto recibe la recompensa completa aunque no haya
+   golpeado a la víctima; la fuente del daño mortal no importa. En el sistema
+   actual sólo se acredita a la ficha del jugador por la muerte de un oponente:
+   los NPC no acumulan XP. El reparto completo se aplicará al futuro grupo del
+   jugador cuando exista. Una muerte fuera de combate no concede XP en este
+   corte. Se conserva la entrega única en la transición a cadáver y K/C rebobina
+   XP y muerte juntos, sin historial de contribuciones ni nuevo dato de guardado.
+3. Diálogos con tiradas: el primer caso será un NPC de prueba con ramas de éxito
+   y fallo. Una opción solicitará una prueba al motor existente, registrará y
+   mostrará su resultado y continuará por la rama correspondiente sin repetir
+   la tirada al presentarla. K/C conserva la política modal actual.
+
+Cada frente tendrá pruebas automáticas, escena manual y documentación antes de
+cerrarse. Combate autónomo entre NPC sin jugador, separación general de luz,
+percepción y niebla, reputación global, grupo, niveles y habilidades quedan
+marcados como trabajo futuro. La acción adicional sigue sin regla.
+Este apartado fija el alcance acordado; el primer corte de IA ya se implementó
+para revisión. El segundo corte de XP indirecta también está implementado;
+el primer diálogo con tirada también está implementado para revisión.
+
+Criterios mínimos vigentes de IA: no consulta objetivos ocultos y conserva
+bandos, recursos e inventario tras K/C. Los criterios de uso de bombas se retoman
+cuando se reabra ese trabajo aplazado. XP cubre muerte por estado,
+explosión y otra fuente sin autor dentro del encuentro, exclusión fuera de él,
+recompensa cero, repetición de carga y snapshots anteriores. El diálogo de
+prueba debe producir exactamente una tirada visible y registrable por elección,
+seguir la rama correcta y cerrar el modal sin alterar las reglas de guardado.
+
+### Campos de visión de NPC — 15-10-2026
+
+V alterna una superposición translúcida de las casillas que puede ver cada NPC
+actualmente visible para el jugador. Rojo indica hostilidad o bando oponente del
+encuentro; verde, amistad o bando aliado; gris, neutralidad. Durante combate manda
+el bando vigente, de modo que un neutral que se defiende aparece rojo sin cambiar
+su relación persistente. La capa usa el alcance y los obstáculos de la percepción
+del NPC y sólo pinta casillas actualmente visibles del tablero. No muestra NPC
+ocultos, explorados sin visibilidad actual ni cadáveres. Trompo visible conserva
+su campo gris aunque no participe en combate.
+
+La prueba dirigida pasó 215 comprobaciones del conjunto de facciones, XP y visión,
+incluidos colores, ocultación, obstáculos, bando temporal y cadáver.
+[Guía de revisión manual](docs/pruebas/VISION_NPC.md). La separación
+general entre iluminación, percepción del jugador y niebla de guerra continúa
+pendiente; esta capa sólo presenta la visión NPC existente.
+El 15-10-2026 el usuario la revisó en juego y confirmó que funciona y que,
+por ahora, es suficiente; no detalló qué pasos de la guía completó.
+
+### XP por derrota de NPC — acuerdo del 15-10-2026
+
+El usuario decidió que una recompensa de 50 XP concede 50 XP completos a cada
+integrante del futuro grupo, sin dividirla. Como todavía no existe el grupo ni
+XP de aliados NPC, este corte acredita la recompensa declarada en
+`DefinicionPersonaje.experiencia_recompensa_derrota` a la ficha del jugador por
+una baja de un oponente causada por él o por un aliado del encuentro. Se entrega
+una vez al pasar de vivo a cadáver. Bajas de aliados, de oponentes entre sí y
+daño sin responsable directo no conceden XP en este corte; las muertes por
+estados, terreno y daño compartido requieren una regla posterior de atribución.
+
+La ficha ya guardaba XP acumulada: muerte y premio quedan juntos en K/C, sin
+marcador adicional. Cargar antes de la muerte devuelve NPC vivo y XP anterior;
+cargar después conserva cadáver y XP sin repetir la entrega. Las fichas antiguas
+sin campo de XP comienzan en cero y los cadáveres existentes no dan premios
+retroactivos. El HUD muestra la XP real y el avance hasta el próximo umbral de
+la curva acordada; al alcanzarlo queda lleno. Subir niveles y elegir habilidades
+o atributos sigue aplazado.
+
+Implementado el 15-10-2026 con 200 comprobaciones automáticas de ataque mortal
+real, atribución a aliado, exclusiones, K/C y migración. La escena manual de facciones
+permite bajar `vida_combatientes` a 1 y muestra la XP acumulada. Guía:
+[XP de NPC](docs/pruebas/XP_NPC.md). Revisión jugable del usuario pendiente.
+
+### Facciones y bandos — acuerdo del 14-10-2026
+
+El usuario aprobó una facción fija por definición (ID vacío = sin facción),
+separada del bando temporal del encuentro: jugador, oposición y neutral fuera
+del encuentro. Compartir facción habilita auxilio local, no comparte puntos.
+Prioridad: defensa propia, compañero de facción agredido, relación con jugador.
+Los amistosos ayudan frente a hostiles que amenazan al jugador; una agresión
+del jugador a un neutral no los recluta. Un compañero amistoso puede defender
+al agredido contra el jugador. Los puntos y diálogos cambian sólo al destinatario;
+los testigos no reciben penalización ni existe contagio global de relación.
+
+Un testigo combatiente vivo debe ver agresor y agredido al resolverse el intento,
+incluidos fallo y esquiva. Incorporación posterior: percepción de un participante
+pertinente a min(7, radio propio), al final de ronda, sin convocatorias ni cadenas
+en la misma evaluación. Sólo aliados del encuentro comparten posiciones vistas;
+atacar requiere visión propia. Actitud fija y capacidades prevalecen, incluido
+Trompo no combatiente. Cambiar puntos no cambia un bando vigente.
+
+Se guardan bandos por ID dentro de rondas, iniciativa, recursos y objetivos
+recordados; cargar no repite consecuencias. Sin bandos, los guardados anteriores
+interpretan todos sus NPC como oposición al jugador. Este corte incluye combate
+entre NPC de bandos contrarios en encuentros con jugador. Encuentros autónomos
+sin jugador, diplomacia entre facciones, cambios de pertenencia, presentación
+de visión, niveles y habilidades quedan fuera.
+
+Implementado el 14-10-2026: facción en definición, bandos y defendidos por ID en
+el gestor existente, auxilio tras resolución, objetivos NPC, memoria por bando,
+HUD con aliados/oponentes y migración v2 sin repetir efectos. La prueba dirigida
+pasó 160 comprobaciones de auxilio local, prioridades, visión, incorporación sin
+cadenas, iniciativa, turno real aliado, K/C, rechazo atómico, cadáver y botín.
+También pasaron actitud, persistencia NPC (21 grupos), esquiva (20 casos), rondas,
+exploración autónoma y patrullas (8 circuitos cada NPC en 40 segundos) en Godot 4.7.
+Escena y guía: [Facciones y bandos](docs/pruebas/FACCIONES_NPC.md).
+El 15-10-2026 el usuario probó la escena y comunicó que las pruebas parecen
+funcionar, sin detallar cada caso de la guía.
+
+- Estado actual: actitud cerrada; facciones y bandos implementados, comprobados automáticamente y probados por el usuario sin fallos comunicados.
+- Próximo paso: revisar XP en juego. La capa de visión ya fue confirmada por el usuario; niveles y habilidades siguen aplazados.
+- Última comprobación jugable del usuario: facciones y bandos, 15-10-2026, con «estuve haciendo las prubas y parecen funcionar»; no se detalló la cobertura manual.
+- Última actualización: 15-10-2026 (campos de visión NPC).
 
 ### Actitud de NPC — acuerdo del 11-10-2026
 

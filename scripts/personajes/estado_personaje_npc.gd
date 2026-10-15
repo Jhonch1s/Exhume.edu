@@ -23,8 +23,11 @@ var nivel_actual: int
 var recursos_turno: RecursosTurnoActor
 var estados_temporales := EstadosTemporalesActor.new()
 var ultima_posicion_conocida: Variant = null
+## Vacío conserva el significado anterior: la posición recordada es del jugador.
+var objetivo_recordado_id: StringName = &""
 var coordenada_origen: Variant = null
 var _puntos_actitud: int
+var resultados_pruebas_dialogo: Dictionary[StringName, bool] = {}
 
 
 func _init(
@@ -129,6 +132,11 @@ func obtener_estado_persistente() -> Dictionary:
 	if not definicion.actitud_hacia_jugador_fija:
 		estado["actitud_hacia_jugador"] = obtener_actitud_hacia_jugador()
 		estado["puntos_actitud"] = _puntos_actitud
+	if not resultados_pruebas_dialogo.is_empty():
+		var pruebas: Dictionary = {}
+		for id_prueba in resultados_pruebas_dialogo:
+			pruebas[String(id_prueba)] = resultados_pruebas_dialogo[id_prueba]
+		estado["pruebas_dialogo"] = pruebas
 	if recursos_turno != null:
 		var restantes: Dictionary = {}
 		for clave in RecursosTurnoActor.CLAVES:
@@ -141,6 +149,8 @@ func obtener_estado_persistente() -> Dictionary:
 		)
 		if coordenada_origen is Vector2i:
 			estado["coordenada_origen"] = [coordenada_origen.x, coordenada_origen.y]
+		if objetivo_recordado_id != &"":
+			estado["objetivo_recordado_id"] = String(objetivo_recordado_id)
 	return estado
 
 
@@ -168,6 +178,20 @@ func validar_estado_persistente(estado: Dictionary) -> StringName:
 	var tiene_memoria := estado.has("ultima_posicion_conocida")
 	var tiene_origen := estado.has("coordenada_origen")
 	var tiene_puntos := estado.has("puntos_actitud")
+	var tiene_objetivo := estado.has("objetivo_recordado_id")
+	var tiene_pruebas := estado.has("pruebas_dialogo")
+	if tiene_pruebas:
+		if not estado["pruebas_dialogo"] is Dictionary:
+			return &"pruebas_dialogo_guardadas_invalidas"
+		for clave in estado["pruebas_dialogo"]:
+			if not clave is String or clave.strip_edges().is_empty() or not estado["pruebas_dialogo"][clave] is bool:
+				return &"pruebas_dialogo_guardadas_invalidas"
+	if tiene_objetivo and (
+		not estado["objetivo_recordado_id"] is String
+		or estado["objetivo_recordado_id"].is_empty()
+		or estado.get("ultima_posicion_conocida") == null
+	):
+		return &"memoria_npc_guardada_invalida"
 	if definicion.actitud_hacia_jugador_fija:
 		if estado.has("actitud_hacia_jugador") or tiene_puntos:
 			return &"actitud_npc_guardada_invalida"
@@ -183,8 +207,8 @@ func validar_estado_persistente(estado: Dictionary) -> StringName:
 	):
 		return &"actitud_npc_guardada_invalida"
 	if (
-		estado.size() != campos_base + int(tiene_recursos) + int(tiene_estados) + int(tiene_movimiento_maximo) + int(tiene_memoria) + int(tiene_origen) + int(tiene_puntos)
-		or ((tiene_movimiento_maximo or tiene_memoria or tiene_origen) and not tiene_recursos)
+		estado.size() != campos_base + int(tiene_recursos) + int(tiene_estados) + int(tiene_movimiento_maximo) + int(tiene_memoria) + int(tiene_origen) + int(tiene_puntos) + int(tiene_objetivo) + int(tiene_pruebas)
+		or ((tiene_movimiento_maximo or tiene_memoria or tiene_origen or tiene_objetivo) and not tiene_recursos)
 	):
 		return &"estado_npc_guardado_invalido"
 	var recuerdo: Variant = estado.get("ultima_posicion_conocida")
@@ -230,10 +254,14 @@ func restaurar_estado_persistente(estado: Dictionary) -> StringName:
 	nivel_actual = int(estado["nivel_actual"])
 	for clave in ATRIBUTOS:
 		atributos_actuales[clave] = int(estado["atributos"][String(clave)])
+	resultados_pruebas_dialogo.clear()
+	for id_prueba in estado.get("pruebas_dialogo", {}):
+		resultados_pruebas_dialogo[StringName(id_prueba)] = estado["pruebas_dialogo"][id_prueba]
 	if not definicion.actitud_hacia_jugador_fija:
 		_puntos_actitud = int(estado.get("puntos_actitud", _puntos_para_actitud(int(estado["actitud_hacia_jugador"]))))
 	var recuerdo: Variant = estado.get("ultima_posicion_conocida")
 	ultima_posicion_conocida = Vector2i(int(recuerdo[0]), int(recuerdo[1])) if recuerdo is Array else null
+	objetivo_recordado_id = StringName(estado.get("objetivo_recordado_id", ""))
 	if estado.has("coordenada_origen"):
 		var origen: Array = estado["coordenada_origen"]
 		coordenada_origen = Vector2i(int(origen[0]), int(origen[1]))

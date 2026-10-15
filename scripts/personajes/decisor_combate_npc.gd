@@ -3,6 +3,7 @@ extends BTPlayer
 
 ## LimboAI selecciona una intención. El escenario ejecuta y vuelve a consultar.
 const ARBOL := preload("res://recursos/ia/combate_npc.tres")
+const DIRECCIONES := [Vector2i.UP, Vector2i.LEFT, Vector2i.RIGHT, Vector2i.DOWN]
 
 
 func _init() -> void:
@@ -11,10 +12,17 @@ func _init() -> void:
 
 
 func elegir(
-	npc: PersonajeNPC, objetivo: Ficha, tablero: TableroGrid,
-	buscador: PathFindingManager, objetivo_visible: bool,
+	npc: PersonajeNPC, tablero: TableroGrid, buscador: PathFindingManager,
+	visibles: Array[Object] = [],
 	perseguir_recuerdo: bool = false
 ) -> Dictionary:
+	var enredado := npc.obtener_estado(&"enredado") != null
+	var caido := npc.obtener_estado(&"caido") != null
+	var seleccion := {"objetivo": null, "camino": []}
+	if not enredado and not caido:
+		seleccion = _elegir_objetivo(npc, visibles, tablero, buscador)
+	var objetivo: Object = seleccion["objetivo"]
+	var objetivo_visible := objetivo != null
 	var recuerdo: Variant = npc.obtener_ultima_posicion_conocida()
 	var objetivo_conocido := objetivo_visible or (perseguir_recuerdo and recuerdo != null)
 	var posicion_objetivo: Variant = objetivo.coordenada_mapa if objetivo_visible else recuerdo
@@ -23,9 +31,8 @@ func elegir(
 		var distancia: Vector2i = npc.coordenada_mapa - posicion_objetivo
 		adyacente = absi(distancia.x) + absi(distancia.y) == 1
 	var camino: Array[Vector2i] = []
-	var enredado := npc.obtener_estado(&"enredado") != null
-	var caido := npc.obtener_estado(&"caido") != null
-	if objetivo_conocido and not adyacente and npc.puede_moverse() and npc.obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO) > 0:
+	camino.assign(seleccion["camino"])
+	if not objetivo_visible and objetivo_conocido and not adyacente and npc.puede_moverse() and npc.obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO) > 0:
 		camino = _camino_acercamiento(npc, posicion_objetivo, tablero, buscador)
 	var busqueda_terminada := false
 	var regresando := false
@@ -83,10 +90,40 @@ func elegir(
 	blackboard.set_var(&"traza", [])
 	restart()
 	update(0.0)
+	var decision: StringName = blackboard.get_var(&"decision", &"terminar_turno")
 	return {
-		"decision": blackboard.get_var(&"decision", &"terminar_turno"),
-		"camino": camino, "objetivo_visible": objetivo_visible, "destino": destino,
+		"decision": decision, "objetivo": objetivo, "camino": camino,
+		"objetivo_visible": objetivo_visible, "destino": destino,
 	}
+
+
+## La lista procede de percepción propia y bandos del encuentro, nunca de la memoria.
+func _elegir_objetivo(
+	npc: PersonajeNPC, visibles: Array[Object], tablero: TableroGrid,
+	buscador: PathFindingManager
+) -> Dictionary:
+	var elegido: Object = null
+	var camino_elegido: Array[Vector2i] = []
+	var mejor: Array = []
+	for candidato in visibles:
+		var delta: Vector2i = candidato.coordenada_mapa - npc.coordenada_mapa
+		var adyacente := absi(delta.x) + absi(delta.y) == 1
+		var camino: Array[Vector2i] = []
+		if not adyacente and npc.obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO) > 0:
+			camino = _camino_acercamiento(npc, candidato.coordenada_mapa, tablero, buscador)
+		var prioridad := 0 if adyacente else (1 if camino.size() > 1 else 2)
+		var vida: int = candidato.vida_actual if candidato is PersonajeNPC else candidato.pv_actual
+		var rango := [prioridad, vida, delta.length_squared(), String(candidato.obtener_id_actor())]
+		var preferido := elegido == null
+		for indice in range(rango.size()):
+			if elegido != null and rango[indice] != mejor[indice]:
+				preferido = rango[indice] < mejor[indice]
+				break
+		if preferido:
+			elegido = candidato
+			camino_elegido = camino
+			mejor = rango
+	return {"objetivo": elegido, "camino": camino_elegido}
 
 
 func _camino_acercamiento(
@@ -96,7 +133,7 @@ func _camino_acercamiento(
 	var mejor: Array[Vector2i] = []
 	var mejor_peso := INF
 	# Orden estable: los empates no cambian entre evaluaciones o cargas.
-	for direccion in [Vector2i.UP, Vector2i.LEFT, Vector2i.RIGHT, Vector2i.DOWN]:
+	for direccion in DIRECCIONES:
 		var destino: Vector2i = objetivo + direccion
 		var camino := buscador.calcular_camino(npc.coordenada_mapa, destino, tablero.datos, npc)
 		if camino.size() < 2:

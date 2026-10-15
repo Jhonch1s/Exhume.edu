@@ -1,5 +1,61 @@
 ## Persistencia de interactuables colocados — incremento 12.1
 
+### Consolidación de carga — 15-10-2026
+
+Los términos de dados de estados se validan y convierten a `int` en la frontera
+de persistencia, porque JSON devuelve números como `float`. Fracciones, valores
+no finitos o tipos incorrectos se rechazan antes de cualquier mutación. El motor
+de dados conserva su validación estricta y el próximo FIN_TURNO ejecuta los términos
+restaurados. Esto se aplica tanto a ficha como a NPC, también a archivos anteriores.
+
+Cargar sin rondas descarta el gestor previo sin ejecutar su política de olvido
+sobre la memoria restaurada. No depende del bando anterior del NPC. Validar y
+restaurar siguen precediendo a la limpieza transitoria: un rechazo conserva el
+encuentro vigente. Formato, campos opcionales y versión no cambian.
+Casos y resultados: [Consolidación NPC](../pruebas/CONSOLIDACION_NPC.md).
+
+### XP por derrota de NPC — 15-10-2026
+
+`Ficha.experiencia_acumulada` es el total concedido y ya pertenece al snapshot
+de la ficha. La recompensa se suma al morir por daño un NPC participante del
+bando oponente durante un encuentro activo, sea daño directo, estados, explosión
+o fuente sin autor. No exige contribución previa del jugador ni de sus aliados.
+Cargar estados, examinar y recoger botín no emiten otra muerte por daño.
+Por ello no se añade un indicador de XP entregada al cadáver ni
+se cambia la versión. La ficha sin el campo antiguo migra a cero; los cuerpos
+ya muertos en archivos previos no conceden XP al cargar. Guardar antes de una
+baja y cargarla restaura a la vez NPC vivo y XP anterior. Los niveles siguen sin
+avance automático aunque la XP alcance el umbral.
+La prueba de XP indirecta también carga encuentros anteriores sin bandos y fichas
+sin XP: conserva los cadáveres con cero XP retroactiva y admite nuevas recompensas
+por muertes posteriores. No cambia el formato ni se persiste autoría de estados.
+
+### Bandos y objetivos de NPC — 14-10-2026
+
+Los encuentros nuevos escriben `rondas.bandos`, diccionario por ID con valores
+enteros `JUGADOR = 1` y `OPONENTE = 2`, y `rondas.defendidos`, lista de IDs únicos.
+Debe haber exactamente un bando por participante; el jugador conserva su lado
+y los NPC deben tener capacidad de combate. IDs desconocidos, tipos/rangos
+inválidos o listas repetidas se rechazan antes de cualquier cambio. Neutrales
+ajenos al encuentro no se serializan como participantes.
+
+Sin `bandos`, la preparación migra al jugador en su lado y todos los NPC
+participantes como oponentes, sin consultar su actitud actual. `defendidos`
+ausente comienza vacío y no reproduce agresiones anteriores. Sin `rondas`,
+cargar exploración limpia bandos previos. El nodo NPC deriva su oposición
+compatible del bando restaurado; no se guarda otro booleano.
+
+La coordenada existente `ultima_posicion_conocida` puede referirse a otro NPC;
+en ese caso se añade `estado.objetivo_recordado_id`, ID no vacío de un NPC
+registrado, con recuerdo válido. Sin ese campo se interpreta como recuerdo del
+jugador, conservando los archivos anteriores. Una referencia inválida cancela
+la restauración completa. No se consultan posiciones ocultas al compartir memoria.
+
+La facción fija pertenece a `DefinicionPersonaje.faccion_id`, no al estado mutable
+ni a una reputación global. No cambia la versión v2. Guardar/cargar conserva
+bandos, memoria, puntos, orden, iniciativas y recursos sin ejecutar ataques,
+deltas, ticks o tiradas nuevas. PV, botín y patrulla mantienen su formato anterior.
+
 `PersistenciaInteractuables` produce un `Dictionary` compatible con JSON con
 `version`, `zona_id` y los interactuables ordenados por ID estable. Cada entrada
 conserva `id`, `definicion_id`, coordenada y estado particular; nunca contiene
@@ -235,6 +291,21 @@ curso. Antes de comprobarlo recalcula el estado modal desde los paneles
 y acciones actuales. La escena manual traduce el motivo con el catálogo y lo
 registra en la salida; para un NPC en movimiento también registra su ID.
 
+Desde el 15-10-2026 el diálogo con tirada mantiene ese bloqueo durante toda la
+conversación: abrir/cerrar el panel de dados no permite guardar ni cargar entre
+la elección y la respuesta. El resultado temporal se limpia al terminar y no
+forma parte del snapshot. Cargar después no repite la tirada ni reabre el diálogo.
+
+El catálogo configurable posterior conserva un campo opcional `pruebas_dialogo`
+por NPC: diccionario de IDs estables de prueba a booleanos de éxito/fallo. Sólo
+se incluye cuando hay intentos únicos resueltos. Se guarda el resultado después
+de aplicar consecuencias y antes de continuar la respuesta, con K/C bloqueado.
+El resultado permite reutilizar la rama sin abrir dados ni reaplicar efectos.
+IDs vacíos, claves no textuales y valores no booleanos invalidan el estado antes
+de restaurar. Ausencia del campo restaura memoria vacía; no conserva intentos del
+mundo previo a la carga. Actitud usa su campo existente y la información usa
+`RegistroConocimiento`. No cambia la versión ni los diálogos sin estas pruebas.
+
 ### Estados temporales de NPC — 08-10-2026
 
 Cada NPC guarda un array `estados`, incluido cuando está vacío, mediante
@@ -289,7 +360,7 @@ La derrota sólo habilita la interacción: no crea objetos nuevos ni altera IDs.
 
 Los snapshots anteriores sin ese campo recuperan el contenido inicial de la
 instancia. La muerte irreversible se representa con cero PV desde el 11-10-2026;
-registrar XP entregada sigue pendiente. Guardar mantiene el bloqueo modal;
+la XP concedida queda en la ficha desde el 15-10-2026. Guardar mantiene el bloqueo modal;
 cargar mantiene además los bloqueos de movimiento y ciclos de exploración en curso.
 
 Las funciones de guardar/cargar archivo existen, pero no hay llamadas desde el

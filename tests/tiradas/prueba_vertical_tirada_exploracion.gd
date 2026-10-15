@@ -1,5 +1,7 @@
 extends SceneTree
 
+const ESCENARIO_SIN_RENDER := preload("res://tests/soporte/escenario_sin_render.gd")
+
 var _fallos: Array[String] = []
 
 
@@ -10,8 +12,20 @@ func _init() -> void:
 func _ejecutar() -> void:
 	var escena := load("res://scenes/escenario_base/escenario_base.tscn") as PackedScene
 	var escenario := escena.instantiate()
+	escenario.set_script(ESCENARIO_SIN_RENDER)
+	escenario.catalogo_mensajes = load("res://assets/interactuables/mensajes_interacciones.tres")
 	root.add_child(escenario)
-	await process_frame
+	for _intento in range(200):
+		await process_frame
+		if escenario.ficha_jugador != null and escenario.hud.ficha == escenario.ficha_jugador:
+			break
+	escenario.set_process(false)
+	if escenario.ficha_jugador == null or escenario.hud.ficha != escenario.ficha_jugador:
+		_comprobar(false, "El escenario debe preparar ficha y HUD antes de probar la tirada.")
+		escenario.queue_free()
+		push_error(_fallos[0])
+		quit(1)
+		return
 
 	var palanca := escenario.tablero.obtener_interactuable(
 		&"zona1_palanca_03_m03"

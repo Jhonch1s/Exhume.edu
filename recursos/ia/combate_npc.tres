@@ -20,7 +20,7 @@ custom_name = "1. Liberarme antes de actuar"
 children = [SubResource("BTCondition_enredado"), SubResource("BTAction_liberarse")]
 
 [sub_resource type="BTCondition" id="BTCondition_atacar"]
-custom_name = "¿Veo al jugador adyacente y tengo acción?"
+custom_name = "¿Veo un oponente adyacente y tengo acción?"
 script = ExtResource("1_condicion")
 variable = &"puede_atacar"
 
@@ -141,6 +141,6 @@ custom_name = "Elegir por prioridad"
 children = [SubResource("BTSequence_liberarse"), SubResource("BTSequence_atacar"), SubResource("BTSequence_acercarse"), SubResource("BTSequence_buscar"), SubResource("BTSequence_abandonar"), SubResource("BTSequence_esperar_patrulla"), SubResource("BTSequence_avanzar_patrulla"), SubResource("BTSequence_patrullar"), SubResource("BTSequence_regresar"), SubResource("BTAction_terminar")]
 
 [resource]
-description = "Liberarse primero. Atacar con visión propia y perseguir la posición observada por el grupo; fuera de combate, buscar el recuerdo y retomar la patrulla con sus esperas, o regresar al origen si no hay circuito."
+description = "Liberarse primero; atacar un oponente visible o acercarse. Huida y humo automático pendientes. Sin visión perseguir sólo el recuerdo. Fuera de combate conservar búsqueda, patrullas y regreso."
 blackboard_plan = SubResource("BlackboardPlan_memoria")
 root_task = SubResource("BTSelector_prioridad")

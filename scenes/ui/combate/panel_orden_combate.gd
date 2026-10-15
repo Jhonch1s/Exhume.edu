@@ -15,6 +15,8 @@ func mostrar(ronda: int, entradas: Array[Dictionary], id_activo: StringName) -> 
 		var id: StringName = entrada.get("id", &"")
 		var derrotado: bool = entrada.get("derrotado", false)
 		etiqueta.text = ("▶ " if id == id_activo else "· ") + nombre
+		if entrada.has("bando"):
+			etiqueta.text += " (%s)" % entrada["bando"]
 		var iniciativa: Dictionary = entrada.get("iniciativa", {})
 		if not iniciativa.is_empty():
 			etiqueta.text += " [%d]" % iniciativa["total"]

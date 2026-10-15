@@ -2,7 +2,72 @@
 > al final de la ronda, iniciativa tirada cada ronda, bandos y costes de objetos
 > están en [NPC y diálogos](../contenido/NPC_Y_DIALOGOS.md). Agro colectivo y reunión
 > de enemigos al inicio, incorporación dinámica de hostiles e iniciativa 1d6 + DES
-> por ronda están implementados para revisión. Bandos y costes de objetos siguen pendientes.
+> por ronda están implementados. Desde el 14-10-2026 también hay bandos y auxilio
+> local por facción para encuentros con jugador. Huida y uso de objetos por NPC
+> quedan pendientes; se conserva la selección táctica de objetivos.
+
+### XP por muerte durante un encuentro — 15-10-2026
+
+La muerte por daño de un NPC participante del bando opuesto al jugador concede
+su recompensa completa a la ficha mientras el encuentro siga activo. No consulta
+daño previo ni autor: incluye estados en FIN_TURNO, explosión, terreno y daño sin
+fuente. La última víctima se premia antes del cierre diferido. El bando vigente
+decide la elegibilidad; aliados, ajenos al encuentro y muertes fuera de él no
+premian al jugador. Los NPC aún no acumulan XP. No cambia el avance de turnos ni
+procesa un turno adicional para conceder XP. K/C conserva muerte y premio juntos.
+
+### Decisión táctica del NPC — 15-10-2026
+
+En combate se filtran los oponentes por visión propia antes de elegir objetivo:
+adyacentes, con acercamiento pagable, demás; después menor PV, distancia e ID.
+El recuerdo compartido conserva su selección anterior y sólo permite persecución,
+sin habilitar ataques contra posiciones actuales ocultas.
+
+LimboAI prioriza liberarse, atacar, acercarse y pasar. Caído conserva el cierre
+de turno existente. La poca vida no activa huida ni uso automático de humo.
+El usuario aplazó ambos tras observar en juego un regreso a la posición habitual
+que provocaba volver al combate después de lanzar humo y perder visión.
+Se retiró la opción provisional `retirarse_con_poca_vida`; no hay una capacidad
+de huida terminada ni un dato nuevo de persistencia. El lanzamiento del jugador
+y los contratos existentes de inventario, superficies y K/C se conservan.
+
+Política y trabajo pendiente: [NPC y diálogos](../contenido/NPC_Y_DIALOGOS.md).
+
+La prioridad de apoyo solicitada el 15-10-2026 todavía no está conectada: curación
+propia bajo el 50 % y curación de NPC aliados antes del ataque, seguida de buff
+propio si no hay uno activo. Requiere medios de curación/mejora ejecutables que
+aún no existen; la operación de PV `curar()` no constituye por sí sola una acción
+gratuita de combate. Costes, disponibilidad y estados se respetarán al conectar
+el primer medio real. El árbol actual no concede curación ni buffs automáticos.
+
+### Bandos del encuentro — 14-10-2026
+
+`GestorRondas.bandos` relaciona IDs de participantes con `Bando.JUGADOR` o
+`Bando.OPONENTE`; `NEUTRAL` significa ajeno al encuentro. `son_oponentes()`
+requiere dos lados activos diferentes. Los turnos y tiradas no dependen del lado;
+los aliados NPC usan el mismo movimiento, recursos y ataque contra otro NPC.
+El HUD identifica aliados y oponentes. La oposición compatible del NPC se deriva
+de su bando, separado de puntos y actitud fija.
+
+El escenario conserva IDs `defendidos` para justificar auxilio posterior: NPC
+agredidos al resolver un intento, y jugador amenazado en inicio hostil o agredido.
+Testigos por facción deben ver ambas partes del intento resuelto; incorporación
+posterior requiere percepción pertinente a min(7, radio propio), al final de
+ronda, sin usar incorporados en la misma evaluación para convocar a otros.
+Defensa propia, compañero de facción y relación con jugador son la prioridad;
+mejorar/empeorar puntos no cambia un bando vigente. No hay deltas colectivos.
+
+La memoria de oponentes se comparte sólo dentro del propio lado; atacar exige
+visión propia. La memoria elige el conocido más cercano, desempate por ID;
+el turno prioriza sus objetivos visibles según la política táctica anterior.
+Sin detección por ningún NPC del encuentro se cierra combate, conservando la
+búsqueda de hostiles y limpiando la de aliados/defensores no hostiles. Un aliado
+vivo no impide terminar por muerte del último oponente. Liberación, estados,
+iniciativa por ronda y reglas de incorporación conservan sus contratos.
+
+Las secciones anteriores al 14-10-2026 que asumen todos los NPC enemigos
+describen cortes históricos. El detalle vigente está en
+[NPC y diálogos](../contenido/NPC_Y_DIALOGOS.md) y la migración en persistencia.
 
 ### Recursos separados del turno
 

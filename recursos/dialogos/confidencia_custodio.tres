@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="FragmentoInformacion" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id_fragmento = &"confidencia"
+nivel = 3
+id_mensaje = &"dialogo.custodio.confidencia"
+pistas_requeridas = Array[StringName]([&"confianza_custodio"])

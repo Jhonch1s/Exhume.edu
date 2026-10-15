@@ -1,5 +1,6 @@
 extends Node
 
+const ESCENARIO_SIN_RENDER := preload("res://tests/soporte/escenario_sin_render.gd")
 
 func _ready() -> void:
 	var ficha := Ficha.new()
@@ -99,6 +100,7 @@ func _ready() -> void:
 		_fallar("La ranura debe vaciarse al consumirse la última antorcha.")
 		return
 	var escenario := load("res://scenes/escenario_base/escenario_base.tscn").instantiate() as Node2D
+	escenario.set_script(ESCENARIO_SIN_RENDER)
 	add_child(escenario)
 	for fotograma in 20:
 		await get_tree().process_frame
