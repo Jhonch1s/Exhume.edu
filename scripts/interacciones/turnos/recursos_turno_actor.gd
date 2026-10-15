@@ -26,7 +26,13 @@ func _init(
 	reponer()
 
 
-func reponer() -> void:
+static func calcular_movimiento(destreza: int) -> int:
+	return maxi(0, destreza) + 3
+
+
+func reponer(movimiento: int = -1) -> void:
+	if movimiento >= 0:
+		_maximos[MOVIMIENTO] = movimiento
 	_restantes = _maximos.duplicate()
 
 
@@ -42,26 +48,33 @@ func obtener_restantes() -> Dictionary:
 	return _restantes.duplicate()
 
 
-func validar_restauracion(restantes: Dictionary) -> StringName:
+func validar_restauracion(restantes: Dictionary, movimiento_maximo_guardado: int = -1) -> StringName:
 	if restantes.size() != _maximos.size():
 		return &"recursos_turno_guardados_invalidos"
 	for clave in _maximos:
+		var maximo: int = _maximos[clave]
+		if clave == MOVIMIENTO and movimiento_maximo_guardado >= 0:
+			maximo = movimiento_maximo_guardado
 		if (
 			not restantes.has(String(clave))
 			or not _es_numero_entero(restantes[String(clave)])
 			or restantes[String(clave)] < 0
-			or restantes[String(clave)] > _maximos[clave]
+			or restantes[String(clave)] > maximo
 		):
 			return &"recursos_turno_guardados_invalidos"
 	return &""
 
 
-func restaurar(restantes: Dictionary) -> StringName:
-	var motivo := validar_restauracion(restantes)
+func restaurar(restantes: Dictionary, movimiento_maximo_guardado: int = -1) -> StringName:
+	var motivo := validar_restauracion(restantes, movimiento_maximo_guardado)
 	if motivo != &"":
 		return motivo
 	for clave in _maximos:
 		_restantes[clave] = int(restantes[String(clave)])
+	if movimiento_maximo_guardado >= 0:
+		# Migrar el máximo conserva el gasto del turno, sin iniciarlo de nuevo.
+		var gastado: int = movimiento_maximo_guardado - _restantes[MOVIMIENTO]
+		_restantes[MOVIMIENTO] = maxi(0, _maximos[MOVIMIENTO] - gastado)
 	return &""
 
 

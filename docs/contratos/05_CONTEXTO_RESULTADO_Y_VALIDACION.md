@@ -74,6 +74,8 @@ El contexto se construye con copias de etiquetas, magnitudes y metadatos. Los re
 | `interrumpe_movimiento` | `bool` | Solicita detener la ruta tras el paso confirmado. |
 | `terminal` | `bool` | Impide resolver reacciones posteriores del mismo evento sin revertir resultados previos. |
 | `destino_item` | `DestinoItem` o `null` | Destino explícito solicitado por una reacción; `null` cuando el resultado no decide sobre una unidad. |
+| `tirada` | `ResultadoPrueba`, `ResultadoTirada` o `null` | Tirada principal ya resuelta; en el ataque contiene la prueba de FUE. |
+| `tirada_defensa` | `ResultadoPrueba` o `null` | Esquiva automática de DES, sólo tras un ataque acertado. No reemplaza la tirada principal. |
 
 Las propiedades derivadas `exitosa`, `consumio_accion` y `consumio_turno` se calculan desde `estado` y `costes_consumidos`; no se almacenan como fuentes de verdad duplicadas.
 
@@ -81,4 +83,6 @@ Un resultado de `BLOQUEO` debe tener vacíos `efectos_aplicados`, `cambios_estad
 
 Los bloqueos tampoco interrumpen ni son terminales. Confirmar costes construye un
 nuevo resultado sin perder las marcas de interrupción o terminalidad.
+También conserva las tiradas principal y de defensa; presentar o confirmar costes
+no vuelve a lanzar dados.
 

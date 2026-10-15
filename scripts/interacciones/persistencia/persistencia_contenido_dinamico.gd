@@ -21,6 +21,8 @@ func obtener_items_suelo(tablero: TableroGrid) -> Array[Dictionary]:
 				item_suelo.desplazamiento_visual.y,
 			],
 		})
+		if item_suelo.variante_visual >= 0:
+			datos[-1]["variante_visual"] = item_suelo.variante_visual
 	return datos
 
 
@@ -77,6 +79,7 @@ func restaurar(items: Array, superficies: Array, tablero: TableroGrid) -> String
 		item_suelo.configurar_desplazamiento_visual(Vector2(
 			float(desplazamiento[0]), float(desplazamiento[1])
 		))
+		item_suelo.variante_visual = int(datos.get("variante_visual", -1))
 		items_nuevos.append({
 			"coordenada": Vector2i(datos["coordenada"][0], datos["coordenada"][1]),
 			"item": item_suelo,
@@ -133,6 +136,19 @@ func _validar_item(
 	var item := ItemInstancia.new(StringName(id_item), definicion, int(datos["cantidad"]))
 	if definicion == null or String(definicion.id_definicion) != id_definicion or not item.es_valida():
 		return &"definicion_item_guardada_invalida"
+	if datos.has("variante_visual"):
+		var variante: Variant = datos["variante_visual"]
+		if not _es_numero_entero(variante) or variante < 0 or definicion.escena_mundo == null:
+			return &"variante_visual_item_guardada_invalida"
+		var representacion := definicion.escena_mundo.instantiate()
+		var sprite := representacion.get_node_or_null("Sprite2D") as Sprite2D
+		var valida: bool = (
+			representacion is RepresentacionItemSuelo and sprite != null
+			and variante < sprite.hframes * sprite.vframes
+		)
+		representacion.free()
+		if not valida:
+			return &"variante_visual_item_guardada_invalida"
 	ids[id_item] = true
 	return &""
 

@@ -10,6 +10,19 @@ El motor de dados es independiente de `GestorAcciones`. El elemento que solicita
 una tirada elige sus parámetros, recibe un resultado estructurado y decide sus
 consecuencias. El motor nunca aplica daño, estados, revelaciones ni reacciones.
 
+## Iniciativa por ronda — 09-10-2026
+
+El usuario confirmó **1d6 + DES actual** para jugador y NPC. Actúa antes el mayor
+total; empata por mayor DES y luego por ID ascendente. `GestorRondas` solicita una
+tirada de cantidad a `MotorDados.resolver()`, con origen automático y presentación
+sólo log, y suma DES. No usa `resolver_prueba()`: uno y seis son valores normales,
+sin éxito, fallo, crítico, pifia ni ventaja/desventaja de pruebas.
+
+Se tira al iniciar el encuentro y cada ronda nueva para los participantes vivos.
+Los incorporados actúan al final de la ronda actual y tiran en la siguiente.
+HUD y registro muestran dado, DES y total; K/C guarda esos resultados y el orden
+sin volver a tirar. La fórmula no modifica movimiento, ataque ni esquiva.
+
 ## Prueba básica de Exhume
 
 Una prueba ordinaria tira `1d6` y tiene éxito cuando el dado es menor o igual que
@@ -44,6 +57,21 @@ El dado seleccionado se clasifica antes de cualquier otra regla:
 - `6` natural: pifia y fallo asegurado.
 - No se aplican modificadores que cambien estos extremos.
 - Crítico y pifia no producen por sí mismos consecuencias concretas.
+
+## Ataque y esquiva automática
+
+Jugador y NPC usan la misma regla de combate: prueba de FUE del atacante y,
+sólo si acierta, prueba automática de DES del defensor. Esquivar evita todo el
+daño, no consume reacción y sigue disponible con esa reserva agotada. Ambas
+pruebas conservan los extremos del motor; el ataque crítico también permite
+esquiva. No se comparan las caras entre participantes: cada prueba se compara
+con el atributo correspondiente. El daño sigue siendo provisional de 1 PV.
+
+`ResolverAtaqueBasico` solicita las pruebas y aplica el daño si procede;
+`MotorDados` conserva su responsabilidad de resolver dados sin consecuencias.
+`ResultadoAccion.tirada` contiene el ataque, y `tirada_defensa` la esquiva.
+La esquiva usa `AUTOMATICA` y `SOLO_LOG`: no exige otra decisión del jugador ni
+vuelve a tirar al presentarse. Se conserva en el registro y en el historial.
 
 ## Ventaja y desventaja
 

@@ -27,6 +27,27 @@ consecuencias producidas por reacciones. Una interrupción solicitada durante
 `SALIR` o `ENTRAR` nunca detiene el tween actual ni revierte la ocupación: evita
 que comience el siguiente tramo.
 
+### Recálculo y espera en exploración — 09-10-2026
+
+`MovimientoPorCasillas.mover_por_camino()` admite destino final, callback de
+recálculo `(origen, destino, actor)` y callback de espera `(actor)`. Los recorridos
+fijos conservan su comportamiento. Un NPC de exploración usa el recálculo para
+continuar hacia el mismo destino si su ruta inicial queda bloqueada, sin depender
+de su actitud. El recálculo usa ocupación y reservas actuales del tablero.
+
+Si falla la reserva antes de empezar un paso, recalcula. Desde el 11-10-2026,
+si no hay ruta, el NPC cierra el recorrido y procesa el `FIN_TURNO` normal;
+reintenta en el próximo ciclo. No deja `esta_moviendose` activo entre ciclos ni
+reserva celdas o consume movimiento por esperar. El jugador puede seguir caminando. La revisión
+se actualiza con reservas, ocupación, presencia y registro/retiro de elementos que
+afectan las rutas; no se ejecuta A* en cada frame mientras el tablero no cambie.
+
+Cada NPC tiene su propio recorrido y contador `pasos_completados`, usado para
+registrar distancia incluso al tomar un desvío. La reserva sigue siendo sólo la
+próxima casilla, y el cobro/reacciones conservan el orden del paso confirmado.
+Entrar en combate interrumpe recorridos. El siguiente ciclo de exploración repone
+recursos una sola vez; una ruta bloqueada no añade ciclos ni renueva recursos.
+
 ### Consulta de reacciones de una celda
 
 `ConsultorReaccionesCelda` obtiene fuentes compatibles sin validarlas ni

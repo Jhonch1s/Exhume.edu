@@ -28,6 +28,7 @@ var temporary_game_states: Array = []
 
 ## See if we are waiting for the player
 var is_waiting_for_input: bool = false
+var _resolviendo_linea: bool = false
 
 ## See if we are running a long mutation and should hide the balloon
 var will_hide_balloon: bool = false
@@ -218,7 +219,13 @@ func apply_dialogue_line() -> void:
 
 ## Go to the next line
 func next(next_id: String) -> void:
+	if _resolviendo_linea:
+		return
+	_resolviendo_linea = true
+	is_waiting_for_input = false
+	responses_menu.hide()
 	dialogue_line = await dialogue_resource.get_next_dialogue_line(next_id, temporary_game_states)
+	_resolviendo_linea = false
 
 
 #region Signals

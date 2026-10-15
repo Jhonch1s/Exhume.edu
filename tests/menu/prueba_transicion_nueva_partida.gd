@@ -12,14 +12,14 @@ func _ejecutar() -> void:
 
 	var fondo := menu.get_node("FondoParallax")
 	menu.call("_on_jugar_pressed")
-	await create_timer(0.8).timeout
+	var termino_entrada := await _esperar_transicion(menu)
 
 	var nueva_partida := menu.get_node("NuevaPartida")
 	var entrada_correcta: bool = (
-		menu.get_node("FondoParallax") == fondo
+		termino_entrada and menu.mostrando_nueva_partida
+		and menu.get_node("FondoParallax") == fondo
 		and nueva_partida.visible
-		and is_zero_approx(nueva_partida.position.y)
-		and menu.get_node("MenuColgante").position.y <= -1080.0
+		and not menu.get_node("MenuColgante").visible
 		and nueva_partida.has_node("RigIzquierdo/Encabezado")
 		and nueva_partida.has_node("RigIzquierdo/Atributos")
 		and nueva_partida.has_node("RigIzquierdo/Volver")
@@ -30,12 +30,22 @@ func _ejecutar() -> void:
 	)
 
 	nueva_partida.emit_signal("volver_solicitado")
-	await create_timer(0.8).timeout
+	var termino_salida := await _esperar_transicion(menu)
 	var correcto: bool = (
-		entrada_correcta
+		entrada_correcta and termino_salida and not menu.mostrando_nueva_partida
 		and menu.get_node("FondoParallax") == fondo
 		and not nueva_partida.visible
 		and is_zero_approx(menu.get_node("MenuColgante").position.y)
 	)
 	print("TransicionNuevaPartida: prueba correcta." if correcto else "TransicionNuevaPartida: fallo.")
+	menu.queue_free()
+	await process_frame
 	quit(0 if correcto else 1)
+
+
+func _esperar_transicion(menu: Control) -> bool:
+	for _intento in range(300):
+		if not menu.transicion_activa:
+			return true
+		await create_timer(0.02).timeout
+	return false

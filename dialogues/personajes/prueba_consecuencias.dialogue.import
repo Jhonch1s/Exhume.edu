@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=18
+type="Resource"
+uid="uid://b368e6y14mp82"
+path="res://.godot/imported/prueba_consecuencias.dialogue-6bfc04d146db590cf360f4d031469a33.tres"
+
+[deps]
+
+source_file="res://dialogues/personajes/prueba_consecuencias.dialogue"
+dest_files=["res://.godot/imported/prueba_consecuencias.dialogue-6bfc04d146db590cf360f4d031469a33.tres"]
+
+[params]
+
+defaults=true

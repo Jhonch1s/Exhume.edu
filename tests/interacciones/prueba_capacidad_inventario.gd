@@ -1,8 +1,7 @@
-@tool
-extends EditorScript
+extends SceneTree
 
 
-func _run() -> void:
+func _init() -> void:
 	var piedra := DefinicionItem.new()
 	piedra.id_definicion = &"piedra_prueba"
 	piedra.nombre = "Piedra"
@@ -44,3 +43,4 @@ func _run() -> void:
 	cofre.free()
 	otro_cofre.free()
 	print("Cofres: capacidad correcta e inventarios independientes.")
+	quit()

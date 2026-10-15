@@ -8,6 +8,8 @@ var tablero: TableroGrid
 var ultimo_centro_jugador: Vector2i
 var ultimo_radio_jugador: int = 0
 var tiene_vision_calculada: bool = false
+var revision_vision: int = 0
+var _opacidad_por_celda: Dictionary[Vector2i, bool] = {}
 
 const FUENTES_FOG_EXPLORADO := {
 	&"terreno": 0,
@@ -38,6 +40,7 @@ func inicializar(_capa: TileMapLayer, origen_datos: Variant) -> void:
 	celdas_visibles_actuales.clear()
 	tiene_vision_calculada = false
 	ultimo_radio_jugador = 0
+	_opacidad_por_celda.clear()
 	if origen_datos is TableroGrid:
 		tablero = origen_datos
 		datos_tablero = tablero.datos
@@ -47,6 +50,10 @@ func inicializar(_capa: TileMapLayer, origen_datos: Variant) -> void:
 			tablero.efecto_superficie_registrado.connect(_on_superficie_cambiada)
 		if not tablero.efecto_superficie_retirado.is_connected(_on_superficie_cambiada):
 			tablero.efecto_superficie_retirado.connect(_on_superficie_cambiada)
+		if not tablero.interactuable_registrado.is_connected(_on_superficie_cambiada):
+			tablero.interactuable_registrado.connect(_on_superficie_cambiada)
+		if not tablero.interactuable_retirado.is_connected(_on_superficie_cambiada):
+			tablero.interactuable_retirado.connect(_on_superficie_cambiada)
 		if not tablero.presencia_interactuable_cambiada.is_connected(
 			_on_presencia_interactuable_cambiada
 		):
@@ -58,6 +65,7 @@ func inicializar(_capa: TileMapLayer, origen_datos: Variant) -> void:
 	
 	# Al iniciar, cubrimos todo el mapa conocido de negro total
 	for coord in datos_tablero.keys():
+		_opacidad_por_celda[coord] = datos_tablero[coord].bloquea_vision_efectiva()
 		_oscurecer_celda(coord, Celda.EstadoVisibilidad.OCULTO)
 	_actualizar_presentacion_interactuables()
 
@@ -77,6 +85,7 @@ func actualizar_vision(centro_jugador: Vector2i, radio_jugador: int) -> void:
 	# 3. Proyectamos la luz del jugador (+1 casilla de penumbra)
 	proyectar_luz_fuente(centro_jugador, radio_jugador, 1, false)
 	_actualizar_presentacion_interactuables()
+	revision_vision += 1
 
 func _procesar_luces_mapa() -> void:
 	for coord in datos_tablero.keys():
@@ -109,12 +118,24 @@ func _on_iluminacion_cambiada(_coord: Vector2i) -> void:
 	if tiene_vision_calculada:
 		actualizar_vision(ultimo_centro_jugador, ultimo_radio_jugador)
 
-func _on_superficie_cambiada(_coord: Vector2i, _efecto: Object) -> void:
-	if tiene_vision_calculada:
-		actualizar_vision(ultimo_centro_jugador, ultimo_radio_jugador)
+func _on_superficie_cambiada(coord: Vector2i, elemento: Object) -> void:
+	var coordenadas: Array[Vector2i] = [coord]
+	if elemento is Interactuable:
+		coordenadas = elemento.obtener_coordenadas_ocupadas(coord)
+	_actualizar_opacidad(coordenadas)
 
-func _on_presencia_interactuable_cambiada(_coord: Vector2i) -> void:
-	if tiene_vision_calculada:
+func _on_presencia_interactuable_cambiada(coord: Vector2i) -> void:
+	_actualizar_opacidad([coord])
+
+func _actualizar_opacidad(coordenadas: Array[Vector2i]) -> void:
+	var cambio := false
+	for coord in coordenadas:
+		var celda: Celda = datos_tablero.get(coord)
+		var opaca := celda != null and celda.bloquea_vision_efectiva()
+		cambio = cambio or _opacidad_por_celda.get(coord, false) != opaca
+		_opacidad_por_celda[coord] = opaca
+	# Ocupación y reservas no alteran los rayos si la opacidad sigue igual.
+	if cambio and tiene_vision_calculada:
 		actualizar_vision(ultimo_centro_jugador, ultimo_radio_jugador)
 
 # --- MATEMÁTICAS Y RAYCASTING ---

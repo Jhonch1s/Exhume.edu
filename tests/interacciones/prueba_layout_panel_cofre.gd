@@ -4,11 +4,18 @@ func _initialize() -> void:
 	call_deferred("probar")
 
 func probar() -> void:
-	var panel = load("res://scenes/ui/inventario/panel_inventario_cofre.tscn").instantiate()
+	var panel := (load("res://scenes/ui/inventario/panel_inventario_cofre.tscn") as PackedScene).instantiate() as PanelInventarioCofre
 	root.add_child(panel)
+	var cofre := CofreInteractuable.new()
+	cofre.definicion = load("res://scenes/interactuables/cofres/cofre_pequeno.tres")
+	var piedra := load("res://assets/items/piedra/piedra.tres") as DefinicionItem
+	cofre.obtener_inventario().agregar(ItemInstancia.new(&"detalle:piedra", piedra, 3))
+	panel.mostrar(cofre, Inventario.new())
 	var fondo = panel.get_node("Fondo")
-	for tamano in [Vector2(300, 300), Vector2(600, 600), Vector2(900, 700), Vector2(900, 200)]:
-		fondo.size = tamano
+	for solicitado in [Vector2(300, 300), Vector2(600, 600), Vector2(900, 700), Vector2(900, 200)]:
+		fondo.size = solicitado
+		var tamano: Vector2 = fondo.size
+		assert(tamano == solicitado.max(Vector2(300, 300)))
 		await process_frame
 		await process_frame
 		var area = fondo.get_node("AreaItems")
@@ -16,17 +23,15 @@ func probar() -> void:
 		assert(area.size.is_equal_approx(tamano * Vector2(0.585, 0.395)))
 		for nombre in ["RecogerTodos", "Cerrar"]:
 			var boton = fondo.get_node("Botones/" + nombre)
-			assert(Rect2(Vector2.ZERO, tamano).encloses(boton.get_rect()))
+			if not Rect2(Vector2.ZERO, tamano).encloses(boton.get_rect()):
+				push_error("Botón %s fuera del fondo %s: %s" % [nombre, tamano, boton.get_rect()])
+				quit(1)
+				return
 		var grid = area.get_node("Proporcion/Contenido")
 		assert(grid.get_global_rect().get_center().distance_to(area.get_global_rect().get_center()) < 2.0)
 		for casilla in grid.get_children():
 			assert(absf(casilla.size.x - casilla.size.y) <= 1.0)
 			assert(area.get_global_rect().encloses(casilla.get_global_rect()))
-	var cofre := CofreInteractuable.new()
-	cofre.definicion = load("res://scenes/interactuables/cofres/cofre_pequeno.tres")
-	var piedra := load("res://assets/items/piedra/piedra.tres") as DefinicionItem
-	cofre.obtener_inventario().agregar(ItemInstancia.new(&"detalle:piedra", piedra, 3))
-	panel.mostrar(cofre, Inventario.new())
 	var casilla_item := panel.contenido.get_child(0) as CasillaInventario
 	casilla_item.mouse_entered.emit()
 	assert(panel.detalle_item.visible)

@@ -7,6 +7,19 @@ extends Resource
 @export var titulo: String = ""
 @export var recurso: DialogueResource
 @export var punto_inicio: String = "start"
+@export var pruebas: Array[PruebaDialogoNPC] = []
+
+
+func obtener_prueba(id_prueba: StringName) -> PruebaDialogoNPC:
+	var encontrada: PruebaDialogoNPC
+	for prueba in pruebas:
+		if prueba == null or not prueba.es_valida():
+			return null
+		if prueba.id_prueba == id_prueba:
+			if encontrada != null:
+				return null
+			encontrada = prueba
+	return encontrada
 
 
 func es_valido() -> bool:

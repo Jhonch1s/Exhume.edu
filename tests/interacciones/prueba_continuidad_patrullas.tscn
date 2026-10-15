@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tests/interacciones/prueba_continuidad_patrullas.gd" id="1_prueba"]
+
+[node name="PruebaContinuidadPatrullas" type="Node"]
+script = ExtResource("1_prueba")

@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=18
+type="Resource"
+uid="uid://6juerdo5ukhg"
+path="res://.godot/imported/prueba_actitud.dialogue-76aa899682df4c08d0bdb62b52bf8b6b.tres"
+
+[deps]
+
+source_file="res://dialogues/personajes/prueba_actitud.dialogue"
+dest_files=["res://.godot/imported/prueba_actitud.dialogue-76aa899682df4c08d0bdb62b52bf8b6b.tres"]
+
+[params]
+
+defaults=true

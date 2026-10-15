@@ -27,8 +27,11 @@ enum OrientacionMapa {
 @export_range(0, 999, 1) var vida_maxima: int = 0
 @export_range(1, 99, 1) var nivel: int = 1
 @export_range(0, 999999, 1) var experiencia_recompensa_derrota: int = 0
+@export var iniciativa_base: int = 0
 
 @export_category("Relación con el jugador")
+## Vacío significa sin facción; no reúne a los demás NPC sin facción.
+@export var faccion_id: StringName = &""
 @export var actitud_inicial_jugador: ActitudInicialJugador = ActitudInicialJugador.NEUTRAL
 @export var actitud_hacia_jugador_fija: bool = false
 
@@ -37,10 +40,26 @@ enum OrientacionMapa {
 @export var puede_combatir: bool = false
 @export var puede_tener_inventario: bool = false
 
+@export_category("Detección del jugador")
+@export_range(0, 20, 1) var radio_agro: int = 4
+
+@export_category("Recursos de combate")
+## -1 conserva DES + 3; un valor mayor o igual a cero fija los puntos por turno.
+@export_range(-1, 102, 1) var movimiento_fijo: int = -1
+@export_range(0, 9, 1) var acciones_principales_por_turno: int = 1
+@export_range(0, 9, 1) var acciones_adicionales_por_turno: int = 1
+@export_range(0, 9, 1) var reacciones_por_turno: int = 1
+
 @export_category("Presentación")
 @export var textura_mapa: Texture2D
+## Imagen única, sin frames; si falta se conserva el sprite actual del personaje.
+@export var textura_cadaver: Texture2D
 @export var orientacion_mapa_inicial: OrientacionMapa = OrientacionMapa.ABAJO_DERECHA
 @export var offset_sprite_mapa: Vector2 = Vector2(0.0, -32.0)
 @export_category("Dialogos")
 @export var ilustracion_dialogo: Texture2D
 @export var dialogos: Array[DialogoNPC] = []
+
+
+func calcular_movimiento(destreza_actual: int) -> int:
+	return movimiento_fijo if movimiento_fijo >= 0 else RecursosTurnoActor.calcular_movimiento(destreza_actual)

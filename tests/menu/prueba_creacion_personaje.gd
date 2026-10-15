@@ -19,7 +19,7 @@ func _ejecutar() -> void:
 	await menu.call(&"_tirar_atributo", &"fuerza")
 	assert(menu.atributos[&"fuerza"] in range(2, 6) and boton.disabled)
 
-	menu.atributos = {&"fuerza": 3, &"destreza": 4, &"voluntad": 2}
+	menu.atributos.assign({&"fuerza": 3, &"destreza": 4, &"voluntad": 2})
 	menu.clase = "Ladrón"
 	menu.origen = "Cripta Apócrifa"
 	menu.nombre.text = "Ada"

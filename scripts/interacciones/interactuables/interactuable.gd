@@ -80,6 +80,14 @@ func obtener_nombre_interaccion() -> String:
 	return definicion.nombre if definicion != null else "Interactuable"
 
 
+func obtener_inventario() -> Inventario:
+	return null
+
+
+func obtener_presentacion_inventario() -> DefinicionCofre:
+	return null
+
+
 func establecer_resaltado(activo: bool) -> void:
 	var resaltador := _obtener_resaltador_outline()
 	if resaltador != null:
@@ -193,6 +201,21 @@ func restaurar_estado_persistente(estado: Dictionary) -> StringName:
 
 func permite_caminar_interactuable() -> bool:
 	return true
+
+
+func admite_restaurar_posicion() -> bool:
+	return false
+
+
+func actualizar_posicion_visual() -> void:
+	if tablero != null and tablero.capa_referencia != null:
+		var capa := tablero.capa_referencia
+		global_position = capa.to_global(capa.map_to_local(coordenada_mapa))
+
+
+## Consulta pura sobre el snapshot; puertas y personajes aportan su estado final.
+func permite_caminar_estado_guardado(_estado: Dictionary) -> bool:
+	return permite_caminar_interactuable()
 
 
 func bloquea_vision_interactuable() -> bool:

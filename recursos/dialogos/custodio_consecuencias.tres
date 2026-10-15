@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="DialogoNPC" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/personajes/dialogo_npc.gd" id="1_tema"]
+[ext_resource type="DialogueResource" path="res://dialogues/personajes/prueba_consecuencias.dialogue" id="2_dialogo"]
+[ext_resource type="Script" path="res://scripts/personajes/prueba_dialogo_npc.gd" id="3_prueba"]
+[ext_resource type="Script" path="res://scripts/personajes/consecuencia_dialogo_npc.gd" id="4_consecuencia"]
+
+[sub_resource type="Resource" id="Consecuencia_confianza"]
+script = ExtResource("4_consecuencia")
+puntos_actitud = 3
+
+[sub_resource type="Resource" id="Consecuencia_informacion"]
+script = ExtResource("4_consecuencia")
+tipo = 1
+id_fragmento = &"confidencia"
+
+[sub_resource type="Resource" id="Consecuencia_desconfianza"]
+script = ExtResource("4_consecuencia")
+puntos_actitud = -1
+
+[sub_resource type="Resource" id="Prueba_confianza"]
+script = ExtResource("3_prueba")
+id_prueba = &"confianza_custodio"
+titulo = "Ganarse la confianza del custodio [VOL]"
+consecuencias_exito = Array[ExtResource("4_consecuencia")]([SubResource("Consecuencia_confianza"), SubResource("Consecuencia_informacion")])
+consecuencias_fallo = Array[ExtResource("4_consecuencia")]([SubResource("Consecuencia_desconfianza")])
+
+[resource]
+script = ExtResource("1_tema")
+id_dialogo = &"tirada"
+titulo = "Ganarse la confianza del custodio"
+recurso = ExtResource("2_dialogo")
+pruebas = Array[ExtResource("3_prueba")]([SubResource("Prueba_confianza")])

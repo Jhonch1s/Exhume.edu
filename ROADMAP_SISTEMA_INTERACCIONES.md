@@ -6,10 +6,539 @@
 
 ## Estado general
 
-- Estado actual: primer incremento del registro narrativo implementado; cofres con contenido e interfaz funcional en desarrollo asistido.
-- Próximo paso acordado: pulir interfaces de interacciones y eventos en otro chat, antes de continuar los items.
-- Última vertical slice cerrada: superficies de Zona1 integradas con dados y estados; cofres aún sin cierre de regresión ni persistencia.
-- Última actualización de este registro: 8 de septiembre de 2026.
+### Consolidación tras auditoría NPC — 15-10-2026
+
+Se corrigieron los guardados con estados de dados y la pérdida de memoria al
+cargar exploración desde otro encuentro. Se recuperó la integración de archivo,
+se compartió persistencia de inventario y se retiró la espera de ruta sin uso.
+La selección reutiliza rutas en la misma decisión; mover un NPC no opaco no
+recalcula FOV. [Resultados, alcance y límites](docs/pruebas/CONSOLIDACION_NPC.md).
+Se conserva el catálogo de consecuencias y su guía permanente. No se integra
+la rama ni se activan huida, humo, curación o buffs durante esta consolidación.
+
+### Consecuencias de diálogo configurables — 15-10-2026
+
+El usuario confirmó el funcionamiento del primer diálogo y pidió facilitar la
+construcción de otros NPC mediante consecuencias previstas. Confirmó un catálogo
+inicial de cambios de actitud y revelación de información. `DialogoNPC.pruebas`
+contiene recursos con atributo, título, ID, opción de intento único y listas de
+consecuencias de éxito/fallo editables en el Inspector. El texto solicita la
+prueba por ID; el escenario reutiliza el motor y valida ambas listas antes de tirar.
+
+Al cerrar el panel se aplican las consecuencias antes de continuar la respuesta.
+El intento único conserva éxito o fallo por NPC; volver a pedirlo reutiliza la
+rama sin dado ni efectos nuevos. Desactivarlo permite repetir la prueba. El
+campo opcional `pruebas_dialogo` amplía el estado de NPC sin cambiar versión:
+guardados anteriores lo restauran vacío. K/C conserva intento, actitud y
+conocimiento juntos y mantiene el bloqueo durante la conversación completa.
+
+Escena F6: `tests/interacciones/escena_consecuencias_dialogo_npc.tscn`.
+[Guía de construcción](docs/contenido/CONSECUENCIAS_DIALOGO_NPC.md) y
+[prueba manual](docs/pruebas/DIALOGOS_CON_TIRADAS.md). Pasaron 162 comprobaciones
+dirigidas, las 87 del diálogo base y regresiones de estado NPC, actitud,
+conocimiento y diálogos. Revisión jugable del catálogo pendiente. No se añaden
+objetos, XP, misiones ni efectos arbitrarios como consecuencias en este corte.
+
+### Primer diálogo con tirada — implementado el 15-10-2026
+
+El custodio de prueba ofrece convencerlo con VOL o despedirse sin tirar. La
+elección solicita una prueba normal de 1d6 al motor existente, registra una sola
+entrada en historial y registro narrativo y abre el panel de dados. El diálogo
+espera su cierre y continúa por éxito o fallo; crítico y pifia conservan las
+reglas existentes. La animación no decide ni repite la prueba. El globo bloquea
+selecciones repetidas mientras espera la línea.
+
+K/C permanece bloqueado durante toda la conversación, incluso después de cerrar
+los dados; vuelve a habilitarse al terminar. El resultado es temporal, sin nuevos
+campos de guardado, premios ni cambios de actitud. Reabrir la conversación permite
+otra elección y otra prueba. No se define todavía un intento único persistente.
+
+Prueba dirigida: 87 comprobaciones de ramas, crítico/pifia, registro, presentación,
+doble clic y K/C repetida. También pasaron actitud, diálogos interactuables y motor,
+pruebas e historial de dados. Escena manual:
+`tests/interacciones/escena_dialogo_tirada_npc.tscn`; [guía](docs/pruebas/DIALOGOS_CON_TIRADAS.md).
+El usuario confirmó el 15-10-2026 que funcionó muy bien en juego, sin detallar cada
+paso manual. El catálogo posterior de consecuencias se registra por separado arriba.
+
+### XP por muertes indirectas — implementado el 15-10-2026
+
+Durante un encuentro activo, la muerte de un NPC participante del bando oponente
+concede su recompensa completa a la ficha, sin exigir daño previo ni autor del
+golpe mortal. Incluye veneno, quemado, explosión, terreno, daño sin fuente y daño
+de otro oponente. Aliados, ajenos al encuentro y muertes fuera de combate no
+premian al jugador; los NPC todavía no acumulan XP propia.
+
+Se conserva la señal de transición de vivo a cadáver y el snapshot actual:
+K/C rebobina muerte, estados y XP juntos; cargar cadáveres no vuelve a entregar
+la recompensa. No hay historial de contribuciones, marcador nuevo ni cambio de
+versión. También se corrigió que `Explosion` sólo consultaba ocupantes: ahora
+alcanza a los NPC interactuables y evita duplicar una víctima entre registros.
+
+Prueba dirigida: 197 comprobaciones de fuentes, estados reales, explosión
+múltiple, último oponente, bandos, exclusiones, K/C repetida, migración y controles
+manuales. Escena: `tests/interacciones/escena_xp_indirecta_npc.tscn`; guía:
+[XP de NPC](docs/pruebas/XP_NPC.md). Entrega básica confirmada en juego. La entrega directa
+descrita en la entrada histórica «XP por derrota de NPC» queda ampliada por ésta.
+
+El 15-10-2026 el usuario confirmó que funcionan en juego el agro automático,
+la persecución de los dos duendes y la recepción de XP en esta escena. No detalló
+las fuentes de muerte ni los pasos de K/C revisados manualmente; esos casos
+conservan la cobertura automática registrada, sin atribuirle una revisión completa.
+
+### Curación y buffs de NPC — prioridad solicitada el 15-10-2026
+
+El usuario pidió autocuración con menos del 50 % de PV si existe un medio real;
+curar a sí mismo u otros NPC aliados antes de atacar; y usar item/habilidad para
+buffarse cuando no haya un buff activo, antes de atacar u otras acciones.
+Se registra la prioridad de curación por delante del buff y del ataque, siempre
+respetando capacidades, estados, recursos, alcance, percepción y bandos.
+
+No está implementado el apoyo en combate. La operación básica `curar()` existe,
+pero no hay objetos curativos, buffs utilizables ni habilidades de combate.
+Falta elegir el primer medio concreto, su efecto/coste y qué constituye un buff
+activo; no se agregan pociones, habilidades ni efectos ficticios para aparentar
+esta decisión. Detalle y cuestiones pendientes en
+[NPC y diálogos](docs/contenido/NPC_Y_DIALOGOS.md). La huida continúa aplazada.
+
+### Primer corte táctico NPC — alcance reducido el 15-10-2026
+
+Se conserva la selección táctica de objetivos durante encuentros existentes:
+oponentes visibles, adyacentes primero, después acercamiento pagable, menor PV,
+distancia e ID. Liberarse y caída conservan prioridad. No cambia bandos, actitud,
+iniciativa, recursos, formato de guardado, Trompo, cadáver/botín ni patrullas.
+
+**Huida y uso automático de humo: incompletos y aplazados por decisión del usuario.**
+En juego observó que el NPC lanzó humo, se movió al centro y, al perder visión y
+salir del combate, quiso regresar a su posición habitual y volvió a entrar en
+combate automáticamente. El prototipo no resuelve la continuidad entre huida,
+búsqueda y retorno. El usuario indicó que no es esencial y pidió dejarlo pendiente.
+
+Se retiraron del árbol y del ejecutor la retirada y el lanzamiento automático;
+se retiró también el booleano provisional `retirarse_con_poca_vida`. Tener poca
+vida no cambia el ataque/acercamiento normal ni consume bombas. El objeto y su
+lanzamiento por el jugador siguen disponibles. Si se retoma la huida, la preferencia
+anterior era una opción por perfil, con umbral por revisar; no una regla universal.
+Guía vigente: [Táctica NPC](docs/pruebas/TACTICA_NPC.md).
+
+Prueba dirigida vigente: 50 comprobaciones de selección, estados, combate real
+con poca vida sin huida/humo automático, inventario, K/C y cadáver. Las 95 pruebas
+del prototipo anterior no acreditan una huida cerrada: la revisión jugable reveló
+este problema. La XP indirecta se implementó en el segundo corte descrito al
+comienzo; el primer diálogo con tirada también está implementado para revisión.
+También pasaron facciones/XP/visión (215 comprobaciones), exploración autónoma,
+lanzamiento lógico del jugador (seis pruebas) y bloqueo de visión por humo.
+
+### Próximo alcance de consolidación NPC — 15-10-2026
+
+El usuario eligió trabajar en tres frentes, en este orden de definición:
+
+1. Más decisiones de IA durante encuentros existentes: el usuario eligió ambas
+   líneas propuestas, selección táctica de objetivos y retirada con poca vida,
+   más uso de objetos del inventario. Se ampliará el selector LimboAI y su
+   ejecución sin cambiar iniciativa, bandos, percepción, recursos o actitud.
+   Actualización posterior: sólo se conserva selección táctica; huida y humo
+   automático quedan aplazados. Pociones bebibles
+   todavía no tienen mecánica de uso y quedan fuera de este corte.
+2. XP por muertes indirectas: la regla final sustituye la atribución por daño
+   previo. Si un participante muere durante un encuentro activo, cada integrante
+   combatiente del bando opuesto recibe la recompensa completa aunque no haya
+   golpeado a la víctima; la fuente del daño mortal no importa. En el sistema
+   actual sólo se acredita a la ficha del jugador por la muerte de un oponente:
+   los NPC no acumulan XP. El reparto completo se aplicará al futuro grupo del
+   jugador cuando exista. Una muerte fuera de combate no concede XP en este
+   corte. Se conserva la entrega única en la transición a cadáver y K/C rebobina
+   XP y muerte juntos, sin historial de contribuciones ni nuevo dato de guardado.
+3. Diálogos con tiradas: el primer caso será un NPC de prueba con ramas de éxito
+   y fallo. Una opción solicitará una prueba al motor existente, registrará y
+   mostrará su resultado y continuará por la rama correspondiente sin repetir
+   la tirada al presentarla. K/C conserva la política modal actual.
+
+Cada frente tendrá pruebas automáticas, escena manual y documentación antes de
+cerrarse. Combate autónomo entre NPC sin jugador, separación general de luz,
+percepción y niebla, reputación global, grupo, niveles y habilidades quedan
+marcados como trabajo futuro. La acción adicional sigue sin regla.
+Este apartado fija el alcance acordado; el primer corte de IA ya se implementó
+para revisión. El segundo corte de XP indirecta también está implementado;
+el primer diálogo con tirada también está implementado para revisión.
+
+Criterios mínimos vigentes de IA: no consulta objetivos ocultos y conserva
+bandos, recursos e inventario tras K/C. Los criterios de uso de bombas se retoman
+cuando se reabra ese trabajo aplazado. XP cubre muerte por estado,
+explosión y otra fuente sin autor dentro del encuentro, exclusión fuera de él,
+recompensa cero, repetición de carga y snapshots anteriores. El diálogo de
+prueba debe producir exactamente una tirada visible y registrable por elección,
+seguir la rama correcta y cerrar el modal sin alterar las reglas de guardado.
+
+### Campos de visión de NPC — 15-10-2026
+
+V alterna una superposición translúcida de las casillas que puede ver cada NPC
+actualmente visible para el jugador. Rojo indica hostilidad o bando oponente del
+encuentro; verde, amistad o bando aliado; gris, neutralidad. Durante combate manda
+el bando vigente, de modo que un neutral que se defiende aparece rojo sin cambiar
+su relación persistente. La capa usa el alcance y los obstáculos de la percepción
+del NPC y sólo pinta casillas actualmente visibles del tablero. No muestra NPC
+ocultos, explorados sin visibilidad actual ni cadáveres. Trompo visible conserva
+su campo gris aunque no participe en combate.
+
+La prueba dirigida pasó 215 comprobaciones del conjunto de facciones, XP y visión,
+incluidos colores, ocultación, obstáculos, bando temporal y cadáver.
+[Guía de revisión manual](docs/pruebas/VISION_NPC.md). La separación
+general entre iluminación, percepción del jugador y niebla de guerra continúa
+pendiente; esta capa sólo presenta la visión NPC existente.
+El 15-10-2026 el usuario la revisó en juego y confirmó que funciona y que,
+por ahora, es suficiente; no detalló qué pasos de la guía completó.
+
+### XP por derrota de NPC — acuerdo del 15-10-2026
+
+El usuario decidió que una recompensa de 50 XP concede 50 XP completos a cada
+integrante del futuro grupo, sin dividirla. Como todavía no existe el grupo ni
+XP de aliados NPC, este corte acredita la recompensa declarada en
+`DefinicionPersonaje.experiencia_recompensa_derrota` a la ficha del jugador por
+una baja de un oponente causada por él o por un aliado del encuentro. Se entrega
+una vez al pasar de vivo a cadáver. Bajas de aliados, de oponentes entre sí y
+daño sin responsable directo no conceden XP en este corte; las muertes por
+estados, terreno y daño compartido requieren una regla posterior de atribución.
+
+La ficha ya guardaba XP acumulada: muerte y premio quedan juntos en K/C, sin
+marcador adicional. Cargar antes de la muerte devuelve NPC vivo y XP anterior;
+cargar después conserva cadáver y XP sin repetir la entrega. Las fichas antiguas
+sin campo de XP comienzan en cero y los cadáveres existentes no dan premios
+retroactivos. El HUD muestra la XP real y el avance hasta el próximo umbral de
+la curva acordada; al alcanzarlo queda lleno. Subir niveles y elegir habilidades
+o atributos sigue aplazado.
+
+Implementado el 15-10-2026 con 200 comprobaciones automáticas de ataque mortal
+real, atribución a aliado, exclusiones, K/C y migración. La escena manual de facciones
+permite bajar `vida_combatientes` a 1 y muestra la XP acumulada. Guía:
+[XP de NPC](docs/pruebas/XP_NPC.md). Revisión jugable del usuario pendiente.
+
+### Facciones y bandos — acuerdo del 14-10-2026
+
+El usuario aprobó una facción fija por definición (ID vacío = sin facción),
+separada del bando temporal del encuentro: jugador, oposición y neutral fuera
+del encuentro. Compartir facción habilita auxilio local, no comparte puntos.
+Prioridad: defensa propia, compañero de facción agredido, relación con jugador.
+Los amistosos ayudan frente a hostiles que amenazan al jugador; una agresión
+del jugador a un neutral no los recluta. Un compañero amistoso puede defender
+al agredido contra el jugador. Los puntos y diálogos cambian sólo al destinatario;
+los testigos no reciben penalización ni existe contagio global de relación.
+
+Un testigo combatiente vivo debe ver agresor y agredido al resolverse el intento,
+incluidos fallo y esquiva. Incorporación posterior: percepción de un participante
+pertinente a min(7, radio propio), al final de ronda, sin convocatorias ni cadenas
+en la misma evaluación. Sólo aliados del encuentro comparten posiciones vistas;
+atacar requiere visión propia. Actitud fija y capacidades prevalecen, incluido
+Trompo no combatiente. Cambiar puntos no cambia un bando vigente.
+
+Se guardan bandos por ID dentro de rondas, iniciativa, recursos y objetivos
+recordados; cargar no repite consecuencias. Sin bandos, los guardados anteriores
+interpretan todos sus NPC como oposición al jugador. Este corte incluye combate
+entre NPC de bandos contrarios en encuentros con jugador. Encuentros autónomos
+sin jugador, diplomacia entre facciones, cambios de pertenencia, presentación
+de visión, niveles y habilidades quedan fuera.
+
+Implementado el 14-10-2026: facción en definición, bandos y defendidos por ID en
+el gestor existente, auxilio tras resolución, objetivos NPC, memoria por bando,
+HUD con aliados/oponentes y migración v2 sin repetir efectos. La prueba dirigida
+pasó 160 comprobaciones de auxilio local, prioridades, visión, incorporación sin
+cadenas, iniciativa, turno real aliado, K/C, rechazo atómico, cadáver y botín.
+También pasaron actitud, persistencia NPC (21 grupos), esquiva (20 casos), rondas,
+exploración autónoma y patrullas (8 circuitos cada NPC en 40 segundos) en Godot 4.7.
+Escena y guía: [Facciones y bandos](docs/pruebas/FACCIONES_NPC.md).
+El 15-10-2026 el usuario probó la escena y comunicó que las pruebas parecen
+funcionar, sin detallar cada caso de la guía.
+
+- Estado actual: actitud cerrada; facciones y bandos implementados, comprobados automáticamente y probados por el usuario sin fallos comunicados.
+- Próximo paso: revisar XP en juego. La capa de visión ya fue confirmada por el usuario; niveles y habilidades siguen aplazados.
+- Última comprobación jugable del usuario: facciones y bandos, 15-10-2026, con «estuve haciendo las prubas y parecen funcionar»; no se detalló la cobertura manual.
+- Última actualización: 15-10-2026 (campos de visión NPC).
+
+### Actitud de NPC — acuerdo del 11-10-2026
+
+Se acuerdan puntos enteros por instancia entre -10 y +10: hostil hasta -3,
+neutral entre -2 y +2, amistosa desde +3. La actitud inicial aporta 0, +3 o -3.
+Cada ataque válido resuelto contra un NPC resta 2 puntos, incluso si falla o
+es esquivado; bloqueos y cancelaciones no cambian la relación. Diálogos y
+acciones comparten una operación de delta; las opciones manuales usan +1/-1.
+No hay recuperación por tiempo, descanso o carga. La defensa del encuentro
+se distingue de la relación: un neutral combatiente agredido responde según
+iniciativa sin ataque gratuito, aunque no alcance hostilidad persistente.
+Cambiar puntos no pacifica un encuentro vigente. Al terminar, un NPC no hostil
+deja de perseguir y vuelve a su comportamiento habitual. Se respetan actitudes
+fijas y capacidades; Trompo sigue neutral fijo y no combatiente.
+Los guardados antiguos migran la etiqueta de actitud al valor correspondiente;
+restaurar no repite cambios. Facciones/bandos, XP, visión y progresión quedan fuera.
+
+Implementación: puntos y etiqueta derivada en el estado existente, operación
+compartida desde NPC y Dialogue Manager, penalización en resolución del ataque,
+oposición reconstruida desde participantes de rondas y limpieza al cerrar/cargar.
+Se prevalidan ataques antes de abrir encuentro. No se cambian definiciones de
+contenido ni slots normales. La escena manual reutiliza el escenario de combate
+con neutral dinámico, neutral fijo combatiente y la excepción de Trompo.
+[Guía de revisión](docs/pruebas/ACTITUD_NPC.md).
+
+Godot 4.7 sin ventana: prueba de actitud (incluye mutaciones reales, defensa con
+el árbol y turno reales, y K/C repetida), persistencia NPC (21 grupos), esquiva
+(20 casos) y exploración autónoma completaron con salida cero. Se adaptó el suelo
+de la prueba antigua de persistencia: las coordenadas fijas ya no eran caminables
+en Zona1 y superponían al NPC vivo con el jugador al migrar v1. Ahora usa suelo
+propio y posiciones separadas. Las pruebas de archivos requieren acceso a user://;
+en el sandbox no se podía escribir allí. La escena dirigida conserva una advertencia
+previa de UID de palanca con carga por ruta; no presentó errores de scripts.
+La importación headless mostró errores de tema/configuración del editor de
+Dialogue Manager dentro del sandbox; no se modificó el addon. Posteriormente,
+el 11-10-2026, el usuario confirmó la revisión manual y el funcionamiento de
+actitud. Con esa confirmación queda cerrado este bloque.
+
+Prioridad confirmada por el usuario: continuar y cerrar el trabajo de NPC antes
+de abordar las otras capas. Las reglas de progresión quedan documentadas para
+después; esta conversación no autoriza comenzar niveles, selección de mejoras
+ni catálogo de habilidades. El usuario autorizó convertir la derrota reversible
+en muerte persistente, conservando examen y botín; está implementado para revisión.
+
+### Bloqueos de patrullas y guardado — 11 de octubre de 2026
+
+Confirmación posterior: el usuario dio por funcional el punto de estabilización,
+que incluía guardado durante movimiento, desbloqueo de patrullas y conservación
+de cadáver/botín al cargar. Pidió continuar Actitud, facciones/bandos, XP y alcance
+de visión en chats nuevos, comenzando por Actitud. La confirmación es manual.
+
+El usuario pidió después permitir guardar durante movimiento. K ahora conserva
+la última casilla confirmada de cada actor, sus recursos y estados actuales;
+el serializador existente ya usa esos datos y no guarda posiciones visuales,
+tweens, reservas ni rutas calculadas. El guardado no interrumpe el recorrido.
+C sigue exigiendo reposo para evitar ejecuciones pendientes sobre el mundo
+restaurado. Ambas operaciones mantienen el bloqueo de interacción modal.
+No se ejecutaron pruebas ni Godot para este cambio; falta revisión jugable.
+
+El diagnóstico del usuario confirmó un recorrido activo de Goblin 1 cuando parecía
+quieto. La espera de una ruta libre mantenía abierto el movimiento y rechazaba K/C.
+Ahora una ruta bloqueada cierra el avance y reintenta en el siguiente ciclo,
+permitiendo guardar en reposo. Para dos patrullas con destinos mutuamente ocupados,
+el NPC con menor ID intenta apartarse a una casilla vecina libre sin cambiar el
+punto pendiente. Sin espacio libre siguen esperando. No se ejecutaron pruebas
+ni Godot para este ajuste; falta confirmar el caso jugable informado.
+
+### Muerte persistente de NPC — 11 de octubre de 2026
+
+Llegar a cero PV es muerte. `EstadoPersonajeNPC` protege la vida: ni curar ni
+asignar PV positivos permiten revivirlo. Se conserva `esta_derrotado()` para los
+consumidores actuales y se ofrece `esta_muerto()`. Al morir, `PersonajeNPC`
+interrumpe su recorrido, olvida la persecución y agota sus recursos; no los
+repone al iniciar un turno. Sigue registrado, permite pasar por la casilla,
+conserva examen y botín, y se identifica como `Cadáver de <nombre>`.
+El examen añade una observación de muerte sin guardarla como conocimiento
+permanente. `textura_cadaver` permite configurar una imagen única futura; en su
+ausencia conserva el sprite y orientación actuales.
+
+La muerte se deriva de los PV guardados; no se añade un booleano ni se cambia la
+versión del snapshot. Los guardados anteriores con cero PV se interpretan como
+cadáveres. Cargar un guardado donde estaba vivo restaura ese momento de la partida,
+sin aplicar curación. El inventario conserva las pilas restantes o la lista vacía.
+Se adaptaron las expectativas y reinicios de las pruebas existentes de estado
+persistente y esquiva. No se añadieron ni ejecutaron pruebas ni se abrió Godot;
+falta revisión jugable. XP y progresión no se implementaron en este incremento.
+
+### Botín de NPC — 11 de octubre de 2026
+
+Acuerdo posterior sobre progresión, ajustado por el usuario: los niveles 1 y 2
+otorgan una habilidad o pasiva cada uno; el nivel 3 otorga +1 a un atributo a
+elección. Sustituye la propuesta de otorgar ambas mejoras en cada nivel.
+El usuario confirmó repetir el patrón: niveles múltiplos de tres otorgan +1 a
+un atributo; todos los demás, una habilidad o pasiva, incluido el nivel inicial.
+No está implementado.
+El usuario confirmó la curva inicial ajustable: cada salto cuesta 100 × nivel
+actual, con 0, 100, 300, 600 y 1.000 XP acumulada para niveles 1..5.
+El usuario confirmó el máximo de 5 por atributo: cuando todos están al máximo,
+la recompensa de atributo se sustituye por una habilidad o pasiva.
+La selección de habilidades y la atribución de derrotas todavía requieren cierre.
+
+El usuario confirmó que la derrota ya deja un NPC interactuable y pidió que pueda
+dejar botín. `puede_tener_inventario` ahora habilita un inventario por instancia,
+inicializado con `contenido_inicial`. A cero PV publica `Recoger botín`, alcance
+uno, y conserva `Examinar`. Reutiliza el panel y la transferencia de cofres;
+`Recoger todo` deja en el cuerpo las pilas que no caben en el destino. Por ahora
+no consume acción, igual que los cofres, ni genera contenido aleatorio.
+
+`Inventario` comparte serialización, validación y restauración entre cofres y NPC.
+K/C conserva el contenido restante o vacío y comprueba IDs globales frente al
+jugador, los demás contenedores y el suelo. Los guardados previos sin inventario
+de NPC recuperan su contenido inicial. La escena hostil ofrece dos piedras por
+enemigo. El usuario confirmó la revisión jugable con «chequeado» el 11-10-2026.
+No se añadieron ni ejecutaron pruebas automáticas para este incremento.
+El incremento posterior implementa muerte irreversible para revisión;
+XP y asset de cadáver siguen pendientes.
+Guía: [NPC y diálogos](docs/contenido/NPC_Y_DIALOGOS.md).
+
+### Exploración autónoma de NPC — 11 de octubre de 2026
+
+El usuario aclaró que los NPC deben seguir moviéndose fuera de combate aunque
+el jugador permanezca quieto. Los avances de NPC se disparan por tiempo de juego,
+con intervalo provisional de un segundo configurable en el escenario, y dejan
+de depender de `Pasar turno` o del cierre del movimiento del jugador. Se conserva
+el movimiento paralelo, la reserva DES + 3, las esperas por ciclos de exploración
+y la cancelación al entrar en combate. Se acumula como máximo un avance pendiente
+para evitar ráfagas de turnos atrasados; las superficies y los estados del jugador
+mantienen su contrato anterior. Los NPC sin ruta ni destino permanecen en reposo.
+La inicialización de `PatrullaNPC` debe conservar la curva guardada en la escena.
+Comprobación dirigida autorizada por el usuario: escena
+`tests/interacciones/prueba_exploracion_npc_autonoma.tscn`, ejecutada en Godot 4.7
+sin ventana, con salida cero. Verifica la curva guardada de la escena manual,
+varios ciclos con el jugador quieto sin gastar sus recursos, cola limitada a un
+avance y pausa/reanudación al cambiar la modalidad de combate. La prueba sustituye
+la captura de texturas 3D; no verifica el aspecto visual ni un encuentro completo.
+Sólo apareció una advertencia anterior de UID de palanca, con carga por ruta.
+
+El usuario autorizó preparar la escena manual para dibujar dos patrullas que se
+crucen: `RutaPatrulla` conserva su recorrido y se aplica al NPC 1;
+`RutaPatrulla2` es una curva independiente vacía para el NPC 2, con espera cero.
+El tercer NPC sigue sin ruta. Los tres se crean al ejecutar; queda pendiente que
+el usuario dibuje la segunda ruta y revise cruces y bloqueo por el jugador.
+
+El usuario dibujó ambas rutas y confirmó que resuelven bien los cruces. Autorizó
+modificarlas y comprobar una detención observada: con los trazos originales los
+NPC completaron 3 y 7 vueltas en 40 segundos, con 2 PV y sin estados. Se retiró
+la espera de la primera ruta; ambos quedan con espera cero y conservan sus puntos.
+`prueba_continuidad_patrullas.tscn` terminó con salida cero: 9 vueltas por NPC en
+40 segundos, renovando movimiento, sin errores de scripts. Prueba sin ventana y
+jugador quieto; la detención permanente informada no se reprodujo. Queda pendiente
+precisar qué hacía el jugador al observarla. No se añadieron reglas de ceder paso
+ni energía para NPC a partir de una sospecha no reproducida.
+
+### Reglas acordadas para los siguientes incrementos de NPC — 9 de octubre de 2026
+
+Estas reglas están acordadas, pero todavía no están implementadas como conjunto.
+El primer corte de combate grupal está implementado para revisión, como se detalla abajo.
+
+El detalle completo está en [Acuerdos de NPC](docs/contenido/NPC_Y_DIALOGOS.md)
+y [Visión, iluminación y niebla de guerra](docs/contenido/VISION_ILUMINACION_Y_NIEBLA.md).
+El usuario pidió registrar toda la discusión y volver a centrar el trabajo en NPC.
+
+- La respuesta de otros NPC depende de su alcance de visión; pertenecer a una
+  facción no incorpora automáticamente a todos sus miembros al combate.
+- Los enemigos participantes conservan el agro colectivo mientras alguno detecte
+  al jugador. Los demás intentan acercarse usando información del encuentro, sin
+  consultar la posición oculta del jugador. La huida termina el modo combate sólo
+  cuando el jugador está fuera de la visión de todos los enemigos participantes.
+- Acercarse a un combate permite incorporarse automáticamente, con un alcance
+  de incorporación de siete casillas y percepción real del encuentro. El nuevo
+  participante entra al final de la ronda actual; todos vuelven a tirar iniciativa
+  cada ronda. El usuario confirmó **1d6 + DES**, mayor total primero; los empates
+  se resuelven por mayor DES y después por ID ascendente. Uno y seis son valores
+  normales de iniciativa, sin críticos ni pifias.
+- Iluminación, visión actual de cada actor y memoria de terreno explorado deben
+  distinguirse. Una casilla iluminada no implica que el jugador la perciba; el
+  terreno recordado tampoco revela ocupantes actuales. Falta definir cómo afecta
+  la oscuridad a la percepción y si habrá capacidades especiales de visión.
+  La niebla presenta conocimiento del jugador: nunca visto, recordado o visible
+  ahora. Una fuente de luz no descubre ni marca como explorado el mapa por sí sola.
+  Las siete casillas de incorporación no cambian por sí solas la configuración
+  actual del goblin (visión doce por defecto, movimiento cuatro) ni el radio de luz de la
+  antorcha del jugador (cinco): luz, visión e incorporación son parámetros distintos.
+- Agredir a un NPC neutral provoca defensa inmediata durante el encuentro. La
+  actitud persistente cambia por diálogos y acciones hasta un umbral de hostilidad;
+  los umbrales y las relaciones de facción todavía requieren diseño.
+  Los bandos dependen de aliados, enemigos y neutrales; golpear a un neutral establece
+  oposición contra ese objetivo. También se quiere mostrar el alcance de visión
+  al examinar un NPC. Estos comportamientos todavía no están conectados.
+- Equipar, usar o consumir un objeto cuesta una acción. La acción adicional queda
+  pendiente. Las patrullas deberán admitir varios puntos y edición visual.
+- La muerte deberá generar un cadáver examinable con botín y otorgar XP a quien
+  derrote al NPC, con soporte para un futuro asset de cadáver. Aún falta definir
+  atribución de XP en derrotas indirectas o compartidas. Cero PV representa muerte
+  persistente desde el 11-10-2026; la entrega de XP sigue pendiente.
+- Se mantiene la restricción actual de guardado/carga durante recorridos y esperas
+  de los NPC; no se amplía la persistencia de movimientos transitorios en esta etapa.
+
+Diagnóstico del código actual: `FOVManager` proyecta las luces del mapa directamente
+como celdas visibles, sin comprobar la visión desde el jugador. La detección NPC
+usa distancia y línea visual, pero no iluminación. `GestorRondas` admite incorporación
+al final e iniciativa por ronda; los bandos aliados/neutrales siguen pendientes.
+
+### Patrullas implementadas para revisión — 9 de octubre de 2026
+
+El usuario aprobó continuar con puntos editables visualmente, circuito, espera
+configurable, interrupción al detectar y retorno a la patrulla tras la búsqueda.
+El corte usa turnos de exploración para las esperas y conserva el punto pendiente.
+Reutiliza movimiento paralelo, recálculo y DES + 3, también para NPC neutrales.
+`PatrullaNPC`, hijo `Patrulla` de la instancia, usa `Path2D`/`Curve2D` para la
+edición y captura las casillas una sola vez al registrarse. El árbol incorpora
+esperar, avanzar punto y patrullar, después de buscar. Guarda índice y espera
+como campo opcional del snapshot v2 y rechaza rutas guardadas incompatibles.
+La escena manual existente muestra el mapa y una `RutaPatrulla` de cuatro puntos
+para el primer NPC; visión cero permite observarla en exploración. La guía está
+en [Patrullas de NPC](docs/contenido/PATRULLAS_NPC.md). No se ejecutaron juego ni
+pruebas; falta revisión jugable. Importación y apertura de escena en el editor
+de Godot sin errores de scripts.
+
+### Incorporación e iniciativa por ronda — 9 de octubre de 2026
+
+- Fórmula confirmada por el usuario: **1d6 + DES actual**, total descendente,
+  DES descendente e ID ascendente. Se tira al comenzar y en cada ronda nueva;
+  no es una prueba de éxito, por lo que uno y seis no son crítico ni pifia.
+- Durante el encuentro, un hostil vivo combatiente entra si ve a un participante
+  vivo a una distancia máxima de `min(7, radio_agro propio)`, con línea visual.
+  Se añade al final de la ronda, sin reiniciarla ni renovar recursos del actor activo.
+  Sólo tira a partir de la siguiente ronda. No hay convocatoria global de facción.
+- Ver a un compañero no revela la posición oculta del jugador: el grupo sigue
+  compartiendo sólo una posición realmente observada por un detector vivo.
+- El HUD muestra los totales y el registro explica dado, DES y desempates.
+  K/C conserva orden, actor activo y resultados sin tirar de nuevo; guardados
+  anteriores sin resultados mantienen su orden hasta la próxima ronda.
+- Este corte cubre hostiles frente al jugador. Bandos aliados/neutrales,
+  encuentros entre NPC sin jugador y percepción que dependa de luz siguen pendientes.
+- Importación y apertura de la escena hostil en el editor de Godot sin errores
+  de scripts. No se ejecutaron el juego ni pruebas. La revisión jugable queda pendiente.
+
+### Primer corte de combate grupal — 9 de octubre de 2026
+
+- Al iniciar se reúne al objetivo con todos los hostiles vivos combatientes que
+  detectan al jugador por su propio radio y línea visual. No se incorporan miembros
+  lejanos de una facción ni nuevos actores durante un encuentro en curso.
+- Mientras un participante vivo detecta al jugador, todos conservan su última
+  posición observada. El árbol puede acercarse a ese recuerdo compartido aunque
+  el NPC no vea personalmente al jugador; atacar sigue requiriendo visión propia.
+- La pérdida del último detector vivo cierra el modo combate, conserva la memoria
+  de cada NPC y permite búsqueda/regreso simultáneos durante exploración. Derrotar
+  a uno no termina el encuentro mientras queden oponentes vivos y detección.
+- Se reutilizan el orden fijo, los turnos, HUD, reservas, estados y snapshot v2
+  existentes. La memoria compartida se guarda en el campo individual existente;
+  no se agrega otro estado global ni se guardan rutas o blackboards.
+- La escena manual hostil genera tres goblins por defecto, configurables de uno
+  a cinco. Cada cantidad usa un archivo de K/C propio; un enemigo conserva el slot
+  anterior. Esta adaptación no es una nueva prueba automatizada.
+- Revisión del código por lectura e importación/carga de escena en el editor sin
+  errores de scripts. No se ejecutaron el juego ni pruebas; falta
+  confirmar en Godot los turnos del grupo, huida y K/C del encuentro ampliado.
+
+### Ajuste de visión para la persecución — 9 de octubre de 2026
+
+- El usuario ejecutó la escena grupal y señaló que caminar lejos permitía escapar
+  demasiado fácilmente. Propuso aumentar visión para acompañar las distancias de
+  movimiento, en vez de elegir una acción explícita de huida o una espera por rondas.
+- Se deja como ajuste provisional visión doce en los goblins de la escena manual,
+  mediante `radio_vision_enemigos` en el Inspector. Conservan movimiento cuatro;
+  el jugador con DES cuatro tiene siete puntos. Desde la ubicación inicial de
+  hasta cinco casillas, un recorrido de siete puntos por distancia no basta para
+  salir de un radio doce con línea visual despejada.
+- La visión ampliada también amplía la detección que inicia combate: actualmente
+  ambos usos comparten `radio_agro`. Paredes y humo siguen bloqueando visión;
+  perder la detección de todos sigue terminando combate automáticamente. Esto
+  ajusta el balance por distancia, no establece una regla nueva de huida ni de luz.
+- El usuario valoró favorablemente el nuevo balance: «me gustó bastante más».
+  Se conserva visión doce y movimiento cuatro para estos goblins. Esa preferencia
+  no confirma por separado todos los casos del grupo, obstáculos y K/C. Codex no
+  ejecutó juego ni pruebas de este ajuste numérico.
+
+### Alcance de los valores de prueba — 9 de octubre de 2026
+
+El usuario recordó que el movimiento de un NPC debe resultar de **DES + 3**.
+Los cuatro puntos fijos del perfil manual son sólo una excepción para estas
+pruebas; no son una regla de especie ni del contenido final. Allí DES dos daría
+cinco puntos con la fórmula normal; DES uno daría cuatro. Visión doce se conserva
+como balance provisional de esa escena. La apariencia de goblin es temporal y
+ni siquiera está decidida su existencia futura. Se mantiene la implementación
+común por actor, con DES actual y recursos propios.
 
 ### Continuidad de septiembre de 2026
 
@@ -34,6 +563,175 @@ en el templo con interacción, hover, ficha informativa y diálogo ilustrado. La
 actitud, el combate de NPC, la recompensa de XP y la persistencia de su estado
 siguen pendientes; los campos de definición existentes no implican que esos
 sistemas estén conectados.
+
+### Combate y esquiva automática — 5 de octubre de 2026
+
+- El usuario confirmó la regla común para jugador y NPC: ataque `1d6 ≤ FUE`;
+  si acierta, el defensor intenta automáticamente una esquiva `1d6 ≤ DES`.
+- Esquivar evita todo el daño del ataque y no consume reacción ni otros recursos.
+  Un ataque fallido no genera esquiva. La acción principal se paga al intentar,
+  incluso si falla o el defensor esquiva. El daño sigue siendo provisional de 1 PV.
+- Ambas pruebas conservan crítico con 1 y pifia con 6. No se acordaron excepciones
+  a la esquiva para ataques críticos. La esquiva es automática y se registra;
+  el ataque solicitado del jugador conserva su presentación en primer plano.
+- El estado y la comprobación de este incremento se detallan en
+  [NPC y diálogos](docs/contenido/NPC_Y_DIALOGOS.md) y [Pruebas](docs/pruebas/PRUEBAS.md).
+
+### Aprendizaje de IA con LimboAI — 5 de octubre de 2026
+
+- El usuario eligió LimboAI e instaló la GDExtension v1.8.1 en Godot 4.7.
+- Creó `scenes/pruebas LimboAI/prueba_ia.tscn` con un `BTPlayer` manual
+  y el recurso `prueba_ia.tres`. El primer ejemplo permite variar distancia,
+  acción principal, movimiento y disponibilidad de camino para observar un selector.
+- Las ramas son atacar, acercarse y terminar turno. Este ejemplo muestra la
+  decisión y sus condiciones; la ejecución de movimiento y combate se conecta
+  en un incremento posterior. El usuario confirmó la revisión jugable básica
+  de combate y esquiva el 6 de octubre de 2026. También confirmó ese día que
+  funciona el ejemplo interactivo de IA. La integración real del 6 de octubre
+  se describe en el siguiente apartado.
+
+### Movimiento transversal y NPC — 6 de octubre de 2026
+
+- El usuario autorizó extraer de `Ficha` el recorrido por casillas como capacidad
+  compartida por actores. Reserva, animación, confirmación e interrupción pertenecen
+  a esa capacidad; energía, orientación y restricciones pertenecen al actor.
+- Jugador y NPC usan el mismo recorrido y costes reales del terreno. El NPC actualiza
+  su registro como interactuable al llegar a cada casilla y restaura su ubicación al cargar.
+- LimboAI decide atacar, acercarse o terminar turno; el escenario ejecuta la acción
+  y reevalúa después del movimiento. Las posiciones guardadas se validan juntas
+  antes de modificar el tablero. Guardar/cargar se bloquea durante un desplazamiento.
+- Los estados temporales de NPC continúan pendientes; se conserva el punto de
+  extensión para reacciones del terreno y se ejecutan las que el actor admite.
+- Implementado para revisión con F6. Importación y carga de la escena en el editor
+  sin errores de scripts; todavía sin confirmación jugable ni ejecución de pruebas
+  de este incremento. Contrato: `docs/contratos/08_TURNOS_Y_RONDAS.md`.
+- El usuario confirmó que funciona el incremento y encontró que caer sobre hielo
+  en combate renovaba su turno sin avanzar al NPC. Se corrigió el cierre de caída
+  para usar el gestor de combate, interrumpir la ruta y conservar sus recursos
+  agotados hasta su siguiente turno. La corrección está pendiente de revisión jugable;
+  no se ejecutaron pruebas de este cambio.
+- Corrección del 8 de octubre: `Zona1/Interactuables/Personajes` activa
+  `y_sort_enabled`, igual que el templo. Cada NPC se ordena por su posición
+  durante el desplazamiento, en lugar de dibujarse con el ancla de la carpeta.
+  Revisión visual pendiente; no se ejecutaron pruebas.
+
+
+### Estados compartidos y liberación prioritaria — 8 de octubre de 2026
+
+- El usuario definió que liberarse de una telaraña tiene siempre primera prioridad
+  para el NPC, antes de atacar o perseguir. Sin acción principal pasa; nunca usa
+  esa situación para atacar mientras sigue atrapado.
+- Se reutilizan DES, coste de una acción principal al intentar y eliminación de
+  `enredado` sólo al acertar, como en la ficha. Después de liberarse puede gastar
+  los recursos que conserve. Caer en hielo/lodo interrumpe y termina su turno.
+- Se extraen los estados temporales de `Ficha` a una capacidad por actor y se
+  incorpora su persistencia al NPC con compatibilidad para guardados anteriores.
+- `EstadosTemporalesActor` conserva enredado, caído, quemado y veneno. Enredado
+  permanece hasta liberarse y se guarda con cero ticks, también al restaurar
+  guardados anteriores. El registro identifica el NPC afectado.
+- Implementado para revisión: importación y apertura de la escena hostil en Godot
+  sin errores de scripts. No se añadieron ni ejecutaron pruebas de este incremento;
+  el usuario confirmó después la revisión de telaraña y caída. Esta confirmación
+  no certifica por separado quemado, veneno ni K/C con estados activos.
+
+### Agro y ventana de acción — 8 de octubre de 2026
+
+- `DefinicionPersonaje.radio_agro` tiene valor base cuatro, configurable en el
+  Inspector; cero desactiva la detección automática. Sólo detectan NPC vivos,
+  hostiles y combatientes, con distancia circular y línea visual despejada.
+- Se reutiliza `ValidadorEspacialTablero`: obstáculos opacos y esquinas cerradas
+  bloquean la línea. La detección no depende del fog del jugador ni hace tiradas.
+- La antorcha del jugador conserva su radio base cinco. La ventana depende de
+  la iluminación y los obstáculos; una antorcha en atenuación reduce el alcance.
+- Al detectar se interrumpe la ruta en la casilla confirmada y se inicia el
+  encuentro existente, ordenado por iniciativa. Si detectan varios, entra el más
+  cercano con desempate por ID. La pérdida de objetivo y las patrullas quedan para
+  el siguiente incremento; salir del radio no termina el combate actual.
+- La escena hostil intenta colocar el objetivo a cinco casillas; si no encuentra
+  una celda visible y accesible, usa una más cercana. Importación y apertura de
+  escena en Godot sin errores de scripts; revisión jugable pendiente. No se
+  añadieron ni ejecutaron pruebas de este incremento.
+- El usuario confirmó después que el agro funciona. Esto no certifica por
+  separado cada obstáculo ni la carga durante un encuentro automático.
+
+### Movimiento según DES — 8 de octubre de 2026
+
+- El usuario eligió **DES + 3** para el movimiento por turno de jugador y NPC:
+  DES 2 → 5, DES 3 → 6, DES 4 → 7 y DES 5 → 8 puntos. El terreno conserva costes.
+- `RecursosTurnoActor` contiene la fórmula común. Cada actor calcula el máximo
+  con su destreza de instancia al comenzar el turno; el HUD y las rutas leen la
+  misma reserva. Se elimina el máximo configurable independiente de DES.
+- Los guardados nuevos conservan máximo y restantes. Los anteriores al cambio
+  se adaptan desde el máximo siete conservando el gasto del turno, sin avanzar ronda.
+- Implementado para revisión jugable; importación y apertura de escena en Godot
+  sin errores de scripts. No se añadieron ni ejecutaron pruebas.
+  La pérdida del objetivo todavía no permite cerrar combate al ganar distancia.
+
+### Pérdida del objetivo y búsqueda — 9 de octubre de 2026
+
+- El usuario aceptó las reglas: mientras detecta dentro de agro cuatro, persigue;
+  al perder detección, busca en la última casilla conocida; al llegar sin redetectar,
+  abandona el combate. Sin recuerdo o sin camino también abandona el encuentro aislado.
+- El árbol real mantiene liberarse como primera prioridad y añade buscar/abandonar.
+  Cada paso del NPC reevalúa detección; la ruta oculta no usa la posición real del jugador.
+- `EstadoPersonajeNPC` conserva el recuerdo y lo guarda con validación de coordenadas.
+  Guardados anteriores sin memoria siguen admitidos y no reciben información oculta.
+- Abandonar procesa primero el cierre del turno, limpia memoria, registra la huida
+  y devuelve exploración. No cura al NPC ni lo devuelve a su origen.
+- Implementado para revisión: importación y apertura de escena en Godot sin errores
+  de scripts. No se añadieron ni ejecutaron pruebas jugables o automáticas.
+
+### Salida inmediata por pérdida de agro y regreso — 9 de octubre de 2026
+
+- El usuario precisó que perder agro del jugador debe terminar la modalidad
+  combate inmediatamente y devolver el movimiento normal. Sustituye la regla
+  anterior de mantener combate hasta terminar la búsqueda.
+- El recuerdo se conserva: el NPC busca la última casilla conocida fuera de
+  combate y después vuelve al origen. Cada turno de exploración del jugador
+  permite avanzar con DES + 3, costes del terreno y estados compartidos.
+- Liberarse conserva prioridad. Si el origen está ocupado o no hay ruta, espera
+  y reintenta el próximo turno. No recupera PV. Redetectar durante búsqueda o
+  regreso interrumpe el plan y abre otro combate por iniciativa.
+- El origen se captura al registrar la instancia y se persiste junto al recuerdo;
+  guardados anteriores usan el origen de la escena. No se guardan rutas.
+- Implementado para revisión jugable. Importación y apertura de escena en Godot
+  sin errores de scripts; no se añadieron ni ejecutaron pruebas.
+
+### Ajuste del goblin hostil — 9 de octubre de 2026
+
+- A pedido del usuario, el goblin de la escena hostil usa movimiento fijo cuatro
+  y visión/agro seis, independiente de su DES 2 para esquivar. Jugador y demás
+  NPC conservan DES + 3; el perfil permite fijar movimiento cuando corresponda.
+- Inicio, reposición, rutas y búsqueda/regreso consultan el mismo máximo. Los
+  guardados anteriores con DES + 3 migran conservando los puntos gastados.
+- Pendiente de revisión jugable: el usuario informó dificultades de detección
+  con radio cuatro. A cinco casillas de inicio puede comenzar combate inmediatamente.
+
+### Movimiento simultáneo en exploración — 9 de octubre de 2026
+
+- El usuario precisó que jugador y NPC deben poder caminar al mismo tiempo fuera
+  de combate. La renovación del jugador deja de esperar al recorrido del NPC;
+  los avances NPC se encolan y ejecutan en paralelo al jugador.
+- Se conservan las reservas y validación de cada paso. El goblin mantiene cuatro
+  puntos de movimiento y visión seis. Entrar en combate cancela avances pendientes
+  y termina los pasos actuales antes de ejecutar acciones por iniciativa.
+- Las superficies avanzan una vez por cierre de turno del jugador; cada NPC
+  procesa sus estados al terminar su propio avance. Guardar/cargar sigue exigiendo
+  reposo. Importación en Godot sin errores de scripts; revisión jugable pendiente.
+  No se añadieron ni ejecutaron pruebas.
+
+### Varios NPC y recálculo ante ocupación — 9 de octubre de 2026
+
+- Los recorridos de exploración se lanzan por ID y avanzan simultáneamente entre
+  NPC y jugador. Cada actor reserva su próxima casilla; si queda ocupada, la
+  capacidad compartida recalcula hacia el mismo destino con la reserva restante.
+- Sin alternativa, espera un cambio del tablero conservando el recuerdo. Esperar
+  no consume movimiento ni añade ticks. Un nuevo turno cierra esa espera antes
+  de renovar recursos. El inicio de combate cancela también las esperas.
+- El recálculo no depende de la actitud; puede usarse en NPC amistosos con
+  movimiento. Combate con múltiples enemigos y patrullas siguen pendientes.
+- Importación en Godot sin errores de scripts. Revisión jugable pendiente;
+  no se añadieron ni ejecutaron pruebas.
 
 ### Progreso por fases
 

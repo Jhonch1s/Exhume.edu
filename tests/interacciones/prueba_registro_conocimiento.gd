@@ -133,6 +133,11 @@ func _probar_copias_defensivas() -> void:
 		resultado.ids_fragmentos_nuevos.size() == 2,
 		"El resultado debe proteger su colección de novedades."
 	)
+	_comprobar(
+		registro.obtener_ids_conocidos(&"observador", &"objetivo")
+		== [&"construccion", &"identidad"],
+		"El registro debe devolver una copia ordenada de sus IDs conocidos."
+	)
 
 
 func _probar_intentos_percepcion_persistentes() -> void:
@@ -150,11 +155,6 @@ func _probar_intentos_percepcion_persistentes() -> void:
 		restaurado.restaurar_estado_persistente(registro.obtener_estado_persistente()) == &""
 		and restaurado.intento_percepcion_realizado(&"jugador", &"trampa"),
 		"La tentativa irreversible debe sobrevivir al guardado."
-	)
-	_comprobar(
-		registro.obtener_ids_conocidos(&"observador", &"objetivo")
-		== [&"construccion", &"identidad"],
-		"El registro debe devolver una copia ordenada de sus IDs conocidos."
 	)
 
 

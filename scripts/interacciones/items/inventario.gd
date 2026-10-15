@@ -5,6 +5,63 @@ var _contenido: Array[ItemInstancia] = []
 var capacidad: int = -1
 
 
+func obtener_estado_persistente() -> Array[Dictionary]:
+	var items: Array[Dictionary] = []
+	for item in _contenido:
+		items.append({
+			"id": String(item.id_instancia),
+			"definicion_id": String(item.definicion.id_definicion),
+			"definicion_path": item.definicion.resource_path,
+			"cantidad": item.cantidad,
+		})
+	return items
+
+
+func validar_estado_persistente(datos: Variant) -> StringName:
+	if not datos is Array:
+		return &"inventario_guardado_invalido"
+	if capacidad >= 0 and datos.size() > capacidad:
+		return &"inventario_guardado_excede_capacidad"
+	var ids: Dictionary[String, bool] = {}
+	for entrada: Variant in datos:
+		if not entrada is Dictionary:
+			return &"inventario_guardado_invalido"
+		var id_item: Variant = entrada.get("id")
+		var id_definicion: Variant = entrada.get("definicion_id")
+		var ruta: Variant = entrada.get("definicion_path")
+		var cantidad: Variant = entrada.get("cantidad")
+		if (
+			not id_item is String or id_item.is_empty() or ids.has(id_item)
+			or not id_definicion is String or id_definicion.is_empty()
+			or not ruta is String or ruta.is_empty()
+			or not ResourceLoader.exists(ruta)
+			or not (cantidad is int or (cantidad is float and is_finite(cantidad) and cantidad == roundf(cantidad)))
+		):
+			return &"inventario_guardado_invalido"
+		var perfil := ResourceLoader.load(ruta) as DefinicionItem
+		var item := ItemInstancia.new(StringName(id_item), perfil, int(cantidad))
+		if perfil == null or String(perfil.id_definicion) != id_definicion or not item.es_valida():
+			return &"definicion_item_guardada_invalida"
+		ids[id_item] = true
+	return &""
+
+
+func restaurar_estado_persistente(datos: Variant) -> StringName:
+	var motivo := validar_estado_persistente(datos)
+	if motivo != &"":
+		return motivo
+	var preparado: Array[ItemInstancia] = []
+	for entrada: Dictionary in datos:
+		preparado.append(ItemInstancia.new(
+			StringName(entrada["id"]),
+			ResourceLoader.load(entrada["definicion_path"]) as DefinicionItem,
+			int(entrada["cantidad"])
+		))
+	_contenido = preparado
+	_ordenar()
+	return &""
+
+
 func obtener_contenido() -> Array[ItemInstancia]:
 	return _contenido.duplicate()	
 

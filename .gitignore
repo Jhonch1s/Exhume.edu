@@ -6,3 +6,10 @@ docs/.obsidian/
 # Respaldos y autoguardados de editores graficos
 *~
 *.kra-autosave.kra
+
+# Salidas temporales de herramientas y pruebas
+/tmp/
+*.log
+
+# Copias de recarga de GDExtension; se conserva la biblioteca original
+/addons/limboai/bin/~*

@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://cq6eyihgiwmey"]
 
 [ext_resource type="Script" uid="uid://csb3u3lb5s2oi" path="res://scenes/escenario_base/escenario_base.gd" id="1_3j2a0"]
+[ext_resource type="Script" path="res://scenes/escenario_base/capa_vision_npc.gd" id="1_vision_npc"]
 [ext_resource type="PackedScene" uid="uid://21yp2g6tjqu" path="res://scenes/Zona1/zona_1.tscn" id="2_3j2a0"]
 [ext_resource type="Texture2D" uid="uid://bj6drlln1vbvq" path="res://assets/tiles/indicators/path/path_isometric.png" id="2_85xdd"]
 [ext_resource type="TileSet" uid="uid://b514khvcqn1oi" path="res://assets/tile_sets/basics.tres" id="3_elvtm"]
@@ -16,6 +17,7 @@
 [ext_resource type="PackedScene" uid="uid://ctjcxiiq4gyyg" path="res://assets/characters/knight3d/modelomago2.glb" id="14_lmwd1"]
 [ext_resource type="PackedScene" uid="uid://c87w474pswjrx" path="res://assets/characters/knight3d/ladronmodelo.glb" id="16_0resi"]
 [ext_resource type="PackedScene" uid="uid://cj6cokkjw74c" path="res://scenes/ui/hud/hud.tscn" id="17_hud"]
+[ext_resource type="PackedScene" path="res://scenes/ui/combate/panel_orden_combate.tscn" id="17_orden_combate"]
 [ext_resource type="PackedScene" path="res://scenes/ui/personajes/panel_info_npc.tscn" id="18_info_npc"]
 [ext_resource type="Texture2D" uid="uid://e66ncuwpvtq4" path="res://assets/characters/player/dialogue/guerrero.png" id="19_dialogo_guerrero"]
 [ext_resource type="Texture2D" uid="uid://gequfsg3lbdd" path="res://assets/characters/player/dialogue/ladron.png" id="20_dialogo_ladron"]
@@ -67,6 +69,11 @@ tile_set = SubResource("TileSet_7kgjf")
 [node name="CapaSelector" type="TileMapLayer" parent="." unique_id=1500853187]
 tile_set = ExtResource("3_elvtm")
 
+[node name="CapaVisionNPC" type="Node2D" parent="."]
+visible = false
+z_index = 20
+script = ExtResource("1_vision_npc")
+
 [node name="TrayectoriaLanzamiento" type="Line2D" parent="." unique_id=1905306761]
 z_index = 100
 width = 3.0
@@ -79,6 +86,7 @@ zoom = Vector2(3, 3)
 
 [node name="FiltroCRT" type="CanvasLayer" parent="." unique_id=274575882]
 layer = 3
+visible = false
 
 [node name="Pantalla" type="ColorRect" parent="FiltroCRT" unique_id=864690420]
 material = SubResource("ShaderMaterial_crt_zona")
@@ -91,8 +99,12 @@ mouse_filter = 2
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=592841260]
 layer = 2
+visible = false
 
 [node name="HUD" parent="CanvasLayer" unique_id=207001 instance=ExtResource("17_hud")]
+
+[node name="PanelOrdenCombate" parent="CanvasLayer" unique_id=1800521258 instance=ExtResource("17_orden_combate")]
+anchors_preset = 5
 
 [node name="PanelInfoNPC" parent="CanvasLayer" unique_id=445964116 instance=ExtResource("18_info_npc")]
 anchors_preset = 5
@@ -103,8 +115,9 @@ anchors_preset = 5
 
 [node name="PanelInventarioCofre" parent="CanvasLayer" unique_id=131137301 instance=ExtResource("11_e1m65")]
 
-[node name="CanvasLayerModalDados" type="CanvasLayer" parent="." unique_id=234662010]
+[node name="CanvasLayerModalDados" type="CanvasLayer" parent="." unique_id=246906314]
 layer = 2
+visible = false
 
 [node name="PanelResultadoAccion" parent="CanvasLayerModalDados" unique_id=1054421084 instance=ExtResource("9_panel_resultado")]
 

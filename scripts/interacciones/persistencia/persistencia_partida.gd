@@ -20,6 +20,7 @@ func crear_snapshot(
 		return {}
 	snapshot["ficha"] = ficha.obtener_estado_persistente()
 	snapshot["conocimiento"] = conocimiento.obtener_estado_persistente()
+	snapshot["memoria_narrativa"] = EstadoPartida.obtener_estado_persistente()
 	snapshot["items_suelo"] = contenido_dinamico.obtener_items_suelo(tablero)
 	snapshot["superficies"] = contenido_dinamico.obtener_superficies(tablero)
 	snapshot["rondas"] = gestor_rondas.obtener_estado_persistente() if gestor_rondas != null else null
@@ -50,6 +51,11 @@ func validar_restauracion(
 	var coordenada: Array = snapshot["ficha"]["coordenada"]
 	if not tablero.es_celda_valida(Vector2i(coordenada[0], coordenada[1])):
 		return &"coordenada_ficha_fuera_del_tablero"
+	motivo = interactuables.validar_posiciones(
+		snapshot, tablero, Vector2i(coordenada[0], coordenada[1])
+	)
+	if motivo != &"":
+		return motivo
 	var ids_inventario: Dictionary[String, bool] = {}
 	for item: Dictionary in snapshot["ficha"]["inventario"]:
 		ids_inventario[item["id"]] = true
@@ -57,9 +63,19 @@ func validar_restauracion(
 		var entidad := tablero.obtener_interactuable(
 			StringName(datos_interactuable["id"])
 		)
-		if not entidad is CofreInteractuable:
+		if entidad is PersonajeNPC:
+			var objetivo: Variant = datos_interactuable["estado"].get("objetivo_recordado_id")
+			if objetivo != null and not tablero.obtener_interactuable(StringName(objetivo)) is PersonajeNPC:
+				return &"memoria_npc_guardada_invalida"
+			var recuerdo: Variant = datos_interactuable["estado"].get("ultima_posicion_conocida")
+			if recuerdo is Array and not tablero.es_celda_valida(Vector2i(int(recuerdo[0]), int(recuerdo[1]))):
+				return &"memoria_npc_fuera_del_tablero"
+			var origen: Variant = datos_interactuable["estado"].get("coordenada_origen")
+			if origen is Array and not tablero.es_celda_valida(Vector2i(int(origen[0]), int(origen[1]))):
+				return &"origen_npc_fuera_del_tablero"
+		if not (entidad is CofreInteractuable or entidad is PersonajeNPC):
 			continue
-		for item: Dictionary in datos_interactuable["estado"]["inventario"]:
+		for item: Dictionary in datos_interactuable["estado"].get("inventario", []):
 			if ids_inventario.has(item["id"]):
 				return &"id_item_guardado_duplicado"
 			ids_inventario[item["id"]] = true
@@ -74,8 +90,26 @@ func validar_restauracion(
 	motivo = conocimiento.validar_estado_persistente(snapshot.get("conocimiento"))
 	if motivo != &"":
 		return motivo
+	if snapshot["version"] == PersistenciaInteractuables.VERSION_ANTERIOR:
+		if snapshot.has("memoria_narrativa"):
+			return &"memoria_narrativa_guardada_invalida"
+	else:
+		motivo = EstadoPartida.validar_estado_persistente(snapshot.get("memoria_narrativa"))
+		if motivo != &"":
+			return motivo
 	if gestor_rondas == null:
 		return &"" if snapshot.get("rondas") == null else &"gestor_rondas_ausente"
+	var rondas: Variant = snapshot.get("rondas")
+	if rondas is Dictionary and rondas.has("bandos"):
+		var bandos: Variant = rondas["bandos"]
+		if not bandos is Dictionary or bandos.get(String(ficha.obtener_id_actor())) != GestorRondas.Bando.JUGADOR:
+			return &"bandos_guardados_invalidos"
+		for id_actor in bandos:
+			if id_actor == String(ficha.obtener_id_actor()):
+				continue
+			var npc := tablero.obtener_interactuable(StringName(id_actor)) as PersonajeNPC if id_actor is String else null
+			if npc == null or npc.obtener_definicion_personaje() == null or not npc.obtener_definicion_personaje().puede_combatir:
+				return &"bandos_guardados_invalidos"
 	return gestor_rondas.validar_estado_persistente(snapshot.get("rondas"))
 
 
@@ -92,13 +126,20 @@ func restaurar(
 	)
 	if motivo != &"":
 		return motivo
-	interactuables.restaurar(snapshot, tablero, id_zona)
+	motivo = interactuables.restaurar(snapshot, tablero, id_zona)
+	if motivo != &"":
+		return motivo
 	contenido_dinamico.restaurar(snapshot["items_suelo"], snapshot["superficies"], tablero)
 	var coordenada_anterior := ficha.coordenada_mapa
 	ficha.restaurar_estado_persistente(snapshot["ficha"])
 	tablero.liberar_celda(coordenada_anterior, ficha)
 	tablero.ocupar_celda(ficha.coordenada_mapa, ficha)
 	conocimiento.restaurar_estado_persistente(snapshot["conocimiento"])
+	EstadoPartida.restaurar_estado_persistente(
+		{"trompo_conocido": false}
+		if snapshot["version"] == PersistenciaInteractuables.VERSION_ANTERIOR
+		else snapshot["memoria_narrativa"]
+	)
 	return (
 		gestor_rondas.restaurar_estado_persistente(snapshot["rondas"])
 		if gestor_rondas != null else &""

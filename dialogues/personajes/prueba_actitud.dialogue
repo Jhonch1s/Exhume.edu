@@ -1,0 +1,16 @@
+~ start
+Prueba: Esta conversación cambia la relación de esta instancia.
+- Ofrecer ayuda (+1).
+	=> mejorar
+- Insultar (-1).
+	=> empeorar
+- Despedirse (sin cambio).
+	=> END
+~ mejorar
+do modificar_actitud_hacia_jugador(1)
+Prueba: He escuchado tu ofrecimiento.
+=> END
+~ empeorar
+do modificar_actitud_hacia_jugador(-1)
+Prueba: He escuchado tu insulto.
+=> END

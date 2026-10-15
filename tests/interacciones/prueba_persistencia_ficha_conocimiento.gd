@@ -78,6 +78,20 @@ func _ejecutar() -> void:
 	)
 
 	var invalido: Dictionary = copia_json.duplicate(true)
+	var anterior_absoluto: Dictionary = copia_json.duplicate(true)
+	for entrada: Dictionary in anterior_absoluto["ficha"]["inventario"]:
+		entrada["definicion_path"] = ProjectSettings.globalize_path(entrada["definicion_path"])
+	_comprobar(persistencia.restaurar(anterior_absoluto, tablero, &"zona1", ficha, conocimiento) == &"", "La persistencia común conserva las rutas absolutas admitidas por la ficha anterior.")
+	var estado_antes := ficha.obtener_estado_persistente()
+	for campo in ["cantidad", "caras", "signo"]:
+		for valor in [0, 1.5, 1.000001, true, "1", null, INF, NAN]:
+			var corrupto: Dictionary = copia_json.duplicate(true)
+			corrupto["ficha"]["estados"][0]["terminos_dano_tick"][0][campo] = valor
+			_comprobar(
+				persistencia.restaurar(corrupto, tablero, &"zona1", ficha, conocimiento) == &"estados_ficha_guardados_invalidos"
+				and ficha.obtener_estado_persistente() == estado_antes,
+				"Un término de daño inválido se rechaza sin mutación: %s=%s." % [campo, str(valor)]
+			)
 	invalido["ficha"]["inventario"][0]["definicion_id"] = "otra"
 	var energia_antes := ficha.energia_actual
 	_comprobar(
@@ -100,7 +114,7 @@ func _comprobar(condicion: bool, mensaje: String) -> void:
 
 func _finalizar() -> void:
 	if _fallos.is_empty():
-		print("PersistenciaFichaConocimiento: 5 grupos correctos.")
+		print("PersistenciaFichaConocimiento: JSON, recursos, conocimiento y términos de dados correctos; rechazo sin mutación.")
 		quit()
 		return
 	for fallo in _fallos:
