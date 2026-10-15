@@ -137,6 +137,7 @@ func _crear_enemigo(
 	perfil.movimiento_fijo = 4
 	perfil.radio_agro = radio_vision_enemigos
 	perfil.textura_mapa = DEFINICION_TROMPO.textura_mapa
+	perfil.retrato_turno = DEFINICION_TROMPO.retrato_turno
 	perfil.ilustracion_examen = DEFINICION_TROMPO.ilustracion_examen
 	perfil.perfil_observacion = PerfilObservacion.new()
 	var fragmento := FragmentoInformacion.new()

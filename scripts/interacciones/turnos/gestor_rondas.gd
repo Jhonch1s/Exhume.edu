@@ -16,6 +16,8 @@ var _indice_activo: int = -1
 var _motor_iniciativa: MotorDados
 var _iniciativas: Dictionary[StringName, Dictionary] = {}
 var _tiradas_iniciativa: Array[ResultadoTirada] = []
+var _dados_siguiente: Dictionary[StringName, int] = {}
+var _tiradas_siguiente: Array[ResultadoTirada] = []
 
 
 func _init(
@@ -46,6 +48,8 @@ func iniciar(actores: Array[Object]) -> ResultadoAvanceTurno:
 	actor_activo = _actores[_indice_activo]
 	ronda_actual = 1
 	actor_activo.call(&"iniciar_turno")
+	if _motor_iniciativa != null:
+		_preparar_siguiente_ronda()
 	return ResultadoAvanceTurno.new(
 		true, &"", ronda_actual, &"", _id(actor_activo), true
 	)
@@ -63,6 +67,8 @@ func preparar_restauracion(actores: Array[Object]) -> StringName:
 		_actores.sort_custom(_va_antes)
 	_iniciativas.clear()
 	_tiradas_iniciativa.clear()
+	_dados_siguiente.clear()
+	_tiradas_siguiente.clear()
 	_indice_activo = -1
 	actor_activo = null
 	ronda_actual = 0
@@ -81,6 +87,8 @@ func incorporar_actor(actor: Object) -> StringName:
 	if not actor.call(&"puede_actuar"):
 		return &"actor_ronda_inactivo"
 	_actores.append(actor)
+	if _motor_iniciativa != null and not _dados_siguiente.is_empty():
+		_tirar_siguiente(actor)
 	return &""
 
 
@@ -90,6 +98,46 @@ func obtener_iniciativa_ronda(id_actor: StringName) -> Dictionary:
 
 func obtener_tiradas_iniciativa() -> Array[ResultadoTirada]:
 	return _tiradas_iniciativa.duplicate()
+
+
+func obtener_ids_pendientes_ronda() -> Array[StringName]:
+	var ids: Array[StringName] = []
+	for indice in range(_indice_activo, _actores.size()):
+		if indice >= 0 and _actores[indice].call(&"puede_actuar"):
+			ids.append(_id(_actores[indice]))
+	return ids
+
+
+func obtener_ids_siguiente_ronda() -> Array[StringName]:
+	var actores := _actores.filter(func(actor: Object) -> bool:
+		return actor.call(&"puede_actuar") and _dados_siguiente.has(_id(actor))
+	)
+	actores.sort_custom(func(a: Object, b: Object) -> bool:
+		var des_a: int = a.call(&"obtener_destreza")
+		var des_b: int = b.call(&"obtener_destreza")
+		var total_a: int = _dados_siguiente[_id(a)] + des_a
+		var total_b: int = _dados_siguiente[_id(b)] + des_b
+		if total_a != total_b:
+			return total_a > total_b
+		if des_a != des_b:
+			return des_a > des_b
+		return String(_id(a)) < String(_id(b))
+	)
+	var ids: Array[StringName] = []
+	for actor in actores:
+		ids.append(_id(actor))
+	return ids
+
+
+func obtener_iniciativa_siguiente(id_actor: StringName) -> Dictionary:
+	if not _dados_siguiente.has(id_actor):
+		return {}
+	for actor in _actores:
+		if _id(actor) == id_actor:
+			var destreza: int = actor.call(&"obtener_destreza")
+			return {"dado": _dados_siguiente[id_actor], "destreza": destreza,
+				"total": _dados_siguiente[id_actor] + destreza}
+	return {}
 
 
 func finalizar_turno_activo() -> ResultadoAvanceTurno:
@@ -143,9 +191,9 @@ func finalizar_turno_activo() -> ResultadoAvanceTurno:
 					resultado_superficies
 				)
 		if _motor_iniciativa != null:
-			var motivo_orden := _ordenar_ronda(_actores)
-			if motivo_orden != &"":
-				return ResultadoAvanceTurno.new(false, motivo_orden, ronda_actual)
+			if _dados_siguiente.is_empty():
+				_preparar_siguiente_ronda()
+			_aplicar_siguiente_ronda()
 			siguiente = _buscar_activo(_actores, -1)
 		ronda_actual += 1
 	if siguiente < 0:
@@ -157,6 +205,8 @@ func finalizar_turno_activo() -> ResultadoAvanceTurno:
 	_indice_activo = siguiente
 	actor_activo = _actores[_indice_activo]
 	actor_activo.call(&"iniciar_turno")
+	if nueva_ronda and _motor_iniciativa != null:
+		_preparar_siguiente_ronda()
 	return ResultadoAvanceTurno.new(
 		true,
 		&"",
@@ -215,6 +265,10 @@ func obtener_estado_persistente() -> Variant:
 			entrada["id"] = String(id_actor)
 			iniciativas.append(entrada)
 		estado["iniciativas"] = iniciativas
+		var dados: Array[Dictionary] = []
+		for id_actor in _dados_siguiente:
+			dados.append({"id": String(id_actor), "dado": _dados_siguiente[id_actor]})
+		estado["dados_siguiente"] = dados
 	return estado
 
 
@@ -273,6 +327,20 @@ func validar_estado_persistente(estado: Variant) -> StringName:
 		):
 			return &"iniciativas_guardadas_invalidas"
 		vistos[id] = true
+	var dados_siguiente: Variant = estado.get("dados_siguiente", [])
+	if not dados_siguiente is Array:
+		return &"dados_siguiente_invalidos"
+	var ids_siguiente := {}
+	for entrada in dados_siguiente:
+		if not entrada is Dictionary:
+			return &"dados_siguiente_invalidos"
+		var id: Variant = entrada.get("id")
+		var dado: Variant = entrada.get("dado")
+		if not id is String or not id in orden or ids_siguiente.has(id):
+			return &"dados_siguiente_invalidos"
+		if not _es_numero_entero(dado) or dado < 1 or dado > 6:
+			return &"dados_siguiente_invalidos"
+		ids_siguiente[id] = true
 	return &"" if activo_encontrado else &"actor_activo_guardado_invalido"
 
 
@@ -293,11 +361,15 @@ func restaurar_estado_persistente(estado: Variant) -> StringName:
 		defendidos.append(StringName(id_actor))
 	_iniciativas.clear()
 	_tiradas_iniciativa.clear()
+	_dados_siguiente.clear()
+	_tiradas_siguiente.clear()
 	for entrada: Dictionary in estado.get("iniciativas", []):
 		_iniciativas[StringName(entrada["id"])] = {
 			"dado": int(entrada["dado"]), "destreza": int(entrada["destreza"]),
 			"total": int(entrada["total"]),
 		}
+	for entrada: Dictionary in estado.get("dados_siguiente", []):
+		_dados_siguiente[StringName(entrada["id"])] = int(entrada["dado"])
 	for indice in range(_actores.size()):
 		if String(_id(_actores[indice])) == estado["actor_activo_id"]:
 			_indice_activo = indice
@@ -372,6 +444,50 @@ func _ordenar_ronda(actores: Array[Object]) -> StringName:
 	_iniciativas = iniciativas
 	_tiradas_iniciativa = tiradas
 	return &""
+
+
+func _preparar_siguiente_ronda() -> void:
+	_dados_siguiente.clear()
+	_tiradas_siguiente.clear()
+	for actor in _actores:
+		if actor.call(&"puede_actuar"):
+			_tirar_siguiente(actor)
+
+
+func _tirar_siguiente(actor: Object) -> void:
+	var tirada := _motor_iniciativa.resolver(
+		[{&"cantidad": 1, &"caras": 6, &"signo": 1}], 0,
+		TiposTirada.Origen.AUTOMATICA, TiposTirada.Presentacion.SOLO_LOG
+	)
+	if not tirada.valida:
+		push_warning("No se pudo anticipar iniciativa: %s" % tirada.motivo)
+		return
+	_dados_siguiente[_id(actor)] = tirada.total_calculado
+	_tiradas_siguiente.append(tirada)
+
+
+func _aplicar_siguiente_ronda() -> void:
+	var iniciativas: Dictionary[StringName, Dictionary] = {}
+	for actor in _actores:
+		if not actor.call(&"puede_actuar") or not _dados_siguiente.has(_id(actor)):
+			continue
+		var destreza: int = actor.call(&"obtener_destreza")
+		var dado: int = _dados_siguiente[_id(actor)]
+		iniciativas[_id(actor)] = {"dado": dado, "destreza": destreza,
+			"total": dado + destreza}
+	_actores.sort_custom(func(a: Object, b: Object) -> bool:
+		var valor_a: Dictionary = iniciativas.get(_id(a), {"total": -1, "destreza": -1})
+		var valor_b: Dictionary = iniciativas.get(_id(b), {"total": -1, "destreza": -1})
+		if valor_a["total"] != valor_b["total"]:
+			return valor_a["total"] > valor_b["total"]
+		if valor_a["destreza"] != valor_b["destreza"]:
+			return valor_a["destreza"] > valor_b["destreza"]
+		return String(_id(a)) < String(_id(b))
+	)
+	_iniciativas = iniciativas
+	_tiradas_iniciativa = _tiradas_siguiente.duplicate()
+	_dados_siguiente.clear()
+	_tiradas_siguiente.clear()
 
 
 func _buscar_activo(actores: Array[Object], desde: int) -> int:

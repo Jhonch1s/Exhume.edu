@@ -19,6 +19,7 @@
 [ext_resource type="PackedScene" uid="uid://cj6cokkjw74c" path="res://scenes/ui/hud/hud.tscn" id="17_hud"]
 [ext_resource type="PackedScene" path="res://scenes/ui/combate/panel_orden_combate.tscn" id="17_orden_combate"]
 [ext_resource type="PackedScene" path="res://scenes/ui/personajes/panel_info_npc.tscn" id="18_info_npc"]
+[ext_resource type="PackedScene" path="res://scenes/ui/personajes/panel_ficha_npc.tscn" id="18_ficha_npc"]
 [ext_resource type="Texture2D" uid="uid://e66ncuwpvtq4" path="res://assets/characters/player/dialogue/guerrero.png" id="19_dialogo_guerrero"]
 [ext_resource type="Texture2D" uid="uid://gequfsg3lbdd" path="res://assets/characters/player/dialogue/ladron.png" id="20_dialogo_ladron"]
 [ext_resource type="Texture2D" uid="uid://fqjiksle3nk6" path="res://assets/characters/player/dialogue/mago.png" id="21_dialogo_mago"]
@@ -110,6 +111,8 @@ anchors_preset = 5
 anchors_preset = 5
 
 [node name="PanelExamenIlustrado" parent="CanvasLayer" unique_id=1214408067 instance=ExtResource("13_panel_examen")]
+
+[node name="PanelFichaNPC" parent="CanvasLayer" instance=ExtResource("18_ficha_npc")]
 
 [node name="MenuContextualInteracciones" parent="CanvasLayer" unique_id=1288888575 instance=ExtResource("11_menu_contextual")]
 

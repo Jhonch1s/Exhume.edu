@@ -52,6 +52,7 @@ enum OrientacionMapa {
 
 @export_category("Presentación")
 @export var textura_mapa: Texture2D
+@export var retrato_turno: Texture2D
 ## Imagen única, sin frames; si falta se conserva el sprite actual del personaje.
 @export var textura_cadaver: Texture2D
 @export var orientacion_mapa_inicial: OrientacionMapa = OrientacionMapa.ABAJO_DERECHA

@@ -9,6 +9,7 @@ func _init() -> void:
 
 func _ejecutar_pruebas() -> void:
 	await _probar_orden_avance_y_ronda()
+	await _probar_iniciativa_anticipada()
 	await _probar_ids_invalidos()
 	if _fallos.is_empty():
 		print("GestorRondas: pruebas correctas.")
@@ -113,6 +114,41 @@ func _probar_ids_invalidos() -> void:
 		"IDs duplicados deben bloquear antes de iniciar la ronda."
 	)
 	_liberar([actor_a, actor_b], gestor_acciones)
+	await process_frame
+
+
+func _probar_iniciativa_anticipada() -> void:
+	var gestor_acciones := GestorAcciones.new()
+	root.add_child(gestor_acciones)
+	var a := _crear_actor(&"adelantado_a", 0)
+	var b := _crear_actor(&"adelantado_b", 0)
+	a.des = 1
+	b.des = 5
+	var gestor := GestorRondas.new(ServicioTurnos.new(gestor_acciones), null, MotorDados.new())
+	_comprobar(gestor.iniciar([a, b]).exitoso, "La ronda con dados debe iniciar.")
+	var dado_b: int = gestor.obtener_iniciativa_siguiente(&"adelantado_b").get("dado", 0)
+	var orden_actual := gestor.obtener_ids_ordenados()
+	var guardado: Dictionary = gestor.obtener_estado_persistente()
+	b.des = 99
+	_comprobar(
+		gestor.obtener_iniciativa_siguiente(&"adelantado_b").get("dado", 0) == dado_b
+		and gestor.obtener_iniciativa_siguiente(&"adelantado_b").get("total", 0) == dado_b + 99
+		and gestor.obtener_ids_siguiente_ronda()[0] == &"adelantado_b"
+		and gestor.obtener_ids_ordenados() == orden_actual,
+		"Cambiar DES reordena sólo la previsión, sin repetir dado ni tocar la ronda actual."
+	)
+	var nuevo := guardado.duplicate(true)
+	nuevo["dados_siguiente"][0]["dado"] = 7
+	_comprobar(gestor.validar_estado_persistente(nuevo) == &"dados_siguiente_invalidos", "Rechazar un dado futuro inválido.")
+	_comprobar(gestor.restaurar_estado_persistente(guardado) == &"" and gestor.obtener_iniciativa_siguiente(&"adelantado_b").get("dado", 0) == dado_b, "Restaurar conserva el dado futuro.")
+	gestor.finalizar_turno_activo()
+	var avance := gestor.finalizar_turno_activo()
+	_comprobar(
+		avance.exitoso and avance.nueva_ronda and gestor.actor_activo == b
+		and gestor.obtener_iniciativa_ronda(&"adelantado_b").get("dado", 0) == dado_b,
+		"La próxima ronda aplica la tirada anticipada una sola vez."
+	)
+	_liberar([a, b], gestor_acciones)
 	await process_frame
 
 

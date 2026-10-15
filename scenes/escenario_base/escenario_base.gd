@@ -30,6 +30,7 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 @onready var capa_oscuridad: TileMapLayer = $Zona/CapaOscuridad
 @onready var hud: HUD = $CanvasLayer/HUD
 @onready var panel_info_npc: PanelInfoNPC = $CanvasLayer/PanelInfoNPC
+@onready var panel_ficha_npc: PanelFichaNPC = $CanvasLayer/PanelFichaNPC
 @onready var panel_orden_combate: PanelOrdenCombate = $CanvasLayer/PanelOrdenCombate
 @onready var panel_registro_narrativo: PanelRegistroNarrativo = (
 	$CanvasLayer/HUD/HUDRoot/LogAcontecimientos
@@ -155,6 +156,7 @@ var siguiente_paso_usa_variante_uno: bool = true
 var pasos_movimiento_actual: int = 0
 var longitud_movimiento_actual: int = 0
 var nombreClase: String = "Guerrero"
+var _firma_secuencia_combate := ""
 
 func _ready() -> void:
 	# Las capas se guardan ocultas para poder editar el mapa sin la interfaz encima.
@@ -167,6 +169,7 @@ func _ready() -> void:
 	panel_registro_narrativo.observar(registro_narrativo)
 	gestor_acciones.accion_finalizada.connect(_on_agresion_resuelta)
 	hud.pasar_turno_solicitado.connect(_on_pasar_turno_hud)
+	panel_orden_combate.retrato_pulsado.connect(_on_retrato_combate_pulsado)
 	menu_contextual.opcion_accion_elegida.connect(_on_opcion_contextual_elegida)
 	menu_contextual.objetivo_elegido.connect(_on_objetivo_contextual_elegido)
 	menu_contextual.item_elegido.connect(_on_item_contextual_elegido)
@@ -176,6 +179,7 @@ func _ready() -> void:
 	panel_resultado_accion.tirada_presentada.connect(_on_tirada_presentada)
 	panel_resultado_accion.cerrado.connect(_on_panel_resultado_cerrado)
 	panel_examen_ilustrado.cerrado.connect(_on_panel_resultado_cerrado)
+	panel_ficha_npc.cerrado.connect(_on_panel_resultado_cerrado)
 	panel_inventario_cofre.visibility_changed.connect(_actualizar_estado_modal_interaccion)
 	add_child(gestor_acciones)
 	resolver_reacciones = ResolverReaccionesCelda.new(gestor_acciones)
@@ -226,6 +230,8 @@ func _process(delta: float) -> void:
 	_actualizar_audio_proximidad()
 	if en_combate and not _restaurando_partida:
 		_resolver_perdida_agro()
+		_actualizar_ui_combate()
+	_actualizar_disponibilidad_turno()
 	_actualizar_reloj_exploracion_npc(delta)
 	if ficha_jugador and ficha_jugador.esta_moviendose:
 		trayectoria_lanzamiento.clear_points()
@@ -1507,6 +1513,7 @@ func _terminar_combate(reponer_recursos: bool = true, conservar_memoria: bool = 
 	en_combate = false
 	gestor_rondas = null
 	panel_orden_combate.ocultar()
+	_firma_secuencia_combate = ""
 	panel_info_npc.offset_top = 18.0
 	panel_info_npc.offset_bottom = 94.0
 	hud.pasar_turno.disabled = ficha_jugador == null or not ficha_jugador.puede_actuar()
@@ -1518,29 +1525,110 @@ func _actualizar_ui_combate() -> void:
 	if not en_combate or gestor_rondas == null:
 		return
 	var entradas: Array[Dictionary] = []
-	for id_actor in gestor_rondas.obtener_ids_ordenados():
+	var ids_actuales := gestor_rondas.obtener_ids_pendientes_ronda()
+	var ids_siguientes := gestor_rondas.obtener_ids_siguiente_ronda()
+	var todos_los_ids := ids_actuales + ids_siguientes
+	for indice in todos_los_ids.size():
+		if entradas.size() >= PanelOrdenCombate.MAXIMO_VISIBLE:
+			break
+		var id_actor: StringName = todos_los_ids[indice]
+		var siguiente := indice >= ids_actuales.size()
 		var actor: Object = (
 			ficha_jugador if id_actor == ficha_jugador.obtener_id_actor()
 			else tablero.obtener_interactuable(id_actor)
 		)
 		if actor == null:
 			continue
+		var es_jugador := actor == ficha_jugador
+		var npc := actor as PersonajeNPC
+		var visible_para_jugador := es_jugador or (
+			npc != null and tablero.obtener_celda(npc.coordenada_mapa) != null
+			and tablero.obtener_celda(npc.coordenada_mapa).visibilidad == Celda.EstadoVisibilidad.VISIBLE
+		)
+		var retrato: Texture2D = (
+			HUD.RETRATOS_POR_CLASE.get(ficha_jugador.clase) if es_jugador else (
+				npc.obtener_definicion_personaje().retrato_turno if visible_para_jugador else null
+			)
+		)
 		entradas.append({
 			"id": id_actor,
-			"nombre": ficha_jugador.nombre if actor == ficha_jugador
-				else (actor as PersonajeNPC).obtener_nombre_interaccion(),
-			"derrotado": not actor.call(&"puede_actuar"),
-			"iniciativa": gestor_rondas.obtener_iniciativa_ronda(id_actor),
+			"nombre": ficha_jugador.nombre if es_jugador else (
+				npc.obtener_nombre_interaccion() if visible_para_jugador else "Combatiente oculto"
+			),
+			"salud": "%d / %d PV" % [ficha_jugador.pv_actual, ficha_jugador.pv_max]
+				if es_jugador else (
+					"%d / %d PV" % [npc.vida_actual, npc.obtener_definicion_personaje().vida_maxima]
+					if visible_para_jugador else "Salud desconocida"
+				),
+			"retrato": retrato,
+			"jugador": es_jugador,
+			"activo": not siguiente and gestor_rondas.actor_activo == actor,
+			"siguiente": siguiente,
+			"iniciativa": (
+				gestor_rondas.obtener_iniciativa_siguiente(id_actor)
+				if siguiente else gestor_rondas.obtener_iniciativa_ronda(id_actor)
+			) if visible_para_jugador else {},
 			"bando": "Aliado" if gestor_rondas.obtener_bando(actor) == GestorRondas.Bando.JUGADOR else "Oponente",
 		})
-	panel_orden_combate.mostrar(
-		gestor_rondas.ronda_actual, entradas,
-		gestor_rondas.actor_activo.call(&"obtener_id_actor")
-		if gestor_rondas.actor_activo != null else &""
+	var firma := "%d:%s" % [gestor_rondas.ronda_actual, str(entradas)]
+	if _firma_secuencia_combate != firma:
+		_firma_secuencia_combate = firma
+		panel_orden_combate.mostrar(
+			gestor_rondas.ronda_actual, entradas,
+			gestor_rondas.actor_activo.call(&"obtener_id_actor")
+			if gestor_rondas.actor_activo != null else &""
+		)
+	panel_info_npc.offset_top = panel_orden_combate.offset_top + panel_orden_combate.size.y + 12.0
+	panel_info_npc.offset_bottom = panel_info_npc.offset_top + 76.0
+	_actualizar_disponibilidad_turno()
+
+
+func _actualizar_disponibilidad_turno() -> void:
+	var motivo := ""
+	if ficha_jugador == null or not ficha_jugador.puede_actuar():
+		motivo = "No puedes actuar"
+	elif interaccion_modal_activa:
+		motivo = "Cierra el panel actual para continuar"
+	elif ficha_jugador.esta_moviendose:
+		motivo = "Espera a terminar el movimiento"
+	elif en_combate and (not _es_turno_jugador() or _turno_exploracion_en_curso):
+		motivo = "Espera tu turno"
+	hud.pasar_turno.disabled = not motivo.is_empty()
+	hud.pasar_turno.text = "FINALIZAR\nTURNO" if en_combate else "PASAR\nTURNO"
+	hud.pasar_turno.tooltip_text = motivo if not motivo.is_empty() else (
+		"Finalizar turno y procesar estados" if en_combate else "Pasar turno de exploración"
 	)
-	panel_info_npc.offset_top = 115.0
-	panel_info_npc.offset_bottom = 191.0
-	hud.pasar_turno.disabled = not _es_turno_jugador()
+
+
+func _on_retrato_combate_pulsado(id_actor: StringName) -> void:
+	if not en_combate or interaccion_modal_activa or ficha_jugador == null or not _es_turno_jugador():
+		return
+	var npc := tablero.obtener_interactuable(id_actor) as PersonajeNPC
+	if npc == null:
+		return
+	var celda := tablero.obtener_celda(npc.coordenada_mapa)
+	if celda == null or celda.visibilidad != Celda.EstadoVisibilidad.VISIBLE:
+		panel_resultado_accion.mostrar_resultado("Examinar", ResultadoAccion.crear_bloqueo(&"objetivo_no_visible"), catalogo_mensajes)
+		_actualizar_estado_modal_interaccion()
+		return
+	var opcion_examen: OpcionAccion
+	for opcion in npc.obtener_opciones_accion(ficha_jugador):
+		if opcion.id == &"examinar":
+			opcion_examen = opcion
+			break
+	if opcion_examen == null:
+		return
+	var contexto: Variant = constructor_contexto_accion.construir_desde_opcion(
+		opcion_examen, ficha_jugador, ficha_jugador.coordenada_mapa, npc.coordenada_mapa
+	)
+	if not contexto is ContextoAccion:
+		return
+	var resultado := (
+		gestor_acciones.procesar_accion(contexto) if gestor_acciones.esta_en_alcance(contexto)
+		else ResultadoAccion.crear_bloqueo(&"fuera_de_alcance")
+	)
+	_presentar_resultado_contextual("Examinar", resultado, contexto)
+	_actualizar_estado_modal_interaccion()
 
 
 func _registrar_iniciativa_combate() -> void:
@@ -2221,6 +2309,21 @@ func _presentar_resultado_contextual(
 		contexto != null
 		and contexto.tipo == TiposInteraccion.TipoAccion.EXAMINAR
 		and resultado.exitosa
+		and contexto.objetivo is PersonajeNPC
+	):
+		var textos_npc: Array[String] = []
+		for id_mensaje in resultado.mensajes:
+			textos_npc.append(
+				catalogo_mensajes.resolver(id_mensaje)
+				if catalogo_mensajes != null else String(id_mensaje)
+			)
+		panel_ficha_npc.mostrar(contexto.objetivo as PersonajeNPC, textos_npc)
+		_actualizar_estado_modal_interaccion()
+		return
+	if (
+		contexto != null
+		and contexto.tipo == TiposInteraccion.TipoAccion.EXAMINAR
+		and resultado.exitosa
 		and contexto.objetivo is Interactuable
 		and contexto.objetivo.definicion != null
 		and contexto.objetivo.definicion.ilustracion_examen != null
@@ -2750,6 +2853,10 @@ func _actualizar_estado_modal_interaccion() -> void:
 		or (
 			is_instance_valid(panel_examen_ilustrado)
 			and panel_examen_ilustrado.visible
+		)
+		or (
+			is_instance_valid(panel_ficha_npc)
+			and panel_ficha_npc.visible
 		)
 	)
 	if interaccion_modal_activa == siguiente:

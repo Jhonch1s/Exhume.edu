@@ -1,0 +1,44 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scenes/cinematicas/cinematica_imagenes.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/01_tribu_bosque.png" id="2_tribu"]
+[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/02_entrada_cueva.png" id="3_entrada"]
+[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/03_caida.png" id="4_caida"]
+[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/04_puerta_templo.png" id="5_puerta"]
+[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/05_templo_profundo.png" id="6_templo"]
+[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/06_asentamiento_banga.png" id="7_asentamiento"]
+[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/07_noticia.png" id="8_noticia"]
+[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/08_llegada_aventureros.png" id="9_llegada"]
+[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/09_umbral_mazmorra.png" id="10_umbral"]
+
+[node name="CinematicaImagenes" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+imagenes = Array[Texture2D]([ExtResource("2_tribu"), ExtResource("3_entrada"), ExtResource("4_caida"), ExtResource("5_puerta"), ExtResource("6_templo"), ExtResource("7_asentamiento"), ExtResource("8_noticia"), ExtResource("9_llegada"), ExtResource("10_umbral")])
+
+[node name="Fondo" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Imagen" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_tribu")
+expand_mode = 1
+stretch_mode = 5

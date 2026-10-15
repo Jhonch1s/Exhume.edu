@@ -8,6 +8,7 @@
 [ext_resource type="Resource" uid="uid://chpnn3nvwuy4l" path="res://dialogues/personajes/trompo.dialogue" id="4_dialogo"]
 [ext_resource type="Script" uid="uid://bmsmwb5764q7n" path="res://scripts/personajes/dialogo_npc.gd" id="5_dialogo_npc"]
 [ext_resource type="Texture2D" uid="uid://c7evxfquskjau" path="res://assets/characters/npcs/goblin_unico/dialogue/trompo.png" id="6_ilustracion_dialogo"]
+[ext_resource type="Texture2D" path="res://assets/characters/npcs/goblin_unico/portraits/trompo_turno.png" id="7_retrato_turno"]
 
 [sub_resource type="Resource" id="Dialogo_saludo"]
 script = ExtResource("5_dialogo_npc")
@@ -36,6 +37,7 @@ actitud_hacia_jugador_fija = true
 puede_dialogar = true
 puede_tener_inventario = true
 textura_mapa = ExtResource("2_sprite")
+retrato_turno = ExtResource("7_retrato_turno")
 ilustracion_dialogo = ExtResource("6_ilustracion_dialogo")
 dialogos = Array[ExtResource("5_dialogo_npc")]([SubResource("Dialogo_saludo")])
 id_definicion = &"goblin_unico"
