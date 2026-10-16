@@ -13,6 +13,16 @@ const TEXTURA_FICHAS_CLASE = preload(
 )
 const FRAME_POR_CLASE := {"Guerrero": 3, "Ladrón": 0, "Mago": 6}
 
+const SONIDO_DANIO_DEFECTO: AudioStream = preload("res://assets/sonidos/sonidos finales/sonidos mmo/MMO_Game_Magic_Source_Armor_02_Metal_Hit_Shuffle.wav")
+const SONIDO_QUEMADURA_DEFECTO: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ambiente/fuego quemadura.wav")
+const SONIDO_VENENO_DEBUFF_DEFECTO: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ambiente/561216__terrytom__poison-debuff.wav")
+const SONIDO_TOS_1: AudioStream = preload("res://assets/sonidos/toser/editado/varias toses.wav")
+const SONIDO_TOS_2: AudioStream = preload("res://assets/sonidos/toser/editado/varias toses 2.wav")
+const ScriptEstadoPartida = preload("res://scripts/estado_partida.gd")
+
+var _tos_variante_dos: bool = false
+var reproductor_audio_ficha: AudioStreamPlayer2D
+
 
 
 @export var nombre: String = "Heroe Jr."
@@ -122,6 +132,7 @@ func recibir_danio(cantidad: int, _fuente: Object = null) -> int:
 	var aplicado := anterior - pv_actual
 	if aplicado > 0:
 		reproducir_efecto_danio()
+		reproducir_sonido_danio()
 		print("Vida de %s: %d/%d" % [nombre, pv_actual, pv_max])
 		puntos_vida_cambiados.emit(pv_actual, pv_max)
 	return aplicado
@@ -129,6 +140,33 @@ func recibir_danio(cantidad: int, _fuente: Object = null) -> int:
 func reproducir_efecto_danio() -> void:
 	if is_instance_valid(particulasDanio):
 		particulasDanio.restart()
+
+func reproducir_sonido_danio() -> void:
+	_reproducir_audio_en_ficha(SONIDO_DANIO_DEFECTO, -6.0)
+
+func reproducir_sonido_quemadura() -> void:
+	_reproducir_audio_en_ficha(SONIDO_QUEMADURA_DEFECTO, -6.0)
+
+func reproducir_sonido_veneno() -> void:
+	_reproducir_audio_en_ficha(SONIDO_VENENO_DEBUFF_DEFECTO, -5.0)
+	reproducir_sonido_tos()
+
+func reproducir_sonido_tos() -> void:
+	var sonido := SONIDO_TOS_2 if _tos_variante_dos else SONIDO_TOS_1
+	_tos_variante_dos = not _tos_variante_dos
+	_reproducir_audio_en_ficha(sonido, -6.0)
+
+func _reproducir_audio_en_ficha(stream: AudioStream, vol_db: float = 0.0) -> void:
+	if not is_inside_tree() or stream == null:
+		return
+	if not is_instance_valid(reproductor_audio_ficha):
+		reproductor_audio_ficha = AudioStreamPlayer2D.new()
+		reproductor_audio_ficha.name = "AudioFicha"
+		reproductor_audio_ficha.max_distance = 1500.0
+		add_child(reproductor_audio_ficha)
+	reproductor_audio_ficha.stream = stream
+	reproductor_audio_ficha.volume_db = vol_db
+	reproductor_audio_ficha.play()
 
 func obtener_estado(clave: StringName) -> EstadoActor:
 	return _estados.get(clave) as EstadoActor
@@ -176,6 +214,10 @@ func aplicar_o_renovar_estado(
 	else:
 		estado.renovar(magnitud, duracion_total, ticks_pendientes, terminos_dano_tick)
 	estado_cambiado.emit(clave, estado)
+	if clave == &"quemado":
+		reproducir_sonido_quemadura()
+	elif clave == &"veneno":
+		reproducir_sonido_veneno()
 	return {
 		&"clave": clave,
 		&"creado": creado,
@@ -192,6 +234,10 @@ func consumir_tick_estado(clave: StringName) -> Dictionary:
 	if expirado:
 		_estados.erase(clave)
 	estado_cambiado.emit(clave, estado)
+	if clave == &"veneno":
+		reproducir_sonido_tos()
+	elif clave == &"quemado":
+		reproducir_sonido_quemadura()
 	return {
 		&"tipo": &"estado_tick",
 		&"clave": clave,
@@ -488,7 +534,7 @@ func _ready() -> void:
 
 
 func configurar_creacion(datos: Dictionary) -> bool:
-	if EstadoPartida.validar_aventurero(datos) != &"":
+	if ScriptEstadoPartida.validar_aventurero(datos) != &"":
 		return false
 	nombre = datos["nombre"].strip_edges()
 	titulo = datos["titulo"].strip_edges()

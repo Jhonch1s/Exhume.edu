@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://byv65cko1v2xc"
+path="res://.godot/imported/fuego quemadura.wav-c53d230382659020bc267c176755c1f1.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/sonidos finales/sonido ambiente/fuego quemadura.wav"
+dest_files=["res://.godot/imported/fuego quemadura.wav-c53d230382659020bc267c176755c1f1.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

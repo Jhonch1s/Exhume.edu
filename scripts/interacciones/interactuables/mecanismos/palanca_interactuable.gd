@@ -134,13 +134,27 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 	)
 
 
+const SONIDO_PALANCA_ACTIVAR_DEFECTO: AudioStream = preload("res://assets/sonidos/palanca/palanca arriba.wav")
+const SONIDO_PALANCA_DESACTIVAR_DEFECTO: AudioStream = preload("res://assets/sonidos/palanca/palanca abajo.wav")
+
+
 func _reproducir_sonido_accion() -> void:
-	if Engine.is_editor_hint() or not is_instance_valid(reproductor_audio):
+	if Engine.is_editor_hint():
 		return
+	if not is_instance_valid(reproductor_audio):
+		reproductor_audio = get_node_or_null(^"AudioStreamPlayer2D") as AudioStreamPlayer2D
+		if reproductor_audio == null:
+			reproductor_audio = AudioStreamPlayer2D.new()
+			reproductor_audio.name = "AudioStreamPlayer2D"
+			reproductor_audio.max_distance = 600.0
+			add_child(reproductor_audio)
 	var datos := definicion as DefinicionPalanca
-	if datos == null:
-		return
-	reproductor_audio.stream = datos.sonido_activar if activada else datos.sonido_desactivar
+	var stream_elegido: AudioStream = null
+	if datos != null:
+		stream_elegido = datos.sonido_activar if activada else datos.sonido_desactivar
+	if stream_elegido == null:
+		stream_elegido = SONIDO_PALANCA_ACTIVAR_DEFECTO if activada else SONIDO_PALANCA_DESACTIVAR_DEFECTO
+	reproductor_audio.stream = stream_elegido
 	if reproductor_audio.stream != null:
 		reproductor_audio.play()
 

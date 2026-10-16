@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://bmv6ju4gp2x10"
+path="res://.godot/imported/Loop 3.wav-70e50772a07155a7a8315c66f0bd8bda.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/sonidos finales/musica buena/pelea/Loop 3.wav"
+dest_files=["res://.godot/imported/Loop 3.wav-70e50772a07155a7a8315c66f0bd8bda.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://cepimdhf14b4g"
+path="res://.godot/imported/Mines.ogg-48ff26e2389dcf3752a540203811ac7d.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sonidos/sonidos finales/musica buena/Mines.ogg"
+dest_files=["res://.godot/imported/Mines.ogg-48ff26e2389dcf3752a540203811ac7d.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

@@ -18,11 +18,14 @@ const PUNTOS_ACTIVOS: Array[Vector2] = [
 	Vector2(30, 30),
 	Vector2(32, 32),
 ]
+const SONIDO_CLICK_UI: AudioStream = preload("res://assets/sonidos/sonidos finales/sonidos extras/Special Click 02.wav")
 
 var _tipo_actual: int = Tipo.DEFAULT
 var _canvas_cursor: CanvasLayer
 var _sprite_cursor: Sprite2D
 var _sobre_interfaz: bool = false
+var _reproductor_click: AudioStreamPlayer
+var _ultimo_click_msec: int = 0
 
 
 func _ready() -> void:
@@ -41,6 +44,56 @@ func _ready() -> void:
 	_canvas_cursor.add_child(_sprite_cursor)
 	_actualizar_textura()
 	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
+
+	_reproductor_click = AudioStreamPlayer.new()
+	_reproductor_click.name = "AudioClickUI"
+	_reproductor_click.stream = SONIDO_CLICK_UI
+	_reproductor_click.volume_db = -16.0
+	add_child(_reproductor_click)
+
+	_conectar_botones(get_tree().root)
+	get_tree().node_added.connect(_on_node_added)
+
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.is_pressed():
+		if _sobre_interfaz:
+			reproducir_click_ui()
+
+
+func _on_node_added(nodo: Node) -> void:
+	if nodo is BaseButton:
+		_conectar_boton(nodo as BaseButton)
+
+
+func _conectar_botones(raiz: Node) -> void:
+	if raiz == null:
+		return
+	if raiz is BaseButton:
+		_conectar_boton(raiz as BaseButton)
+	for hijo in raiz.get_children():
+		_conectar_botones(hijo)
+
+
+func _conectar_boton(boton: BaseButton) -> void:
+	if not boton.pressed.is_connected(reproducir_click_ui):
+		boton.pressed.connect(reproducir_click_ui)
+
+
+func reproducir_click_ui() -> void:
+	var ahora := Time.get_ticks_msec()
+	if ahora - _ultimo_click_msec < 60:
+		return
+	_ultimo_click_msec = ahora
+	if _reproductor_click == null:
+		_reproductor_click = AudioStreamPlayer.new()
+		_reproductor_click.name = "AudioClickUI"
+		_reproductor_click.stream = SONIDO_CLICK_UI
+		_reproductor_click.volume_db = -16.0
+		add_child(_reproductor_click)
+	if is_instance_valid(_reproductor_click):
+		_reproductor_click.pitch_scale = randf_range(0.96, 1.04)
+		_reproductor_click.play()
 
 
 func _process(_delta: float) -> void:

@@ -15,6 +15,9 @@ signal estado_luz_cambiado(encendida: bool)
 		_actualizar_representacion()
 		estado_luz_cambiado.emit(encendida)
 
+const SONIDO_ENCENDER_DEFECTO: AudioStream = preload("res://assets/sonidos/fuego/encender fuego fosforo.wav")
+const SONIDO_APAGAR_DEFECTO: AudioStream = preload("res://assets/sonidos/fuego/apagar fuego.wav")
+
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var reproductor_audio: AudioStreamPlayer2D = (
 	get_node_or_null(^"AudioStreamPlayer2D") as AudioStreamPlayer2D
@@ -128,11 +131,11 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 	var estado_anterior := encendida
 	encendida = contexto.id_accion == &"encender"
 	if is_instance_valid(particulas):
-		if encendida == false:
-			particulas.emitting = false
-		else:
-			particulas.emitting = true
-	print(sprite.get_children())
+		particulas.emitting = encendida
+	for hijo in find_children("*", "CPUParticles2D", true, false):
+		(hijo as CPUParticles2D).emitting = encendida
+	for hijo in find_children("*", "GPUParticles2D", true, false):
+		(hijo as GPUParticles2D).emitting = encendida
 	_reproducir_sonido_estado()
 	return ResultadoAccion.crear_exito(
 		[&"fuente_luz.encendida" if encendida else &"fuente_luz.apagada"],
@@ -153,15 +156,38 @@ func obtener_sonido_ambiente() -> AudioStream:
 	return datos.sonido_ambiente
 
 
+func _obtener_reproductor_audio() -> AudioStreamPlayer2D:
+	if reproductor_audio != null and is_instance_valid(reproductor_audio):
+		return reproductor_audio
+	var existente := get_node_or_null(^"AudioStreamPlayer2D") as AudioStreamPlayer2D
+	if existente != null:
+		reproductor_audio = existente
+		return reproductor_audio
+	reproductor_audio = AudioStreamPlayer2D.new()
+	reproductor_audio.name = "AudioStreamPlayer2D"
+	reproductor_audio.max_distance = 450.0
+	reproductor_audio.volume_db = -12.0
+	add_child(reproductor_audio)
+	return reproductor_audio
+
+
 func _reproducir_sonido_estado() -> void:
-	if Engine.is_editor_hint() or not is_instance_valid(reproductor_audio):
+	if Engine.is_editor_hint():
+		return
+	var reproductor := _obtener_reproductor_audio()
+	if not is_instance_valid(reproductor):
 		return
 	var datos := obtener_definicion_luz()
-	if datos == null:
-		return
-	reproductor_audio.stream = datos.sonido_encender if encendida else datos.sonido_apagar
-	if reproductor_audio.stream != null:
-		reproductor_audio.play()
+	var sonido: AudioStream = null
+	if datos != null:
+		sonido = datos.sonido_encender if encendida else datos.sonido_apagar
+	if sonido == null:
+		sonido = SONIDO_ENCENDER_DEFECTO if encendida else SONIDO_APAGAR_DEFECTO
+	reproductor.stream = sonido
+	if reproductor.stream != null:
+		reproductor.volume_db = -12.0
+		reproductor.pitch_scale = randf_range(0.95, 1.05)
+		reproductor.play()
 
 
 func _actualizar_representacion() -> void:

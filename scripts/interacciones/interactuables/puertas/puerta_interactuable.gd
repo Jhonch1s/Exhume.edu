@@ -222,13 +222,26 @@ func _es_controlada_por_mecanismo() -> bool:
 	)
 
 
+const SONIDO_PUERTA_DEFECTO: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ambiente/Dungeon Door - Metal Handle.wav")
+
+
 func _reproducir_sonido_apertura() -> void:
-	if Engine.is_editor_hint() or not is_instance_valid(reproductor_audio):
+	if Engine.is_editor_hint():
 		return
+	if not is_instance_valid(reproductor_audio):
+		reproductor_audio = get_node_or_null(^"AudioStreamPlayer2D") as AudioStreamPlayer2D
+		if reproductor_audio == null:
+			reproductor_audio = AudioStreamPlayer2D.new()
+			reproductor_audio.name = "AudioStreamPlayer2D"
+			reproductor_audio.max_distance = 600.0
+			add_child(reproductor_audio)
 	var datos := definicion as DefinicionPuerta
-	if datos == null:
-		return
-	reproductor_audio.stream = datos.sonido_abrir if abierta else datos.sonido_cerrar
+	var sonido: AudioStream = null
+	if datos != null:
+		sonido = datos.sonido_abrir if abierta else datos.sonido_cerrar
+	if sonido == null:
+		sonido = SONIDO_PUERTA_DEFECTO
+	reproductor_audio.stream = sonido
 	if reproductor_audio.stream != null:
 		reproductor_audio.play()
 

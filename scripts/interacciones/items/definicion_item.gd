@@ -20,6 +20,27 @@ extends Resource
 @export var apilable: bool = false
 @export_range(1, 999, 1) var cantidad_maxima: int = 1
 
+@export_category("Audio")
+@export var sonido_recoger: AudioStream
+@export var sonido_impacto: AudioStream
+
+const SONIDO_RECOGER_DEFECTO: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ambiente/Collect.wav")
+const SONIDO_ROCK_DEFECTO: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ambiente/Rock 1.wav")
+
+
+func obtener_sonido_recoger() -> AudioStream:
+	if sonido_recoger != null:
+		return sonido_recoger
+	return SONIDO_RECOGER_DEFECTO
+
+
+func obtener_sonido_impacto() -> AudioStream:
+	if sonido_impacto != null:
+		return sonido_impacto
+	if &"mineral" in etiquetas or &"contundente" in etiquetas or id_definicion == &"piedra":
+		return SONIDO_ROCK_DEFECTO
+	return null
+
 
 func es_valida() -> bool:
 	if id_definicion == &"" or nombre.is_empty() or cantidad_maxima < 1:

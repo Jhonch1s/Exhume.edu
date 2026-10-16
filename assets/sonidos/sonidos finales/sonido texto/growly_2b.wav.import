@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://dtp7u02ss3c1i"
+path="res://.godot/imported/growly_2b.wav-e0bdd1e154f383820ebecc9f7a6c0ad2.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/sonidos finales/sonido texto/growly_2b.wav"
+dest_files=["res://.godot/imported/growly_2b.wav-e0bdd1e154f383820ebecc9f7a6c0ad2.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2
