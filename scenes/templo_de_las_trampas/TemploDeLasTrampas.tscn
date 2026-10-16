@@ -104,13 +104,11 @@ definicion = ExtResource("7_mo2f4")
 position = Vector2(-512, -320)
 id_instancia = &"vela_piso_03"
 definicion = ExtResource("8_v62it")
-ruta_visual_resaltable = NodePath("../FuenteLuzInteractuable4/Sprite2D")
 
 [node name="FuenteLuzInteractuable5" parent="Interactuables/FuentesLuz" unique_id=908109730 instance=ExtResource("3_4wk75")]
 position = Vector2(-544, -272)
 id_instancia = &"vela_piso_02"
 definicion = ExtResource("9_om0fx")
-ruta_visual_resaltable = NodePath("../FuenteLuzInteractuable4/Sprite2D")
 
 [node name="FuenteLuzInteractuable7" parent="Interactuables/FuentesLuz" unique_id=825186346 instance=ExtResource("3_4wk75")]
 position = Vector2(-576, -256)

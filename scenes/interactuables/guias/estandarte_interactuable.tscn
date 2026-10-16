@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/interacciones/interactuables/guias/estandarte_interactuable.gd" id="1_script"]
+[ext_resource type="Resource" path="res://assets/interactuables/guias/piso/estandarte.tres" id="2_def"]
+[ext_resource type="Texture2D" path="res://assets/interactuables/guias/piso/libro sprite.png" id="3_tex"]
+
+[node name="EstandarteInteractuable" type="Node2D" groups=["interactuables"]]
+script = ExtResource("1_script")
+definicion = ExtResource("2_def")
+ajustar_a_celda_en_editor = true
+permite_caminar = false
+bloquea_proyectiles = true
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(0, -16)
+texture = ExtResource("3_tex")
+region_enabled = true
+region_rect = Rect2(128, 32, 64, 64)

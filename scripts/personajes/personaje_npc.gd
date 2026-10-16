@@ -67,8 +67,20 @@ var nivel_actual: int:
 		if estado != null:
 			estado.nivel_actual = valor
 
-@onready var sprite_personaje: Sprite2D = $Sprite2D
-@onready var punto_dialogo: Marker2D = $PuntoDialogo
+@onready var sprite_personaje: Sprite2D = get_node_or_null("Sprite2D") as Sprite2D
+@onready var punto_dialogo: Marker2D = get_node_or_null("PuntoDialogo") as Marker2D
+
+
+signal danio_recibido(cantidad: int, vida_restante: int)
+signal derrotado
+signal combate_iniciado(npc: PersonajeNPC)
+
+const SONIDO_ESPADA_1: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ataque/Sword Swing 1_3.wav")
+const SONIDO_ESPADA_2: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ataque/Sword Swing 1_4.wav")
+
+var reproductor_audio: AudioStreamPlayer2D
+var reproductor_proximidad: AudioStreamPlayer2D
+var temporizador_proximidad: Timer
 
 
 func _ready() -> void:
@@ -80,6 +92,9 @@ func _ready() -> void:
 		_asegurar_estado()
 		if perfil.puede_tener_inventario:
 			obtener_inventario()
+		_inicializar_audio_npc()
+		if not coordenada_cambiada.is_connected(_on_coordenada_cambiada):
+			coordenada_cambiada.connect(_on_coordenada_cambiada)
 
 
 func _actualizar_representacion(inicializar: bool = false) -> void:
@@ -426,6 +441,11 @@ func recibir_danio(cantidad: int, fuente: Object = null) -> int:
 	var anterior := estado.vida_actual
 	var aplicado := estado.recibir_danio(cantidad)
 	_notificar_cambio_vida(anterior, estado.vida_actual)
+	if aplicado > 0:
+		reproducir_gemido_dolor()
+		danio_recibido.emit(aplicado, estado.vida_actual)
+		if estado.vida_actual == 0:
+			derrotado.emit()
 	if anterior > 0 and estado.vida_actual == 0:
 		muerte_por_danio.emit(fuente)
 	return aplicado
@@ -560,6 +580,92 @@ func restaurar_estado_persistente(datos: Dictionary) -> StringName:
 			estado.coordenada_origen = _origen_inicial
 		_notificar_cambio_vida(anterior, vida_actual)
 	return motivo
+
+func _inicializar_audio_npc() -> void:
+	if reproductor_audio == null:
+		reproductor_audio = AudioStreamPlayer2D.new()
+		reproductor_audio.name = "AudioNPC"
+		reproductor_audio.max_distance = 600.0
+		add_child(reproductor_audio)
+	if reproductor_proximidad == null:
+		reproductor_proximidad = AudioStreamPlayer2D.new()
+		reproductor_proximidad.name = "AudioProximidadNPC"
+		reproductor_proximidad.max_distance = 450.0
+		add_child(reproductor_proximidad)
+	if temporizador_proximidad == null:
+		temporizador_proximidad = Timer.new()
+		temporizador_proximidad.name = "TimerProximidadNPC"
+		temporizador_proximidad.one_shot = true
+		temporizador_proximidad.timeout.connect(_on_temporizador_proximidad_timeout)
+		add_child(temporizador_proximidad)
+		_programar_proximidad()
+
+
+func _programar_proximidad() -> void:
+	if is_instance_valid(temporizador_proximidad) and vida_actual > 0:
+		temporizador_proximidad.start(randf_range(14.0, 32.0))
+
+
+func _on_temporizador_proximidad_timeout() -> void:
+	if vida_actual > 0:
+		reproducir_sonido_proximidad()
+	_programar_proximidad()
+
+
+func _on_coordenada_cambiada(_anterior: Vector2i, _nueva: Vector2i) -> void:
+	reproducir_paso_monstruo()
+
+
+func mover_a_coordenada(nueva_coordenada: Vector2i) -> void:
+	var anterior := coordenada_mapa
+	coordenada_mapa = nueva_coordenada
+	_ajustar_al_centro_celda()
+	coordenada_cambiada.emit(anterior, nueva_coordenada)
+
+
+func reproducir_paso_monstruo() -> void:
+	_inicializar_audio_npc()
+	var perfil := obtener_definicion_personaje()
+	if perfil != null and is_instance_valid(reproductor_audio):
+		var sonido := perfil.obtener_sonido_paso_aleatorio()
+		if sonido != null:
+			reproductor_audio.stream = sonido
+			reproductor_audio.volume_db = -8.0
+			reproductor_audio.pitch_scale = randf_range(0.9, 1.1)
+			reproductor_audio.play()
+
+
+func reproducir_gemido_dolor() -> void:
+	_inicializar_audio_npc()
+	var perfil := obtener_definicion_personaje()
+	if perfil != null and is_instance_valid(reproductor_audio):
+		var sonido := perfil.obtener_sonido_dolor_aleatorio()
+		if sonido != null:
+			reproductor_audio.stream = sonido
+			reproductor_audio.volume_db = -4.0
+			reproductor_audio.pitch_scale = randf_range(0.95, 1.05)
+			reproductor_audio.play()
+
+
+func reproducir_sonido_proximidad() -> void:
+	_inicializar_audio_npc()
+	var perfil := obtener_definicion_personaje()
+	if perfil != null and is_instance_valid(reproductor_proximidad):
+		var sonido := perfil.obtener_sonido_proximidad_aleatorio()
+		if sonido != null and not reproductor_proximidad.playing:
+			reproductor_proximidad.stream = sonido
+			reproductor_proximidad.volume_db = -10.0
+			reproductor_proximidad.pitch_scale = randf_range(0.95, 1.05)
+			reproductor_proximidad.play()
+
+
+func reproducir_sonido_ataque_espada() -> void:
+	_inicializar_audio_npc()
+	if is_instance_valid(reproductor_audio):
+		reproductor_audio.stream = SONIDO_ESPADA_1 if randf() < 0.5 else SONIDO_ESPADA_2
+		reproductor_audio.volume_db = -4.0
+		reproductor_audio.pitch_scale = randf_range(0.95, 1.05)
+		reproductor_audio.play()
 
 
 func obtener_nombre_interaccion() -> String:
@@ -724,6 +830,8 @@ func _resolver_ataque_basico(contexto: ContextoAccion) -> ResultadoAccion:
 	var resultado := ResolverAtaqueBasico.resolver(contexto, self, motor_dados, aplicador_efectos)
 	if resultado.tirada == null:
 		return resultado
+	reproducir_sonido_ataque_espada()
+	combate_iniciado.emit(self)
 	# El intento cuenta también al fallar o ser esquivado; el daño no lo duplica.
 	en_oposicion_encuentro = true
 	var delta := modificar_actitud_hacia_jugador(EstadoPersonajeNPC.PENALIZACION_AGRESION)

@@ -26,7 +26,12 @@
 [ext_resource type="TileSet" uid="uid://dr6pcgl80juta" path="res://assets/tile_sets/surface_effects/fire.tres" id="23_a8yjn"]
 [ext_resource type="TileSet" uid="uid://b2soug6txnn72" path="res://assets/tile_sets/surface_effects/web.tres" id="24_igs8u"]
 [ext_resource type="Script" uid="uid://dkkd0pruoa4im" path="res://scripts/zonas/zona_explorable.gd" id="25_zona"]
+[ext_resource type="Texture2D" uid="uid://p3xo34i105vh" path="res://scenes/efectos_superficie/particulaverde.png" id="27_a8yjn"]
 [ext_resource type="Texture2D" uid="uid://kg0ilecnb3sn" path="res://scenes/efectos_superficie/venenoburbuja.png" id="27_a8yjn"]
+[ext_resource type="PackedScene" path="res://scenes/interactuables/guias/cartel_interactuable.tscn" id="28_cartel"]
+[ext_resource type="PackedScene" path="res://scenes/interactuables/guias/libro_interactuable.tscn" id="29_libro"]
+[ext_resource type="PackedScene" path="res://scenes/interactuables/guias/hojas_interactuable.tscn" id="30_hojas"]
+[ext_resource type="PackedScene" path="res://scenes/interactuables/guias/estandarte_interactuable.tscn" id="31_estandarte"]
 
 [sub_resource type="Curve" id="Curve_baiil"]
 _data = [Vector2(0.16770187, 1), 0.0, 0.0, 0, 0, Vector2(0.99378884, 0.125), 0.0, 0.0, 0, 0]
@@ -59,6 +64,10 @@ linear_accel_max = 14.449998
 scale_min = 1.5
 scale_max = 3.0
 color_ramp = SubResource("GradientTexture1D_5jynw")
+
+[sub_resource type="Curve" id="Curve_fq28q"]
+_data = [Vector2(0.24812031, 1), 0.0, 0.0, 0, 0, Vector2(1, 0.5307692), 0.0, 0.0, 0, 0]
+point_count = 2
 
 [node name="Zona1" type="Node2D" unique_id=1662731053]
 y_sort_enabled = true
@@ -101,6 +110,14 @@ y_sort_enabled = true
 position = Vector2(128, 0)
 particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pie_02_01"
+titulo_examen = null
+texto_examen = null
+ruta_visual_resaltable = ""
+ruta_fog_oculto = ""
+ruta_fog_explorado = null
+color_resaltado = NodePath("Sprite2D")
+grosor_resaltado = NodePath("")
+huella_celdas = null
 
 [node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaPie_02_01" unique_id=2008938200]
 position = Vector2(1, -48)
@@ -120,6 +137,14 @@ position = Vector2(96, -176)
 particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pared_izq_07_m05"
 definicion = ExtResource("10_pared_izq")
+titulo_examen = null
+texto_examen = null
+ruta_visual_resaltable = ""
+ruta_fog_oculto = ""
+ruta_fog_explorado = null
+color_resaltado = NodePath("Sprite2D")
+grosor_resaltado = NodePath("")
+huella_celdas = null
 
 [node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaParedIzq_07_m05" unique_id=1971366450]
 position = Vector2(-9, -56)
@@ -139,6 +164,14 @@ position = Vector2(1056, -176)
 particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pared_der_22_10"
 definicion = ExtResource("11_pared_der")
+titulo_examen = null
+texto_examen = null
+ruta_visual_resaltable = ""
+ruta_fog_oculto = ""
+ruta_fog_explorado = null
+color_resaltado = NodePath("Sprite2D")
+grosor_resaltado = NodePath("")
+huella_celdas = null
 
 [node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaParedDer_22_10" unique_id=1624143862]
 position = Vector2(9, -56)
@@ -157,6 +190,14 @@ color_ramp = SubResource("Gradient_jkr0w")
 position = Vector2(1120, 48)
 particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pie_16_18"
+titulo_examen = null
+texto_examen = null
+ruta_visual_resaltable = ""
+ruta_fog_oculto = ""
+ruta_fog_explorado = null
+color_resaltado = NodePath("Sprite2D")
+grosor_resaltado = NodePath("")
+huella_celdas = null
 
 [node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaPie_16_18" unique_id=995889327]
 position = Vector2(1, -48)
@@ -175,6 +216,14 @@ color_ramp = SubResource("Gradient_jkr0w")
 position = Vector2(128, -640)
 id_instancia = &"zona1_fogata_22_m19"
 definicion = ExtResource("9_fogata")
+titulo_examen = null
+texto_examen = null
+ruta_visual_resaltable = ""
+ruta_fog_oculto = ""
+ruta_fog_explorado = null
+color_resaltado = NodePath("Sprite2D")
+grosor_resaltado = NodePath("")
+huella_celdas = null
 
 [node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/Fogata_22_m19" unique_id=1959538116]
 position = Vector2(0, -10)
@@ -193,6 +242,14 @@ color_ramp = SubResource("Gradient_jkr0w")
 position = Vector2(960, -480)
 particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pie_30_m01"
+titulo_examen = null
+texto_examen = null
+ruta_visual_resaltable = ""
+ruta_fog_oculto = ""
+ruta_fog_explorado = null
+color_resaltado = NodePath("Sprite2D")
+grosor_resaltado = NodePath("")
+huella_celdas = null
 
 [node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaPie_30_m01" unique_id=1369276793]
 position = Vector2(1, -48)
@@ -211,6 +268,14 @@ color_ramp = SubResource("Gradient_jkr0w")
 position = Vector2(1216, -608)
 particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pie_38_m01"
+titulo_examen = null
+texto_examen = null
+ruta_visual_resaltable = ""
+ruta_fog_oculto = ""
+ruta_fog_explorado = null
+color_resaltado = NodePath("Sprite2D")
+grosor_resaltado = NodePath("")
+huella_celdas = null
 
 [node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaPie_38_m01" unique_id=1940974010]
 position = Vector2(1, -48)
@@ -229,6 +294,14 @@ color_ramp = SubResource("Gradient_jkr0w")
 position = Vector2(1184, -368)
 particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pie_30_06"
+titulo_examen = null
+texto_examen = null
+ruta_visual_resaltable = ""
+ruta_fog_oculto = ""
+ruta_fog_explorado = null
+color_resaltado = NodePath("Sprite2D")
+grosor_resaltado = NodePath("")
+huella_celdas = null
 
 [node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaPie_30_06" unique_id=963063108]
 position = Vector2(1, -48)
@@ -247,6 +320,14 @@ color_ramp = SubResource("Gradient_jkr0w")
 position = Vector2(1440, -496)
 particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pie_38_06"
+titulo_examen = null
+texto_examen = null
+ruta_visual_resaltable = ""
+ruta_fog_oculto = ""
+ruta_fog_explorado = null
+color_resaltado = NodePath("Sprite2D")
+grosor_resaltado = NodePath("")
+huella_celdas = null
 
 [node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaPie_38_06" unique_id=1499029479]
 position = Vector2(1, -48)
@@ -266,6 +347,14 @@ position = Vector2(2016, -816)
 particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pared_der_57_05"
 definicion = ExtResource("11_pared_der")
+titulo_examen = null
+texto_examen = null
+ruta_visual_resaltable = ""
+ruta_fog_oculto = ""
+ruta_fog_explorado = null
+color_resaltado = NodePath("Sprite2D")
+grosor_resaltado = NodePath("")
+huella_celdas = null
 
 [node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaParedDer_57_05" unique_id=1543410646]
 position = Vector2(9, -57)
@@ -285,6 +374,14 @@ position = Vector2(2240, -704)
 particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pared_der_57_12"
 definicion = ExtResource("11_pared_der")
+titulo_examen = null
+texto_examen = null
+ruta_visual_resaltable = ""
+ruta_fog_oculto = ""
+ruta_fog_explorado = null
+color_resaltado = NodePath("Sprite2D")
+grosor_resaltado = NodePath("")
+huella_celdas = null
 
 [node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaParedDer_57_12" unique_id=1512025311]
 position = Vector2(9, -56)
@@ -307,6 +404,15 @@ position = Vector2(192, 0)
 ids_receptores_mecanismo = Array[StringName]([&"zona1_puerta_mecanismo_05_m03", &"zona1_puerta_mecanismo_06_m03"])
 id_instancia = &"zona1_palanca_03_m03"
 definicion = ExtResource("15_palanca_def")
+titulo_examen = null
+texto_examen = null
+ruta_visual_resaltable = ""
+ruta_fog_oculto = ""
+ruta_fog_explorado = null
+color_resaltado = NodePath("Sprite2D")
+grosor_resaltado = NodePath("")
+ajustar_a_celda_en_editor = Color(1, 1, 1, 1)
+huella_celdas = null
 
 [node name="Puertas" type="Node2D" parent="Interactuables" unique_id=244669734]
 y_sort_enabled = true
@@ -315,6 +421,15 @@ y_sort_enabled = true
 position = Vector2(224, 16)
 id_instancia = &"zona1_puerta_04_m03"
 definicion = ExtResource("17_puerta_def")
+titulo_examen = null
+texto_examen = null
+ruta_visual_resaltable = ""
+ruta_fog_oculto = ""
+ruta_fog_explorado = null
+color_resaltado = NodePath("Sprite2D")
+grosor_resaltado = NodePath("")
+ajustar_a_celda_en_editor = Color(1, 1, 1, 1)
+huella_celdas = null
 
 [node name="PuertaMecanismo_05_m03" parent="Interactuables/Puertas" unique_id=847474802 instance=ExtResource("16_puerta")]
 visible = false
@@ -322,6 +437,15 @@ position = Vector2(256, 32)
 bloqueada = false
 id_instancia = &"zona1_puerta_mecanismo_05_m03"
 definicion = ExtResource("18_puerta_mecanismo_def")
+titulo_examen = null
+texto_examen = null
+ruta_visual_resaltable = ""
+ruta_fog_oculto = ""
+ruta_fog_explorado = null
+color_resaltado = NodePath("Sprite2D")
+grosor_resaltado = NodePath("")
+ajustar_a_celda_en_editor = Color(1, 1, 1, 1)
+huella_celdas = null
 
 [node name="PuertaMecanismo_06_m03" parent="Interactuables/Puertas" unique_id=420118601 instance=ExtResource("16_puerta")]
 visible = false
@@ -329,6 +453,15 @@ position = Vector2(288, 48)
 bloqueada = false
 id_instancia = &"zona1_puerta_mecanismo_06_m03"
 definicion = ExtResource("19_puerta_mecanismo_der_def")
+titulo_examen = null
+texto_examen = null
+ruta_visual_resaltable = ""
+ruta_fog_oculto = ""
+ruta_fog_explorado = null
+color_resaltado = NodePath("Sprite2D")
+grosor_resaltado = NodePath("")
+ajustar_a_celda_en_editor = Color(1, 1, 1, 1)
+huella_celdas = null
 
 [node name="Trampas" type="Node2D" parent="Interactuables" unique_id=1893528667]
 y_sort_enabled = true
@@ -336,13 +469,81 @@ y_sort_enabled = true
 [node name="TrampaHumo_04_03" parent="Interactuables/Trampas" unique_id=1983383903 instance=ExtResource("13_trampa_superficie")]
 position = Vector2(256, 0)
 id_instancia = &"zona1_trampa_humo_04_03"
+titulo_examen = null
+texto_examen = null
+ruta_visual_resaltable = ""
+ruta_fog_oculto = ""
+ruta_fog_explorado = null
+color_resaltado = NodePath("Sprite2D")
+grosor_resaltado = NodePath("")
+huella_celdas = null
 
 [node name="TrampaHumo_05_03" parent="Interactuables/Trampas" unique_id=1636911757 instance=ExtResource("13_trampa_superficie")]
 position = Vector2(288, -16)
 id_instancia = &"zona1_trampa_humo_05_03"
+titulo_examen = null
+texto_examen = null
+ruta_visual_resaltable = ""
+ruta_fog_oculto = ""
+ruta_fog_explorado = null
+color_resaltado = NodePath("Sprite2D")
+grosor_resaltado = NodePath("")
+huella_celdas = null
 
 [node name="Personajes" type="Node2D" parent="Interactuables" unique_id=507425846]
 y_sort_enabled = true
+
+[node name="Guias" type="Node2D" parent="Interactuables" unique_id=2081928374]
+y_sort_enabled = true
+
+[node name="Cartel_01" parent="Interactuables/Guias" unique_id=2081928375 instance=ExtResource("28_cartel")]
+position = Vector2(96, -16)
+id_instancia = &"zona1_cartel_01"
+titulo_examen = null
+texto_examen = null
+ruta_visual_resaltable = ""
+ruta_fog_oculto = ""
+ruta_fog_explorado = null
+color_resaltado = NodePath("Sprite2D")
+grosor_resaltado = NodePath("")
+huella_celdas = null
+
+[node name="Libro_01" parent="Interactuables/Guias" unique_id=2081928376 instance=ExtResource("29_libro")]
+position = Vector2(96, 16)
+variante = 2
+id_instancia = &"zona1_libro_01"
+titulo_examen = null
+texto_examen = null
+ruta_visual_resaltable = ""
+ruta_fog_oculto = ""
+ruta_fog_explorado = null
+color_resaltado = NodePath("Sprite2D")
+grosor_resaltado = NodePath("")
+huella_celdas = null
+
+[node name="Hojas_01" parent="Interactuables/Guias" unique_id=2081928377 instance=ExtResource("30_hojas")]
+position = Vector2(128, 32)
+id_instancia = &"zona1_hojas_01"
+titulo_examen = null
+texto_examen = null
+ruta_visual_resaltable = ""
+ruta_fog_oculto = ""
+ruta_fog_explorado = null
+color_resaltado = NodePath("Sprite2D")
+grosor_resaltado = NodePath("")
+huella_celdas = null
+
+[node name="Estandarte_01" parent="Interactuables/Guias" unique_id=2081928378 instance=ExtResource("31_estandarte")]
+position = Vector2(64, 32)
+id_instancia = &"zona1_estandarte_01"
+titulo_examen = null
+texto_examen = null
+ruta_visual_resaltable = ""
+ruta_fog_oculto = ""
+ruta_fog_explorado = null
+color_resaltado = NodePath("Sprite2D")
+grosor_resaltado = NodePath("")
+huella_celdas = null
 
 [node name="EfectosSuperficie" type="Node2D" parent="." unique_id=378389863]
 y_sort_enabled = true
@@ -423,17 +624,11 @@ process_material = SubResource("ParticleProcessMaterial_baiil")
 [node name="venenoTest" type="CPUParticles2D" parent="." unique_id=267076803]
 texture_filter = 1
 position = Vector2(91.98872, 129.80408)
-amount = 3
+amount = 4
 texture = ExtResource("27_a8yjn")
 explosiveness = 0.67
-randomness = 1.0
+emission_shape = 1
+emission_sphere_radius = 8.0
 gravity = Vector2(0, -100)
-initial_velocity_min = 10.0
-initial_velocity_max = 20.0
-linear_accel_min = -73.05
-linear_accel_max = -44.68
-radial_accel_min = -60.99
-radial_accel_max = 14.9
 scale_amount_min = 0.5
-scale_amount_max = 0.5
-color = Color(0.4832725, 0.00016455904, 0.48341298, 1)
+scale_amount_curve = SubResource("Curve_fq28q")

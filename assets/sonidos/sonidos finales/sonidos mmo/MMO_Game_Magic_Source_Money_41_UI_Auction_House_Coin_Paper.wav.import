@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://bgm38hvwkcvc"
+path="res://.godot/imported/MMO_Game_Magic_Source_Money_41_UI_Auction_House_Coin_Paper.wav-613e767e4de2fb4dd2f559d8e162154c.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/sonidos finales/sonidos mmo/MMO_Game_Magic_Source_Money_41_UI_Auction_House_Coin_Paper.wav"
+dest_files=["res://.godot/imported/MMO_Game_Magic_Source_Money_41_UI_Auction_House_Coin_Paper.wav-613e767e4de2fb4dd2f559d8e162154c.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

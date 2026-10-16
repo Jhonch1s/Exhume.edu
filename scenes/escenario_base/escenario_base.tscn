@@ -20,8 +20,11 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/combate/panel_orden_combate.tscn" id="17_orden_combate"]
 [ext_resource type="PackedScene" path="res://scenes/ui/personajes/panel_info_npc.tscn" id="18_info_npc"]
 [ext_resource type="PackedScene" path="res://scenes/ui/personajes/panel_ficha_npc.tscn" id="18_ficha_npc"]
+[ext_resource type="Shader" uid="uid://b3gl1mjueaex2" path="res://assets/ui/shaders/quemado.gdshader" id="18_0q2qq"]
+[ext_resource type="PackedScene" uid="uid://demg1ffyhyixn" path="res://assets/characters/knight3d/cavallerov2.glb" id="19_82ikr"]
 [ext_resource type="Texture2D" uid="uid://e66ncuwpvtq4" path="res://assets/characters/player/dialogue/guerrero.png" id="19_dialogo_guerrero"]
 [ext_resource type="Texture2D" uid="uid://gequfsg3lbdd" path="res://assets/characters/player/dialogue/ladron.png" id="20_dialogo_ladron"]
+[ext_resource type="PackedScene" uid="uid://bppw0hq36w7qs" path="res://assets/characters/knight3d/magov2.glb" id="20_y446p"]
 [ext_resource type="Texture2D" uid="uid://fqjiksle3nk6" path="res://assets/characters/player/dialogue/mago.png" id="21_dialogo_mago"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_m8dhx"]
@@ -52,6 +55,11 @@ shader_parameter/separacion_color_px = 0.45
 shader_parameter/fuerza_mascara = 0.72
 shader_parameter/brillo_mascara = 0.95
 shader_parameter/aspecto = 0.5625
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_82ikr"]
+shader = ExtResource("18_0q2qq")
+shader_parameter/orange_tint = Color(0.811, 0.545, 0.18, 0.8)
+shader_parameter/mix_amount = 0.3
 
 [node name="EscenarioBase" type="Node2D" unique_id=1215045435]
 y_sort_enabled = true
@@ -135,6 +143,7 @@ script = ExtResource("7_t484h")
 [node name="KnightViewPort" type="SubViewportContainer" parent="." unique_id=2057824913]
 visible = false
 texture_filter = 1
+material = SubResource("ShaderMaterial_82ikr")
 offset_left = 586.0
 offset_top = -164.0
 offset_right = 1098.0
@@ -148,6 +157,7 @@ canvas_cull_mask = 4294966273
 render_target_update_mode = 0
 
 [node name="caballero20" parent="KnightViewPort/KnightSubViewport" unique_id=1421085748 instance=ExtResource("12_jpvkn")]
+visible = false
 
 [node name="Camera3D" type="Camera3D" parent="KnightViewPort/KnightSubViewport" unique_id=2136811322]
 transform = Transform3D(0.70710677, 0.49999997, -0.49999997, 0, 0.70710677, 0.70710677, 0.70710677, -0.49999997, 0.49999997, -10, 13.9, 10)
@@ -157,6 +167,9 @@ size = 1.4
 [node name="SpotLight3D" type="SpotLight3D" parent="KnightViewPort/KnightSubViewport" unique_id=449324514]
 transform = Transform3D(0.70710677, 0, -0.70710677, 0, 1, 0, 0.70710677, 0, 0.70710677, -3, 0, 3)
 light_energy = 3.0
+
+[node name="cavallerov2" parent="KnightViewPort/KnightSubViewport" unique_id=1960188895 instance=ExtResource("19_82ikr")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.017948031, 0.09725517, -0.04759127)
 
 [node name="WizardViewPort" type="SubViewportContainer" parent="." unique_id=709266984]
 visible = false
@@ -171,6 +184,7 @@ render_target_update_mode = 0
 
 [node name="modelomago2" parent="WizardViewPort/WizardSubViewport" unique_id=460110347 instance=ExtResource("14_lmwd1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 0)
+visible = false
 
 [node name="Camera3D" type="Camera3D" parent="WizardViewPort/WizardSubViewport" unique_id=485581630]
 transform = Transform3D(0.70710677, 0.49999997, -0.49999997, 0, 0.70710677, 0.70710677, 0.70710677, -0.49999997, 0.49999997, 0, 14, 10)
@@ -180,6 +194,9 @@ size = 1.4
 [node name="SpotLight3D" type="SpotLight3D" parent="WizardViewPort/WizardSubViewport" unique_id=1805722019]
 transform = Transform3D(0.70710677, 0, -0.70710677, 0, 1, 0, 0.70710677, 0, 0.70710677, 7, 0, 3)
 light_energy = 3.0
+
+[node name="magov2" parent="WizardViewPort/WizardSubViewport" unique_id=1969290634 instance=ExtResource("20_y446p")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.982945, 0.18243569, 0)
 
 [node name="ThiefViewPort" type="SubViewportContainer" parent="." unique_id=2036329913]
 visible = false

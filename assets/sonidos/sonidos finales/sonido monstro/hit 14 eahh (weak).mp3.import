@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bws6j07b2dsi1"
+path="res://.godot/imported/hit 14 eahh (weak).mp3-9077994a570b33b52973b181e3964525.mp3str"
+
+[deps]
+
+source_file="res://assets/sonidos/sonidos finales/sonido monstro/hit 14 eahh (weak).mp3"
+dest_files=["res://.godot/imported/hit 14 eahh (weak).mp3-9077994a570b33b52973b181e3964525.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

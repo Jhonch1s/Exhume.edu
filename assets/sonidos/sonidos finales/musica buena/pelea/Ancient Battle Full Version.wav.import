@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://cbdollfrmo8pu"
+path="res://.godot/imported/Ancient Battle Full Version.wav-b0602e954237b6592aa3ffa5d80b6d5f.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/sonidos finales/musica buena/pelea/Ancient Battle Full Version.wav"
+dest_files=["res://.godot/imported/Ancient Battle Full Version.wav-b0602e954237b6592aa3ffa5d80b6d5f.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

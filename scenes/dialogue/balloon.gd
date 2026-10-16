@@ -20,8 +20,12 @@ extends CanvasLayer
 ## The action to use to skip typing the dialogue
 @export var skip_action: StringName = &"ui_cancel"
 
+const SONIDO_TEXTO: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido texto/growly_4a.wav")
+
 ## A sound player for voice lines (if they exist).
 @onready var audio_stream_player: AudioStreamPlayer = %AudioStreamPlayer
+var reproductor_texto: AudioStreamPlayer
+var _contador_letras_habladas: int = 0
 
 ## Temporary game states
 var temporary_game_states: Array = []
@@ -41,6 +45,7 @@ var _locale: String = TranslationServer.get_locale()
 ## The current line
 var dialogue_line: DialogueLine:
 	set(value):
+		detener_sonido_texto()
 		if value:
 			dialogue_line = value
 			apply_dialogue_line()
@@ -91,10 +96,44 @@ func _ready() -> void:
 	mutation_cooldown.timeout.connect(_on_mutation_cooldown_timeout)
 	add_child(mutation_cooldown)
 
+	reproductor_texto = AudioStreamPlayer.new()
+	reproductor_texto.name = "AudioTexto"
+	reproductor_texto.volume_db = -18.0
+	reproductor_texto.stream = SONIDO_TEXTO
+	add_child(reproductor_texto)
+	if is_instance_valid(dialogue_label):
+		dialogue_label.spoke.connect(_on_dialogue_label_spoke)
+		dialogue_label.finished_typing.connect(detener_sonido_texto)
+		dialogue_label.skipped_typing.connect(detener_sonido_texto)
+
 	if auto_start:
 		if not is_instance_valid(dialogue_resource):
 			assert(false, DMConstants.get_error_message(DMConstants.ERR_MISSING_RESOURCE_FOR_AUTOSTART))
 		start()
+
+
+func _exit_tree() -> void:
+	detener_sonido_texto()
+
+
+func detener_sonido_texto() -> void:
+	if is_instance_valid(reproductor_texto) and reproductor_texto.playing:
+		reproductor_texto.stop()
+
+
+func _on_dialogue_label_spoke(letter: String, _letter_index: int, speed: float) -> void:
+	if letter.strip_edges().is_empty():
+		return
+	_contador_letras_habladas += 1
+	# Emitir sonido cada 3 caracteres para no superponer ni saturar el audio
+	if _contador_letras_habladas % 3 != 0:
+		return
+	if is_instance_valid(reproductor_texto):
+		reproductor_texto.stop()
+		var base_pitch := 0.95 + clampf(speed, 0.5, 2.0) * 0.1
+		reproductor_texto.pitch_scale = clampf(base_pitch + randf_range(-0.06, 0.06), 0.85, 1.3)
+		reproductor_texto.play()
+
 
 
 func configurar_participantes(
@@ -172,6 +211,8 @@ func start(with_dialogue_resource: DialogueResource = null, cue: String = "", ex
 
 ## Apply any changes to the balloon given a new [DialogueLine].
 func apply_dialogue_line() -> void:
+	detener_sonido_texto()
+	_contador_letras_habladas = 0
 	mutation_cooldown.stop()
 
 	progress.hide()
@@ -197,6 +238,7 @@ func apply_dialogue_line() -> void:
 	if not dialogue_line.text.is_empty():
 		dialogue_label.type_out()
 		await dialogue_label.finished_typing
+	detener_sonido_texto()
 
 	# Wait for next line
 	if dialogue_line.has_tag("voice"):
@@ -224,6 +266,7 @@ func next(next_id: String) -> void:
 	_resolviendo_linea = true
 	is_waiting_for_input = false
 	responses_menu.hide()
+	detener_sonido_texto()
 	dialogue_line = await dialogue_resource.get_next_dialogue_line(next_id, temporary_game_states)
 	_resolviendo_linea = false
 
@@ -248,9 +291,10 @@ func _on_balloon_gui_input(event: InputEvent) -> void:
 	# See if we need to skip typing of the dialogue
 	if dialogue_label.is_typing:
 		var mouse_was_clicked: bool = event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.is_pressed()
-		var skip_button_was_pressed: bool = event.is_action_pressed(skip_action)
+		var skip_button_was_pressed: bool = event.is_action_pressed(skip_action) or event.is_action_pressed(next_action)
 		if mouse_was_clicked or skip_button_was_pressed:
 			get_viewport().set_input_as_handled()
+			detener_sonido_texto()
 			dialogue_label.skip_typing()
 			return
 
@@ -261,12 +305,15 @@ func _on_balloon_gui_input(event: InputEvent) -> void:
 	get_viewport().set_input_as_handled()
 
 	if event is InputEventMouseButton and event.is_pressed() and event.button_index == MOUSE_BUTTON_LEFT:
+		detener_sonido_texto()
 		next(dialogue_line.next_id)
 	elif event.is_action_pressed(next_action) and get_viewport().gui_get_focus_owner() == balloon:
+		detener_sonido_texto()
 		next(dialogue_line.next_id)
 
 
 func _on_responses_menu_response_selected(response: DialogueResponse) -> void:
+	detener_sonido_texto()
 	next(response.next_id)
 
 

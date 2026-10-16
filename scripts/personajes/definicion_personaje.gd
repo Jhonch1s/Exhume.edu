@@ -61,6 +61,46 @@ enum OrientacionMapa {
 @export var ilustracion_dialogo: Texture2D
 @export var dialogos: Array[DialogoNPC] = []
 
-
 func calcular_movimiento(destreza_actual: int) -> int:
 	return movimiento_fijo if movimiento_fijo >= 0 else RecursosTurnoActor.calcular_movimiento(destreza_actual)
+
+@export_category("Audio")
+@export var sonidos_pasos: Array[AudioStream] = []
+@export var sonidos_dolor: Array[AudioStream] = []
+@export var sonidos_proximidad: Array[AudioStream] = []
+@export_range(50.0, 1000.0, 10.0) var radio_audio_proximidad: float = 380.0
+
+const PASOS_MONSTRUO_DEFECTO: Array[AudioStream] = [
+	preload("res://assets/sonidos/sonidos finales/sonido monstro/Monster Walking 01.wav"),
+	preload("res://assets/sonidos/sonidos finales/sonido monstro/Monster Walking 03.wav"),
+	preload("res://assets/sonidos/sonidos finales/sonido monstro/Monster Big Walking 2_05.wav"),
+	preload("res://assets/sonidos/sonidos finales/sonido monstro/Monster Big Walking 2_07.wav"),
+]
+
+const DOLOR_MONSTRUO_DEFECTO: Array[AudioStream] = [
+	preload("res://assets/sonidos/sonidos finales/sonido monstro/hit 14 eahh (weak).mp3"),
+	preload("res://assets/sonidos/sonidos finales/sonido monstro/hit 17 ouw (weak).mp3"),
+	preload("res://assets/sonidos/sonidos finales/sonido monstro/hit 5 ah (weak).mp3"),
+	preload("res://assets/sonidos/sonidos finales/sonido monstro/holler 82 fast yell (strong).mp3"),
+]
+
+const PROXIMIDAD_MONSTRUO_DEFECTO: Array[AudioStream] = [
+	preload("res://assets/sonidos/sonidos finales/sonido monstro/huff 6 exhale inhale exhale (weak).mp3"),
+	preload("res://assets/sonidos/sonidos finales/sonido monstro/holler 117 short burst (strong).wav"),
+	preload("res://assets/sonidos/enemigo/munstro con cadenas.wav"),
+]
+
+
+func obtener_sonido_paso_aleatorio() -> AudioStream:
+	var lista := sonidos_pasos if not sonidos_pasos.is_empty() else PASOS_MONSTRUO_DEFECTO
+	return lista.pick_random() if not lista.is_empty() else null
+
+
+func obtener_sonido_dolor_aleatorio() -> AudioStream:
+	var lista := sonidos_dolor if not sonidos_dolor.is_empty() else DOLOR_MONSTRUO_DEFECTO
+	return lista.pick_random() if not lista.is_empty() else null
+
+
+func obtener_sonido_proximidad_aleatorio() -> AudioStream:
+	var lista := sonidos_proximidad if not sonidos_proximidad.is_empty() else PROXIMIDAD_MONSTRUO_DEFECTO
+	return lista.pick_random() if not lista.is_empty() else null

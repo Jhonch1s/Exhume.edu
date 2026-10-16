@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="DefinicionInteractuable" format=3 uid="uid://c8g38uv6stpoo"]
+
+[ext_resource type="Script" uid="uid://c5sxr7hy2ff83" path="res://scripts/interacciones/interactuables/definicion_interactuable.gd" id="1_definicion"]
+[ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="2_fragmento"]
+[ext_resource type="Script" uid="uid://bccqt6gfe8843" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="3_perfil"]
+[ext_resource type="Texture2D" uid="uid://b8nuoqi25606s" path="res://assets/ilustraciones/examen/pergamino.png" id="4_ilustracion"]
+[ext_resource type="AudioStream" uid="uid://13neah6m3tb8" path="res://assets/sonidos/sonidos finales/sonidos extras/Page 03.wav" id="5_sonido"]
+
+[sub_resource type="Resource" id="Resource_fragmento"]
+script = ExtResource("2_fragmento")
+id_fragmento = &"identidad"
+nivel = 1
+id_mensaje = &"examen.hojas.basico"
+
+[sub_resource type="Resource" id="Resource_perfil"]
+script = ExtResource("3_perfil")
+alcance_secreto = 0.0
+
+[resource]
+script = ExtResource("1_definicion")
+id_definicion = &"hojas_guia"
+nombre = "Hojas de pergamino"
+descripcion_base = "Hojas de pergamino sueltas y desgastadas con anotaciones apresuradas sobre la zona."
+ilustracion_examen = ExtResource("4_ilustracion")
+fragmentos_informacion = Array[ExtResource("2_fragmento")]([SubResource("Resource_fragmento")])
+perfil_observacion = SubResource("Resource_perfil")
+sonido_examen = ExtResource("5_sonido")

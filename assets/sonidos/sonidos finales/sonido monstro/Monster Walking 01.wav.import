@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://cr6k50bwieebo"
+path="res://.godot/imported/Monster Walking 01.wav-6eddf8f0cb9ffe60568e874918f565a4.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/sonidos finales/sonido monstro/Monster Walking 01.wav"
+dest_files=["res://.godot/imported/Monster Walking 01.wav-6eddf8f0cb9ffe60568e874918f565a4.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

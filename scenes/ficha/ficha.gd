@@ -5,6 +5,7 @@ class_name Ficha
 var texturas_por_direccion: Dictionary = {}
 var sprite_render: Sprite2D = null
 var particulasDanio: CPUParticles2D = CPUParticles2D.new()
+var particulasVeneno: CPUParticles2D = CPUParticles2D.new()
 
 
 
@@ -13,7 +14,24 @@ const TEXTURA_FICHAS_CLASE = preload(
 )
 const FRAME_POR_CLASE := {"Guerrero": 3, "Ladrón": 0, "Mago": 6}
 
+const texturaVeneno = preload("res://scenes/efectos_superficie/particulaverde.png")
+const particulasLavaEscena = preload("res://scenes/efectos_superficie/particulas_quemado.tscn")
+var shaderMat = ShaderMaterial.new()
+var shaderMatQ = ShaderMaterial.new()
+var particulaFuegoInstancia: Node = null
+const SONIDO_DANIO_DEFECTO: AudioStream = preload("res://assets/sonidos/sonidos finales/sonidos mmo/MMO_Game_Magic_Source_Armor_02_Metal_Hit_Shuffle.wav")
+const SONIDO_QUEMADURA_DEFECTO: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ambiente/fuego quemadura.wav")
+const SONIDO_VENENO_DEBUFF_DEFECTO: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ambiente/561216__terrytom__poison-debuff.wav")
+const SONIDO_TOS_1: AudioStream = preload("res://assets/sonidos/toser/editado/varias toses.wav")
+const SONIDO_TOS_2: AudioStream = preload("res://assets/sonidos/toser/editado/varias toses 2.wav")
+const ScriptEstadoPartida = preload("res://scripts/estado_partida.gd")
 
+var _tos_variante_dos: bool = false
+var reproductor_audio_ficha: AudioStreamPlayer2D
+
+
+var shaderVeneno = load("res://assets/ui/shaders/envenenado.gdshader");
+var shaderQuemado = load("res://assets/ui/shaders/quemado.gdshader");
 
 @export var nombre: String = "Heroe Jr."
 @export var titulo: String = "El come cebolla"
@@ -80,7 +98,24 @@ func _init() -> void:
 
 
 func _on_estado_temporal_cambiado(clave: StringName, estado: EstadoActor) -> void:
+	if clave == &"veneno" or clave == &"quemado":
+		_actualizar_efectos_estado()
 	estado_cambiado.emit(clave, estado)
+
+
+func _actualizar_efectos_estado() -> void:
+	if not is_instance_valid(sprite_render):
+		return
+	var envenenado := obtener_estado(&"veneno") != null
+	var quemado := obtener_estado(&"quemado") != null
+	particulasVeneno.emitting = envenenado
+	sprite_render.material = shaderMatQ if quemado else shaderMat if envenenado else null
+	if quemado and not is_instance_valid(particulaFuegoInstancia):
+		particulaFuegoInstancia = particulasLavaEscena.instantiate()
+		sprite_render.add_child(particulaFuegoInstancia)
+	elif not quemado and is_instance_valid(particulaFuegoInstancia):
+		particulaFuegoInstancia.queue_free()
+		particulaFuegoInstancia = null
 
 
 func obtener_id_observador() -> StringName:
@@ -139,13 +174,41 @@ func recibir_danio(cantidad: int, _fuente: Object = null) -> int:
 	var aplicado := anterior - pv_actual
 	if aplicado > 0:
 		reproducir_efecto_danio()
+		reproducir_sonido_danio()
 		print("Vida de %s: %d/%d" % [nombre, pv_actual, pv_max])
 		puntos_vida_cambiados.emit(pv_actual, pv_max)
 	return aplicado
-	
+
 func reproducir_efecto_danio() -> void:
 	if is_instance_valid(particulasDanio):
 		particulasDanio.restart()
+
+func reproducir_sonido_danio() -> void:
+	_reproducir_audio_en_ficha(SONIDO_DANIO_DEFECTO, -6.0)
+
+func reproducir_sonido_quemadura() -> void:
+	_reproducir_audio_en_ficha(SONIDO_QUEMADURA_DEFECTO, -6.0)
+
+func reproducir_sonido_veneno() -> void:
+	_reproducir_audio_en_ficha(SONIDO_VENENO_DEBUFF_DEFECTO, -5.0)
+	reproducir_sonido_tos()
+
+func reproducir_sonido_tos() -> void:
+	var sonido := SONIDO_TOS_2 if _tos_variante_dos else SONIDO_TOS_1
+	_tos_variante_dos = not _tos_variante_dos
+	_reproducir_audio_en_ficha(sonido, -6.0)
+
+func _reproducir_audio_en_ficha(stream: AudioStream, vol_db: float = 0.0) -> void:
+	if not is_inside_tree() or stream == null:
+		return
+	if not is_instance_valid(reproductor_audio_ficha):
+		reproductor_audio_ficha = AudioStreamPlayer2D.new()
+		reproductor_audio_ficha.name = "AudioFicha"
+		reproductor_audio_ficha.max_distance = 1500.0
+		add_child(reproductor_audio_ficha)
+	reproductor_audio_ficha.stream = stream
+	reproductor_audio_ficha.volume_db = vol_db
+	reproductor_audio_ficha.play()
 
 func obtener_estado(clave: StringName) -> EstadoActor:
 	return estados_temporales.obtener_estado(clave)
@@ -169,12 +232,24 @@ func aplicar_o_renovar_estado(
 	_fuente: Object = null,
 	terminos_dano_tick: Array[Dictionary] = []
 ) -> Dictionary:
-	return estados_temporales.aplicar_o_renovar_estado(
+	var resultado := estados_temporales.aplicar_o_renovar_estado(
 		clave, magnitud, duracion_total, ticks_pendientes, _fuente, terminos_dano_tick
 	)
+	if not resultado.is_empty():
+		if clave == &"quemado":
+			reproducir_sonido_quemadura()
+		elif clave == &"veneno":
+			reproducir_sonido_veneno()
+	return resultado
 
 func consumir_tick_estado(clave: StringName) -> Dictionary:
-	return estados_temporales.consumir_tick_estado(clave)
+	var resultado := estados_temporales.consumir_tick_estado(clave)
+	if not resultado.is_empty():
+		if clave == &"veneno":
+			reproducir_sonido_tos()
+		elif clave == &"quemado":
+			reproducir_sonido_quemadura()
+	return resultado
 
 func iniciar_turno() -> void:
 	if recursos_turno == null:
@@ -336,6 +411,7 @@ func restaurar_estado_persistente(estado: Variant) -> StringName:
 	inventario = inventario_nuevo
 	activar_antorcha_si_necesario()
 	estados_temporales.restaurar_estado_persistente(estado["estados"])
+	_actualizar_efectos_estado()
 	puntos_vida_cambiados.emit(pv_actual, pv_max)
 	recursos_turno_cambiados.emit(recursos_turno)
 	return &""
@@ -354,13 +430,18 @@ func _ready() -> void:
 	pv_max = fue + des + vol
 	pv_actual = pv_max
 	_setear_atributos_particula()
-	
+	_setear_atributos_particula_veneno()
+	shaderMat.shader = shaderVeneno;
+	shaderMatQ.shader = shaderQuemado;
+
+
+
 	#_aplicar_visual_clase()
 	iniciar_turno()
 
 
 func configurar_creacion(datos: Dictionary) -> bool:
-	if EstadoPartida.validar_aventurero(datos) != &"":
+	if ScriptEstadoPartida.validar_aventurero(datos) != &"":
 		return false
 	nombre = datos["nombre"].strip_edges()
 	titulo = datos["titulo"].strip_edges()
@@ -370,6 +451,27 @@ func configurar_creacion(datos: Dictionary) -> bool:
 	clase = datos["clase"]
 	origen = datos["origen"]
 	return true
+
+func _setear_atributos_particula_veneno() -> void:
+	particulasVeneno.scale = Vector2(2.5,2.5)
+	particulasVeneno.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
+	particulasVeneno.emission_sphere_radius = 12
+	particulasVeneno.scale_amount_min = 0.5
+	particulasVeneno.scale_amount_max = 0.8
+	particulasVeneno.amount = 4
+	particulasVeneno.texture = texturaVeneno
+	particulasVeneno.explosiveness = 0.67
+	particulasVeneno.randomness = 1
+	particulasVeneno.gravity.y = -100
+	var curva_escala := Curve.new()
+	curva_escala.add_point(Vector2(0.0, 1.0)) # Inicio: Tamaño máximo
+	curva_escala.add_point(Vector2(1.0, 0.0)) # Final: Tamaño cero
+	particulasVeneno.scale_amount_curve = curva_escala
+	particulasVeneno.emitting = false
+	particulasVeneno.initial_velocity_min = 0
+	particulasVeneno.initial_velocity_max = 20
+	particulasVeneno.position.y = -240
+
 
 func _setear_atributos_particula() -> void:
 	particulasDanio.scale = Vector2(2.5, 2.5)
@@ -403,6 +505,9 @@ func _aplicar_visual_clase() -> void:
 		sprite_render.visible = true
 		if particulasDanio.get_parent() == null:
 			sprite_render.add_child(particulasDanio)
+		if particulasVeneno.get_parent() == null:
+			sprite_render.add_child(particulasVeneno)
+		_actualizar_efectos_estado()
 	else:
 		push_warning("No hay textura para dirección 0")
 

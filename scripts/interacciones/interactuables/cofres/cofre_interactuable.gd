@@ -16,7 +16,10 @@ extends Interactuable
 @export_category("Contenido inicial")
 @export var contenido_inicial: Array[EntradaInventarioInicial] = []
 
+const SONIDO_ABRIR_DEFECTO: AudioStream = preload("res://assets/sonidos/sonidos finales/sonidos mmo/MMO_Game_Magic_Source_Chest_02_Door_Unlock_Open_Close.wav")
+
 var inventario: Inventario = Inventario.new()
+var reproductor_audio: AudioStreamPlayer2D
 
 
 func permite_caminar_interactuable() -> bool:
@@ -178,4 +181,30 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 		return ResultadoAccion.crear_bloqueo(motivo)
 
 	abierto = true
+	reproducir_sonido_abrir()
 	return ResultadoAccion.crear_exito()
+
+
+func _obtener_reproductor_audio() -> AudioStreamPlayer2D:
+	if reproductor_audio != null and is_instance_valid(reproductor_audio):
+		return reproductor_audio
+	var existente := get_node_or_null(^"AudioStreamPlayer2D") as AudioStreamPlayer2D
+	if existente != null:
+		reproductor_audio = existente
+		return reproductor_audio
+	reproductor_audio = AudioStreamPlayer2D.new()
+	reproductor_audio.name = "AudioStreamPlayer2D"
+	reproductor_audio.max_distance = 500.0
+	reproductor_audio.volume_db = -10.0
+	add_child(reproductor_audio)
+	return reproductor_audio
+
+
+func reproducir_sonido_abrir() -> void:
+	if Engine.is_editor_hint():
+		return
+	var reproductor := _obtener_reproductor_audio()
+	if is_instance_valid(reproductor):
+		reproductor.stream = SONIDO_ABRIR_DEFECTO
+		reproductor.pitch_scale = randf_range(0.97, 1.03)
+		reproductor.play()

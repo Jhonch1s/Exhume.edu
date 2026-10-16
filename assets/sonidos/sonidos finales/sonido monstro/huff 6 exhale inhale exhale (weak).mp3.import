@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://dhm557mwfj77i"
+path="res://.godot/imported/huff 6 exhale inhale exhale (weak).mp3-6401c3b0b18eefa223649927ce854526.mp3str"
+
+[deps]
+
+source_file="res://assets/sonidos/sonidos finales/sonido monstro/huff 6 exhale inhale exhale (weak).mp3"
+dest_files=["res://.godot/imported/huff 6 exhale inhale exhale (weak).mp3-6401c3b0b18eefa223649927ce854526.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

@@ -4,6 +4,7 @@ extends Control
 const ESCENA_CASILLA := preload(
 	"res://scenes/ui/inventario/casilla_inventario.tscn"
 )
+const SONIDO_RECOGER: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ambiente/Collect.wav")
 
 @onready var fondo: TextureRect = $Fondo
 @onready var proporcion: AspectRatioContainer = $Fondo/AreaItems/Proporcion
@@ -17,6 +18,7 @@ const ESCENA_CASILLA := preload(
 var cofre: Interactuable
 var inventario_destino: Inventario
 var _arrastrando := false
+var _reproductor_audio: AudioStreamPlayer
 
 
 func mostrar(
@@ -64,6 +66,7 @@ func mostrar(
 		casilla.configurar(items[indice] if indice < items.size() else null)
 		casilla.mouse_entered.connect(_mostrar_detalle.bind(casilla.item))
 		casilla.mouse_exited.connect(_ocultar_detalle)
+		casilla.pressed.connect(_on_casilla_pressed.bind(casilla))
 
 	_ocultar_detalle()
 	show()
@@ -72,6 +75,11 @@ func mostrar(
 func _ready() -> void:
 	$Fondo/Botones/Cerrar.pressed.connect(ocultar)
 	$Fondo/Botones/RecogerTodos.pressed.connect(_recoger_todos)
+	_reproductor_audio = AudioStreamPlayer.new()
+	_reproductor_audio.name = "AudioRecoleccion"
+	_reproductor_audio.stream = SONIDO_RECOGER
+	_reproductor_audio.volume_db = -15.0
+	add_child(_reproductor_audio)
 	hide()
 
 
@@ -133,14 +141,41 @@ func _recoger_todos() -> void:
 		return
 
 	var origen := cofre.obtener_inventario()
+	var algun_item_recogido := false
 
 	for item in origen.obtener_contenido():
 		var resultado := origen.transferir_a(
 			inventario_destino,
 			item.id_instancia
 		)
-		if not resultado.exitosa:
+		if resultado.exitosa:
+			algun_item_recogido = true
+		else:
 			push_warning("No se pudo recoger: %s" % resultado.motivo)
 			break
 
+	if algun_item_recogido:
+		_reproducir_sonido_recoleccion()
+
 	mostrar(cofre, inventario_destino)
+
+
+func _on_casilla_pressed(casilla: CasillaInventario) -> void:
+	if (
+		casilla == null
+		or casilla.item == null
+		or not is_instance_valid(cofre)
+		or inventario_destino == null
+	):
+		return
+	var origen := cofre.obtener_inventario()
+	var resultado := origen.transferir_a(inventario_destino, casilla.item.id_instancia)
+	if resultado.exitosa:
+		_reproducir_sonido_recoleccion()
+		mostrar(cofre, inventario_destino)
+
+
+func _reproducir_sonido_recoleccion() -> void:
+	if is_instance_valid(_reproductor_audio):
+		_reproductor_audio.pitch_scale = randf_range(0.95, 1.05)
+		_reproductor_audio.play()

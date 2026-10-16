@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://vj3kyteivnon"
+path="res://.godot/imported/MMO_Game_Magic_Source_Armor_02_Metal_Hit_Shuffle.wav-f8d53c9e839f802f94ac58d6f514c042.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/sonidos finales/sonidos mmo/MMO_Game_Magic_Source_Armor_02_Metal_Hit_Shuffle.wav"
+dest_files=["res://.godot/imported/MMO_Game_Magic_Source_Armor_02_Metal_Hit_Shuffle.wav-f8d53c9e839f802f94ac58d6f514c042.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

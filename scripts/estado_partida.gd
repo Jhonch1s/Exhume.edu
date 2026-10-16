@@ -41,7 +41,7 @@ func restaurar_estado_persistente(estado: Variant) -> StringName:
 	return &""
 
 
-func validar_aventurero(datos: Dictionary) -> StringName:
+static func validar_aventurero(datos: Dictionary) -> StringName:
 	if (
 		not datos.get("nombre") is String or datos["nombre"].strip_edges().is_empty()
 		or not datos.get("titulo") is String or datos["titulo"].strip_edges().is_empty()

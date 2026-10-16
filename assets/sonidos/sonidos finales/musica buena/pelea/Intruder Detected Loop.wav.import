@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://dm63psbc8vou7"
+path="res://.godot/imported/Intruder Detected Loop.wav-4257be1384466501d82053deb75164ef.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/sonidos finales/musica buena/pelea/Intruder Detected Loop.wav"
+dest_files=["res://.godot/imported/Intruder Detected Loop.wav-4257be1384466501d82053deb75164ef.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2
