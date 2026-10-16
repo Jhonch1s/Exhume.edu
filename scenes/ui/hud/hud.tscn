@@ -195,9 +195,9 @@ text = "SIN FICHA"
 [node name="VidaBarra" type="ProgressBar" parent="HUDRoot/SeccionesHUD/SeccionJugador/Recursos" unique_id=1462209239]
 layout_mode = 0
 offset_left = 16.0
-offset_top = 27.75
+offset_top = 30.0
 offset_right = 304.0
-offset_bottom = 47.75
+offset_bottom = 54.0
 material = SubResource("MaterialBarAnimated")
 theme_override_styles/background = SubResource("StyleBarEmpty")
 theme_override_styles/fill = SubResource("StyleBarHealth")
@@ -207,20 +207,24 @@ show_percentage = false
 [node name="VidaTexto" type="Label" parent="HUDRoot/SeccionesHUD/SeccionJugador/Recursos" unique_id=459831296]
 layout_mode = 0
 offset_left = 16.0
-offset_top = 47.75
+offset_top = 30.0
 offset_right = 304.0
-offset_bottom = 69.75
+offset_bottom = 54.0
 theme_override_colors/font_color = Color(0.82, 0.78, 0.7, 1)
-theme_override_font_sizes/font_size = 12
-text = "-- / --"
-horizontal_alignment = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 18
+text = "VIDA -- / --"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="EnergiaBarra" type="ProgressBar" parent="HUDRoot/SeccionesHUD/SeccionJugador/Recursos" unique_id=832009895]
 layout_mode = 0
 offset_left = 16.0
-offset_top = 65.5
+offset_top = 62.0
 offset_right = 304.0
-offset_bottom = 85.5
+offset_bottom = 86.0
 theme_override_styles/background = SubResource("StyleBarEmpty")
 theme_override_styles/fill = SubResource("StyleBarFatigue")
 value = 100.0
@@ -229,23 +233,27 @@ show_percentage = false
 [node name="EnergiaTexto" type="Label" parent="HUDRoot/SeccionesHUD/SeccionJugador/Recursos" unique_id=1916863915]
 layout_mode = 0
 offset_left = 16.0
-offset_top = 85.5
+offset_top = 62.0
 offset_right = 304.0
-offset_bottom = 107.5
+offset_bottom = 86.0
 theme_override_colors/font_color = Color(0.82, 0.78, 0.7, 1)
-theme_override_font_sizes/font_size = 12
-text = "-- / --"
-horizontal_alignment = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 18
+text = "ENERGÍA -- / --"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="Antorcha" type="Label" parent="HUDRoot/SeccionesHUD/SeccionJugador/Recursos" unique_id=728758207]
 layout_mode = 0
 offset_left = 15.75
-offset_top = 101.25012
+offset_top = 94.0
 offset_right = 307.75
-offset_bottom = 127.25012
+offset_bottom = 120.0
 theme_override_colors/font_color = Color(0.88, 0.65, 0.28, 1)
 theme_override_fonts/font = ExtResource("3_font")
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 16
 text = "🔥   --"
 
 [node name="EngarcesAntorchas" type="VBoxContainer" parent="HUDRoot/SeccionesHUD/SeccionJugador" unique_id=181223001]
@@ -306,6 +314,79 @@ offset_top = -22.0
 offset_right = 948.0
 offset_bottom = 28.0
 mouse_filter = 1
+
+[node name="ReservasTurno" type="HBoxContainer" parent="HUDRoot/SeccionesHUD"]
+layout_mode = 0
+offset_left = 532.0
+offset_top = 56.0
+offset_right = 1292.0
+offset_bottom = 96.0
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Movimiento" type="PanelContainer" parent="HUDRoot/SeccionesHUD/ReservasTurno"]
+custom_minimum_size = Vector2(184, 40)
+layout_mode = 2
+mouse_filter = 0
+theme_override_styles/panel = SubResource("StyleSlot")
+
+[node name="Texto" type="Label" parent="HUDRoot/SeccionesHUD/ReservasTurno/Movimiento"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.86, 0.83, 0.74, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 19
+text = "MOVIMIENTO --"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Principal" type="PanelContainer" parent="HUDRoot/SeccionesHUD/ReservasTurno"]
+custom_minimum_size = Vector2(184, 40)
+layout_mode = 2
+mouse_filter = 0
+theme_override_styles/panel = SubResource("StyleSlot")
+
+[node name="Texto" type="Label" parent="HUDRoot/SeccionesHUD/ReservasTurno/Principal"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.86, 0.83, 0.74, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 19
+text = "PRINCIPAL --"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Adicional" type="PanelContainer" parent="HUDRoot/SeccionesHUD/ReservasTurno"]
+custom_minimum_size = Vector2(184, 40)
+layout_mode = 2
+mouse_filter = 0
+theme_override_styles/panel = SubResource("StyleSlot")
+
+[node name="Texto" type="Label" parent="HUDRoot/SeccionesHUD/ReservasTurno/Adicional"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.58, 0.59, 0.59, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 19
+text = "ADICIONAL --"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Reaccion" type="PanelContainer" parent="HUDRoot/SeccionesHUD/ReservasTurno"]
+custom_minimum_size = Vector2(184, 40)
+layout_mode = 2
+mouse_filter = 0
+theme_override_styles/panel = SubResource("StyleSlot")
+
+[node name="Texto" type="Label" parent="HUDRoot/SeccionesHUD/ReservasTurno/Reaccion"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.58, 0.59, 0.59, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 19
+text = "REACCIÓN --"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="EstadoQuemado" type="Panel" parent="HUDRoot/SeccionesHUD/EstadosAlterados" unique_id=832046906]
 layout_mode = 0
@@ -606,7 +687,7 @@ offset_bottom = 228.5
 rotation = -1.5707964
 material = SubResource("MaterialBarAnimated")
 tooltip_text = "Movimiento restante"
-mouse_filter = 2
+mouse_filter = 0
 theme_override_styles/background = SubResource("StyleBarEmpty")
 theme_override_styles/fill = SubResource("StyleBarMovement")
 show_percentage = false
@@ -619,7 +700,7 @@ offset_right = 1560.0
 offset_bottom = 1066.0
 material = SubResource("MaterialBarAnimated")
 tooltip_text = "Experiencia acumulada: 0 XP"
-mouse_filter = 2
+mouse_filter = 0
 theme_override_styles/background = SubResource("StyleBarEmpty")
 theme_override_styles/fill = SubResource("StyleBarExperience")
 value = 0.0

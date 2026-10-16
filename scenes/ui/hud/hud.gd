@@ -29,6 +29,12 @@ const RETRATOS_POR_CLASE := {
 @onready var pasar_turno: Button = $HUDRoot/SeccionesHUD/PasarTurno
 @onready var engarces_acciones: VBoxContainer = $HUDRoot/SeccionesHUD/EngarcesAcciones
 @onready var movimiento_barra: ProgressBar = $HUDRoot/SeccionesHUD/MovimientoBarra
+@onready var reservas_turno: Array[PanelContainer] = [
+	$HUDRoot/SeccionesHUD/ReservasTurno/Movimiento,
+	$HUDRoot/SeccionesHUD/ReservasTurno/Principal,
+	$HUDRoot/SeccionesHUD/ReservasTurno/Adicional,
+	$HUDRoot/SeccionesHUD/ReservasTurno/Reaccion,
+]
 @onready var experiencia_barra: ProgressBar = $HUDRoot/ExperienciaBarra
 @onready var habilidades: Array[Button] = [
 	$HUDRoot/SeccionesHUD/SeccionHabilidades/Ranura1,
@@ -60,13 +66,17 @@ func _ready() -> void:
 	for panel in estados:
 		panel.mouse_entered.connect(_mostrar_tooltip_estado.bind(panel))
 		panel.mouse_exited.connect(_ocultar_tooltip_estado)
-	antorcha.visible = false
+	antorcha.visible = true
 	for boton in habilidades + items_rapidos + [pasar_turno]:
 		_conectar_feedback_boton(boton)
 	for habilidad in habilidades:
 		habilidad.disabled = true
+		habilidad.tooltip_text = "Habilidad %s\nTodavía no está implementada." % habilidad.text
 	for ranura in items_rapidos:
 		ranura.disabled = true
+	$HUDRoot/SeccionesHUD/SeccionHabilidades/Titulo.tooltip_text = "Ranuras de habilidades; todavía no tienen funciones disponibles."
+	$HUDRoot/SeccionesHUD/SeccionItems/Titulo.tooltip_text = "Muestra objetos del inventario; su uso rápido aún no está implementado."
+	$HUDRoot/SeccionesHUD/SeccionJugador/Retrato.tooltip_text = "Tu personaje"
 	configurar_ficha(null)
 
 
@@ -107,13 +117,23 @@ func _actualizar_todo() -> void:
 	if ficha == null:
 		retrato.texture = null
 		nombre.text = "SIN FICHA"
+		$HUDRoot/SeccionesHUD/SeccionJugador/Retrato.tooltip_text = "Sin personaje."
+		nombre.tooltip_text = "Sin personaje."
 		vida_barra.value = 0.0
 		vida_objetivo = 0.0
-		vida_texto.text = "-- / --"
+		vida_texto.text = "VIDA -- / --"
+		vida_barra.tooltip_text = "Vida no disponible sin personaje."
+		vida_texto.tooltip_text = vida_barra.tooltip_text
 		energia_barra.value = 0.0
 		energia_objetivo = 0.0
-		energia_texto.text = "-- / --"
-		antorcha.text = "ANTORCHA   --"
+		energia_texto.text = "ENERGÍA -- / --"
+		energia_barra.tooltip_text = "Energía no disponible sin personaje."
+		energia_texto.tooltip_text = energia_barra.tooltip_text
+		antorcha.text = "ANTORCHAS --"
+		antorcha.tooltip_text = "Antorchas no disponibles sin personaje."
+		for indice in antorcha_engarces.size():
+			antorcha_luces[indice].color = Color("#28231b")
+			antorcha_engarces[indice].tooltip_text = antorcha.tooltip_text
 		experiencia_barra.value = 0.0
 		experiencia_barra.tooltip_text = "Experiencia acumulada: 0 XP"
 		_actualizar_estados()
@@ -122,6 +142,10 @@ func _actualizar_todo() -> void:
 		return
 	retrato.texture = RETRATOS_POR_CLASE.get(ficha.clase) as Texture2D
 	nombre.text = ficha.nombre
+	$HUDRoot/SeccionesHUD/SeccionJugador/Retrato.tooltip_text = "%s · %s · Nivel %d" % [
+		ficha.nombre, ficha.clase, ficha.nivel
+	]
+	nombre.tooltip_text = $HUDRoot/SeccionesHUD/SeccionJugador/Retrato.tooltip_text
 	_actualizar_vida(ficha.pv_actual, ficha.pv_max)
 	_actualizar_recursos_persistentes()
 	_actualizar_experiencia()
@@ -135,7 +159,9 @@ func _actualizar_vida(actual: int, maximo: int) -> void:
 	if not is_equal_approx(vida_objetivo, actual):
 		vida_objetivo = actual
 		_animar_barra(vida_barra, actual)
-	vida_texto.text = "%d / %d" % [actual, maximo]
+	vida_texto.text = "VIDA %d / %d" % [actual, maximo]
+	vida_barra.tooltip_text = "Vida: %d de %d puntos. Si llega a 0, caes derrotado." % [actual, maximo]
+	vida_texto.tooltip_text = vida_barra.tooltip_text
 
 
 func _actualizar_recursos_persistentes() -> void:
@@ -143,9 +169,13 @@ func _actualizar_recursos_persistentes() -> void:
 	if not is_equal_approx(energia_objetivo, ficha.energia_actual):
 		energia_objetivo = ficha.energia_actual
 		_animar_barra(energia_barra, ficha.energia_actual)
-	energia_texto.text = "%d / %d" % [ficha.energia_actual, ficha.energia_maxima]
+	energia_texto.text = "ENERGÍA %d / %d" % [ficha.energia_actual, ficha.energia_maxima]
+	energia_barra.tooltip_text = "Energía: %d de %d. Se gasta al moverte y en algunas acciones." % [
+		ficha.energia_actual, ficha.energia_maxima
+	]
+	energia_texto.tooltip_text = energia_barra.tooltip_text
 	var cantidad_antorchas := ficha.obtener_cantidad_antorchas()
-	antorcha.text = "ANTORCHA   %02d   (%02d)" % [cantidad_antorchas, ficha.pasos_antorcha_actual]
+	antorcha.text = "ANTORCHAS %d · %d PASOS" % [cantidad_antorchas, ficha.pasos_antorcha_actual]
 	for indice in antorcha_engarces.size():
 		var encendido := indice < mini(cantidad_antorchas, antorcha_engarces.size())
 		antorcha_engarces[indice].modulate = Color.WHITE
@@ -159,9 +189,10 @@ func _actualizar_recursos_persistentes() -> void:
 			color_luz = Color("#7c3f20").lerp(color_luz, progreso)
 		antorcha_luces[indice].color = color_luz
 		antorcha_engarces[indice].tooltip_text = (
-			"Antorchas: %d | Desgaste: %d/%d"
+			"Antorchas disponibles: %d\nPasos restantes de la antorcha actual: %d/%d."
 			% [cantidad_antorchas, ficha.pasos_antorcha_actual, Ficha.PASOS_MAX_ANTORCHA]
 		)
+	antorcha.tooltip_text = antorcha_engarces[0].tooltip_text
 
 
 func _actualizar_experiencia() -> void:
@@ -171,7 +202,7 @@ func _actualizar_experiencia() -> void:
 	experiencia_barra.value = clampi(
 		ficha.experiencia_acumulada - umbral_actual, 0, umbral_siguiente - umbral_actual
 	)
-	experiencia_barra.tooltip_text = "%d XP acumulada | Umbral siguiente: %d XP (niveles pendientes)" % [
+	experiencia_barra.tooltip_text = "Experiencia: %d XP acumulados. Próximo nivel a %d XP." % [
 		ficha.experiencia_acumulada, umbral_siguiente
 	]
 
@@ -180,16 +211,49 @@ func _actualizar_recursos_turno(recursos: RecursosTurnoActor) -> void:
 	if recursos == null:
 		pasar_turno.tooltip_text = "Pasar el turno"
 		movimiento_barra.value = 0.0
+		movimiento_barra.tooltip_text = "Movimiento no disponible sin personaje."
 		_actualizar_engarces_acciones(0, 0)
+		for indice in reservas_turno.size():
+			(reservas_turno[indice].get_node("Texto") as Label).text = (
+				["MOVIMIENTO", "PRINCIPAL", "ADICIONAL", "REACCIÓN"][indice] + " --"
+			)
+			reservas_turno[indice].tooltip_text = "Reserva no disponible sin personaje."
 		return
 	pasar_turno.text = "PASAR\nTURNO"
 	pasar_turno.tooltip_text = "Pasar el turno y procesar estados"
 	movimiento_barra.max_value = recursos.obtener_maximo(RecursosTurnoActor.MOVIMIENTO)
 	_animar_barra(movimiento_barra, recursos.obtener(RecursosTurnoActor.MOVIMIENTO))
+	_actualizar_reserva(0, "MOVIMIENTO", recursos, RecursosTurnoActor.MOVIMIENTO,
+		"Casillas que puedes recorrer durante tu turno.")
+	_actualizar_reserva(1, "PRINCIPAL", recursos, RecursosTurnoActor.ACCION_PRINCIPAL,
+		"Se usa para atacar y realizar acciones principales.")
+	_actualizar_reserva(2, "ADICIONAL", recursos, RecursosTurnoActor.ACCION_ADICIONAL,
+		"La reserva existe, pero aún no hay acciones adicionales implementadas.", true)
+	_actualizar_reserva(3, "REACCIÓN", recursos, RecursosTurnoActor.REACCION,
+		"La reserva existe, pero aún no hay reacciones elegibles. La esquiva automática no la consume.", true)
 	_actualizar_engarces_acciones(
 		recursos.obtener_maximo(RecursosTurnoActor.ACCION_PRINCIPAL),
 		recursos.obtener(RecursosTurnoActor.ACCION_PRINCIPAL)
 	)
+
+
+func _actualizar_reserva(
+	indice: int, titulo: String, recursos: RecursosTurnoActor,
+	clave: StringName, descripcion: String, pendiente: bool = false
+) -> void:
+	var reserva := reservas_turno[indice]
+	var texto := reserva.get_node("Texto") as Label
+	var restantes := recursos.obtener(clave)
+	var maximo := recursos.obtener_maximo(clave)
+	texto.text = "%s %d/%d" % [titulo, restantes, maximo]
+	texto.add_theme_color_override(&"font_color", Color("#8f9290") if pendiente else (
+		Color("#767371") if restantes == 0 else Color("#dbd3bc")
+	))
+	reserva.tooltip_text = "%s: %d de %d.\n%s" % [titulo.capitalize(), restantes, maximo, descripcion]
+	if restantes == 0:
+		reserva.tooltip_text += "\nReserva agotada."
+	if indice == 0:
+		movimiento_barra.tooltip_text = reserva.tooltip_text
 
 
 func _actualizar_engarces_acciones(maximo: int, restantes: int) -> void:
@@ -218,7 +282,9 @@ func _actualizar_engarces_acciones(maximo: int, restantes: int) -> void:
 		(engarce.get_node("Luz") as ColorRect).color = (
 			Color("#d99543") if indice < restantes else Color("#28231b")
 		)
-		engarce.tooltip_text = "Acción disponible" if indice < restantes else "Acción agotada"
+		engarce.tooltip_text = (
+			"Acción principal disponible" if indice < restantes else "Acción principal agotada"
+		)
 
 
 func _animar_barra(barra: ProgressBar, valor: float) -> void:
@@ -330,4 +396,6 @@ func _actualizar_items() -> void:
 		icono.texture = item.definicion.icono if item != null else null
 		(ranura.get_node("Cantidad") as Label).text = str(item.cantidad) if item != null and item.cantidad > 1 else ""
 		ranura.text = "?" if item != null and icono.texture == null else ""
-		ranura.tooltip_text = item.definicion.nombre if item != null else "Ranura de item rápido vacía"
+		ranura.tooltip_text = (
+			item.definicion.nombre if item != null else "Ranura de objeto rápido vacía"
+		) + "\nEl uso rápido todavía no está implementado."
