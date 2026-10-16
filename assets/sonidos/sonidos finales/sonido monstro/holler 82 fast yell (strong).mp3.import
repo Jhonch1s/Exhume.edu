@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://372arj5gf7e6"
+path="res://.godot/imported/holler 82 fast yell (strong).mp3-f9c92e86f9ba5e4abc070d741df2f11e.mp3str"
+
+[deps]
+
+source_file="res://assets/sonidos/sonidos finales/sonido monstro/holler 82 fast yell (strong).mp3"
+dest_files=["res://.godot/imported/holler 82 fast yell (strong).mp3-f9c92e86f9ba5e4abc070d741df2f11e.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

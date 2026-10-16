@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/interacciones/interactuables/guias/cartel_interactuable.gd" id="1_script"]
+[ext_resource type="Resource" path="res://assets/interactuables/guias/de pared/cartel.tres" id="2_def"]
+[ext_resource type="Texture2D" path="res://assets/interactuables/guias/de pared/carteles.png" id="3_tex"]
+
+[node name="CartelInteractuable" type="Node2D" groups=["interactuables"]]
+script = ExtResource("1_script")
+definicion = ExtResource("2_def")
+ajustar_a_celda_en_editor = true
+permite_caminar = true
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(0, -32)
+texture = ExtResource("3_tex")
+region_enabled = true
+region_rect = Rect2(66, 31, 26, 31)

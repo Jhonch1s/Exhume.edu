@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://cbeoe72f67ey3"
+path="res://.godot/imported/Bag 01.wav-df730cd724be9b4146ec0c4e9762f588.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/sonidos finales/sonidos extras/Bag 01.wav"
+dest_files=["res://.godot/imported/Bag 01.wav-df730cd724be9b4146ec0c4e9762f588.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

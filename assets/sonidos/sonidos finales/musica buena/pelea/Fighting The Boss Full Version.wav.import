@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://tql6l4635bmu"
+path="res://.godot/imported/Fighting The Boss Full Version.wav-b5d8c84aac2d088ad62e7a39993e408d.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/sonidos finales/musica buena/pelea/Fighting The Boss Full Version.wav"
+dest_files=["res://.godot/imported/Fighting The Boss Full Version.wav-b5d8c84aac2d088ad62e7a39993e408d.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://djvoxu1ihc3q7"
+path="res://.godot/imported/holler 117 short burst (strong).wav-3da93c55d5098ed303033bdff80bacb2.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/sonidos finales/sonido monstro/holler 117 short burst (strong).wav"
+dest_files=["res://.godot/imported/holler 117 short burst (strong).wav-3da93c55d5098ed303033bdff80bacb2.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

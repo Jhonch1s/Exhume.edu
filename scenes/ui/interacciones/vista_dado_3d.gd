@@ -32,11 +32,14 @@ const ANGULOS_POR_VALOR := {
 	6: 210.0,
 }
 
+const SONIDO_GIRAR_DADO: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido dado/girar dado.wav")
+
 @onready var pivote_dado: Node3D = $SubViewport/PivoteDado
 @onready var modelo_dado: Node3D = $SubViewport/PivoteDado/Dado
 
 var _animacion: Tween
 var _esta_en_hover := false
+var _reproductor_audio: AudioStreamPlayer
 
 
 # Los materiales PBR y las texturas horneadas se importan desde dadico.glb.
@@ -47,6 +50,11 @@ func _ready() -> void:
 	_actualizar_contorno()
 	mouse_entered.connect(_al_entrar_mouse)
 	mouse_exited.connect(_al_salir_mouse)
+	_reproductor_audio = AudioStreamPlayer.new()
+	_reproductor_audio.name = "AudioGirarDado"
+	_reproductor_audio.stream = SONIDO_GIRAR_DADO
+	_reproductor_audio.volume_db = -6.0
+	add_child(_reproductor_audio)
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -86,6 +94,8 @@ func animar_a_valor(valor: int) -> void:
 		return
 	if _animacion != null and _animacion.is_running():
 		_animacion.kill()
+	if is_instance_valid(_reproductor_audio):
+		_reproductor_audio.play()
 	var angulo_actual := pivote_dado.rotation_degrees.y
 	var diferencia := fposmod(float(ANGULOS_POR_VALOR[valor]) - fposmod(angulo_actual, 360.0), 360.0)
 	_animacion = create_tween()

@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://boml02xabg1g2"
+path="res://.godot/imported/Light Armor Running 1_06.wav-919627df980e42475902b3eb87e07da6.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/sonidos finales/sonido pasos/Light Armor Running 1_06.wav"
+dest_files=["res://.godot/imported/Light Armor Running 1_06.wav-919627df980e42475902b3eb87e07da6.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

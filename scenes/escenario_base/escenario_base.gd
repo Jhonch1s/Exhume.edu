@@ -58,11 +58,29 @@ const modeloLadron = preload("res://assets/characters/knight3d/modeloladron2.glb
 const ESCENA_FICHA = preload("res://scenes/ficha/ficha.tscn")
 const DEFINICION_PIEDRA = preload("res://assets/items/piedra/piedra.tres")
 const DEFINICION_ANTORCHA = preload("res://assets/items/antorcha/antorcha.tres")
-const SONIDO_PASO_1 = preload("res://assets/sonidos/pasos/editado/pasos.wav")
-const SONIDO_PASO_2 = preload("res://assets/sonidos/pasos/editado/pasos 2.wav")
+const SONIDO_PASO_1 = preload("res://assets/sonidos/sonidos finales/sonido pasos/Light Armor Running 1_05.wav")
+const SONIDO_PASO_2 = preload("res://assets/sonidos/sonidos finales/sonido pasos/Light Armor Running 1_06.wav")
 const SONIDO_MONSTRUO_CADENAS = preload("res://assets/sonidos/enemigo/munstro con cadenas.wav")
-const SONIDO_GOTERA = preload("res://assets/sonidos/ambiente/gotera dos.wav")
 const SONIDO_LAVA = preload("res://assets/sonidos/ambiente/lava 2.wav")
+
+const SONIDOS_AMBIENTE_TENEBROSO: Array[AudioStream] = [
+	preload("res://assets/sonidos/sonidos finales/sonido ambiente/Dark Transition.wav"),
+	preload("res://assets/sonidos/sonidos finales/sonido ambiente/Dungeon Atmosphere - Dark.wav"),
+]
+const SONIDO_CREEPY: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ambiente/Creepy Noise 1.wav")
+
+const PLAYLIST_EXPLORACION: Array[AudioStream] = [
+	preload("res://assets/sonidos/sonidos finales/musica buena/Fire Dungeon.ogg"),
+	preload("res://assets/sonidos/sonidos finales/musica buena/Mines.ogg"),
+	preload("res://assets/sonidos/sonidos finales/musica buena/Torture Chamber.ogg"),
+]
+
+const PLAYLIST_COMBATE: Array[AudioStream] = [
+	preload("res://assets/sonidos/sonidos finales/musica buena/pelea/Ancient Battle Full Version.wav"),
+	preload("res://assets/sonidos/sonidos finales/musica buena/pelea/Fighting The Boss Full Version.wav"),
+	preload("res://assets/sonidos/sonidos finales/musica buena/pelea/Intruder Detected Loop.wav"),
+	preload("res://assets/sonidos/sonidos finales/musica buena/pelea/Loop 3.wav"),
+]
 const RUTA_GUARDADO := "user://partida.json"
 @export var catalogo_mensajes: CatalogoMensajesInteraccion
 @export_category("Ilustraciones de diálogo del jugador")
@@ -70,7 +88,7 @@ const RUTA_GUARDADO := "user://partida.json"
 @export var ilustracion_dialogo_ladron: Texture2D
 @export var ilustracion_dialogo_mago: Texture2D
 @export_range(0.02, 0.5, 0.01) var duracion_paso_lanzamiento: float = 0.08
-@export_range(1, 12, 1) var radio_audio_lava: int = 6
+@export_range(1, 12, 1) var radio_audio_lava: int = 3
 @export_range(1, 12, 1) var radio_audio_fuego: int = 4
 
 var tablero: TableroGrid = TableroGrid.new()
@@ -123,13 +141,22 @@ var ultimo_resultado_salir: ResultadoReacciones
 var ultimo_resultado_entrar: ResultadoReacciones
 var en_combate: bool = false
 var persistencia_partida := PersistenciaPartida.new()
+@onready var reproductor_musica: AudioStreamPlayer = $AudioStreamPlayer
 var reproductor_pasos: AudioStreamPlayer2D
 var reproductor_lava: AudioStreamPlayer2D
 var reproductor_fuego: AudioStreamPlayer2D
 var reproductor_monstruo: AudioStreamPlayer
-var reproductor_gotera: AudioStreamPlayer
+var reproductor_ambiente_tenebroso: AudioStreamPlayer
+var reproductor_creepy: AudioStreamPlayer
+var reproductor_examen: AudioStreamPlayer
+var reproductor_recoleccion: AudioStreamPlayer
+var reproductor_impacto: AudioStreamPlayer2D
 var temporizador_monstruo: Timer
-var temporizador_gotera: Timer
+var temporizador_ambiente_tenebroso: Timer
+var indice_musica_exploracion: int = 0
+var indice_musica_combate: int = 0
+var tween_musica: Tween
+var _transicionando_musica: bool = false
 var generador_azar_audio := RandomNumberGenerator.new()
 var siguiente_paso_usa_variante_uno: bool = true
 var pasos_movimiento_actual: int = 0
@@ -165,6 +192,7 @@ func _ready() -> void:
 	tablero.configurar_transferidor_items(transferidor_items)
 	tablero.item_suelo_registrado.connect(_on_item_suelo_registrado)
 	tablero.item_suelo_retirado.connect(_on_item_suelo_retirado)
+	tablero.interactuable_registrado.connect(_on_interactuable_registrado)
 	servicio_examen = ServicioExamen.new(tablero, registro_conocimiento)
 	tablero.configurar_servicio_examen(servicio_examen)
 	gestor_acciones.configurar_validador_espacial(validador_espacial)
@@ -184,6 +212,8 @@ func _ready() -> void:
 	pathfinding.inicializar(tablero.datos)
 	gestor_vision.inicializar(capa_oscuridad, tablero)
 	_inicializar_audio_ambiente()
+	_inicializar_musica()
+	_conectar_senales_npc()
 	await spawnear_ficha_inicial()
 	if ficha_jugador:
 		hud.configurar_ficha(ficha_jugador)
@@ -196,6 +226,7 @@ func _process(_delta: float) -> void:
 	if ficha_jugador and capa_paredes_oclusivas:
 		capa_paredes_oclusivas.actualizar_occlusion(ficha_jugador.global_position)
 	_actualizar_audio_proximidad()
+	_actualizar_fade_fin_musica()
 	if ficha_jugador and ficha_jugador.esta_moviendose:
 		trayectoria_lanzamiento.clear_points()
 		capa_selector.clear()
@@ -764,19 +795,220 @@ func _inicializar_audio_ambiente() -> void:
 	_preparar_loop_audio(SONIDO_LAVA)
 
 	reproductor_pasos = _crear_reproductor_2d(&"AudioPasos", -18.0, 360.0)
-	reproductor_lava = _crear_reproductor_2d(&"AudioLava", -8.0, 10000.0)
+	reproductor_lava = _crear_reproductor_2d(&"AudioLava", -18.0, 220.0)
+	reproductor_lava.attenuation = 2.0
 	reproductor_lava.stream = SONIDO_LAVA
-	reproductor_fuego = _crear_reproductor_2d(&"AudioFuegoCercano", -17.0, 520.0)
+	reproductor_fuego = _crear_reproductor_2d(&"AudioFuegoCercano", -18.0, 380.0)
 
-	reproductor_monstruo = _crear_reproductor_global(&"AudioMonstruoCadenas", -25.0)
+	reproductor_monstruo = _crear_reproductor_global(&"AudioMonstruoCadenas", -28.0)
 	reproductor_monstruo.stream = SONIDO_MONSTRUO_CADENAS
-	reproductor_gotera = _crear_reproductor_global(&"AudioGotera", -33.0)
-	reproductor_gotera.stream = SONIDO_GOTERA
+
+	reproductor_ambiente_tenebroso = _crear_reproductor_global(&"AudioAmbienteTenebroso", -26.0)
+	reproductor_creepy = _crear_reproductor_global(&"AudioCreepy", -28.0)
+	reproductor_creepy.stream = SONIDO_CREEPY
+	reproductor_examen = _crear_reproductor_global(&"AudioExamen", -16.0)
+	reproductor_recoleccion = _crear_reproductor_global(&"AudioRecoleccion", -15.0)
+	reproductor_impacto = _crear_reproductor_2d(&"AudioImpacto", -8.0, 800.0)
 
 	temporizador_monstruo = _crear_temporizador_audio(&"_on_temporizador_monstruo_timeout")
-	temporizador_gotera = _crear_temporizador_audio(&"_on_temporizador_gotera_timeout")
+	temporizador_ambiente_tenebroso = _crear_temporizador_audio(&"_on_temporizador_ambiente_tenebroso_timeout")
 	_programar_monstruo_ambiente()
-	_programar_gotera_ambiente()
+	_programar_ambiente_tenebroso()
+
+
+func _inicializar_musica() -> void:
+	if not is_instance_valid(reproductor_musica):
+		return
+	if not reproductor_musica.finished.is_connected(_on_musica_terminada):
+		reproductor_musica.finished.connect(_on_musica_terminada)
+	_reproducir_siguiente_musica_exploracion(false)
+
+
+func _conectar_senales_npc() -> void:
+	if tablero != null:
+		for interactuable in tablero.interactuables_por_id.values():
+			if interactuable is PersonajeNPC:
+				_conectar_npc(interactuable)
+	if zona_actual != null:
+		for nodo in zona_actual.find_children("*", "", true, false):
+			if nodo is PersonajeNPC:
+				_conectar_npc(nodo)
+
+
+func _conectar_npc(npc: PersonajeNPC) -> void:
+	if npc == null:
+		return
+	if not npc.combate_iniciado.is_connected(_on_npc_combate_iniciado):
+		npc.combate_iniciado.connect(_on_npc_combate_iniciado)
+	if not npc.derrotado.is_connected(_on_npc_derrotado):
+		npc.derrotado.connect(_on_npc_derrotado)
+
+
+func _on_interactuable_registrado(_coord: Vector2i, interactuable: Interactuable) -> void:
+	if interactuable is PersonajeNPC:
+		_conectar_npc(interactuable)
+
+
+func _on_npc_combate_iniciado(_npc: PersonajeNPC) -> void:
+	establecer_combate(true)
+
+
+func _on_npc_derrotado() -> void:
+	var hay_enemigos_vivos := false
+	if tablero != null:
+		for interactuable in tablero.interactuables_por_id.values():
+			if interactuable is PersonajeNPC and interactuable.vida_actual > 0:
+				hay_enemigos_vivos = true
+				break
+	if not hay_enemigos_vivos and zona_actual != null:
+		for nodo in zona_actual.find_children("*", "", true, false):
+			if nodo is PersonajeNPC and nodo.vida_actual > 0:
+				hay_enemigos_vivos = true
+				break
+	if not hay_enemigos_vivos:
+		establecer_combate(false)
+
+
+func _actualizar_fade_fin_musica() -> void:
+	if not is_instance_valid(reproductor_musica) or not reproductor_musica.playing or _transicionando_musica:
+		return
+	if tween_musica != null and tween_musica.is_running():
+		return
+	var stream := reproductor_musica.stream
+	if stream == null:
+		return
+	var duracion := stream.get_length()
+	if duracion <= 6.0:
+		return
+	var pos := reproductor_musica.get_playback_position()
+	if pos >= duracion - 3.5:
+		_transicionando_musica = true
+		if en_combate:
+			_reproducir_siguiente_musica_combate(true)
+		else:
+			_reproducir_siguiente_musica_exploracion(true)
+
+
+func _on_musica_terminada() -> void:
+	if _transicionando_musica:
+		return
+	if en_combate:
+		_reproducir_siguiente_musica_combate(true)
+	else:
+		_reproducir_siguiente_musica_exploracion(true)
+
+
+func _reproducir_siguiente_musica_exploracion(con_fade: bool = true) -> void:
+	if PLAYLIST_EXPLORACION.is_empty() or not is_instance_valid(reproductor_musica):
+		return
+	var stream: AudioStream = PLAYLIST_EXPLORACION[indice_musica_exploracion % PLAYLIST_EXPLORACION.size()]
+	indice_musica_exploracion = (indice_musica_exploracion + 1) % PLAYLIST_EXPLORACION.size()
+	_cambiar_pista_musica(stream, -16.0, con_fade)
+
+
+func _reproducir_siguiente_musica_combate(con_fade: bool = true) -> void:
+	if PLAYLIST_COMBATE.is_empty() or not is_instance_valid(reproductor_musica):
+		return
+	var stream: AudioStream = PLAYLIST_COMBATE[indice_musica_combate % PLAYLIST_COMBATE.size()]
+	indice_musica_combate = (indice_musica_combate + 1) % PLAYLIST_COMBATE.size()
+	_cambiar_pista_musica(stream, -14.0, con_fade)
+
+
+func _cambiar_pista_musica(nuevo_stream: AudioStream, volumen_objetivo_db: float, con_fade: bool = true) -> void:
+	if not is_instance_valid(reproductor_musica) or nuevo_stream == null:
+		_transicionando_musica = false
+		return
+	if tween_musica != null and tween_musica.is_running():
+		tween_musica.kill()
+	if not con_fade or not reproductor_musica.playing:
+		reproductor_musica.stream = nuevo_stream
+		reproductor_musica.volume_db = volumen_objetivo_db
+		reproductor_musica.play()
+		_transicionando_musica = false
+		return
+	tween_musica = create_tween()
+	tween_musica.tween_property(reproductor_musica, "volume_db", -60.0, 2.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween_musica.tween_callback(func():
+		if is_instance_valid(reproductor_musica):
+			reproductor_musica.stream = nuevo_stream
+			reproductor_musica.play()
+	)
+	tween_musica.tween_property(reproductor_musica, "volume_db", volumen_objetivo_db, 1.8).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween_musica.tween_callback(func():
+		_transicionando_musica = false
+	)
+
+
+func establecer_combate(activo: bool) -> void:
+	if en_combate == activo:
+		return
+	en_combate = activo
+	if en_combate:
+		_reproducir_siguiente_musica_combate(true)
+	else:
+		_reproducir_siguiente_musica_exploracion(true)
+
+
+func _programar_ambiente_tenebroso() -> void:
+	if is_instance_valid(temporizador_ambiente_tenebroso):
+		temporizador_ambiente_tenebroso.start(generador_azar_audio.randf_range(30.0, 65.0))
+
+
+func _on_temporizador_ambiente_tenebroso_timeout() -> void:
+	if generador_azar_audio.randf() < 0.15:
+		if is_instance_valid(reproductor_creepy) and not reproductor_creepy.playing:
+			reproductor_creepy.volume_db = -28.0
+			reproductor_creepy.pitch_scale = randf_range(0.92, 1.05)
+			reproductor_creepy.play()
+	elif is_instance_valid(reproductor_ambiente_tenebroso) and not SONIDOS_AMBIENTE_TENEBROSO.is_empty():
+		var sonido: AudioStream = SONIDOS_AMBIENTE_TENEBROSO.pick_random()
+		_desactivar_loop_audio(sonido)
+		reproductor_ambiente_tenebroso.stream = sonido
+		reproductor_ambiente_tenebroso.volume_db = -26.0
+		reproductor_ambiente_tenebroso.pitch_scale = randf_range(0.95, 1.05)
+		reproductor_ambiente_tenebroso.play()
+	_programar_ambiente_tenebroso()
+
+
+func _reproducir_sonido_recoleccion(item_suelo: ItemSuelo) -> void:
+	if not is_instance_valid(reproductor_recoleccion):
+		reproductor_recoleccion = _crear_reproductor_global(&"AudioRecoleccion", -15.0)
+	var stream: AudioStream = null
+	if item_suelo != null and item_suelo.item != null and item_suelo.item.definicion != null:
+		stream = item_suelo.item.definicion.obtener_sonido_recoger()
+	if stream != null:
+		reproductor_recoleccion.stream = stream
+		reproductor_recoleccion.volume_db = -15.0
+		reproductor_recoleccion.play()
+
+
+func _reproducir_sonido_examen(sonido: AudioStream) -> void:
+	if sonido == null:
+		return
+	if not is_instance_valid(reproductor_examen):
+		reproductor_examen = _crear_reproductor_global(&"AudioExamen", -16.0)
+	_desactivar_loop_audio(sonido)
+	reproductor_examen.stream = sonido
+	reproductor_examen.volume_db = -16.0
+	reproductor_examen.play()
+
+
+func _desactivar_loop_audio(sonido: AudioStream) -> void:
+	if sonido is AudioStreamWAV:
+		(sonido as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_DISABLED
+
+
+func _reproducir_sonido_impacto(sonido: AudioStream, celda: Variant = null) -> void:
+	if not is_instance_valid(reproductor_impacto):
+		reproductor_impacto = _crear_reproductor_2d(&"AudioImpacto", -8.0, 800.0)
+	if celda is Vector2i:
+		var capa_suelo := zona_actual.get_node_or_null("CapaSuelo") as TileMapLayer
+		if capa_suelo != null:
+			reproductor_impacto.global_position = capa_suelo.to_global(capa_suelo.map_to_local(celda))
+	elif ficha_jugador != null:
+		reproductor_impacto.global_position = ficha_jugador.global_position
+	reproductor_impacto.stream = sonido
+	reproductor_impacto.play()
 
 
 func _crear_reproductor_2d(
@@ -810,24 +1042,13 @@ func _crear_temporizador_audio(metodo_timeout: StringName) -> Timer:
 
 func _programar_monstruo_ambiente() -> void:
 	if is_instance_valid(temporizador_monstruo):
-		temporizador_monstruo.start(generador_azar_audio.randf_range(18.0, 45.0))
-
-
-func _programar_gotera_ambiente() -> void:
-	if is_instance_valid(temporizador_gotera):
-		temporizador_gotera.start(generador_azar_audio.randf_range(7.0, 18.0))
+		temporizador_monstruo.start(generador_azar_audio.randf_range(35.0, 75.0))
 
 
 func _on_temporizador_monstruo_timeout() -> void:
 	if is_instance_valid(reproductor_monstruo) and not reproductor_monstruo.playing:
 		reproductor_monstruo.play()
 	_programar_monstruo_ambiente()
-
-
-func _on_temporizador_gotera_timeout() -> void:
-	if is_instance_valid(reproductor_gotera) and not reproductor_gotera.playing:
-		reproductor_gotera.play()
-	_programar_gotera_ambiente()
 
 
 func _reproducir_sonido_paso() -> void:
@@ -855,6 +1076,25 @@ func _actualizar_audio_proximidad() -> void:
 	if fuente_fuego.has(&"sonido"):
 		sonido_fuego = fuente_fuego[&"sonido"] as AudioStream
 	_actualizar_reproductor_proximidad(reproductor_fuego, sonido_fuego, fuente_fuego)
+	_actualizar_proximidad_monstruos()
+
+
+func _actualizar_proximidad_monstruos() -> void:
+	if ficha_jugador == null:
+		return
+	var npcs_evaluados: Array[PersonajeNPC] = []
+	if tablero != null:
+		for interactuable in tablero.interactuables_por_id.values():
+			if interactuable is PersonajeNPC and interactuable.vida_actual > 0 and interactuable not in npcs_evaluados:
+				npcs_evaluados.append(interactuable)
+	if zona_actual != null:
+		for nodo in zona_actual.find_children("*", "", true, false):
+			if nodo is PersonajeNPC and nodo.vida_actual > 0 and nodo not in npcs_evaluados:
+				npcs_evaluados.append(nodo)
+	for npc in npcs_evaluados:
+		var distancia := _distancia_cuadricula(ficha_jugador.coordenada_mapa, npc.coordenada_mapa)
+		if distancia <= 4 and randf() < 0.04:
+			npc.reproducir_sonido_proximidad()
 
 
 func _actualizar_reproductor_proximidad(
@@ -1285,6 +1525,9 @@ func _presentar_resultado_contextual(
 	resultado: ResultadoAccion,
 	contexto: ContextoAccion = null
 ) -> void:
+	if contexto != null and contexto.id_accion == &"atacar":
+		if contexto.objetivo is PersonajeNPC and (contexto.objetivo as PersonajeNPC).vida_actual > 0:
+			establecer_combate(true)
 	if (
 		contexto != null
 		and contexto.objetivo is PersonajeNPC
@@ -1338,22 +1581,36 @@ func _presentar_resultado_contextual(
 		and resultado.exitosa
 		and contexto.objetivo is Interactuable
 		and contexto.objetivo.definicion != null
-		and contexto.objetivo.definicion.ilustracion_examen != null
 	):
-		var textos: Array[String] = []
-		for id_mensaje in resultado.mensajes:
-			textos.append(
-				catalogo_mensajes.resolver(id_mensaje)
-				if catalogo_mensajes != null
-				else String(id_mensaje)
+		var sonido_examen: AudioStream = contexto.objetivo.definicion.obtener_sonido_examen()
+		if sonido_examen != null:
+			_reproducir_sonido_examen(sonido_examen)
+		if contexto.objetivo.definicion.ilustracion_examen != null:
+			var texto_final: String = ""
+			if contexto.objetivo.has_method(&"obtener_texto_examen"):
+				texto_final = String(contexto.objetivo.call(&"obtener_texto_examen"))
+			elif "texto_examen" in contexto.objetivo and not (contexto.objetivo.texto_examen as String).is_empty():
+				texto_final = String(contexto.objetivo.texto_examen)
+
+			if texto_final.is_empty():
+				var textos: Array[String] = []
+				for id_mensaje in resultado.mensajes:
+					textos.append(
+						catalogo_mensajes.resolver(id_mensaje)
+						if catalogo_mensajes != null
+						else String(id_mensaje)
+					)
+				texto_final = "\n\n".join(textos)
+			if texto_final.is_empty() and not contexto.objetivo.definicion.descripcion_base.is_empty():
+				texto_final = contexto.objetivo.definicion.descripcion_base
+
+			panel_examen_ilustrado.mostrar(
+				titulo,
+				contexto.objetivo.definicion.ilustracion_examen,
+				texto_final
 			)
-		panel_examen_ilustrado.mostrar(
-			titulo,
-			contexto.objetivo.definicion.ilustracion_examen,
-			"\n\n".join(textos)
-		)
-		_actualizar_estado_modal_interaccion()
-		return
+			_actualizar_estado_modal_interaccion()
+			return
 	if resultado.tirada == null:
 		panel_resultado_accion.mostrar_resultado(titulo, resultado, catalogo_mensajes)
 		return
@@ -1451,6 +1708,7 @@ func _on_item_suelo_registrado(coord: Vector2i, item_suelo: ItemSuelo) -> void:
 
 
 func _on_item_suelo_retirado(_coord: Vector2i, item_suelo: ItemSuelo) -> void:
+	_reproducir_sonido_recoleccion(item_suelo)
 	var representacion := item_suelo.obtener_representacion()
 	if representacion != null:
 		representacion.queue_free()
@@ -1718,6 +1976,10 @@ func _finalizar_lanzamiento(contexto: ContextoAccion, item: ItemInstancia) -> vo
 		representacion_lanzamiento.visible = false
 		representacion_lanzamiento.queue_free()
 	representacion_lanzamiento = null
+	if item != null and item.definicion != null:
+		var sonido_impacto := item.definicion.obtener_sonido_impacto()
+		if sonido_impacto != null:
+			_reproducir_sonido_impacto(sonido_impacto, contexto.celda_objetivo)
 	var resultado := gestor_acciones.procesar_accion(contexto)
 	ultimo_contexto_contextual = contexto
 	ultimo_resultado_contextual = resultado

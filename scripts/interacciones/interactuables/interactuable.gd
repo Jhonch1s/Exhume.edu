@@ -9,6 +9,10 @@ signal presencia_cambiada
 @export var id_instancia: StringName = &""
 @export var definicion: DefinicionInteractuable
 
+@export_category("Examen personalizado")
+@export var titulo_examen: String = ""
+@export_multiline var texto_examen: String = ""
+
 @export_category("Presentacion")
 @export_node_path("Sprite2D") var ruta_visual_resaltable: NodePath = ^"Sprite2D"
 @export_node_path("Sprite2D") var ruta_fog_oculto: NodePath
@@ -77,7 +81,14 @@ func obtener_id_objetivo_interaccion() -> StringName:
 
 
 func obtener_nombre_interaccion() -> String:
+	if not titulo_examen.is_empty():
+		return titulo_examen
 	return definicion.nombre if definicion != null else "Interactuable"
+
+
+func obtener_texto_examen() -> String:
+	return texto_examen
+
 
 
 func establecer_resaltado(activo: bool) -> void:

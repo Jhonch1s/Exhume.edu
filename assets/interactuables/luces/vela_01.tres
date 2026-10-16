@@ -4,6 +4,9 @@
 [ext_resource type="Script" uid="uid://cyergln3tfhfs" path="res://scripts/interacciones/interactuables/fuentes_luz/definicion_fuente_luz.gd" id="2_04ap8"]
 [ext_resource type="Texture2D" uid="uid://boa23or7m4sb" path="res://assets/tiles/lighting/sources/canldes.png" id="3_04ap8"]
 
+[ext_resource type="AudioStream" uid="uid://bkujengynsmy1" path="res://assets/sonidos/fuego/encender fuego fosforo.wav" id="4_encender"]
+[ext_resource type="AudioStream" uid="uid://du3pwabgs4h5" path="res://assets/sonidos/fuego/apagar fuego.wav" id="5_apagar"]
+
 [resource]
 script = ExtResource("2_04ap8")
 radio_luz = 1
@@ -14,6 +17,8 @@ textura = ExtResource("3_04ap8")
 region_encendida = Rect2(0, 32, 64, 42)
 region_apagada = Rect2(0, 0, 64, 32)
 desplazamiento_sprite = Vector2(0, 0)
+sonido_encender = ExtResource("4_encender")
+sonido_apagar = ExtResource("5_apagar")
 id_definicion = &"vela_01"
 nombre = "Velas"
 descripcion_base = "Un pequeño grupo de velas."
