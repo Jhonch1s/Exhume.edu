@@ -5,6 +5,7 @@ class_name Ficha
 var texturas_por_direccion: Dictionary = {}
 var sprite_render: Sprite2D = null
 var particulasDanio: CPUParticles2D = CPUParticles2D.new()
+var particulasVeneno: CPUParticles2D = CPUParticles2D.new()
 
 
 
@@ -13,7 +14,14 @@ const TEXTURA_FICHAS_CLASE = preload(
 )
 const FRAME_POR_CLASE := {"Guerrero": 3, "Ladrón": 0, "Mago": 6}
 
+const texturaVeneno = preload("res://scenes/efectos_superficie/particulaverde.png")
+const particulasLavaEscena = preload("res://scenes/efectos_superficie/particulas_quemado.tscn")
+var shaderMat = ShaderMaterial.new()
+var shaderMatQ = ShaderMaterial.new()
+var particulaFuegoInstancia: Node = null
 
+var shaderVeneno = load("res://assets/ui/shaders/envenenado.gdshader");
+var shaderQuemado = load("res://assets/ui/shaders/quemado.gdshader");
 
 @export var nombre: String = "Heroe Jr."
 @export var titulo: String = "El come cebolla"
@@ -169,6 +177,16 @@ func aplicar_o_renovar_estado(
 	var estado := obtener_estado(clave)
 	var creado := estado == null
 	if creado:
+		if(clave == "veneno"):
+			print("venenno activado")
+			particulasVeneno.emitting = true
+			sprite_render.material = shaderMat
+		if(clave == "quemado"):
+			sprite_render.material = shaderMatQ
+			if(particulaFuegoInstancia == null):
+				particulaFuegoInstancia = particulasLavaEscena.instantiate()
+				sprite_render.add_child(particulaFuegoInstancia)
+			
 		estado = EstadoActor.new(
 			clave, magnitud, duracion_total, ticks_pendientes, terminos_dano_tick
 		)
@@ -189,9 +207,17 @@ func consumir_tick_estado(clave: StringName) -> Dictionary:
 		return {}
 	var restantes := estado.consumir_tick()
 	var expirado := restantes == 0
+	
+	
 	if expirado:
 		_estados.erase(clave)
+		particulasVeneno.emitting = false
+		sprite_render.material = null;
+		if(particulaFuegoInstancia != null):
+			particulaFuegoInstancia.queue_free()
+			particulaFuegoInstancia = null
 	estado_cambiado.emit(clave, estado)
+	
 	return {
 		&"tipo": &"estado_tick",
 		&"clave": clave,
@@ -482,6 +508,11 @@ func _ready() -> void:
 	pv_max = fue + des + vol
 	pv_actual = pv_max
 	_setear_atributos_particula()
+	_setear_atributos_particula_veneno()
+	shaderMat.shader = shaderVeneno;
+	shaderMatQ.shader = shaderQuemado;
+	
+	
 	
 	#_aplicar_visual_clase()
 	iniciar_turno()
@@ -498,6 +529,27 @@ func configurar_creacion(datos: Dictionary) -> bool:
 	clase = datos["clase"]
 	origen = datos["origen"]
 	return true
+	
+func _setear_atributos_particula_veneno() -> void:
+	particulasVeneno.scale = Vector2(2.5,2.5)
+	particulasVeneno.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
+	particulasVeneno.emission_sphere_radius = 12
+	particulasVeneno.scale_amount_min = 0.5
+	particulasVeneno.scale_amount_max = 0.8
+	particulasVeneno.amount = 4
+	particulasVeneno.texture = texturaVeneno
+	particulasVeneno.explosiveness = 0.67
+	particulasVeneno.randomness = 1
+	particulasVeneno.gravity.y = -100
+	var curva_escala := Curve.new()
+	curva_escala.add_point(Vector2(0.0, 1.0)) # Inicio: Tamaño máximo
+	curva_escala.add_point(Vector2(1.0, 0.0)) # Final: Tamaño cero
+	particulasVeneno.scale_amount_curve = curva_escala
+	particulasVeneno.emitting = false
+	particulasVeneno.initial_velocity_min = 0
+	particulasVeneno.initial_velocity_max = 20
+	particulasVeneno.position.y = -240
+	
 
 func _setear_atributos_particula() -> void:
 	particulasDanio.scale = Vector2(2.5, 2.5)
@@ -531,6 +583,7 @@ func _aplicar_visual_clase() -> void:
 		sprite_render.texture = texturas_por_direccion[0]
 		sprite_render.visible = true
 		sprite_render.add_child(particulasDanio)
+		sprite_render.add_child(particulasVeneno)
 		add_child(sprite_render)
 		
 	else:

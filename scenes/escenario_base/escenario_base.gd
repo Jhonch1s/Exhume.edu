@@ -36,12 +36,12 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 @onready var viewportKnight: SubViewportContainer = $KnightViewPort
 @onready var subviewportKnight: SubViewport = $KnightViewPort/KnightSubViewport
 @onready var camaraCaballero: Camera3D = $KnightViewPort/KnightSubViewport/Camera3D
-@onready var caballeroModelo: Node3D = $KnightViewPort/KnightSubViewport/caballero20
+@onready var caballeroModelo: Node3D = $KnightViewPort/KnightSubViewport/cavallerov2
 
 @onready var viewportWizar: SubViewportContainer = $WizardViewPort
 @onready var subviewportWizard: SubViewport = $WizardViewPort/WizardSubViewport
 @onready var camaraMago: Camera3D = $WizardViewPort/WizardSubViewport/Camera3D
-@onready var magoModelo:Node3D = $WizardViewPort/WizardSubViewport/modelomago2
+@onready var magoModelo:Node3D = $WizardViewPort/WizardSubViewport/magov2
 
 @onready var viewportThief: SubViewportContainer = $ThiefViewPort
 @onready var subviewportThief: SubViewport = $ThiefViewPort/ThiefSubViewport
@@ -51,8 +51,8 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 	$CanvasLayer/PanelInventarioCofre
 )
 
-const modeloCaballero = preload("res://assets/characters/knight3d/caballero20.glb")
-const modeloMago = preload("res://assets/characters/knight3d/modelomago2.glb")
+const modeloCaballero = preload("res://assets/characters/knight3d/cavallerov2.glb")
+const modeloMago = preload("res://assets/characters/knight3d/magov2.glb")
 const modeloLadron = preload("res://assets/characters/knight3d/modeloladron2.glb")
 
 const ESCENA_FICHA = preload("res://scenes/ficha/ficha.tscn")

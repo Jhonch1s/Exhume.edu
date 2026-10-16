@@ -26,7 +26,7 @@
 [ext_resource type="TileSet" uid="uid://dr6pcgl80juta" path="res://assets/tile_sets/surface_effects/fire.tres" id="23_a8yjn"]
 [ext_resource type="TileSet" uid="uid://b2soug6txnn72" path="res://assets/tile_sets/surface_effects/web.tres" id="24_igs8u"]
 [ext_resource type="Script" uid="uid://dkkd0pruoa4im" path="res://scripts/zonas/zona_explorable.gd" id="25_zona"]
-[ext_resource type="Texture2D" uid="uid://kg0ilecnb3sn" path="res://scenes/efectos_superficie/venenoburbuja.png" id="27_a8yjn"]
+[ext_resource type="Texture2D" uid="uid://p3xo34i105vh" path="res://scenes/efectos_superficie/particulaverde.png" id="27_a8yjn"]
 
 [sub_resource type="Curve" id="Curve_baiil"]
 _data = [Vector2(0.16770187, 1), 0.0, 0.0, 0, 0, Vector2(0.99378884, 0.125), 0.0, 0.0, 0, 0]
@@ -59,6 +59,10 @@ linear_accel_max = 14.449998
 scale_min = 1.5
 scale_max = 3.0
 color_ramp = SubResource("GradientTexture1D_5jynw")
+
+[sub_resource type="Curve" id="Curve_fq28q"]
+_data = [Vector2(0.24812031, 1), 0.0, 0.0, 0, 0, Vector2(1, 0.5307692), 0.0, 0.0, 0, 0]
+point_count = 2
 
 [node name="Zona1" type="Node2D" unique_id=1662731053]
 y_sort_enabled = true
@@ -422,17 +426,11 @@ process_material = SubResource("ParticleProcessMaterial_baiil")
 [node name="venenoTest" type="CPUParticles2D" parent="." unique_id=267076803]
 texture_filter = 1
 position = Vector2(91.98872, 129.80408)
-amount = 3
+amount = 4
 texture = ExtResource("27_a8yjn")
 explosiveness = 0.67
-randomness = 1.0
+emission_shape = 1
+emission_sphere_radius = 8.0
 gravity = Vector2(0, -100)
-initial_velocity_min = 10.0
-initial_velocity_max = 20.0
-linear_accel_min = -73.05
-linear_accel_max = -44.68
-radial_accel_min = -60.99
-radial_accel_max = 14.9
 scale_amount_min = 0.5
-scale_amount_max = 0.5
-color = Color(0.4832725, 0.00016455904, 0.48341298, 1)
+scale_amount_curve = SubResource("Curve_fq28q")
