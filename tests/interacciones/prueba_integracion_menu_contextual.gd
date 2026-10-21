@@ -251,6 +251,19 @@ func _probar_desplazamiento_interaccion(
 	ficha.global_position = escenario.zona_actual.get_node("CapaSuelo").map_to_local(origen_lejano)
 	escenario.tablero.ocupar_celda(origen_lejano, ficha)
 	ficha.velocidad_paso = 0.001
+	# Esta prueba de autoacercamiento parte de un corredor ya explorado.
+	var corredor: Array[Vector2i] = []
+	for direccion in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
+		var destino: Vector2i = fuente.coordenada_mapa + direccion
+		if not escenario.tablero.puede_entrar(destino, ficha):
+			continue
+		corredor = escenario.pathfinding.calcular_camino(origen_lejano, destino, escenario.tablero.datos, ficha)
+		if not corredor.is_empty():
+			break
+	for coord in corredor:
+		var celda: Celda = escenario.tablero.obtener_celda(coord)
+		if celda.visibilidad == Celda.EstadoVisibilidad.OCULTO:
+			celda.visibilidad = Celda.EstadoVisibilidad.EXPLORADO
 	escenario.tablero.obtener_celda(fuente.coordenada_mapa).visibilidad = (
 		Celda.EstadoVisibilidad.VISIBLE
 	)

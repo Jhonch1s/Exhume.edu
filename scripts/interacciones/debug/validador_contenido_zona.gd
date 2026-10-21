@@ -82,6 +82,7 @@ func _validar_interactuable(
 		ids[interactuable.id_instancia] = interactuable
 	if interactuable.definicion == null or not interactuable.definicion.es_valida():
 		errores.append("definicion_interactuable_invalida id=%s %s" % [interactuable.id_instancia, contexto])
+	_validar_presentacion_interactuable(interactuable, contexto, errores)
 	var coordenada := _coordenada(interactuable, capa)
 	if not tablero.es_celda_valida(coordenada):
 		errores.append("interactuable_fuera_tablero id=%s %s" % [interactuable.id_instancia, contexto])
@@ -92,6 +93,25 @@ func _validar_interactuable(
 					interactuable.id_instancia, coordenada_ocupada, contexto,
 				])
 				break
+
+
+func _validar_presentacion_interactuable(
+	interactuable: Interactuable,
+	contexto: String,
+	errores: Array[String]
+) -> void:
+	var visual: Sprite2D = null
+	if not interactuable.ruta_visual_resaltable.is_empty():
+		visual = interactuable.get_node_or_null(interactuable.ruta_visual_resaltable) as Sprite2D
+	if visual == null or visual.texture == null:
+		errores.append("visual_resaltable_invalido id=%s %s" % [interactuable.id_instancia, contexto])
+	if interactuable.color_resaltado.a <= 0.0 or interactuable.grosor_resaltado < 1.0:
+		errores.append("resaltado_invisible id=%s %s" % [interactuable.id_instancia, contexto])
+	for ruta in [interactuable.ruta_fog_oculto, interactuable.ruta_fog_explorado]:
+		if not ruta.is_empty() and not interactuable.get_node_or_null(ruta) is Sprite2D:
+			errores.append("mascara_fog_invalida id=%s ruta=%s %s" % [interactuable.id_instancia, ruta, contexto])
+
+
 func _validar_relaciones(
 	emisor: Interactuable,
 	ids_receptores: Array[StringName],

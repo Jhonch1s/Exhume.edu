@@ -1,0 +1,297 @@
+[gd_scene format=3 uid="uid://c53k1y66e4vup"]
+
+[ext_resource type="Script" uid="uid://ctbb2ubed7x4w" path="res://scenes/ui/inventario/panel_inventario_equipo.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://ncctr8pnwbr2" path="res://assets/ui/panels/inventario/marco_inventario_equipo.png" id="2_marco"]
+[ext_resource type="PackedScene" uid="uid://i8ahrsetca0a" path="res://scenes/ui/inventario/casilla_inventario.tscn" id="3_casilla"]
+[ext_resource type="FontFile" uid="uid://c0l0sby5jy2p4" path="res://assets/ui/fonts/Amarante-Regular.ttf" id="4_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxBotonCerrar"]
+bg_color = Color(0.18, 0.12, 0.12, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.6, 0.25, 0.25, 0.9)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxDetalle"]
+bg_color = Color(0.08, 0.09, 0.11, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.28, 0.31, 0.35, 0.95)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxBotonAccion"]
+bg_color = Color(0.14, 0.17, 0.2, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.75, 0.6, 0.28, 0.9)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[node name="PanelInventarioEquipo" type="Control" unique_id=633660224]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="FondoAtenuado" type="ColorRect" parent="." unique_id=702074913]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.65)
+
+[node name="MarcoPrincipal" type="TextureRect" parent="FondoAtenuado" unique_id=1310927999]
+texture_filter = 1
+custom_minimum_size = Vector2(1000, 720)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -465.0
+offset_top = -464.0
+offset_right = 535.0
+offset_bottom = 256.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_marco")
+expand_mode = 1
+
+[node name="BotonCerrar" type="Button" parent="FondoAtenuado/MarcoPrincipal" unique_id=1752614368]
+layout_mode = 0
+offset_left = 908.0
+offset_top = 30.0
+offset_right = 965.0
+offset_bottom = 67.0
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxBotonCerrar")
+text = "X"
+
+[node name="LadoEquipo" type="Control" parent="FondoAtenuado/MarcoPrincipal" unique_id=758952245]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 89.0
+offset_top = 92.0
+offset_right = 459.0
+offset_bottom = 648.0
+
+[node name="InfoHeroe" type="VBoxContainer" parent="FondoAtenuado/MarcoPrincipal/LadoEquipo" unique_id=411868125]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 9.0
+offset_bottom = 62.0
+grow_horizontal = 2
+alignment = 1
+
+[node name="NombreHeroe" type="Label" parent="FondoAtenuado/MarcoPrincipal/LadoEquipo/InfoHeroe" unique_id=1851244898]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 22
+text = "Héroe Jr."
+horizontal_alignment = 1
+
+[node name="StatsLabel" type="Label" parent="FondoAtenuado/MarcoPrincipal/LadoEquipo/InfoHeroe" unique_id=336501832]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.72, 0.45, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 16
+text = "FUE: 5  |  DES: 4  |  VOL: 2"
+horizontal_alignment = 1
+
+[node name="AreaRanuras" type="VBoxContainer" parent="FondoAtenuado/MarcoPrincipal/LadoEquipo" unique_id=857750750]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -545.0
+offset_bottom = -25.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 26
+alignment = 1
+
+[node name="Fila1" type="HBoxContainer" parent="FondoAtenuado/MarcoPrincipal/LadoEquipo/AreaRanuras" unique_id=766078508]
+layout_mode = 2
+alignment = 1
+
+[node name="RanuraCabeza" parent="FondoAtenuado/MarcoPrincipal/LadoEquipo/AreaRanuras/Fila1" unique_id=1948991106 instance=ExtResource("3_casilla")]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+tooltip_text = "Ranura: Cabeza"
+
+[node name="Fila2" type="HBoxContainer" parent="FondoAtenuado/MarcoPrincipal/LadoEquipo/AreaRanuras" unique_id=620515060]
+layout_mode = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="RanuraAmuleto" parent="FondoAtenuado/MarcoPrincipal/LadoEquipo/AreaRanuras/Fila2" unique_id=1565332869 instance=ExtResource("3_casilla")]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+tooltip_text = "Ranura: Amuleto"
+
+[node name="RanuraPecho" parent="FondoAtenuado/MarcoPrincipal/LadoEquipo/AreaRanuras/Fila2" unique_id=457830007 instance=ExtResource("3_casilla")]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+tooltip_text = "Ranura: Pecho / Armadura"
+
+[node name="RanuraAntorcha" parent="FondoAtenuado/MarcoPrincipal/LadoEquipo/AreaRanuras/Fila2" unique_id=402873526 instance=ExtResource("3_casilla")]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+tooltip_text = "Ranura: Antorcha"
+
+[node name="Fila3" type="HBoxContainer" parent="FondoAtenuado/MarcoPrincipal/LadoEquipo/AreaRanuras" unique_id=1369451405]
+layout_mode = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="RanuraManoPpal" parent="FondoAtenuado/MarcoPrincipal/LadoEquipo/AreaRanuras/Fila3" unique_id=1886999717 instance=ExtResource("3_casilla")]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+tooltip_text = "Ranura: Mano Principal (Arma)"
+
+[node name="RanuraAnillo" parent="FondoAtenuado/MarcoPrincipal/LadoEquipo/AreaRanuras/Fila3" unique_id=1752614746 instance=ExtResource("3_casilla")]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+tooltip_text = "Ranura: Anillo"
+
+[node name="RanuraManoSec" parent="FondoAtenuado/MarcoPrincipal/LadoEquipo/AreaRanuras/Fila3" unique_id=1221353913 instance=ExtResource("3_casilla")]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+tooltip_text = "Ranura: Mano Secundaria (Escudo / Offhand)"
+
+[node name="Fila4" type="HBoxContainer" parent="FondoAtenuado/MarcoPrincipal/LadoEquipo/AreaRanuras" unique_id=483313443]
+layout_mode = 2
+theme_override_constants/separation = 40
+alignment = 1
+
+[node name="RanuraGuantes" parent="FondoAtenuado/MarcoPrincipal/LadoEquipo/AreaRanuras/Fila4" unique_id=1367999015 instance=ExtResource("3_casilla")]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+tooltip_text = "Ranura: Guantes"
+
+[node name="RanuraBotas" parent="FondoAtenuado/MarcoPrincipal/LadoEquipo/AreaRanuras/Fila4" unique_id=2061052674 instance=ExtResource("3_casilla")]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+tooltip_text = "Ranura: Botas"
+
+[node name="LadoMochila" type="Control" parent="FondoAtenuado/MarcoPrincipal" unique_id=1528483199]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 546.0
+offset_top = 93.0
+offset_right = 915.0
+offset_bottom = 653.0
+
+[node name="TituloMochila" type="Label" parent="FondoAtenuado/MarcoPrincipal/LadoMochila" unique_id=523995982]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 30.0
+grow_horizontal = 2
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 20
+text = "Mochila"
+horizontal_alignment = 1
+
+[node name="GridMochila" type="GridContainer" parent="FondoAtenuado/MarcoPrincipal/LadoMochila" unique_id=2040921716]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 40.0
+offset_top = 38.0
+offset_right = -40.0
+offset_bottom = 306.0
+grow_horizontal = 2
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 6
+
+[node name="PanelDetalle" type="PanelContainer" parent="FondoAtenuado/MarcoPrincipal/LadoMochila" unique_id=1619163437]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -240.0
+offset_right = -20.0
+offset_bottom = -25.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxDetalle")
+
+[node name="Margen" type="MarginContainer" parent="FondoAtenuado/MarcoPrincipal/LadoMochila/PanelDetalle" unique_id=162947183]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
+
+[node name="Contenido" type="VBoxContainer" parent="FondoAtenuado/MarcoPrincipal/LadoMochila/PanelDetalle/Margen" unique_id=1840174156]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="FilaCabecera" type="HBoxContainer" parent="FondoAtenuado/MarcoPrincipal/LadoMochila/PanelDetalle/Margen/Contenido" unique_id=1046555172]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Icono" type="TextureRect" parent="FondoAtenuado/MarcoPrincipal/LadoMochila/PanelDetalle/Margen/Contenido/FilaCabecera" unique_id=245447691]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Textos" type="VBoxContainer" parent="FondoAtenuado/MarcoPrincipal/LadoMochila/PanelDetalle/Margen/Contenido/FilaCabecera" unique_id=339237646]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Nombre" type="Label" parent="FondoAtenuado/MarcoPrincipal/LadoMochila/PanelDetalle/Margen/Contenido/FilaCabecera/Textos" unique_id=566581960]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 17
+text = "Selecciona un objeto"
+
+[node name="Cantidad" type="Label" parent="FondoAtenuado/MarcoPrincipal/LadoMochila/PanelDetalle/Margen/Contenido/FilaCabecera/Textos" unique_id=692314770]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 13
+
+[node name="Descripcion" type="Label" parent="FondoAtenuado/MarcoPrincipal/LadoMochila/PanelDetalle/Margen/Contenido" unique_id=962926202]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 13
+text = "Pasa el cursor o selecciona un ítem para ver su información."
+autowrap_mode = 2
+
+[node name="BotonAccion" type="Button" parent="FondoAtenuado/MarcoPrincipal/LadoMochila/PanelDetalle/Margen/Contenido" unique_id=1117484618]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxBotonAccion")
+text = "Equipar / Usar"

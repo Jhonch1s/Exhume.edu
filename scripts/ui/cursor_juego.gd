@@ -22,10 +22,13 @@ const SONIDO_CLICK_UI: AudioStream = preload("res://assets/sonidos/sonidos final
 
 var _tipo_actual: int = Tipo.DEFAULT
 var _canvas_cursor: CanvasLayer
+var _canvas_indicador: CanvasLayer
 var _sprite_cursor: Sprite2D
 var _sobre_interfaz: bool = false
 var _reproductor_click: AudioStreamPlayer
 var _ultimo_click_msec: int = 0
+var _panel_probabilidad: PanelContainer
+var _texto_probabilidad: Label
 
 
 func _ready() -> void:
@@ -42,6 +45,30 @@ func _ready() -> void:
 	material.shader = SOMBREADOR_CRT
 	_sprite_cursor.material = material
 	_canvas_cursor.add_child(_sprite_cursor)
+	_canvas_indicador = CanvasLayer.new()
+	_canvas_indicador.name = "CapaIndicadorCombate"
+	_canvas_indicador.layer = 2
+	add_child(_canvas_indicador)
+	_panel_probabilidad = PanelContainer.new()
+	_panel_probabilidad.name = "ProbabilidadAtaqueBasico"
+	_panel_probabilidad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_panel_probabilidad.visible = false
+	var fondo := StyleBoxFlat.new()
+	fondo.bg_color = Color("#211b18ed")
+	fondo.border_color = Color("#b58b53")
+	fondo.set_border_width_all(1)
+	fondo.set_corner_radius_all(5)
+	fondo.content_margin_left = 8.0
+	fondo.content_margin_right = 8.0
+	fondo.content_margin_top = 5.0
+	fondo.content_margin_bottom = 5.0
+	_panel_probabilidad.add_theme_stylebox_override(&"panel", fondo)
+	_canvas_indicador.add_child(_panel_probabilidad)
+	_texto_probabilidad = Label.new()
+	_texto_probabilidad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_texto_probabilidad.add_theme_color_override(&"font_color", Color("#f2dfbd"))
+	_texto_probabilidad.add_theme_font_size_override(&"font_size", 14)
+	_panel_probabilidad.add_child(_texto_probabilidad)
 	_actualizar_textura()
 	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
 
@@ -98,15 +125,41 @@ func reproducir_click_ui() -> void:
 
 func _process(_delta: float) -> void:
 	_actualizar_cursor_interfaz()
+	var punto := get_viewport().get_mouse_position()
 	_sprite_cursor.position = (
-		get_viewport().get_mouse_position()
+		punto
 		- PUNTOS_ACTIVOS[_tipo_actual] * ESCALA_CURSOR
 	)
+	if _panel_probabilidad.visible:
+		var ancho := get_viewport().get_visible_rect().size.x
+		var alto := get_viewport().get_visible_rect().size.y
+		var x := punto.x + 28.0
+		if x + _panel_probabilidad.size.x > ancho - 8.0:
+			x = punto.x - _panel_probabilidad.size.x - 12.0
+		_panel_probabilidad.position = Vector2(
+			maxf(8.0, x),
+			clampf(punto.y - 8.0, 8.0, maxf(8.0, alto - _panel_probabilidad.size.y - 8.0))
+		)
+
+
+func mostrar_probabilidad_ataque(texto: String) -> void:
+	if not is_instance_valid(_panel_probabilidad):
+		return
+	if _texto_probabilidad.text != texto:
+		_texto_probabilidad.text = texto
+		_panel_probabilidad.reset_size()
+	_panel_probabilidad.show()
+
+
+func ocultar_probabilidad_ataque() -> void:
+	if is_instance_valid(_panel_probabilidad):
+		_panel_probabilidad.hide()
 
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_MOUSE_EXIT:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		ocultar_probabilidad_ataque()
 	elif what == NOTIFICATION_WM_MOUSE_ENTER:
 		Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
 

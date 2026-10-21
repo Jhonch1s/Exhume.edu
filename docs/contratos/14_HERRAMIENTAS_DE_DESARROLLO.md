@@ -11,6 +11,11 @@ palancas también comprueba IDs de receptores vacíos, repetidos, inexistentes o
 el contrato de mecanismo. No ejecuta acciones ni llama validaciones que dependan de
 un registro ya configurado.
 
+También exige que cada interactuable tenga un `Sprite2D` con textura en
+`ruta_visual_resaltable` y un contorno visible. Las rutas de máscaras de niebla
+configuradas deben resolver a `Sprite2D`. Así los errores de presentación se
+informan antes de registrar contenido, con el nodo y la celda afectados.
+
 `EscenarioBase` registra contenido únicamente cuando la prevalidación completa no
 produce errores. Así una entidad inválida no deja el resto de la zona parcialmente
 registrado. Las validaciones defensivas de `TableroGrid` y de cada receptor se

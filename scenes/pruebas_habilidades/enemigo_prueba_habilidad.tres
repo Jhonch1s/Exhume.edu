@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="DefinicionPersonaje" format=3]
+
+[ext_resource type="Script" path="res://scripts/personajes/dialogo_npc.gd" id="1_m4oko"]
+[ext_resource type="Script" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="2_naeh8"]
+[ext_resource type="Texture2D" path="res://assets/characters/npcs/goblin_unico/illustrations/exam/goblin.png" id="3_sljoj"]
+[ext_resource type="Texture2D" path="res://assets/characters/npcs/goblin_unico/portraits/trompo_turno.png" id="4_d5gv5"]
+[ext_resource type="Script" path="res://scripts/personajes/definicion_personaje.gd" id="5_jy4i7"]
+[ext_resource type="Texture2D" path="res://assets/characters/npcs/goblin_unico/sprites/trompo.png" id="6_ec2r1"]
+
+[resource]
+script = ExtResource("5_jy4i7")
+fuerza = 2
+destreza = 2
+voluntad = 2
+vida_maxima = 18
+actitud_inicial_jugador = 2
+actitud_hacia_jugador_fija = true
+puede_combatir = true
+radio_agro = 2
+movimiento_fijo = 0
+textura_mapa = ExtResource("6_ec2r1")
+retrato_turno = ExtResource("4_d5gv5")
+id_definicion = &"enemigo_prueba_habilidad"
+nombre = "Enemigo de prueba"
+ilustracion_examen = ExtResource("3_sljoj")

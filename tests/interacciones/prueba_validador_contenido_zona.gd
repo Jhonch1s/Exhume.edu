@@ -17,6 +17,24 @@ func _ejecutar() -> void:
 	var validador := ValidadorContenidoZona.new()
 
 	_comprobar(validador.validar(zona, tablero, capa).is_empty(), "Zona1 debe ser valida.")
+	var guia := zona.get_node("Interactuables/Guias/Libro_01") as Interactuable
+	var ruta_visual := guia.ruta_visual_resaltable
+	guia.ruta_visual_resaltable = NodePath("")
+	_comprobar(_contiene(validador.validar(zona, tablero, capa), "visual_resaltable_invalido"), "Debe detectar un sprite sin ruta.")
+	guia.ruta_visual_resaltable = ruta_visual
+	var sprite := guia.get_node(ruta_visual) as Sprite2D
+	var textura := sprite.texture
+	sprite.texture = null
+	_comprobar(_contiene(validador.validar(zona, tablero, capa), "visual_resaltable_invalido"), "Debe detectar un sprite sin textura.")
+	sprite.texture = textura
+	var color := guia.color_resaltado
+	guia.color_resaltado = Color.TRANSPARENT
+	_comprobar(_contiene(validador.validar(zona, tablero, capa), "resaltado_invisible"), "Debe detectar un contorno invisible.")
+	guia.color_resaltado = color
+	var ruta_fog := guia.ruta_fog_oculto
+	guia.ruta_fog_oculto = ^"SpriteInexistente"
+	_comprobar(_contiene(validador.validar(zona, tablero, capa), "mascara_fog_invalida"), "Debe detectar una mascara de niebla ausente.")
+	guia.ruta_fog_oculto = ruta_fog
 
 	var palanca := zona.get_node(
 		"Interactuables/Mecanismos/Palanca_03_m03"
@@ -59,7 +77,7 @@ func _contiene(errores: Array[String], codigo: String) -> bool:
 
 func _finalizar() -> void:
 	if _fallos.is_empty():
-		print("ValidadorContenidoZona: 5 grupos correctos.")
+		print("ValidadorContenidoZona: 9 grupos correctos.")
 		quit()
 		return
 	for fallo in _fallos:

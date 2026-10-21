@@ -1,0 +1,132 @@
+[gd_scene format=4]
+
+[ext_resource type="Script" path="res://scripts/zonas/zona_explorable.gd" id="1_ng1oc"]
+[ext_resource type="TileSet" path="res://assets/tile_sets/terrain/cave_terrain.tres" id="2_f7rj4"]
+[ext_resource type="TileSet" path="res://assets/tile_sets/structures/walls_cave.tres" id="3_juca8"]
+[ext_resource type="Script" path="res://scripts/render/capa_paredes_oclusivas.gd" id="4_51hqc"]
+[ext_resource type="PackedScene" path="res://scenes/personajes/npc.tscn" id="5_6bw32"]
+[ext_resource type="Script" path="res://scripts/personajes/personaje_npc.gd" id="6_10c4a"]
+[ext_resource type="Resource" path="res://scenes/pruebas_habilidades/enemigo_prueba_habilidad.tres" id="7_v5dtb"]
+[ext_resource type="PackedScene" path="res://scenes/zonas/PuntoSpawnZona.tscn" id="8_a1spf"]
+[ext_resource type="Script" path="res://scripts/zonas/punto_spawn_zona.gd" id="9_kb2dv"]
+[ext_resource type="TileSet" path="res://assets/tile_sets/structures/cave_columns.tres" id="10_3emhs"]
+[ext_resource type="TileSet" path="res://assets/tile_sets/decorations/cave_decorations_solid.tres" id="11_snk2h"]
+[ext_resource type="TileSet" path="res://assets/tile_sets/decorations/cave_decorations_walkable.tres" id="12_w1ot6"]
+[ext_resource type="TileSet" path="res://assets/tile_sets/fog/cave_fog.tres" id="13_83vi1"]
+[ext_resource type="TileSet" path="res://assets/tile_sets/surface_effects/spikes.tres" id="14_1wpxl"]
+[ext_resource type="TileSet" path="res://assets/tile_sets/surface_effects/mud.tres" id="15_7jp2k"]
+[ext_resource type="TileSet" path="res://assets/tile_sets/surface_effects/ice.tres" id="16_b3epi"]
+[ext_resource type="TileSet" path="res://assets/tile_sets/surface_effects/fire.tres" id="17_ea3r7"]
+[ext_resource type="TileSet" path="res://assets/tile_sets/surface_effects/web.tres" id="18_loarl"]
+
+[node name="ZonaPruebaHabilidades" type="Node2D" unique_id=1421559612]
+y_sort_enabled = true
+script = ExtResource("1_ng1oc")
+
+[node name="CapaAgua" type="TileMapLayer" parent="." unique_id=2012569357]
+z_index = -3
+texture_filter = 1
+tile_set = ExtResource("2_f7rj4")
+
+[node name="CapaLava" type="TileMapLayer" parent="." unique_id=1120886913]
+z_index = -2
+texture_filter = 1
+tile_set = ExtResource("2_f7rj4")
+
+[node name="CapaSuelo" type="TileMapLayer" parent="." unique_id=1873074964]
+z_index = -1
+y_sort_enabled = true
+texture_filter = 1
+tile_map_data = PackedByteArray("AAD8//v/AAADAAAAAAD8//z/AAAAAAAAAAD8//3/AAABAAAAAAD8//7/AAACAAAAAAD8////AAADAAAAAAD8/wAAAAAAAAAAAAD8/wEAAAABAAAAAAD8/wIAAAACAAAAAAD8/wMAAAADAAAAAAD8/wQAAAAAAAAAAAD8/wUAAAABAAAAAAD9//v/AAAAAAAAAAD9//z/AAABAAAAAAD9//3/AAACAAAAAAD9//7/AAADAAAAAAD9////AAAAAAAAAAD9/wAAAAABAAAAAAD9/wEAAAACAAAAAAD9/wIAAAADAAAAAAD9/wMAAAAAAAAAAAD9/wQAAAABAAAAAAD9/wUAAAACAAAAAAD+//v/AAABAAAAAAD+//z/AAACAAAAAAD+//3/AAADAAAAAAD+//7/AAAAAAAAAAD+////AAABAAAAAAD+/wAAAAACAAAAAAD+/wEAAAADAAAAAAD+/wIAAAAAAAAAAAD+/wMAAAABAAAAAAD+/wQAAAACAAAAAAD+/wUAAAADAAAAAAD///v/AAACAAAAAAD///z/AAADAAAAAAD///3/AAAAAAAAAAD///7/AAABAAAAAAD/////AAACAAAAAAD//wAAAAADAAAAAAD//wEAAAAAAAAAAAD//wIAAAABAAAAAAD//wMAAAACAAAAAAD//wQAAAADAAAAAAD//wUAAAAAAAAAAAAAAPv/AAADAAAAAAAAAPz/AAAAAAAAAAAAAP3/AAABAAAAAAAAAP7/AAACAAAAAAAAAP//AAADAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAAAAAAAAIAAAACAAAAAAAAAAMAAAADAAAAAAAAAAQAAAAAAAAAAAAAAAUAAAABAAAAAAABAPv/AAAAAAAAAAABAPz/AAABAAAAAAABAP3/AAACAAAAAAABAP7/AAADAAAAAAABAP//AAAAAAAAAAABAAAAAAABAAAAAAABAAEAAAACAAAAAAABAAIAAAADAAAAAAABAAMAAAAAAAAAAAABAAQAAAABAAAAAAABAAUAAAACAAAAAAACAPv/AAABAAAAAAACAPz/AAACAAAAAAACAP3/AAADAAAAAAACAP7/AAAAAAAAAAACAP//AAABAAAAAAACAAAAAAACAAAAAAACAAEAAAADAAAAAAACAAIAAAAAAAAAAAACAAMAAAABAAAAAAACAAQAAAACAAAAAAACAAUAAAADAAAAAAADAPv/AAACAAAAAAADAPz/AAADAAAAAAADAP3/AAAAAAAAAAADAP7/AAABAAAAAAADAP//AAACAAAAAAADAAAAAAADAAAAAAADAAEAAAAAAAAAAAADAAIAAAABAAAAAAADAAMAAAACAAAAAAADAAQAAAADAAAAAAADAAUAAAAAAAAAAAAEAPv/AAADAAAAAAAEAPz/AAAAAAAAAAAEAP3/AAABAAAAAAAEAP7/AAACAAAAAAAEAP//AAADAAAAAAAEAAAAAAAAAAAAAAAEAAEAAAABAAAAAAAEAAIAAAACAAAAAAAEAAMAAAADAAAAAAAEAAQAAAAAAAAAAAAEAAUAAAABAAAAAAAFAPv/AAAAAAAAAAAFAPz/AAABAAAAAAAFAP3/AAACAAAAAAAFAP7/AAADAAAAAAAFAP//AAAAAAAAAAAFAAAAAAABAAAAAAAFAAEAAAACAAAAAAAFAAIAAAADAAAAAAAFAAMAAAAAAAAAAAAFAAQAAAABAAAAAAAFAAUAAAACAAAAAAAGAPv/AAABAAAAAAAGAPz/AAACAAAAAAAGAP3/AAADAAAAAAAGAP7/AAAAAAAAAAAGAP//AAABAAAAAAAGAAAAAAACAAAAAAAGAAEAAAADAAAAAAAGAAIAAAAAAAAAAAAGAAMAAAABAAAAAAAGAAQAAAACAAAAAAAGAAUAAAADAAAAAAAHAPv/AAACAAAAAAAHAPz/AAADAAAAAAAHAP3/AAAAAAAAAAAHAP7/AAABAAAAAAAHAP//AAACAAAAAAAHAAAAAAADAAAAAAAHAAEAAAAAAAAAAAAHAAIAAAABAAAAAAAHAAMAAAACAAAAAAAHAAQAAAADAAAAAAAHAAUAAAAAAAAAAAAIAPv/AAADAAAAAAAIAPz/AAAAAAAAAAAIAP3/AAABAAAAAAAIAP7/AAACAAAAAAAIAP//AAADAAAAAAAIAAAAAAAAAAAAAAAIAAEAAAABAAAAAAAIAAIAAAACAAAAAAAIAAMAAAADAAAAAAAIAAQAAAAAAAAAAAAIAAUAAAABAAAAAAAJAPv/AAAAAAAAAAAJAPz/AAABAAAAAAAJAP3/AAACAAAAAAAJAP7/AAADAAAAAAAJAP//AAAAAAAAAAAJAAAAAAABAAAAAAAJAAEAAAACAAAAAAAJAAIAAAADAAAAAAAJAAMAAAAAAAAAAAAJAAQAAAABAAAAAAAJAAUAAAACAAAAAAAKAPv/AAABAAAAAAAKAPz/AAACAAAAAAAKAP3/AAADAAAAAAAKAP7/AAAAAAAAAAAKAP//AAABAAAAAAAKAAAAAAACAAAAAAAKAAEAAAADAAAAAAAKAAIAAAAAAAAAAAAKAAMAAAABAAAAAAAKAAQAAAACAAAAAAAKAAUAAAADAAAAAAALAPv/AAACAAAAAAALAPz/AAADAAAAAAALAP3/AAAAAAAAAAALAP7/AAABAAAAAAALAP//AAACAAAAAAALAAAAAAADAAAAAAALAAEAAAAAAAAAAAALAAIAAAABAAAAAAALAAMAAAACAAAAAAALAAQAAAADAAAAAAALAAUAAAAAAAAAAAAMAPv/AAADAAAAAAAMAPz/AAAAAAAAAAAMAP3/AAABAAAAAAAMAP7/AAACAAAAAAAMAP//AAADAAAAAAAMAAAAAAAAAAAAAAAMAAEAAAABAAAAAAAMAAIAAAACAAAAAAAMAAMAAAADAAAAAAAMAAQAAAAAAAAAAAAMAAUAAAABAAAAAAANAPv/AAAAAAAAAAANAPz/AAABAAAAAAANAP3/AAACAAAAAAANAP7/AAADAAAAAAANAP//AAAAAAAAAAANAAAAAAABAAAAAAANAAEAAAACAAAAAAANAAIAAAADAAAAAAANAAMAAAAAAAAAAAANAAQAAAABAAAAAAANAAUAAAACAAAAAAAOAPv/AAABAAAAAAAOAPz/AAACAAAAAAAOAP3/AAADAAAAAAAOAP7/AAAAAAAAAAAOAP//AAABAAAAAAAOAAAAAAACAAAAAAAOAAEAAAADAAAAAAAOAAIAAAAAAAAAAAAOAAMAAAABAAAAAAAOAAQAAAACAAAAAAAOAAUAAAADAAAAAAAPAPv/AAACAAAAAAAPAPz/AAADAAAAAAAPAP3/AAAAAAAAAAAPAP7/AAABAAAAAAAPAP//AAACAAAAAAAPAAAAAAADAAAAAAAPAAEAAAAAAAAAAAAPAAIAAAABAAAAAAAPAAMAAAACAAAAAAAPAAQAAAADAAAAAAAPAAUAAAAAAAAAAAA=")
+tile_set = ExtResource("2_f7rj4")
+
+[node name="CapaParedes" type="TileMapLayer" parent="." unique_id=2049926252]
+y_sort_enabled = true
+texture_filter = 1
+tile_set = ExtResource("3_juca8")
+script = ExtResource("4_51hqc")
+
+[node name="Interactuables" type="Node2D" parent="." unique_id=1993492327]
+y_sort_enabled = true
+
+[node name="FuentesLuz" type="Node2D" parent="Interactuables" unique_id=159189949]
+y_sort_enabled = true
+
+[node name="Mecanismos" type="Node2D" parent="Interactuables" unique_id=177128231]
+y_sort_enabled = true
+
+[node name="Puertas" type="Node2D" parent="Interactuables" unique_id=1488037251]
+y_sort_enabled = true
+
+[node name="Trampas" type="Node2D" parent="Interactuables" unique_id=797384693]
+y_sort_enabled = true
+
+[node name="Decoraciones" type="Node2D" parent="Interactuables" unique_id=1830911702]
+y_sort_enabled = true
+
+[node name="Cofres" type="Node2D" parent="Interactuables" unique_id=863210557]
+y_sort_enabled = true
+
+[node name="Personajes" type="Node2D" parent="Interactuables" unique_id=539574149]
+y_sort_enabled = true
+
+[node name="EnemigoApartado" type="Node2D" parent="Interactuables/Personajes" unique_id=151698438 instance=ExtResource("5_6bw32")]
+position = Vector2(160, -48)
+script = ExtResource("6_10c4a")
+id_instancia = &"enemigo_apartado_prueba"
+definicion = ExtResource("7_v5dtb")
+
+[node name="Guias" type="Node2D" parent="Interactuables" unique_id=843247559]
+y_sort_enabled = true
+
+[node name="ItemsSuelo" type="Node2D" parent="." unique_id=546745217 groups=["items_suelo"]]
+y_sort_enabled = true
+
+[node name="PuntosSpawn" type="Node2D" parent="." unique_id=1605240175]
+
+[node name="PuntoSpawnEntrada" type="Marker2D" parent="PuntosSpawn" unique_id=789620072 groups=["puntos_spawn_zona"] instance=ExtResource("8_a1spf")]
+position = Vector2(32, 16)
+script = ExtResource("9_kb2dv")
+
+[node name="EfectosSuperficie" type="Node2D" parent="." unique_id=305087740]
+y_sort_enabled = true
+
+[node name="CapaColumnas" type="TileMapLayer" parent="." unique_id=1015687503]
+y_sort_enabled = true
+texture_filter = 1
+tile_set = ExtResource("10_3emhs")
+
+[node name="CapaDecoracionNoCaminable" type="TileMapLayer" parent="." unique_id=1076992379]
+y_sort_enabled = true
+texture_filter = 1
+tile_set = ExtResource("11_snk2h")
+
+[node name="CapaDecoracion" type="TileMapLayer" parent="." unique_id=616180476]
+y_sort_enabled = true
+texture_filter = 1
+tile_set = ExtResource("12_w1ot6")
+
+[node name="CapaOscuridad" type="TileMapLayer" parent="." unique_id=2025667154]
+y_sort_enabled = true
+tile_set = ExtResource("13_83vi1")
+y_sort_origin = 2
+
+[node name="CapaPinchos" type="TileMapLayer" parent="." unique_id=692431098]
+texture_filter = 1
+tile_set = ExtResource("14_1wpxl")
+
+[node name="CapaLodo" type="TileMapLayer" parent="." unique_id=1045937498]
+texture_filter = 1
+tile_set = ExtResource("15_7jp2k")
+
+[node name="CapaHielo" type="TileMapLayer" parent="." unique_id=1110469879]
+texture_filter = 1
+tile_set = ExtResource("16_b3epi")
+
+[node name="CapaFuego" type="TileMapLayer" parent="." unique_id=764711548]
+texture_filter = 1
+tile_set = ExtResource("17_ea3r7")
+
+[node name="CapaTelaraña" type="TileMapLayer" parent="." unique_id=1823828182]
+texture_filter = 1
+tile_set = ExtResource("18_loarl")

@@ -1,5 +1,25 @@
 # Decisiones arquitectónicas
 
+- El 20-10-2026 el usuario definió un campamento de descanso inspirado en
+  Baldur's Gate: se podrá acceder desde cualquier lugar y sin límite de visitas.
+  Será un escenario propio con una fogata central; allí el jugador decidirá si
+  descansar gastando provisiones. Entrar no equivale a descansar. En el encargo
+  de implementación se confirmó bloquear combate, movimiento, acciones, diálogos
+  y menús modales. Después el usuario eligió explícitamente **1 ración para
+  recuperar todos los PV y la energía**. Implementado el primer corte: B abre
+  una escena propia, confirmación separada, regreso al mismo escenario retenido,
+  raciones persistidas y guardado/carga también dentro del campamento. Se guarda
+  terreno explorado y se recalcula la visibilidad desde la posición restaurada.
+  **Provisional técnico, no acuerdo de simulación**: el mundo queda suspendido
+  durante la visita y el descanso; no avanzan patrullas, estados ni superficies.
+  El campamento ahora abre `DescansoCuevas`, zona explorable creada desde la
+  plantilla actualizada, con suelo, paredes, entrada y fogata editables. Su
+  estado interno es temporal; el guardado conserva el escenario de origen.
+  La pregunta de avance del mundo sigue abierta. No hay reloj de horas ni tirada
+  5+; el catálogo y los usos concretos de habilidades siguen pendientes.
+  [Primer corte y comprobaciones](../pruebas/CAMPAMENTO.md).
+  [Diseño y estado](../contenido/PROGRESION_Y_HABILIDADES.md).
+
 - El 15-10-2026 se consolidó NPC después de la auditoría crítica: normalización
   de términos JSON sin relajar el motor de dados y descarte del gestor anterior
   sin borrar memoria restaurada. La decisión táctica reutiliza su ruta dentro

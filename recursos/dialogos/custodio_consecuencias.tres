@@ -1,9 +1,9 @@
-[gd_resource type="Resource" script_class="DialogoNPC" load_steps=9 format=3]
+[gd_resource type="Resource" script_class="DialogoNPC" format=3 uid="uid://dei3xkauot3uk"]
 
-[ext_resource type="Script" path="res://scripts/personajes/dialogo_npc.gd" id="1_tema"]
-[ext_resource type="DialogueResource" path="res://dialogues/personajes/prueba_consecuencias.dialogue" id="2_dialogo"]
-[ext_resource type="Script" path="res://scripts/personajes/prueba_dialogo_npc.gd" id="3_prueba"]
-[ext_resource type="Script" path="res://scripts/personajes/consecuencia_dialogo_npc.gd" id="4_consecuencia"]
+[ext_resource type="Script" uid="uid://bmsmwb5764q7n" path="res://scripts/personajes/dialogo_npc.gd" id="1_tema"]
+[ext_resource type="Resource" uid="uid://b368e6y14mp82" path="res://dialogues/personajes/prueba_consecuencias.dialogue" id="2_dialogo"]
+[ext_resource type="Script" uid="uid://d4ne1sburscjj" path="res://scripts/personajes/prueba_dialogo_npc.gd" id="3_prueba"]
+[ext_resource type="Script" uid="uid://be26racpbjfoc" path="res://scripts/personajes/consecuencia_dialogo_npc.gd" id="4_consecuencia"]
 
 [sub_resource type="Resource" id="Consecuencia_confianza"]
 script = ExtResource("4_consecuencia")

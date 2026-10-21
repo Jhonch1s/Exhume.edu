@@ -3,12 +3,13 @@
 [ext_resource type="Script" uid="uid://cosqwlc2jnmwe" path="res://scripts/personajes/definicion_personaje.gd" id="1_definicion"]
 [ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="1_lx3bb"]
 [ext_resource type="Script" uid="uid://bccqt6gfe8843" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="1_perfil"]
+[ext_resource type="Script" uid="uid://d4ne1sburscjj" path="res://scripts/personajes/prueba_dialogo_npc.gd" id="2_endq8"]
 [ext_resource type="Texture2D" uid="uid://db2d0vkpx0n6j" path="res://assets/characters/npcs/goblin_unico/sprites/trompo.png" id="2_sprite"]
 [ext_resource type="Texture2D" uid="uid://e4tlnt1j88ff" path="res://assets/characters/npcs/goblin_unico/illustrations/exam/goblin.png" id="3_ilustracion"]
 [ext_resource type="Resource" uid="uid://chpnn3nvwuy4l" path="res://dialogues/personajes/trompo.dialogue" id="4_dialogo"]
 [ext_resource type="Script" uid="uid://bmsmwb5764q7n" path="res://scripts/personajes/dialogo_npc.gd" id="5_dialogo_npc"]
 [ext_resource type="Texture2D" uid="uid://c7evxfquskjau" path="res://assets/characters/npcs/goblin_unico/dialogue/trompo.png" id="6_ilustracion_dialogo"]
-[ext_resource type="Texture2D" path="res://assets/characters/npcs/goblin_unico/portraits/trompo_turno.png" id="7_retrato_turno"]
+[ext_resource type="Texture2D" uid="uid://cgwyenav3kjfg" path="res://assets/characters/npcs/goblin_unico/portraits/trompo_turno.png" id="7_retrato_turno"]
 
 [sub_resource type="Resource" id="Dialogo_saludo"]
 script = ExtResource("5_dialogo_npc")

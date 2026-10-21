@@ -77,10 +77,15 @@ signal combate_iniciado(npc: PersonajeNPC)
 
 const SONIDO_ESPADA_1: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ataque/Sword Swing 1_3.wav")
 const SONIDO_ESPADA_2: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ataque/Sword Swing 1_4.wav")
+const SONIDO_QUEMADURA: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ambiente/fuego quemadura.wav")
+const PARTICULAS_QUEMADO: PackedScene = preload("res://scenes/efectos_superficie/particulas_quemado.tscn")
+const SHADER_QUEMADO: Shader = preload("res://assets/ui/shaders/quemado.gdshader")
 
 var reproductor_audio: AudioStreamPlayer2D
 var reproductor_proximidad: AudioStreamPlayer2D
 var temporizador_proximidad: Timer
+var particulas_quemado: Node2D
+var material_quemado: ShaderMaterial
 
 
 func _ready() -> void:
@@ -90,6 +95,7 @@ func _ready() -> void:
 		if Engine.is_editor_hint():
 			return
 		_asegurar_estado()
+		_actualizar_visual_quemado()
 		if perfil.puede_tener_inventario:
 			obtener_inventario()
 		_inicializar_audio_npc()
@@ -113,6 +119,11 @@ func _actualizar_representacion(inicializar: bool = false) -> void:
 	if cambiar_frame:
 		sprite_personaje.frame = 0 if usa_cadaver else perfil.orientacion_mapa_inicial
 	sprite_personaje.offset = perfil.offset_sprite_mapa
+
+
+func actualizar_presentacion_visibilidad(estado: int) -> void:
+	super.actualizar_presentacion_visibilidad(estado)
+	visible = estado == Celda.EstadoVisibilidad.VISIBLE
 
 
 func obtener_presentacion_inventario() -> DefinicionCofre:
@@ -187,7 +198,28 @@ func obtener_patrulla() -> PatrullaNPC:
 
 
 func _on_estado_temporal_cambiado(clave: StringName, estado: EstadoActor) -> void:
+	if clave == &"quemado":
+		_actualizar_visual_quemado()
 	estado_cambiado.emit(clave, estado)
+
+
+func _actualizar_visual_quemado() -> void:
+	if not is_instance_valid(sprite_personaje):
+		return
+	var quemado := obtener_estado(&"quemado") != null and not esta_muerto()
+	if quemado:
+		if material_quemado == null:
+			material_quemado = ShaderMaterial.new()
+			material_quemado.shader = SHADER_QUEMADO
+		sprite_personaje.material = material_quemado
+		if not is_instance_valid(particulas_quemado):
+			particulas_quemado = PARTICULAS_QUEMADO.instantiate() as Node2D
+			sprite_personaje.add_child(particulas_quemado)
+	else:
+		sprite_personaje.material = null
+		if is_instance_valid(particulas_quemado):
+			particulas_quemado.queue_free()
+			particulas_quemado = null
 
 
 func obtener_estado(clave: StringName) -> EstadoActor:
@@ -210,16 +242,22 @@ func aplicar_o_renovar_estado(
 	fuente: Object = null, terminos_dano_tick: Array[Dictionary] = []
 ) -> Dictionary:
 	var estado := _asegurar_estado()
-	return (
+	var resultado := (
 		estado.estados_temporales.aplicar_o_renovar_estado(
 			clave, magnitud, duracion_total, ticks_pendientes, fuente, terminos_dano_tick
 		) if estado != null else {}
 	)
+	if clave == &"quemado" and not resultado.is_empty():
+		_reproducir_sonido_quemadura()
+	return resultado
 
 
 func consumir_tick_estado(clave: StringName) -> Dictionary:
 	var estado := _asegurar_estado()
-	return estado.estados_temporales.consumir_tick_estado(clave) if estado != null else {}
+	var resultado := estado.estados_temporales.consumir_tick_estado(clave) if estado != null else {}
+	if clave == &"quemado" and not resultado.is_empty():
+		_reproducir_sonido_quemadura()
+	return resultado
 
 
 func _crear_estado_inicial() -> EstadoPersonajeNPC:
@@ -344,7 +382,13 @@ func puede_detectar_jugador(jugador: Ficha, validador: ValidadorEspacialTablero)
 		or not se_opone_al_jugador()
 	):
 		return false
-	return puede_ver_coordenada(jugador.coordenada_mapa, validador)
+	return puede_ver_actor(jugador, validador)
+
+
+func puede_ver_actor(actor: Object, validador: ValidadorEspacialTablero, radio_maximo: int = -1) -> bool:
+	if actor is Ficha and actor.turnos_oculto > 0:
+		return false
+	return actor != null and puede_ver_coordenada(actor.coordenada_mapa, validador, radio_maximo)
 
 
 func puede_ver_coordenada(
@@ -469,6 +513,7 @@ func _notificar_cambio_vida(anterior: int, actual: int) -> void:
 		olvidar_posicion_jugador()
 		agotar_recursos_turno()
 	_actualizar_representacion()
+	_actualizar_visual_quemado()
 	puntos_vida_cambiados.emit(actual, estado_personaje.definicion.vida_maxima)
 	if (anterior == 0) != (actual == 0):
 		derrota_cambiada.emit(actual == 0)
@@ -559,6 +604,7 @@ func restaurar_estado_persistente(datos: Dictionary) -> StringName:
 		if patrulla_inicial != null:
 			patrulla_inicial.restaurar_estado_persistente()
 		_notificar_cambio_vida(anterior, vida_actual)
+		_actualizar_visual_quemado()
 		return &""
 	var estado := _asegurar_estado()
 	var motivo := validar_estado_persistente(datos)
@@ -579,6 +625,7 @@ func restaurar_estado_persistente(datos: Dictionary) -> StringName:
 		if not datos.has("coordenada_origen"):
 			estado.coordenada_origen = _origen_inicial
 		_notificar_cambio_vida(anterior, vida_actual)
+		_actualizar_visual_quemado()
 	return motivo
 
 func _inicializar_audio_npc() -> void:
@@ -645,6 +692,14 @@ func reproducir_gemido_dolor() -> void:
 			reproductor_audio.volume_db = -4.0
 			reproductor_audio.pitch_scale = randf_range(0.95, 1.05)
 			reproductor_audio.play()
+
+
+func _reproducir_sonido_quemadura() -> void:
+	_inicializar_audio_npc()
+	if is_instance_valid(reproductor_audio):
+		reproductor_audio.stream = SONIDO_QUEMADURA
+		reproductor_audio.volume_db = -6.0
+		reproductor_audio.play()
 
 
 func reproducir_sonido_proximidad() -> void:
@@ -848,6 +903,14 @@ func _resolver_ataque_basico(contexto: ContextoAccion) -> ResultadoAccion:
 		resultado.terminal, resultado.solicitudes_efecto, resultado.destino_item,
 		resultado.tirada, resultado.tirada_defensa
 	)
+
+
+func resolver_golpe_extra_ataque_doble(contexto: ContextoAccion) -> ResultadoAccion:
+	# El primer golpe ya pagó la acción principal; se repite únicamente la tirada.
+	var motivo := _validar_ataque_basico(contexto)
+	if motivo != &"":
+		return ResultadoAccion.crear_bloqueo(motivo)
+	return _resolver_ataque_basico(contexto)
 
 
 func contiene_punto_visual(punto_global: Vector2) -> bool:

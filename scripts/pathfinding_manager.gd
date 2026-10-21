@@ -37,17 +37,39 @@ func calcular_camino(
 	tablero_datos: Dictionary,
 	actor: Object = null
 ) -> Array[Vector2i]:
+	return _calcular_camino(origen, destino, tablero_datos, actor, false)
+
+
+func calcular_camino_conocido(
+	origen: Vector2i,
+	destino: Vector2i,
+	tablero_datos: Dictionary,
+	actor: Object = null
+) -> Array[Vector2i]:
+	return _calcular_camino(origen, destino, tablero_datos, actor, true)
+
+
+func _calcular_camino(
+	origen: Vector2i,
+	destino: Vector2i,
+	tablero_datos: Dictionary,
+	actor: Object,
+	solo_conocido: bool
+) -> Array[Vector2i]:
 	var camino:Array[Vector2i]=[]
 	if actor != null and actor.has_method(&"puede_moverse") and not actor.call(&"puede_moverse"):
 		return camino
 	if not tablero_datos.has(origen) or not tablero_datos.has(destino):
+		return camino
+	if solo_conocido and tablero_datos[destino].visibilidad == Celda.EstadoVisibilidad.OCULTO:
 		return camino
 
 	# La ocupacion es dinamica: se evalua en cada consulta de ruta.
 	for coord in tablero_datos.keys():
 		var celda: Celda = tablero_datos[coord]
 		var bloqueada := (
-			not celda.es_caminable_efectiva()
+			(solo_conocido and celda.visibilidad == Celda.EstadoVisibilidad.OCULTO)
+			or not celda.es_caminable_efectiva()
 			or celda.tiene_contenido()
 			or celda.esta_reservada()
 		)
@@ -55,7 +77,8 @@ func calcular_camino(
 			bloqueada = false
 		var id := _obtener_id_unico(coord)
 		astar.set_point_disabled(id, bloqueada)
-		astar.set_point_weight_scale(id, celda.calcular_peso_ruta(actor))
+		if not solo_conocido or celda.visibilidad != Celda.EstadoVisibilidad.OCULTO:
+			astar.set_point_weight_scale(id, celda.calcular_peso_ruta(actor))
 
 	if destino != origen:
 		var celda_destino: Celda = tablero_datos[destino]

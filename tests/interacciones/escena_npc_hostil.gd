@@ -8,7 +8,7 @@ const RUTA_GUARDADO_PRUEBA := "user://prueba_npc_hostil.json"
 const SIN_CELDA := Vector2i(-999, -999)
 
 @export_range(1, 5, 1) var cantidad_enemigos: int = 3
-@export_range(0, 20, 1) var radio_vision_enemigos: int = 0
+@export_range(0, 20, 1) var radio_vision_enemigos: int = 5
 
 var _escenario: Node2D
 var _enemigos: Array[PersonajeNPC] = []

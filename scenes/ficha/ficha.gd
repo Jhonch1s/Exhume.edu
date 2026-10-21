@@ -66,6 +66,10 @@ const ID_ANTORCHA := &"antorcha"
 const PASOS_MAX_ANTORCHA: int = 80
 var pasos_antorcha_actual: int = 0
 var raciones: int = 3
+var usos_ataque_doble: int = 1
+var usos_ocultarse: int = 1
+var usos_bola_fuego: int = 1
+var turnos_oculto: int = 0
 var inventario: Inventario = Inventario.new()
 
 var coordenada_mapa: Vector2i = Vector2i.ZERO
@@ -89,6 +93,8 @@ signal movimiento_terminado(interrumpido: bool)
 signal puntos_vida_cambiados(actual: int, maximo: int)
 signal estado_cambiado(clave: StringName, estado: EstadoActor)
 signal recursos_turno_cambiados(recursos: RecursosTurnoActor)
+signal descanso_realizado
+signal usos_habilidades_cambiados
 
 
 
@@ -133,6 +139,60 @@ func puede_actuar() -> bool:
 func obtener_inventario() -> Inventario:
 	return inventario
 
+
+func descansar_en_campamento() -> StringName:
+	if not puede_actuar():
+		return &"descanso_jugador_sin_vida"
+	if raciones < 1:
+		return &"descanso_sin_provisiones"
+	raciones -= 1
+	pv_actual = pv_max
+	energia_actual = energia_maxima
+	usos_ataque_doble = 1
+	usos_ocultarse = 1
+	usos_bola_fuego = 1
+	puntos_vida_cambiados.emit(pv_actual, pv_max)
+	usos_habilidades_cambiados.emit()
+	descanso_realizado.emit()
+	return &""
+
+
+func consumir_ataque_doble() -> bool:
+	if clase != "Guerrero" or usos_ataque_doble < 1:
+		return false
+	usos_ataque_doble -= 1
+	usos_habilidades_cambiados.emit()
+	return true
+
+
+func ocultarse() -> bool:
+	if clase != "Ladrón" or usos_ocultarse < 1 or not puede_actuar():
+		return false
+	usos_ocultarse -= 1
+	turnos_oculto = 2
+	usos_habilidades_cambiados.emit()
+	return true
+
+
+func consumir_bola_fuego() -> bool:
+	if clase != "Mago" or usos_bola_fuego < 1:
+		return false
+	usos_bola_fuego -= 1
+	usos_habilidades_cambiados.emit()
+	return true
+
+
+func avanzar_ocultamiento() -> void:
+	if turnos_oculto > 0:
+		turnos_oculto -= 1
+		usos_habilidades_cambiados.emit()
+
+
+func romper_ocultamiento() -> void:
+	if turnos_oculto > 0:
+		turnos_oculto = 0
+		usos_habilidades_cambiados.emit()
+
 func obtener_cantidad_antorchas() -> int:
 	var cantidad := 0
 	for item in inventario.obtener_por_definicion(ID_ANTORCHA):
@@ -173,6 +233,7 @@ func recibir_danio(cantidad: int, _fuente: Object = null) -> int:
 	pv_actual = maxi(0, pv_actual - cantidad)
 	var aplicado := anterior - pv_actual
 	if aplicado > 0:
+		romper_ocultamiento()
 		reproducir_efecto_danio()
 		reproducir_sonido_danio()
 		print("Vida de %s: %d/%d" % [nombre, pv_actual, pv_max])
@@ -308,6 +369,11 @@ func obtener_estado_persistente() -> Dictionary:
 		"coordenada": [coordenada_mapa.x, coordenada_mapa.y],
 		"pv_actual": pv_actual,
 		"energia_actual": energia_actual,
+		"raciones": raciones,
+		"usos_ataque_doble": usos_ataque_doble,
+		"usos_ocultarse": usos_ocultarse,
+		"usos_bola_fuego": usos_bola_fuego,
+		"turnos_oculto": turnos_oculto,
 		"pasos_antorcha_actual": pasos_antorcha_actual,
 		"recursos_turno": recursos_turno.obtener_restantes(),
 		"movimiento_maximo": recursos_turno.obtener_maximo(RecursosTurnoActor.MOVIMIENTO),
@@ -319,6 +385,27 @@ func obtener_estado_persistente() -> Dictionary:
 func validar_estado_persistente(estado: Variant) -> StringName:
 	if not estado is Dictionary:
 		return &"estado_ficha_invalido"
+	if not _es_numero_entero(estado.get("raciones", 3)) or estado.get("raciones", 3) < 0:
+		return &"raciones_guardadas_invalidas"
+	if (
+		not _es_numero_entero(estado.get("usos_ataque_doble", 1))
+		or estado.get("usos_ataque_doble", 1) < 0
+		or estado.get("usos_ataque_doble", 1) > 1
+	):
+		return &"usos_habilidades_guardados_invalidos"
+	if (
+		not _es_numero_entero(estado.get("usos_ocultarse", 1))
+		or estado.get("usos_ocultarse", 1) < 0 or estado.get("usos_ocultarse", 1) > 1
+		or not _es_numero_entero(estado.get("turnos_oculto", 0))
+		or estado.get("turnos_oculto", 0) < 0 or estado.get("turnos_oculto", 0) > 2
+		or (estado.get("turnos_oculto", 0) > 0 and (estado.get("usos_ocultarse", 1) != 0 or estado.get("clase") != "Ladrón"))
+	):
+		return &"ocultamiento_guardado_invalido"
+	if (
+		not _es_numero_entero(estado.get("usos_bola_fuego", 1))
+		or estado.get("usos_bola_fuego", 1) < 0 or estado.get("usos_bola_fuego", 1) > 1
+	):
+		return &"usos_habilidades_guardados_invalidos"
 	if (
 		not estado.get("nombre") is String or estado["nombre"].strip_edges().is_empty()
 		or not estado.get("titulo") is String or estado["titulo"].strip_edges().is_empty()
@@ -405,6 +492,12 @@ func restaurar_estado_persistente(estado: Variant) -> StringName:
 		global_position = capa_referencia.to_global(capa_referencia.map_to_local(coordenada_mapa))
 	pv_actual = int(estado["pv_actual"])
 	energia_actual = int(estado["energia_actual"])
+	# Los guardados anteriores nunca persistían el contador inicial de tres.
+	raciones = int(estado.get("raciones", 3))
+	usos_ataque_doble = int(estado.get("usos_ataque_doble", 1))
+	usos_ocultarse = int(estado.get("usos_ocultarse", 1))
+	usos_bola_fuego = int(estado.get("usos_bola_fuego", 1))
+	turnos_oculto = int(estado.get("turnos_oculto", 0))
 	pasos_antorcha_actual = int(estado.get("pasos_antorcha_actual", 0))
 	recursos_turno = _crear_recursos_turno(des)
 	recursos_turno.restaurar(estado["recursos_turno"], int(estado.get("movimiento_maximo", 7)))
@@ -414,6 +507,7 @@ func restaurar_estado_persistente(estado: Variant) -> StringName:
 	_actualizar_efectos_estado()
 	puntos_vida_cambiados.emit(pv_actual, pv_max)
 	recursos_turno_cambiados.emit(recursos_turno)
+	usos_habilidades_cambiados.emit()
 	return &""
 
 

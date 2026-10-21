@@ -23,7 +23,8 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 @onready var capa_paredes_oclusivas: CapaParedesOclusivas = (
 	zona_actual.get_node("CapaParedes") as CapaParedesOclusivas
 )
-@onready var camera_2d: Camera2D = $Camera2D
+@onready var camera_2d: CamaraEscenario = $Camera2D
+@onready var estado_camara: Label = $CanvasLayer/EstadoCamara
 @onready var capa_camino: TileMapLayer = $CapaCamino
 @onready var trayectoria_lanzamiento: Line2D = $TrayectoriaLanzamiento
 @onready var gestor_vision: FOVManager = $GestorVision
@@ -52,6 +53,9 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 @onready var ladronModelo: Node3D = $ThiefViewPort/ThiefSubViewport/ladronmodelo
 @onready var panel_inventario_cofre: PanelInventarioCofre = (
 	$CanvasLayer/PanelInventarioCofre
+)
+@onready var panel_inventario_equipo: PanelInventarioEquipo = (
+	$CanvasLayer/PanelInventarioEquipo
 )
 
 const modeloCaballero = preload("res://assets/characters/knight3d/cavallerov2.glb")
@@ -85,6 +89,14 @@ const PLAYLIST_COMBATE: Array[AudioStream] = [
 	preload("res://assets/sonidos/sonidos finales/musica buena/pelea/Loop 3.wav"),
 ]
 const RUTA_GUARDADO := "user://partida.json"
+const ESCENA_CAMPAMENTO = preload("res://scenes/campamento/campamento.tscn")
+var campamento: CanvasLayer
+var _modo_proceso_antes_campamento: ProcessMode
+var _audio_antes_campamento: Dictionary = {}
+var _acciones_en_resolucion := 0
+var boton_campamento: Button
+var es_escenario_de_descanso := false
+var control_descanso: Node
 @export var catalogo_mensajes: CatalogoMensajesInteraccion
 @export_category("Ilustraciones de diálogo del jugador")
 @export var ilustracion_dialogo_guerrero: Texture2D
@@ -110,6 +122,8 @@ var servicio_examen: ServicioExamen
 var servicio_percepcion_trampas: ServicioPercepcionTrampas
 var accion_destrabarse: AccionDestrabarse = AccionDestrabarse.new()
 var ficha_jugador: Ficha = null
+var seleccionando_ataque_doble := false
+var seleccionando_bola_fuego := false
 var transferidor_items: TransferidorItems
 var selector_objetivos: SelectorObjetivosInteraccion = SelectorObjetivosInteraccion.new()
 var adaptador_menu_contextual: AdaptadorMenuContextual = AdaptadorMenuContextual.new()
@@ -184,6 +198,10 @@ var pasos_movimiento_actual: int = 0
 var longitud_movimiento_actual: int = 0
 var nombreClase: String = "Guerrero"
 var _firma_secuencia_combate := ""
+var _actor_turno_camara: Object
+var _centrado_camara_pendiente := false
+var _dialogos_camara: Array[DialogueResource] = []
+var _puntero_en_ventana := true
 
 func _ready() -> void:
 	# Las capas se guardan ocultas para poder editar el mapa sin la interfaz encima.
@@ -195,7 +213,14 @@ func _ready() -> void:
 
 	panel_registro_narrativo.observar(registro_narrativo)
 	gestor_acciones.accion_finalizada.connect(_on_agresion_resuelta)
+	gestor_acciones.accion_iniciada.connect(func(_contexto): _acciones_en_resolucion += 1)
+	gestor_acciones.accion_finalizada.connect(func(_contexto, _resultado): _acciones_en_resolucion = maxi(0, _acciones_en_resolucion - 1))
+	if not es_escenario_de_descanso:
+		_crear_acceso_campamento()
 	hud.pasar_turno_solicitado.connect(_on_pasar_turno_hud)
+	hud.ataque_doble_solicitado.connect(_on_ataque_doble_hud)
+	hud.ocultarse_solicitado.connect(_on_ocultarse_hud)
+	hud.bola_fuego_solicitada.connect(_on_bola_fuego_hud)
 	panel_orden_combate.retrato_pulsado.connect(_on_retrato_combate_pulsado)
 	menu_contextual.opcion_accion_elegida.connect(_on_opcion_contextual_elegida)
 	menu_contextual.objetivo_elegido.connect(_on_objetivo_contextual_elegido)
@@ -208,11 +233,15 @@ func _ready() -> void:
 	panel_examen_ilustrado.cerrado.connect(_on_panel_resultado_cerrado)
 	panel_ficha_npc.cerrado.connect(_on_panel_resultado_cerrado)
 	panel_inventario_cofre.visibility_changed.connect(_actualizar_estado_modal_interaccion)
+	panel_inventario_equipo.visibility_changed.connect(_actualizar_estado_modal_interaccion)
+	DialogueManager.dialogue_started.connect(_on_dialogo_camara_iniciado)
+	DialogueManager.dialogue_ended.connect(_on_dialogo_camara_finalizado)
 	add_child(gestor_acciones)
 	resolver_reacciones = ResolverReaccionesCelda.new(gestor_acciones)
 	servicio_turnos = ServicioTurnos.new(gestor_acciones)
 	procesador_superficies = ProcesadorSuperficies.new(tablero)
 	tablero.generar_desde_zona(zona_actual)
+	camera_2d.configurar_limites(zona_actual)
 	validador_espacial = ValidadorEspacialTablero.new(tablero)
 	servicio_percepcion_trampas = ServicioPercepcionTrampas.new(
 		tablero, registro_conocimiento, validador_espacial
@@ -240,7 +269,8 @@ func _ready() -> void:
 	pathfinding.inicializar(tablero.datos)
 	gestor_vision.inicializar(capa_oscuridad, tablero)
 	_inicializar_audio_ambiente()
-	_inicializar_musica()
+	if not es_escenario_de_descanso:
+		_inicializar_musica()
 	await spawnear_ficha_inicial()
 	if ficha_jugador:
 		hud.configurar_ficha(ficha_jugador)
@@ -248,9 +278,16 @@ func _ready() -> void:
 		_colocar_piedra_prueba()
 		_actualizar_luz_jugador(ficha_jugador.coordenada_mapa)
 		_actualizar_audio_proximidad()
+		centrar_camara_en_ficha()
 
 func _process(delta: float) -> void:
-	centrar_camara_en_ficha()
+	if is_instance_valid(campamento):
+		CursorJuego.ocultar_probabilidad_ataque()
+		return
+	if is_instance_valid(boton_campamento):
+		var motivo_campamento := motivo_bloqueo_campamento()
+		boton_campamento.disabled = motivo_campamento != &""
+		boton_campamento.tooltip_text = mensaje_bloqueo_campamento(motivo_campamento)
 	if capa_vision_npc.visible:
 		capa_vision_npc.actualizar(gestor_rondas)
 	if ficha_jugador and capa_paredes_oclusivas:
@@ -262,6 +299,7 @@ func _process(delta: float) -> void:
 	_actualizar_disponibilidad_turno()
 	_actualizar_reloj_exploracion_npc(delta)
 	_actualizar_fade_fin_musica()
+	_actualizar_camara(delta)
 	if ficha_jugador and ficha_jugador.esta_moviendose:
 		trayectoria_lanzamiento.clear_points()
 		capa_selector.clear()
@@ -270,16 +308,28 @@ func _process(delta: float) -> void:
 		ultima_coordenada_hover = Vector2i(-999, -999)
 		return
 	if interaccion_modal_activa:
+		CursorJuego.ocultar_probabilidad_ataque()
+		trayectoria_lanzamiento.clear_points()
 		capa_selector.clear()
 		capa_camino.clear()
 		camino_actual_tentativo.clear()
 		return
 	_evaluar_agro_npc()
 	if en_combate and (not _es_turno_jugador() or _turno_exploracion_en_curso):
+		trayectoria_lanzamiento.clear_points()
 		capa_selector.clear()
 		capa_camino.clear()
 		camino_actual_tentativo.clear()
 		_limpiar_hover_interaccion()
+		return
+
+	if camera_2d.desplazando or not _dialogos_camara.is_empty() or _puntero_sobre_interfaz():
+		trayectoria_lanzamiento.clear_points()
+		capa_selector.clear()
+		capa_camino.clear()
+		camino_actual_tentativo.clear()
+		_limpiar_hover_interaccion()
+		ultima_coordenada_hover = Vector2i(-999, -999)
 		return
 
 	var capa_suelo: TileMapLayer = zona_actual.get_node_or_null("CapaSuelo")
@@ -287,10 +337,21 @@ func _process(delta: float) -> void:
 		return
 	var coord_actual := capa_suelo.local_to_map(capa_suelo.to_local(get_global_mouse_position()))
 	if item_lanzamiento_pendiente != null:
+		CursorJuego.ocultar_probabilidad_ataque()
 		CursorJuego.establecer_cursor(CursorJuego.Tipo.LANZAR)
 		if coord_actual != ultima_coordenada_hover:
 			_actualizar_previsualizacion_lanzamiento(coord_actual)
 			ultima_coordenada_hover = coord_actual
+		return
+	if seleccionando_bola_fuego:
+		_actualizar_previsualizacion_bola_fuego(coord_actual, get_global_mouse_position())
+		return
+	if not _celda_conocida_para_movimiento(coord_actual):
+		capa_selector.clear()
+		capa_camino.clear()
+		camino_actual_tentativo.clear()
+		_limpiar_hover_interaccion()
+		ultima_coordenada_hover = coord_actual
 		return
 	_actualizar_hover_interaccion(coord_actual, get_global_mouse_position())
 	if coord_actual == ultima_coordenada_hover:
@@ -299,7 +360,7 @@ func _process(delta: float) -> void:
 	capa_selector.clear()
 	if tablero.es_celda_valida(coord_actual):
 		capa_selector.set_cell(coord_actual, 0, Vector2i(1, 1))
-		camino_actual_tentativo = pathfinding.calcular_camino(
+		camino_actual_tentativo = pathfinding.calcular_camino_conocido(
 			ficha_jugador.coordenada_mapa,
 			coord_actual,
 			tablero.datos,
@@ -319,7 +380,29 @@ func _process(delta: float) -> void:
 	_actualizar_cursor_movimiento(coord_actual)
 	ultima_coordenada_hover = coord_actual
 
+func _input(event: InputEvent) -> void:
+	if not event is InputEventKey or event.keycode != KEY_SPACE or _camara_bloqueada():
+		return
+	# Espacio no debe activar un botón del HUD que conserve el foco.
+	get_viewport().set_input_as_handled()
+	if event.pressed and not event.echo:
+		centrar_camara_en_ficha()
+
+
 func _unhandled_input(event: InputEvent) -> void:
+	if not es_escenario_de_descanso and event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_B:
+		entrar_campamento()
+		get_viewport().set_input_as_handled()
+		return
+	if not _dialogos_camara.is_empty():
+		return
+	if event is InputEventMouseButton and event.pressed and not _camara_bloqueada():
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP or event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			if Rect2(Vector2.ZERO, get_viewport_rect().size).has_point(event.position) and not _puntero_sobre_panel_desplazable():
+				var pasos: float = event.factor if event.factor > 0.0 else 1.0
+				camera_2d.cambiar_zoom(pasos if event.button_index == MOUSE_BUTTON_WHEEL_UP else -pasos, ficha_jugador.global_position)
+				get_viewport().set_input_as_handled()
+			return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_V and not interaccion_modal_activa and item_lanzamiento_pendiente == null and ficha_jugador != null:
 		capa_vision_npc.alternar(gestor_rondas)
 		get_viewport().set_input_as_handled()
@@ -331,6 +414,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		_cancelar_lanzamiento()
 		get_viewport().set_input_as_handled()
 		return
+	if seleccionando_ataque_doble and event.is_action_pressed(&"ui_cancel"):
+		seleccionando_ataque_doble = false
+		get_viewport().set_input_as_handled()
+		return
+	if seleccionando_bola_fuego and event.is_action_pressed(&"ui_cancel"):
+		_cancelar_bola_fuego()
+		get_viewport().set_input_as_handled()
+		return
 	if interaccion_modal_activa:
 		if event.is_action_pressed(&"ui_cancel"):
 			if is_instance_valid(menu_contextual) and menu_contextual.visible:
@@ -340,13 +431,29 @@ func _unhandled_input(event: InputEvent) -> void:
 				and panel_resultado_accion.visible
 			):
 				panel_resultado_accion.ocultar()
+			elif (
+				is_instance_valid(panel_inventario_equipo)
+				and panel_inventario_equipo.visible
+			):
+				panel_inventario_equipo.cerrar()
 		get_viewport().set_input_as_handled()
 		return
 	if en_combate and not _es_turno_jugador():
 		get_viewport().set_input_as_handled()
 		return
+	if _activar_atajo_numerico(event):
+		get_viewport().set_input_as_handled()
+		return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F3:
 		_imprimir_celda_bajo_cursor()
+		get_viewport().set_input_as_handled()
+		return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_I and not dialogo_npc_activo:
+		if is_instance_valid(panel_inventario_equipo):
+			if panel_inventario_equipo.visible:
+				panel_inventario_equipo.cerrar()
+			else:
+				panel_inventario_equipo.abrir(ficha_jugador)
 		get_viewport().set_input_as_handled()
 		return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_L:
@@ -359,6 +466,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if not event is InputEventMouseButton or not event.pressed:
 		return
+	if camera_2d.desplazando or _puntero_sobre_interfaz():
+		return
 	var capa_suelo: TileMapLayer = zona_actual.get_node_or_null("CapaSuelo")
 	if not capa_suelo:
 		return
@@ -367,6 +476,20 @@ func _unhandled_input(event: InputEvent) -> void:
 		_manejar_clic_izquierdo(coord_clic, get_global_mouse_position())
 	elif event.button_index == MOUSE_BUTTON_RIGHT:
 		_manejar_clic_derecho(coord_clic)
+
+
+func _activar_atajo_numerico(event: InputEvent) -> bool:
+	if not event is InputEventKey or not event.pressed or event.echo:
+		return false
+	var indice := [KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8].find(event.keycode)
+	if indice < 0:
+		indice = [KEY_KP_1, KEY_KP_2, KEY_KP_3, KEY_KP_4, KEY_KP_5, KEY_KP_6, KEY_KP_7, KEY_KP_8].find(event.keycode)
+	if indice < 0:
+		return false
+	var boton: Button = hud.habilidades[indice] if indice < hud.habilidades.size() else hud.items_rapidos[indice - hud.habilidades.size()]
+	if not boton.disabled:
+		boton.pressed.emit()
+	return true
 
 
 func _imprimir_celda_bajo_cursor() -> void:
@@ -386,6 +509,12 @@ func _manejar_clic_izquierdo(coord: Vector2i, punto_global: Variant = null) -> v
 		return
 	if item_lanzamiento_pendiente != null:
 		_seleccionar_celda_lanzamiento(coord)
+		return
+	if seleccionando_ataque_doble:
+		_seleccionar_objetivo_ataque_doble(coord, punto_global)
+		return
+	if seleccionando_bola_fuego:
+		_seleccionar_objetivo_bola_fuego(coord, punto_global)
 		return
 	if not _solicitar_interaccion_en_celda(coord, punto_global):
 		_cerrar_menu_contextual()
@@ -410,12 +539,14 @@ func _manejar_clic_derecho(coord: Vector2i) -> void:
 		# Se interrumpe al terminar el paso en curso, nunca entre dos celdas.
 		ficha_jugador.solicitar_interrupcion()
 		return
+	if not _celda_conocida_para_movimiento(coord):
+		return
 	if not tablero.puede_entrar(coord, ficha_jugador):
 		return
 	_cerrar_menu_contextual()
 
 	# La linea dibujada es tentativa: al confirmar se calcula una ruta nueva.
-	var camino_confirmado := pathfinding.calcular_camino(
+	var camino_confirmado := pathfinding.calcular_camino_conocido(
 		ficha_jugador.coordenada_mapa,
 		coord,
 		tablero.datos,
@@ -464,6 +595,7 @@ func _avanzar_turno_exploracion(ficha: Ficha) -> bool:
 	var resultado := servicio_turnos.avanzar_turno(ficha)
 	if not resultado.exitosa:
 		return false
+	ficha.avanzar_ocultamiento()
 	if resultado.tirada != null:
 		historial_tiradas.registrar(resultado.tirada)
 	if not resultado.mensajes.is_empty() or not resultado.efectos_aplicados.is_empty():
@@ -661,7 +793,9 @@ func _procesar_turno_npc_exploracion(npc: PersonajeNPC, secuencia: int) -> bool:
 	return _exploracion_npc_vigente(secuencia)
 
 
-func _motivo_bloqueo_persistencia(exigir_reposo: bool) -> StringName:
+func _motivo_bloqueo_persistencia(exigir_reposo: bool, registrar_diagnostico: bool = true) -> StringName:
+	if is_instance_valid(campamento) and campamento.descanso_pendiente:
+		return &"partida_interaccion_activa"
 	_actualizar_estado_modal_interaccion()
 	if ficha_jugador == null:
 		return &"partida_sin_jugador"
@@ -673,7 +807,8 @@ func _motivo_bloqueo_persistencia(exigir_reposo: bool) -> StringName:
 		return &"partida_jugador_en_movimiento"
 	for entidad in tablero.interactuables_por_id.values():
 		if entidad is PersonajeNPC and entidad.esta_moviendose:
-			print("Persistencia: movimiento de %s (%s)." % [entidad.obtener_nombre_interaccion(), entidad.id_instancia])
+			if registrar_diagnostico:
+				print("Persistencia: movimiento de %s (%s)." % [entidad.obtener_nombre_interaccion(), entidad.id_instancia])
 			return &"partida_npc_en_movimiento"
 	if _turno_exploracion_en_curso:
 		return &"partida_exploracion_en_curso"
@@ -685,9 +820,14 @@ func guardar_partida(ruta: String = RUTA_GUARDADO) -> StringName:
 	var bloqueo := _motivo_bloqueo_persistencia(false)
 	if bloqueo != &"":
 		return bloqueo
-	return persistencia_partida.guardar_archivo(
-		ruta, tablero, &"zona1", ficha_jugador, registro_conocimiento, gestor_rondas
+	var snapshot := persistencia_partida.crear_snapshot(
+		tablero, obtener_id_zona(), ficha_jugador, registro_conocimiento, gestor_rondas
 	)
+	if snapshot.is_empty():
+		return &"guardado_invalido"
+	snapshot["escena_zona"] = zona_actual.scene_file_path
+	snapshot["en_campamento"] = is_instance_valid(campamento)
+	return persistencia_partida.archivos.guardar(ruta, snapshot)
 
 
 func cargar_partida(ruta: String = RUTA_GUARDADO) -> StringName:
@@ -697,6 +837,11 @@ func cargar_partida(ruta: String = RUTA_GUARDADO) -> StringName:
 	var snapshot: Variant = persistencia_partida.archivos.cargar(ruta)
 	if snapshot is StringName:
 		return snapshot
+	if snapshot.has("escena_zona") and snapshot["escena_zona"] != zona_actual.scene_file_path:
+		return &"zona_guardado_no_coincide"
+	# Antes se llamaba zona1 a todos los mapas; aún se valida su contenido completo.
+	if not snapshot.has("escena_zona") and snapshot.get("zona_id") == "zona1":
+		snapshot["zona_id"] = String(obtener_id_zona())
 	var gestor_guardado: GestorRondas = null
 	if snapshot.get("rondas") != null:
 		var preparacion: Variant = _preparar_gestor_guardado(snapshot["rondas"])
@@ -704,13 +849,20 @@ func cargar_partida(ruta: String = RUTA_GUARDADO) -> StringName:
 			return preparacion
 		gestor_guardado = preparacion as GestorRondas
 	_restaurando_partida = true
+	var tenia_vision := gestor_vision.tiene_vision_calculada
+	# Las señales de restauración no deben explorar desde la posición anterior.
+	gestor_vision.tiene_vision_calculada = false
 	var motivo := persistencia_partida.restaurar(
-		snapshot, tablero, &"zona1", ficha_jugador, registro_conocimiento,
+		snapshot, tablero, obtener_id_zona(), ficha_jugador, registro_conocimiento,
 		gestor_guardado
 	)
 	_restaurando_partida = false
+	gestor_vision.tiene_vision_calculada = tenia_vision
 	if motivo != &"":
 		return motivo
+	if snapshot.has("celdas_exploradas"):
+		gestor_vision.reconstruir_niebla_restaurada()
+	_actualizar_luz_al_cargar()
 	_cancelar_exploracion_npc()
 	_secuencia_turno_npc += 1
 	for entidad in tablero.interactuables_por_id.values():
@@ -733,9 +885,97 @@ func cargar_partida(ruta: String = RUTA_GUARDADO) -> StringName:
 			_programar_turno_npc()
 	pathfinding.inicializar(tablero.datos)
 	hud.actualizar_desde_ficha()
-	call_deferred("_actualizar_luz_al_cargar")
 	camino_actual_tentativo.clear()
 	capa_camino.clear()
+	centrar_camara_en_ficha()
+	if snapshot.get("en_campamento", false):
+		if not is_instance_valid(campamento):
+			_mostrar_campamento()
+		campamento.actualizar()
+	elif is_instance_valid(campamento):
+		salir_campamento()
+	return &""
+
+
+func obtener_id_zona() -> StringName:
+	var ruta := zona_actual.scene_file_path
+	return &"zona1" if ruta == "res://scenes/Zona1/zona_1.tscn" else StringName(ruta)
+
+
+func _crear_acceso_campamento() -> void:
+	boton_campamento = Button.new()
+	boton_campamento.name = "AccesoCampamento"
+	boton_campamento.text = "Campamento [B]"
+	boton_campamento.position = Vector2(24, 72)
+	boton_campamento.custom_minimum_size = Vector2(210, 44)
+	boton_campamento.pressed.connect(entrar_campamento)
+	$CanvasLayer.add_child(boton_campamento)
+
+
+func motivo_bloqueo_campamento() -> StringName:
+	if is_instance_valid(campamento):
+		return &"campamento_ya_abierto"
+	if en_combate or gestor_rondas != null:
+		return &"campamento_en_combate"
+	if _restaurando_partida or _acciones_en_resolucion > 0:
+		return &"campamento_accion_en_curso"
+	if not _dialogos_camara.is_empty() or item_lanzamiento_pendiente != null or seleccionando_item_lanzamiento or opcion_uso_item_pendiente != null:
+		return &"partida_interaccion_activa"
+	var bloqueo := _motivo_bloqueo_persistencia(true, false)
+	if bloqueo != &"":
+		return bloqueo
+	if not ficha_jugador.puede_actuar():
+		return &"descanso_jugador_sin_vida"
+	return &""
+
+
+func mensaje_bloqueo_campamento(motivo: StringName) -> String:
+	match motivo:
+		&"": return "Visitar sin gastar provisiones. Regresas al mismo punto."
+		&"campamento_en_combate": return "Termina el combate para ir al campamento."
+		&"partida_jugador_en_movimiento", &"partida_npc_en_movimiento", &"partida_exploracion_en_curso", &"campamento_accion_en_curso":
+			return "Espera a que termine el movimiento o la acción."
+		&"descanso_jugador_sin_vida": return "La ficha sin vida no puede ir al campamento."
+		_: return "Cierra el diálogo o menú antes de ir al campamento."
+
+
+func entrar_campamento() -> StringName:
+	var motivo := motivo_bloqueo_campamento()
+	if motivo != &"":
+		return motivo
+	_mostrar_campamento()
+	return &""
+
+
+func _mostrar_campamento() -> void:
+	CursorJuego.ocultar_probabilidad_ataque()
+	_modo_proceso_antes_campamento = process_mode
+	campamento = ESCENA_CAMPAMENTO.instantiate()
+	campamento.escenario = self
+	# Conserva el árbol y todos sus nodos; el campamento procesa en su propia capa.
+	process_mode = Node.PROCESS_MODE_DISABLED
+	_audio_antes_campamento.clear()
+	for nodo in find_children("*", "", true, false):
+		if nodo is AudioStreamPlayer or nodo is AudioStreamPlayer2D:
+			_audio_antes_campamento[nodo] = nodo.stream_paused
+			nodo.stream_paused = true
+	add_child(campamento)
+	CursorJuego.establecer_cursor(CursorJuego.Tipo.DEFAULT)
+
+
+func salir_campamento() -> StringName:
+	if not is_instance_valid(campamento):
+		return &"campamento_no_abierto"
+	if campamento.descanso_pendiente:
+		return &"partida_interaccion_activa"
+	campamento.queue_free()
+	campamento = null
+	process_mode = _modo_proceso_antes_campamento
+	for nodo in _audio_antes_campamento:
+		if is_instance_valid(nodo):
+			nodo.stream_paused = _audio_antes_campamento[nodo]
+	_audio_antes_campamento.clear()
+	hud.actualizar_desde_ficha()
 	return &""
 
 
@@ -954,6 +1194,8 @@ func _formatear_pista_tirada(tirada: Variant) -> String:
 
 
 func capturar_textura(angulo:float,jugador: String) -> ImageTexture:
+	if DisplayServer.get_name() == "headless":
+		return ImageTexture.create_from_image(Image.create(2, 2, false, Image.FORMAT_RGBA8))
 	var textura: ImageTexture
 	
 	if jugador == "Guerrero":
@@ -1078,7 +1320,7 @@ func _obtener_coordenada_spawn(
 
 func _on_ficha_paso_dado(nueva_coord: Vector2i) -> void:
 	_reproducir_sonido_paso()
-	if not ficha_jugador.consumir_paso_antorcha():
+	if not es_escenario_de_descanso and not ficha_jugador.consumir_paso_antorcha():
 		print("El jugador se ha quedado completamente a oscuras.")
 	hud.actualizar_desde_ficha()
 	_actualizar_luz_jugador(nueva_coord)
@@ -1110,7 +1352,7 @@ func _actualizar_memoria_combate() -> bool:
 		if not actor is PersonajeNPC:
 			continue
 		for objetivo in actores:
-			if gestor_rondas.son_oponentes(actor, objetivo) and actor.puede_ver_coordenada(objetivo.coordenada_mapa, validador_espacial):
+			if gestor_rondas.son_oponentes(actor, objetivo) and actor.puede_ver_actor(objetivo, validador_espacial):
 				observados[gestor_rondas.obtener_bando(actor)][objetivo.obtener_id_actor()] = objetivo.coordenada_mapa
 	for actor in actores:
 		if not actor is PersonajeNPC:
@@ -1176,12 +1418,12 @@ func _bando_auxilio(npc: PersonajeNPC, actores: Array[Object]) -> int:
 		if (
 			actor is PersonajeNPC and actor.obtener_id_actor() in gestor_rondas.defendidos
 			and npc.comparte_faccion(actor)
-			and npc.puede_ver_coordenada(actor.coordenada_mapa, validador_espacial, 7)
+			and npc.puede_ver_actor(actor, validador_espacial, 7)
 		):
 			return gestor_rondas.obtener_bando(actor)
 	var actitud := npc.obtener_actitud_hacia_jugador()
 	for actor in actores:
-		if not npc.puede_ver_coordenada(actor.coordenada_mapa, validador_espacial, 7):
+		if not npc.puede_ver_actor(actor, validador_espacial, 7):
 			continue
 		if actitud == DefinicionPersonaje.ActitudInicialJugador.HOSTIL:
 			return GestorRondas.Bando.OPONENTE
@@ -1215,6 +1457,8 @@ func _incorporar_npc_al_combate() -> void:
 
 
 func _on_agresion_resuelta(contexto: ContextoAccion, resultado: ResultadoAccion) -> void:
+	if contexto.actor == ficha_jugador and contexto.id_accion == &"ataque_basico" and resultado.tirada != null:
+		ficha_jugador.romper_ocultamiento()
 	if not en_combate or resultado.tirada == null:
 		return
 	var victima: Object = null
@@ -1281,6 +1525,8 @@ func _evaluar_agro_npc() -> void:
 
 
 func _on_pasar_turno_hud() -> void:
+	seleccionando_ataque_doble = false
+	_cancelar_bola_fuego()
 	if ficha_jugador == null or not ficha_jugador.puede_actuar() or ficha_jugador.esta_moviendose or interaccion_modal_activa:
 		return
 	if en_combate:
@@ -1288,6 +1534,242 @@ func _on_pasar_turno_hud() -> void:
 			_finalizar_turno_combate()
 		return
 	_avanzar_turno_exploracion(ficha_jugador)
+
+
+func _on_ataque_doble_hud() -> void:
+	if (
+		ficha_jugador == null or ficha_jugador.clase != "Guerrero"
+		or not ficha_jugador.puede_actuar() or ficha_jugador.usos_ataque_doble < 1
+		or ficha_jugador.obtener_recurso_turno(RecursosTurnoActor.ACCION_PRINCIPAL) < 1
+		or not en_combate or not _es_turno_jugador() or _turno_exploracion_en_curso
+		or ficha_jugador.esta_moviendose or interaccion_modal_activa
+	):
+		return
+	seleccionando_ataque_doble = not seleccionando_ataque_doble
+	hud.habilidades[0].tooltip_text = (
+		"Atajo 1 · Haz clic en un enemigo adyacente. Esc cancela."
+		if seleccionando_ataque_doble else "Atajo 1 · Ataque doble: selecciona un enemigo adyacente."
+	)
+
+
+func _on_ocultarse_hud() -> void:
+	if (
+		ficha_jugador == null or ficha_jugador.clase != "Ladrón"
+		or not ficha_jugador.puede_actuar() or ficha_jugador.usos_ocultarse < 1
+		or (en_combate and not _es_turno_jugador()) or _turno_exploracion_en_curso
+		or ficha_jugador.esta_moviendose or interaccion_modal_activa
+		or not ficha_jugador.consumir_recurso_turno(RecursosTurnoActor.ACCION_ADICIONAL, 1)
+	):
+		return
+	ficha_jugador.ocultarse()
+	registro_narrativo.registrar(
+		EntradaRegistroNarrativo.Categoria.SISTEMA, "Ocultarse",
+		"El Ladrón desaparece de la vista durante dos turnos. Atacar o recibir daño rompe el sigilo."
+	)
+	_resolver_perdida_agro()
+
+
+func _on_bola_fuego_hud() -> void:
+	if (
+		ficha_jugador == null or ficha_jugador.clase != "Mago"
+		or not ficha_jugador.puede_actuar() or ficha_jugador.usos_bola_fuego < 1
+		or ficha_jugador.obtener_recurso_turno(RecursosTurnoActor.ACCION_PRINCIPAL) < 1
+		or (en_combate and not _es_turno_jugador()) or _turno_exploracion_en_curso
+		or ficha_jugador.esta_moviendose or interaccion_modal_activa
+		or item_lanzamiento_pendiente != null
+	):
+		return
+	seleccionando_bola_fuego = not seleccionando_bola_fuego
+	if not seleccionando_bola_fuego:
+		_cancelar_bola_fuego()
+	else:
+		_limpiar_hover_interaccion()
+
+
+func _seleccionar_objetivo_bola_fuego(coord: Vector2i, punto_global: Variant) -> void:
+	var objetivo := _obtener_objetivo_bola_fuego(coord, punto_global)
+	if objetivo != null:
+		var resultado := ejecutar_bola_fuego(objetivo)
+		if resultado.exitosa:
+			_cancelar_bola_fuego()
+		_registrar_resultado_narrativo("Bola de fuego", resultado, EntradaRegistroNarrativo.Categoria.OBJETO)
+		_presentar_resultado_contextual("Bola de fuego", resultado)
+		return
+	_presentar_resultado_contextual("Bola de fuego", ResultadoAccion.crear_bloqueo(&"objetivo_no_combatiente"))
+
+
+func _obtener_objetivo_bola_fuego(coord: Vector2i, punto_global: Variant) -> PersonajeNPC:
+	# El hechizo apunta a una casilla, incluso si el clic no cae sobre el sprite.
+	var celda := tablero.obtener_celda(coord)
+	if celda != null and celda.visibilidad == Celda.EstadoVisibilidad.VISIBLE:
+		for interactuable in celda.interactuables:
+			if interactuable is PersonajeNPC and interactuable.puede_actuar():
+				return interactuable
+	# Un sprite alto también se puede seleccionar por su silueta.
+	for interactuable in selector_objetivos.obtener_objetivos_perceptibles(tablero, coord, ficha_jugador, punto_global):
+		if interactuable is PersonajeNPC and interactuable.puede_actuar():
+			return interactuable
+	return null
+
+
+func _actualizar_previsualizacion_bola_fuego(coord: Vector2i, punto_global: Vector2) -> void:
+	CursorJuego.establecer_cursor(CursorJuego.Tipo.LANZAR)
+	capa_camino.clear()
+	camino_actual_tentativo.clear()
+	trayectoria_lanzamiento.clear_points()
+	capa_selector.clear()
+	var objetivo := _obtener_objetivo_bola_fuego(coord, punto_global)
+	var destino: Vector2i = objetivo.coordenada_mapa if objetivo != null else coord
+	var celda := tablero.obtener_celda(destino)
+	if celda == null or celda.visibilidad != Celda.EstadoVisibilidad.VISIBLE:
+		CursorJuego.mostrar_probabilidad_ataque("BOLA DE FUEGO · SIN VISIÓN")
+		return
+	capa_selector.set_cell(destino, 0, Vector2i(1, 1))
+	var en_alcance := _distancia_cuadricula(ficha_jugador.coordenada_mapa, destino) <= 4
+	var linea_libre := validador_espacial.validar_linea_visual(ficha_jugador.coordenada_mapa, destino) == &""
+	var mensaje := "BOLA DE FUEGO · "
+	if not en_alcance:
+		mensaje += "FUERA DE ALCANCE (4)"
+	elif not linea_libre:
+		mensaje += "SIN LÍNEA DE VISIÓN"
+	elif objetivo == null:
+		mensaje += "ELIGE UN ENEMIGO"
+	else:
+		mensaje += "CLIC PARA LANZAR"
+	CursorJuego.mostrar_probabilidad_ataque(mensaje)
+	var capa_suelo: TileMapLayer = zona_actual.get_node_or_null("CapaSuelo")
+	if capa_suelo == null:
+		return
+	trayectoria_lanzamiento.points = PackedVector2Array([
+		trayectoria_lanzamiento.to_local(capa_suelo.to_global(capa_suelo.map_to_local(ficha_jugador.coordenada_mapa))),
+		trayectoria_lanzamiento.to_local(capa_suelo.to_global(capa_suelo.map_to_local(destino))),
+	])
+	trayectoria_lanzamiento.default_color = (
+		Color(0.3, 1.0, 0.4, 0.9) if objetivo != null and en_alcance and linea_libre
+		else Color(1.0, 0.35, 0.15, 0.9)
+	)
+
+
+func _cancelar_bola_fuego() -> void:
+	seleccionando_bola_fuego = false
+	trayectoria_lanzamiento.clear_points()
+	capa_selector.clear()
+	CursorJuego.ocultar_probabilidad_ataque()
+	CursorJuego.establecer_cursor(CursorJuego.Tipo.DEFAULT)
+
+
+func ejecutar_bola_fuego(objetivo: PersonajeNPC) -> ResultadoAccion:
+	if (
+		ficha_jugador == null or ficha_jugador.clase != "Mago"
+		or not ficha_jugador.puede_actuar() or ficha_jugador.usos_bola_fuego < 1
+		or (en_combate and not _es_turno_jugador()) or _turno_exploracion_en_curso
+		or objetivo == null or not is_instance_valid(objetivo) or not objetivo.puede_actuar()
+		or ficha_jugador.obtener_recurso_turno(RecursosTurnoActor.ACCION_PRINCIPAL) < 1
+	):
+		return ResultadoAccion.crear_bloqueo(&"bola_fuego_no_disponible")
+	if en_combate and not gestor_rondas.son_oponentes(ficha_jugador, objetivo):
+		return ResultadoAccion.crear_bloqueo(&"objetivo_no_oponente")
+	var celda_objetivo := tablero.obtener_celda(objetivo.coordenada_mapa)
+	if celda_objetivo == null or celda_objetivo.visibilidad != Celda.EstadoVisibilidad.VISIBLE:
+		return ResultadoAccion.crear_bloqueo(&"objetivo_no_visible")
+	if _distancia_cuadricula(ficha_jugador.coordenada_mapa, objetivo.coordenada_mapa) > 4:
+		return ResultadoAccion.crear_bloqueo(&"fuera_de_alcance")
+	var motivo := validador_espacial.validar_linea_visual(ficha_jugador.coordenada_mapa, objetivo.coordenada_mapa)
+	if motivo != &"":
+		return ResultadoAccion.crear_bloqueo(motivo)
+	var aplicador := AplicadorEfectos.new()
+	var dano := SolicitudEfecto.new(&"bola_fuego", &"dano", objetivo, &"bola_fuego", 1.0, 0, TiposInteraccion.PoliticaApilado.NO_APILAR_Y_RENOVAR, ficha_jugador)
+	var quemado := SolicitudEfecto.new(&"quemado", &"estado", objetivo, &"bola_fuego", 0.0, 3, TiposInteraccion.PoliticaApilado.NO_APILAR_Y_RENOVAR, ficha_jugador, [{&"cantidad": 1, &"caras": 2, &"signo": 1}])
+	for solicitud in [dano, quemado]:
+		motivo = aplicador.validar(solicitud)
+		if motivo != &"":
+			return ResultadoAccion.crear_bloqueo(motivo)
+	if not en_combate and not _iniciar_combate(objetivo):
+		return ResultadoAccion.crear_bloqueo(&"npc_no_combatiente")
+	if not ficha_jugador.consumir_recurso_turno(RecursosTurnoActor.ACCION_PRINCIPAL, 1):
+		return ResultadoAccion.crear_bloqueo(&"recursos_turno_insuficientes")
+	ficha_jugador.consumir_bola_fuego()
+	var aplica_quemado := randf() < 0.5
+	var efecto: Variant = aplicador.aplicar(dano)
+	if efecto is StringName:
+		return ResultadoAccion.crear_fallo(efecto)
+	var efectos: Array = [efecto]
+	if objetivo.puede_actuar() and aplica_quemado:
+		var estado: Variant = aplicador.aplicar(quemado)
+		if estado is StringName:
+			return ResultadoAccion.crear_fallo(estado)
+		efectos.append(estado)
+	return ResultadoAccion.crear_exito([], efectos)
+
+
+func _seleccionar_objetivo_ataque_doble(coord: Vector2i, punto_global: Variant) -> void:
+	for objetivo in selector_objetivos.obtener_objetivos_perceptibles(tablero, coord, ficha_jugador, punto_global):
+		if objetivo is PersonajeNPC and objetivo.puede_actuar():
+			var golpes := ejecutar_ataque_doble(objetivo)
+			if golpes.is_empty():
+				return
+			if golpes[0].tirada != null:
+				seleccionando_ataque_doble = false
+			_mostrar_resultados_ataque_doble(golpes)
+			return
+	_presentar_resultado_contextual("Ataque doble", ResultadoAccion.crear_bloqueo(&"objetivo_no_combatiente"))
+
+
+func ejecutar_ataque_doble(objetivo: PersonajeNPC) -> Array[ResultadoAccion]:
+	var golpes: Array[ResultadoAccion] = []
+	if (
+		ficha_jugador == null or ficha_jugador.clase != "Guerrero"
+		or not ficha_jugador.puede_actuar() or ficha_jugador.usos_ataque_doble < 1
+		or not en_combate or not _es_turno_jugador() or _turno_exploracion_en_curso
+		or objetivo == null or not is_instance_valid(objetivo)
+	):
+		golpes.append(ResultadoAccion.crear_bloqueo(&"ataque_doble_no_disponible"))
+		return golpes
+	if gestor_rondas.obtener_bando(objetivo) != GestorRondas.Bando.OPONENTE:
+		golpes.append(ResultadoAccion.crear_bloqueo(&"objetivo_no_oponente"))
+		return golpes
+	var opcion: OpcionAccion = null
+	for candidata in objetivo.obtener_opciones_accion(ficha_jugador):
+		if candidata.id == &"ataque_basico":
+			opcion = candidata
+			break
+	if opcion == null:
+		golpes.append(ResultadoAccion.crear_bloqueo(&"npc_no_combatiente"))
+		return golpes
+	var construccion: Variant = constructor_contexto_accion.construir_desde_opcion(
+		opcion, ficha_jugador, ficha_jugador.coordenada_mapa, objetivo.coordenada_mapa
+	)
+	if not construccion is ContextoAccion:
+		golpes.append(ResultadoAccion.crear_bloqueo(construccion))
+		return golpes
+	var contexto := construccion as ContextoAccion
+	if not gestor_acciones.esta_en_alcance(contexto):
+		golpes.append(ResultadoAccion.crear_bloqueo(&"fuera_de_alcance"))
+		return golpes
+	var primero := gestor_acciones.procesar_accion(contexto)
+	golpes.append(primero)
+	if primero.tirada == null:
+		return golpes
+	ficha_jugador.consumir_ataque_doble()
+	if objetivo.puede_actuar():
+		golpes.append(objetivo.resolver_golpe_extra_ataque_doble(contexto))
+	return golpes
+
+
+func _mostrar_resultados_ataque_doble(golpes: Array[ResultadoAccion]) -> void:
+	for indice in golpes.size():
+		var resultado := golpes[indice]
+		var titulo := "Ataque doble · golpe %d" % (indice + 1)
+		_registrar_resultado_narrativo(
+			titulo, resultado, EntradaRegistroNarrativo.Categoria.OBJETO, "FUE"
+		)
+		if indice < golpes.size() - 1:
+			if resultado.tirada != null:
+				historial_tiradas.registrar(resultado.tirada)
+			if resultado.tirada_defensa != null:
+				historial_tiradas.registrar(resultado.tirada_defensa)
+		else:
+			_presentar_resultado_contextual(titulo, resultado)
 
 
 func _es_turno_jugador() -> bool:
@@ -1347,6 +1829,8 @@ func _finalizar_turno_combate() -> void:
 	if not avance.exitoso:
 		push_warning("No se pudo avanzar turno de combate: %s" % avance.motivo)
 		return
+	if actor_finalizado == ficha_jugador:
+		ficha_jugador.avanzar_ocultamiento()
 	if avance.resultado_turno != null:
 		var resultado: ResultadoAccion = avance.resultado_turno
 		if resultado.tirada != null:
@@ -1371,7 +1855,7 @@ func _finalizar_turno_combate() -> void:
 func _plan_combate_npc(npc: PersonajeNPC) -> Dictionary:
 	var visibles: Array[Object] = []
 	for actor in _actores_combate():
-		if gestor_rondas.son_oponentes(npc, actor) and npc.puede_ver_coordenada(actor.coordenada_mapa, validador_espacial):
+		if gestor_rondas.son_oponentes(npc, actor) and npc.puede_ver_actor(actor, validador_espacial):
 			visibles.append(actor)
 	var decisor := _obtener_decisor_npc(npc)
 	return decisor.elegir(npc, tablero, pathfinding, visibles, true)
@@ -1456,7 +1940,7 @@ func _programar_turno_npc() -> void:
 				not completo and npc.obtener_estado(&"enredado") == null
 				and (
 					(ultimo_resultado_entrar != null and ultimo_resultado_entrar.interrumpe_movimiento)
-					or (objetivo != null and npc.puede_ver_coordenada(objetivo.coordenada_mapa, validador_espacial)) == plan["objetivo_visible"]
+					or (objetivo != null and npc.puede_ver_actor(objetivo, validador_espacial)) == plan["objetivo_visible"]
 				)
 			):
 				break
@@ -1532,6 +2016,9 @@ func _resolver_fin_combate(reponer_recursos: bool = true) -> bool:
 
 
 func _terminar_combate(reponer_recursos: bool = true, conservar_memoria: bool = false) -> void:
+	CursorJuego.ocultar_probabilidad_ataque()
+	seleccionando_ataque_doble = false
+	seleccionando_bola_fuego = false
 	_secuencia_turno_npc += 1
 	if gestor_rondas != null:
 		for id_actor in gestor_rondas.obtener_ids_ordenados():
@@ -1544,6 +2031,8 @@ func _terminar_combate(reponer_recursos: bool = true, conservar_memoria: bool = 
 	en_combate = false
 	_reproducir_siguiente_musica_exploracion(true)
 	gestor_rondas = null
+	_actor_turno_camara = null
+	_centrado_camara_pendiente = false
 	panel_orden_combate.ocultar()
 	_firma_secuencia_combate = ""
 	panel_info_npc.offset_top = 18.0
@@ -1556,6 +2045,11 @@ func _terminar_combate(reponer_recursos: bool = true, conservar_memoria: bool = 
 func _actualizar_ui_combate() -> void:
 	if not en_combate or gestor_rondas == null:
 		return
+	if gestor_rondas.actor_activo != _actor_turno_camara:
+		_actor_turno_camara = gestor_rondas.actor_activo
+		_centrado_camara_pendiente = _actor_turno_camara == ficha_jugador
+		if _centrado_camara_pendiente and not _camara_bloqueada():
+			centrar_camara_en_ficha()
 	var entradas: Array[Dictionary] = []
 	var ids_actuales := gestor_rondas.obtener_ids_pendientes_ronda()
 	var ids_siguientes := gestor_rondas.obtener_ids_siguiente_ronda()
@@ -1626,6 +2120,12 @@ func _actualizar_disponibilidad_turno() -> void:
 	elif en_combate and (not _es_turno_jugador() or _turno_exploracion_en_curso):
 		motivo = "Espera tu turno"
 	hud.pasar_turno.disabled = not motivo.is_empty()
+	hud.configurar_ataque_doble_en_turno(
+		motivo.is_empty() and (
+			(en_combate and _es_turno_jugador())
+			or (not en_combate and ficha_jugador != null and ficha_jugador.clase in ["Ladrón", "Mago"])
+		)
+	)
 	hud.pasar_turno.text = "FINALIZAR\nTURNO" if en_combate else "PASAR\nTURNO"
 	hud.pasar_turno.tooltip_text = motivo if not motivo.is_empty() else (
 		"Finalizar turno y procesar estados" if en_combate else "Pasar turno de exploración"
@@ -2067,7 +2567,70 @@ func _preparar_loop_audio(sonido: AudioStream) -> void:
 
 func centrar_camara_en_ficha() -> void:
 	if ficha_jugador and camera_2d:
-		camera_2d.global_position = ficha_jugador.global_position
+		camera_2d.centrar(ficha_jugador.global_position)
+		_centrado_camara_pendiente = false
+		ultima_coordenada_hover = Vector2i(-999, -999)
+
+
+func _camara_bloqueada() -> bool:
+	return ficha_jugador == null or _restaurando_partida or interaccion_modal_activa or not _dialogos_camara.is_empty()
+
+
+func _puntero_sobre_panel_desplazable() -> bool:
+	var control := get_viewport().gui_get_hovered_control()
+	while control != null:
+		if control is ScrollContainer:
+			return true
+		control = control.get_parent_control()
+	return false
+
+
+func _puntero_sobre_interfaz() -> bool:
+	if get_viewport().gui_get_hovered_control() != null:
+		return true
+	var base_hud: Control = hud.get_node("HUDRoot/HudBaseRoca")
+	return base_hud.is_visible_in_tree() and base_hud.get_global_rect().has_point(get_viewport().get_mouse_position())
+
+
+func _actualizar_camara(delta: float) -> void:
+	var bloqueada := _camara_bloqueada()
+	if _centrado_camara_pendiente and not bloqueada:
+		centrar_camara_en_ficha()
+	if ficha_jugador == null:
+		return
+	camera_2d.actualizar(delta, ficha_jugador.global_position, get_viewport_rect().size,
+		get_viewport().get_mouse_position(), _puntero_en_ventana
+		and get_window().has_focus()
+		and Input.get_mouse_button_mask() == 0, bloqueada)
+	var turno := "Exploración"
+	if en_combate and gestor_rondas != null:
+		turno = "Tu turno" if _es_turno_jugador() else "Turno de combatiente oculto"
+		var npc := gestor_rondas.actor_activo as PersonajeNPC
+		if npc != null:
+			var celda := tablero.obtener_celda(npc.coordenada_mapa)
+			if celda != null and celda.visibilidad == Celda.EstadoVisibilidad.VISIBLE:
+				turno = "Turno de %s" % npc.obtener_nombre_interaccion()
+	estado_camara.text = "%s\n%s" % [turno, (
+		"Cámara libre · Espacio: volver a la ficha" if camera_2d.libre
+		else "Siguiendo ficha · Bordes: explorar")]
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_MOUSE_EXIT:
+		_puntero_en_ventana = false
+	elif what == NOTIFICATION_WM_MOUSE_ENTER:
+		_puntero_en_ventana = true
+
+
+func _on_dialogo_camara_iniciado(recurso: DialogueResource) -> void:
+	if recurso not in _dialogos_camara:
+		_dialogos_camara.append(recurso)
+	camera_2d.suspender_bordes()
+
+
+func _on_dialogo_camara_finalizado(recurso: DialogueResource) -> void:
+	_dialogos_camara.erase(recurso)
+	camera_2d.suspender_bordes()
 
 func _actualizar_hover_interaccion(coord: Vector2i, punto_global: Variant = null) -> void:
 	objetivos_hover = selector_objetivos.obtener_objetivos_perceptibles(
@@ -2079,6 +2642,32 @@ func _actualizar_hover_interaccion(coord: Vector2i, punto_global: Variant = null
 	_actualizar_cursor_interaccion()
 	_actualizar_resaltado_interaccion()
 	_actualizar_panel_info_npc()
+	_actualizar_probabilidad_ataque_basico()
+
+
+func _actualizar_probabilidad_ataque_basico() -> void:
+	if not en_combate or not _es_turno_jugador() or ficha_jugador == null:
+		CursorJuego.ocultar_probabilidad_ataque()
+		return
+	for objetivo in objetivos_hover:
+		if (
+			objetivo is PersonajeNPC and objetivo.puede_actuar()
+			and gestor_rondas.son_oponentes(ficha_jugador, objetivo)
+		):
+			var texto := "ATAQUE BÁSICO · 0%"
+			var distancia: Vector2i = objetivo.coordenada_mapa - ficha_jugador.coordenada_mapa
+			if absi(distancia.x) + absi(distancia.y) > 1:
+				texto += "\nFuera de alcance"
+			elif ficha_jugador.obtener_recurso_turno(RecursosTurnoActor.ACCION_PRINCIPAL) < 1:
+				texto += "\nSin acción principal"
+			else:
+				var probabilidad := ResolverAtaqueBasico.probabilidad_de_dano(
+					ficha_jugador.obtener_fuerza(), objetivo.obtener_destreza()
+				)
+				texto = "ATAQUE BÁSICO · %d%%" % roundi(probabilidad * 100.0)
+			CursorJuego.mostrar_probabilidad_ataque(texto)
+			return
+	CursorJuego.ocultar_probabilidad_ataque()
 
 
 func _actualizar_cursor_interaccion() -> void:
@@ -2106,6 +2695,11 @@ func _actualizar_cursor_interaccion() -> void:
 		CursorJuego.establecer_cursor(CursorJuego.Tipo.DEFAULT)
 
 
+func _celda_conocida_para_movimiento(coord: Vector2i) -> bool:
+	var celda := tablero.obtener_celda(coord)
+	return celda != null and celda.visibilidad != Celda.EstadoVisibilidad.OCULTO
+
+
 func _actualizar_cursor_movimiento(coord: Vector2i) -> void:
 	if not objetivos_hover.is_empty():
 		return
@@ -2130,6 +2724,7 @@ func _actualizar_panel_info_npc() -> void:
 
 func _limpiar_hover_interaccion() -> void:
 	objetivos_hover.clear()
+	CursorJuego.ocultar_probabilidad_ataque()
 	CursorJuego.establecer_cursor(CursorJuego.Tipo.DEFAULT)
 	_actualizar_resaltado_interaccion()
 	panel_info_npc.ocultar()
@@ -2190,6 +2785,14 @@ func _actualizar_resaltado_interaccion() -> void:
 
 func _abrir_menu_contextual(posicion_pantalla: Vector2) -> void:
 	if objetivo_seleccionado != null:
+		if es_escenario_de_descanso and is_instance_valid(control_descanso) and control_descanso.es_fogata(objetivo_seleccionado):
+			menu_contextual.mostrar(
+				objetivo_seleccionado.obtener_nombre_interaccion(),
+				control_descanso.obtener_entradas_fogata(),
+				posicion_pantalla
+			)
+			_actualizar_estado_modal_interaccion()
+			return
 		var opciones: Array[OpcionAccion] = objetivo_seleccionado.call(
 			&"obtener_opciones_accion", ficha_jugador
 		)
@@ -2221,6 +2824,9 @@ func _on_objetivo_contextual_elegido(objetivo: Object) -> void:
 
 
 func _on_opcion_contextual_elegida(opcion: OpcionAccion) -> void:
+	if es_escenario_de_descanso and is_instance_valid(control_descanso) and control_descanso.es_opcion_campamento(opcion):
+		control_descanso.ejecutar_opcion_campamento(opcion)
+		return
 	ultima_opcion_contextual_seleccionada = opcion
 	opcion_contextual_seleccionada.emit(opcion)
 	if opcion != null and opcion.tipo == TiposInteraccion.TipoAccion.USAR_ITEM:
@@ -2369,6 +2975,8 @@ func _buscar_camino_interaccion(
 	var mejor_coste := INF
 	# ponytail: barrido simple; crear un índice espacial si los mapas grandes lo requieren.
 	for destino: Vector2i in tablero.datos:
+		if not _celda_conocida_para_movimiento(destino):
+			continue
 		if not tablero.puede_entrar(destino, ficha_jugador):
 			continue
 		var construccion: Variant = constructor_contexto_accion.construir_desde_opcion(
@@ -2388,7 +2996,7 @@ func _buscar_camino_interaccion(
 			and validador_espacial.validar_linea_efecto(contexto) != &""
 		):
 			continue
-		var camino := pathfinding.calcular_camino(
+		var camino := pathfinding.calcular_camino_conocido(
 			ficha_jugador.coordenada_mapa,
 			destino,
 			tablero.datos,
@@ -2786,6 +3394,7 @@ func _abrir_selector_item_lanzamiento() -> void:
 			arrojables.append(item)
 	if arrojables.is_empty():
 		return
+	_cancelar_bola_fuego()
 	seleccionando_item_lanzamiento = true
 	menu_contextual.mostrar(
 		catalogo_mensajes.resolver(&"interaccion.lanzar_item"),
@@ -3063,11 +3672,16 @@ func _actualizar_estado_modal_interaccion() -> void:
 			is_instance_valid(panel_ficha_npc)
 			and panel_ficha_npc.visible
 		)
+		or (
+			is_instance_valid(panel_inventario_equipo)
+			and panel_inventario_equipo.visible
+		)
 	)
 	if interaccion_modal_activa == siguiente:
 		return
 	interaccion_modal_activa = siguiente
 	if interaccion_modal_activa:
+		camera_2d.suspender_bordes()
 		CursorJuego.establecer_cursor(CursorJuego.Tipo.DEFAULT)
 		capa_selector.clear()
 		capa_camino.clear()

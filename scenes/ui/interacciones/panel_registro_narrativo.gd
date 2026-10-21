@@ -34,6 +34,10 @@ func alternar() -> void:
 	custom_maximum_size.y = -1.0 if expandido else 90.0
 	custom_minimum_size.y = 240.0 if expandido else 0.0
 	_actualizar()
+	if expandido:
+		await get_tree().process_frame
+		if expandido:
+			desplazamiento.scroll_vertical = int(desplazamiento.get_v_scroll_bar().max_value)
 
 
 func _al_agregar_entrada(_entrada: EntradaRegistroNarrativo) -> void:

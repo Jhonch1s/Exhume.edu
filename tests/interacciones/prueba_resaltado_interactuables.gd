@@ -83,7 +83,38 @@ func _ejecutar_pruebas() -> void:
 	)
 
 	fuente.free()
+	await _probar_guias()
 	_finalizar()
+
+
+func _probar_guias() -> void:
+	for tipo in ["libro", "hojas", "estandarte", "cartel"]:
+		var guia := (load("res://scenes/interactuables/guias/%s_interactuable.tscn" % tipo) as PackedScene).instantiate() as Interactuable
+		root.add_child(guia)
+		_comprobar_outline_guia(guia, "Escena reutilizable de %s" % tipo)
+		guia.free()
+	var zona := (load("res://scenes/Zona1/zona_1.tscn") as PackedScene).instantiate()
+	root.add_child(zona)
+	for guia in zona.get_node("Interactuables/Guias").get_children():
+		_comprobar_outline_guia(guia as Interactuable, "Zona1/%s" % guia.name)
+	zona.free()
+	await process_frame
+
+
+func _comprobar_outline_guia(guia: Interactuable, contexto: String) -> void:
+	var visual := guia.get_node_or_null(guia.ruta_visual_resaltable) as Sprite2D
+	_comprobar(visual != null, "%s debe referenciar su sprite para resaltar." % contexto)
+	guia.establecer_resaltado(true)
+	var outline := guia.resaltador_outline
+	_comprobar(outline != null and guia.esta_resaltado(), "%s debe activar el contorno." % contexto)
+	if outline != null:
+		_comprobar(outline.color_outline == Color.WHITE and outline.grosor == 1.0,
+			"%s debe usar contorno blanco de un píxel." % contexto)
+		var copia := outline.get_child(0) as Sprite2D
+		_comprobar(copia.visible and copia.texture == visual.texture and copia.region_rect == visual.region_rect,
+			"%s debe resaltar la región de su variante visual." % contexto)
+	guia.establecer_resaltado(false)
+	_comprobar(not guia.esta_resaltado(), "%s debe permitir retirar el contorno." % contexto)
 
 
 func _finalizar() -> void:

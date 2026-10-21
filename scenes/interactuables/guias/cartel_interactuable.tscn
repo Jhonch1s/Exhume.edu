@@ -7,6 +7,9 @@
 [node name="CartelInteractuable" type="Node2D" groups=["interactuables"]]
 script = ExtResource("1_script")
 definicion = ExtResource("2_def")
+ruta_visual_resaltable = NodePath("Sprite2D")
+color_resaltado = Color(1, 1, 1, 1)
+grosor_resaltado = 1.0
 ajustar_a_celda_en_editor = true
 permite_caminar = true
 

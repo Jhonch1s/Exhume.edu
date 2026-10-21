@@ -1,18 +1,14 @@
-# Cinemática de imágenes
+# Cinemática de introducción (Videos / Imágenes)
 
-Abrir `cinematica_imagenes.tscn` y pulsar **F6** para reproducir la escena.
+Abrir `cinematica_imagenes.tscn` y pulsar **F6** para reproducir la escena en Godot.
 
 Seleccionar el nodo raíz `CinematicaImagenes` para editar en el Inspector:
 
-- **Imagenes**: las texturas en el orden de reproducción. Se pueden arrastrar imágenes desde el panel de archivos.
-- **Tiempo por imagen**: segundos con cada imagen completamente visible (4 por defecto).
-- **Tiempo fundido**: segundos de entrada y salida a negro (0,6 por defecto).
+- **Filtro Crt Activo**: activa o desactiva el post-procesado con curvatura, fósforo y aberración cromática CRT (`filtro_crt_luminancia.gdshader`).
+- **Videos**: los streams de video (`.ogv`) en orden narrativo de reproducción (9 clips ubicados en `res://assets/videos/intro/`).
+- **Imagenes**: texturas de respaldo en caso de no configurar videos.
+- **Tiempo fundido**: segundos de entrada y salida a negro para cada clip (0,6 por defecto).
+- **Tiempo por imagen**: segundos con cada imagen completamente visible si se usa el modo estático (4 por defecto).
+- **Duracion maxima video**: si es mayor que 0, limita el tiempo de cada video (útil para pruebas y avances rápidos).
 
-Las nueve ilustraciones de `res://assets/ilustraciones/intro/` se muestran en orden
-numérico. Las imágenes conservan sus proporciones y se centran sobre fondo negro. La secuencia
-comienza automáticamente, se reproduce una vez y termina en negro. La señal
-`terminada` permite conectar después el paso a otra escena.
-
-La secuencia dura 46,8 segundos (nueve imágenes de 4 segundos y dos fundidos de
-0,6 segundos cada una). Para repetirla,
-detener y volver a ejecutar con F6.
+Los nueve videos de `res://assets/videos/intro/` se muestran en orden numérico dentro de un `AspectRatioContainer` que mantiene la relación de aspecto 2:1 centrada sobre fondo negro y procesada bajo el filtro CRT del proyecto. La secuencia comienza automáticamente al iniciar la escena, reproduce cada video con fundido a negro y emite la señal `terminada` al finalizar para dar paso a la siguiente escena.

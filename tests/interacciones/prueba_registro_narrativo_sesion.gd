@@ -26,6 +26,22 @@ func _ejecutar() -> void:
 	panel.alternar()
 	await process_frame
 	_comprobar(panel.tarjetas.get_child_count() == 3 and not panel.expandido, "El panel debe poder contraerse.")
+	for indice in 20:
+		registro.registrar(
+			EntradaRegistroNarrativo.Categoria.MOVIMIENTO,
+			"Evento largo %d" % indice,
+			"Consecuencia extensa para comprobar el desplazamiento automático. ".repeat(3)
+		)
+	await process_frame
+	panel.boton_expandir.pressed.emit()
+	await process_frame
+	await process_frame
+	var barra := panel.desplazamiento.get_v_scroll_bar()
+	_comprobar(barra.max_value > barra.page, "El registro largo debe tener desplazamiento vertical.")
+	_comprobar(
+		panel.expandido and barra.value >= barra.max_value - barra.page - 1.0,
+		"Al pulsar Expandir debe mostrarse el final del registro."
+	)
 	panel.queue_free()
 	await process_frame
 	if _fallos.is_empty():

@@ -32,7 +32,7 @@ script = ExtResource("4_perfil")
 
 [resource]
 script = ExtResource("1_script")
-radio_luz = 1
+radio_luz = 3
 radio_penumbra = 2
 altura = 1
 permite_caminar = false

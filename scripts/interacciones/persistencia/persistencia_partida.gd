@@ -24,6 +24,7 @@ func crear_snapshot(
 	snapshot["items_suelo"] = contenido_dinamico.obtener_items_suelo(tablero)
 	snapshot["superficies"] = contenido_dinamico.obtener_superficies(tablero)
 	snapshot["rondas"] = gestor_rondas.obtener_estado_persistente() if gestor_rondas != null else null
+	snapshot["celdas_exploradas"] = _obtener_exploracion(tablero)
 	return (
 		snapshot if validar_restauracion(
 			snapshot, tablero, id_zona, ficha, conocimiento, gestor_rondas
@@ -42,12 +43,20 @@ func validar_restauracion(
 ) -> StringName:
 	if ficha == null or not is_instance_valid(ficha) or conocimiento == null:
 		return &"partida_guardada_invalida"
+	if not snapshot.get("en_campamento", false) is bool:
+		return &"campamento_guardado_invalido"
 	var motivo := interactuables.validar_restauracion(snapshot, tablero, id_zona)
 	if motivo != &"":
 		return motivo
+	if snapshot.has("celdas_exploradas"):
+		motivo = _validar_exploracion(snapshot["celdas_exploradas"], tablero)
+		if motivo != &"":
+			return motivo
 	motivo = ficha.validar_estado_persistente(snapshot.get("ficha"))
 	if motivo != &"":
 		return motivo
+	if snapshot.get("en_campamento", false) and (snapshot.get("rondas") != null or snapshot["ficha"]["pv_actual"] <= 0):
+		return &"campamento_guardado_invalido"
 	var coordenada: Array = snapshot["ficha"]["coordenada"]
 	if not tablero.es_celda_valida(Vector2i(coordenada[0], coordenada[1])):
 		return &"coordenada_ficha_fuera_del_tablero"
@@ -135,6 +144,11 @@ func restaurar(
 	tablero.liberar_celda(coordenada_anterior, ficha)
 	tablero.ocupar_celda(ficha.coordenada_mapa, ficha)
 	conocimiento.restaurar_estado_persistente(snapshot["conocimiento"])
+	if snapshot.has("celdas_exploradas"):
+		for celda: Celda in tablero.datos.values():
+			celda.visibilidad = Celda.EstadoVisibilidad.OCULTO
+		for coord: Array in snapshot["celdas_exploradas"]:
+			tablero.datos[Vector2i(coord[0], coord[1])].visibilidad = Celda.EstadoVisibilidad.EXPLORADO
 	EstadoPartida.restaurar_estado_persistente(
 		{"trompo_conocido": false}
 		if snapshot["version"] == PersistenciaInteractuables.VERSION_ANTERIOR
@@ -174,3 +188,32 @@ func cargar_archivo(
 	return restaurar(
 		snapshot, tablero, id_zona, ficha, conocimiento, gestor_rondas
 	)
+
+
+func _obtener_exploracion(tablero: TableroGrid) -> Array[Array]:
+	var coordenadas: Array[Vector2i] = []
+	for coord: Vector2i in tablero.datos:
+		if tablero.datos[coord].visibilidad != Celda.EstadoVisibilidad.OCULTO:
+			coordenadas.append(coord)
+	coordenadas.sort_custom(func(a: Vector2i, b: Vector2i): return a.x < b.x or (a.x == b.x and a.y < b.y))
+	var datos: Array[Array] = []
+	for coord in coordenadas:
+		datos.append([coord.x, coord.y])
+	return datos
+
+
+func _validar_exploracion(datos: Variant, tablero: TableroGrid) -> StringName:
+	if not datos is Array:
+		return &"exploracion_guardada_invalida"
+	var vistos: Dictionary[Vector2i, bool] = {}
+	for coord: Variant in datos:
+		if not coord is Array or coord.size() != 2:
+			return &"exploracion_guardada_invalida"
+		for componente: Variant in coord:
+			if not (componente is int or (componente is float and is_finite(componente) and componente == roundf(componente))):
+				return &"exploracion_guardada_invalida"
+		var posicion := Vector2i(coord[0], coord[1])
+		if not tablero.es_celda_valida(posicion) or vistos.has(posicion):
+			return &"exploracion_guardada_invalida"
+		vistos[posicion] = true
+	return &""

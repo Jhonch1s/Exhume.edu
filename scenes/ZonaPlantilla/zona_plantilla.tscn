@@ -1,10 +1,10 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="TileSet" path="res://assets/tile_sets/terrain/cave_terrain.tres" id="1_terreno"]
 [ext_resource type="TileSet" path="res://assets/tile_sets/structures/walls_cave.tres" id="2_paredes"]
 [ext_resource type="TileSet" path="res://assets/tile_sets/structures/cave_columns.tres" id="3_columnas"]
-[ext_resource type="TileSet" path="res://assets/tile_sets/decorations/stalagmites_medium.tres" id="4_deco_no_caminable"]
-[ext_resource type="TileSet" path="res://assets/tile_sets/decorations/cave_floor_decorations.tres" id="5_decoracion"]
+[ext_resource type="TileSet" path="res://assets/tile_sets/decorations/cave_decorations_solid.tres" id="4_deco_no_caminable"]
+[ext_resource type="TileSet" path="res://assets/tile_sets/decorations/cave_decorations_walkable.tres" id="5_decoracion"]
 [ext_resource type="TileSet" path="res://assets/tile_sets/fog/cave_fog.tres" id="6_oscuridad"]
 [ext_resource type="TileSet" path="res://assets/tile_sets/surface_effects/spikes.tres" id="7_pinchos"]
 [ext_resource type="TileSet" path="res://assets/tile_sets/surface_effects/mud.tres" id="8_lodo"]
@@ -12,6 +12,8 @@
 [ext_resource type="TileSet" path="res://assets/tile_sets/surface_effects/fire.tres" id="10_fuego"]
 [ext_resource type="TileSet" path="res://assets/tile_sets/surface_effects/web.tres" id="11_telarana"]
 [ext_resource type="Script" path="res://scripts/zonas/zona_explorable.gd" id="12_zona"]
+[ext_resource type="Script" path="res://scripts/render/capa_paredes_oclusivas.gd" id="13_occlusion"]
+[ext_resource type="PackedScene" path="res://scenes/zonas/PuntoSpawnZona.tscn" id="14_spawn"]
 
 [node name="Zona" type="Node2D"]
 script = ExtResource("12_zona")
@@ -37,6 +39,7 @@ tile_set = ExtResource("1_terreno")
 y_sort_enabled = true
 texture_filter = 1
 tile_set = ExtResource("2_paredes")
+script = ExtResource("13_occlusion")
 
 [node name="Interactuables" type="Node2D" parent="."]
 y_sort_enabled = true
@@ -53,7 +56,24 @@ y_sort_enabled = true
 [node name="Trampas" type="Node2D" parent="Interactuables"]
 y_sort_enabled = true
 
+[node name="Decoraciones" type="Node2D" parent="Interactuables"]
+y_sort_enabled = true
+
+[node name="Cofres" type="Node2D" parent="Interactuables"]
+y_sort_enabled = true
+
+[node name="Personajes" type="Node2D" parent="Interactuables"]
+y_sort_enabled = true
+
+[node name="Guias" type="Node2D" parent="Interactuables"]
+y_sort_enabled = true
+
+[node name="ItemsSuelo" type="Node2D" parent="." groups=["items_suelo"]]
+y_sort_enabled = true
+
 [node name="PuntosSpawn" type="Node2D" parent="."]
+
+[node name="PuntoSpawnEntrada" parent="PuntosSpawn" instance=ExtResource("14_spawn")]
 
 [node name="EfectosSuperficie" type="Node2D" parent="."]
 y_sort_enabled = true

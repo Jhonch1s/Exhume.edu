@@ -179,12 +179,12 @@ func _probar_sombra_logica() -> void:
 	gestor._procesar_luces_mapa()
 
 	_comprobar(
-		celdas[Vector2i(1, 0)].visibilidad == Celda.EstadoVisibilidad.VISIBLE,
-		"La pared que recibe la luz debe quedar visible."
+		gestor.iluminacion_actual.get(Vector2i(1, 0)) == FOVManager.NivelLuz.LUZ,
+		"La pared recibe luz sin conceder conocimiento al jugador."
 	)
 	_comprobar(
-		celdas[Vector2i(2, 0)].visibilidad == Celda.EstadoVisibilidad.OCULTO,
-		"La celda detras de la pared debe permanecer en sombra."
+		not gestor.iluminacion_actual.has(Vector2i(2, 0)) and celdas.values().all(func(celda): return celda.visibilidad == Celda.EstadoVisibilidad.OCULTO),
+		"La pared corta la luz; proyectar no descubre ninguna celda."
 	)
 	fuente.free()
 	gestor.capa_oscuridad.free()
@@ -212,14 +212,14 @@ func _probar_sombra_esquina_diagonal() -> void:
 	gestor.capa_oscuridad = TileMapLayer.new()
 	gestor._procesar_luces_mapa()
 	_comprobar(
-		celdas[Vector2i.ONE].visibilidad == Celda.EstadoVisibilidad.OCULTO,
+		not gestor.iluminacion_actual.has(Vector2i.ONE),
 		"Dos paredes contiguas deben cerrar la luz en su esquina diagonal."
 	)
 
 	celdas[Vector2i.DOWN].bloquea_vision = false
 	gestor._procesar_luces_mapa()
 	_comprobar(
-		celdas[Vector2i.ONE].visibilidad == Celda.EstadoVisibilidad.VISIBLE,
+		gestor.iluminacion_actual.get(Vector2i.ONE) == FOVManager.NivelLuz.LUZ,
 		"Una sola pared no debe cerrar por completo el paso diagonal de luz."
 	)
 	fuente.free()

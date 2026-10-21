@@ -12,6 +12,13 @@ static func validar_atributos(atacante: Object, defensor: Object) -> StringName:
 	return &""
 
 
+static func probabilidad_de_dano(fuerza: int, destreza_defensor: int) -> float:
+	if fuerza < 1 or fuerza > 5 or destreza_defensor < 1 or destreza_defensor > 5:
+		return 0.0
+	# Cada d6 acierta con 1..atributo; el daño exige ataque acertado y esquiva fallida.
+	return float(fuerza * (6 - destreza_defensor)) / 36.0
+
+
 static func resolver(
 	contexto: ContextoAccion,
 	defensor: Object,

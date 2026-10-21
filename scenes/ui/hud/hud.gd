@@ -2,6 +2,9 @@ class_name HUD
 extends Control
 
 signal pasar_turno_solicitado
+signal ataque_doble_solicitado
+signal ocultarse_solicitado
+signal bola_fuego_solicitada
 
 const RETRATOS_POR_CLASE := {
 	"Guerrero": preload("res://assets/ui/panels/hud/retratos/guerrero.png"),
@@ -55,6 +58,7 @@ const RETRATOS_POR_CLASE := {
 ]
 
 var ficha: Ficha
+var ataque_doble_en_turno := false
 var vida_objetivo := -1.0
 var energia_objetivo := -1.0
 var estado_hover: Control
@@ -69,12 +73,18 @@ func _ready() -> void:
 	antorcha.visible = true
 	for boton in habilidades + items_rapidos + [pasar_turno]:
 		_conectar_feedback_boton(boton)
-	for habilidad in habilidades:
+	for indice in habilidades.size():
+		var habilidad := habilidades[indice]
 		habilidad.disabled = true
-		habilidad.tooltip_text = "Habilidad %s\nTodavía no está implementada." % habilidad.text
-	for ranura in items_rapidos:
+		habilidad.tooltip_text = "Atajo %d · Habilidad todavía no implementada." % (indice + 1)
+	habilidades[0].pressed.connect(func(): ataque_doble_solicitado.emit())
+	habilidades[0].pressed.connect(func(): ocultarse_solicitado.emit())
+	habilidades[0].pressed.connect(func(): bola_fuego_solicitada.emit())
+	for indice in items_rapidos.size():
+		var ranura := items_rapidos[indice]
 		ranura.disabled = true
-	$HUDRoot/SeccionesHUD/SeccionHabilidades/Titulo.tooltip_text = "Ranuras de habilidades; todavía no tienen funciones disponibles."
+		ranura.tooltip_text = "Atajo %d · Uso rápido todavía no implementado." % (indice + 5)
+	$HUDRoot/SeccionesHUD/SeccionHabilidades/Titulo.tooltip_text = "Habilidades de clase; cada uso se recupera al descansar."
 	$HUDRoot/SeccionesHUD/SeccionItems/Titulo.tooltip_text = "Muestra objetos del inventario; su uso rápido aún no está implementado."
 	$HUDRoot/SeccionesHUD/SeccionJugador/Retrato.tooltip_text = "Tu personaje"
 	configurar_ficha(null)
@@ -95,16 +105,24 @@ func configurar_ficha(nueva_ficha: Ficha) -> void:
 			ficha.estado_cambiado.disconnect(_actualizar_estados)
 		if ficha.recursos_turno_cambiados.is_connected(_actualizar_recursos_turno):
 			ficha.recursos_turno_cambiados.disconnect(_actualizar_recursos_turno)
+		if ficha.usos_habilidades_cambiados.is_connected(_actualizar_ataque_doble):
+			ficha.usos_habilidades_cambiados.disconnect(_actualizar_ataque_doble)
 	ficha = nueva_ficha
 	if ficha != null:
 		ficha.puntos_vida_cambiados.connect(_actualizar_vida)
 		ficha.estado_cambiado.connect(_actualizar_estados)
 		ficha.recursos_turno_cambiados.connect(_actualizar_recursos_turno)
+		ficha.usos_habilidades_cambiados.connect(_actualizar_ataque_doble)
 	_actualizar_todo()
 
 
 func actualizar_desde_ficha() -> void:
 	_actualizar_todo()
+
+
+func configurar_ataque_doble_en_turno(valor: bool) -> void:
+	ataque_doble_en_turno = valor
+	_actualizar_ataque_doble()
 
 
 func _process(_delta: float) -> void:
@@ -139,6 +157,7 @@ func _actualizar_todo() -> void:
 		_actualizar_estados()
 		_actualizar_recursos_turno(null)
 		_actualizar_items()
+		_actualizar_ataque_doble()
 		return
 	retrato.texture = RETRATOS_POR_CLASE.get(ficha.clase) as Texture2D
 	nombre.text = ficha.nombre
@@ -152,6 +171,47 @@ func _actualizar_todo() -> void:
 	_actualizar_estados()
 	_actualizar_recursos_turno(ficha.recursos_turno)
 	_actualizar_items()
+	_actualizar_ataque_doble()
+
+
+func _actualizar_ataque_doble() -> void:
+	var boton := habilidades[0]
+	if ficha != null and ficha.clase == "Mago":
+		boton.text = "FUEGO\n%d/1" % ficha.usos_bola_fuego
+		boton.add_theme_font_size_override(&"font_size", 14)
+		boton.disabled = (
+			not ataque_doble_en_turno or ficha.usos_bola_fuego == 0
+			or ficha.obtener_recurso_turno(RecursosTurnoActor.ACCION_PRINCIPAL) < 1
+		)
+		boton.tooltip_text = "Atajo 1 · Bola de fuego: apunta y haz clic en la casilla de un enemigo a 4 casillas. 1 daño y 50% de quemarlo. Cuesta 1 acción principal y 1 uso por descanso. Esc cancela."
+		return
+	if ficha != null and ficha.clase == "Ladrón":
+		boton.text = "OCULTAR\n%d/1" % ficha.usos_ocultarse
+		boton.add_theme_font_size_override(&"font_size", 14)
+		boton.disabled = (
+			not ataque_doble_en_turno or ficha.usos_ocultarse == 0
+			or ficha.obtener_recurso_turno(RecursosTurnoActor.ACCION_ADICIONAL) < 1
+		)
+		boton.tooltip_text = (
+			"Atajo 1 · Oculto %d turnos. Puedes moverte; atacar o recibir daño rompe el sigilo."
+			% ficha.turnos_oculto if ficha.turnos_oculto > 0 else
+			"Atajo 1 · Ocultarse: cuesta 1 acción adicional y 1 uso por descanso; dura 2 turnos."
+		)
+		return
+	if ficha == null or ficha.clase != "Guerrero":
+		boton.text = "I"
+		boton.disabled = true
+		boton.tooltip_text = "Atajo 1 · Ataque doble: habilidad del Guerrero."
+		return
+	boton.text = "DOBLE\n%d/1" % ficha.usos_ataque_doble
+	boton.add_theme_font_size_override(&"font_size", 14)
+	boton.disabled = (
+		not ataque_doble_en_turno or ficha.usos_ataque_doble == 0
+		or ficha.obtener_recurso_turno(RecursosTurnoActor.ACCION_PRINCIPAL) < 1
+	)
+	boton.tooltip_text = "Atajo 1 · Ataque doble: selecciona un enemigo adyacente. Cuesta 1 acción principal y 1 uso por descanso. Esc cancela."
+	if ficha.usos_ataque_doble == 0:
+		boton.tooltip_text = "Atajo 1 · Ataque doble agotado. Descansa para recuperar su uso."
 
 
 func _actualizar_vida(actual: int, maximo: int) -> void:
@@ -208,6 +268,7 @@ func _actualizar_experiencia() -> void:
 
 
 func _actualizar_recursos_turno(recursos: RecursosTurnoActor) -> void:
+	_actualizar_ataque_doble()
 	if recursos == null:
 		pasar_turno.tooltip_text = "Pasar el turno"
 		movimiento_barra.value = 0.0
@@ -397,5 +458,5 @@ func _actualizar_items() -> void:
 		(ranura.get_node("Cantidad") as Label).text = str(item.cantidad) if item != null and item.cantidad > 1 else ""
 		ranura.text = "?" if item != null and icono.texture == null else ""
 		ranura.tooltip_text = (
-			item.definicion.nombre if item != null else "Ranura de objeto rápido vacía"
+			"Atajo %d · %s" % [indice + 5, item.definicion.nombre if item != null else "Ranura de objeto rápido vacía"]
 		) + "\nEl uso rápido todavía no está implementado."

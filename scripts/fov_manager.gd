@@ -1,6 +1,8 @@
 extends Node
 class_name FOVManager
 
+const ALCANCE_PERCEPCION_ILUMINADA := 7
+
 var capa_oscuridad: TileMapLayer
 var datos_tablero: Dictionary
 var celdas_visibles_actuales: Array[Vector2i] = []
@@ -10,6 +12,10 @@ var ultimo_radio_jugador: int = 0
 var tiene_vision_calculada: bool = false
 var revision_vision: int = 0
 var _opacidad_por_celda: Dictionary[Vector2i, bool] = {}
+enum NivelLuz { OSCURIDAD, PENUMBRA, LUZ }
+var iluminacion_actual: Dictionary[Vector2i, int] = {}
+var iluminacion_fuentes_percibidas: Dictionary[Vector2i, int] = {}
+var _validador_espacial: ValidadorEspacialTablero
 
 const FUENTES_FOG_EXPLORADO := {
 	&"terreno": 0,
@@ -38,11 +44,14 @@ const FUENTES_FOG_OCULTO := {
 func inicializar(_capa: TileMapLayer, origen_datos: Variant) -> void:
 	capa_oscuridad = _capa
 	celdas_visibles_actuales.clear()
+	iluminacion_actual.clear()
+	iluminacion_fuentes_percibidas.clear()
 	tiene_vision_calculada = false
 	ultimo_radio_jugador = 0
 	_opacidad_por_celda.clear()
 	if origen_datos is TableroGrid:
 		tablero = origen_datos
+		_validador_espacial = ValidadorEspacialTablero.new(tablero)
 		datos_tablero = tablero.datos
 		if not tablero.iluminacion_cambiada.is_connected(_on_iluminacion_cambiada):
 			tablero.iluminacion_cambiada.connect(_on_iluminacion_cambiada)
@@ -61,6 +70,8 @@ func inicializar(_capa: TileMapLayer, origen_datos: Variant) -> void:
 				_on_presencia_interactuable_cambiada
 			)
 	else:
+		tablero = null
+		_validador_espacial = null
 		datos_tablero = origen_datos
 	
 	# Al iniciar, cubrimos todo el mapa conocido de negro total
@@ -68,6 +79,13 @@ func inicializar(_capa: TileMapLayer, origen_datos: Variant) -> void:
 		_opacidad_por_celda[coord] = datos_tablero[coord].bloquea_vision_efectiva()
 		_oscurecer_celda(coord, Celda.EstadoVisibilidad.OCULTO)
 	_actualizar_presentacion_interactuables()
+
+func reconstruir_niebla_restaurada() -> void:
+	# El snapshot conserva conocimiento; la visibilidad actual se recalcula después.
+	celdas_visibles_actuales.clear()
+	for coord: Vector2i in datos_tablero:
+		_oscurecer_celda(coord, datos_tablero[coord].visibilidad)
+
 
 func actualizar_vision(centro_jugador: Vector2i, radio_jugador: int) -> void:
 	ultimo_centro_jugador = centro_jugador
@@ -78,12 +96,15 @@ func actualizar_vision(centro_jugador: Vector2i, radio_jugador: int) -> void:
 		_oscurecer_celda(coord, Celda.EstadoVisibilidad.EXPLORADO)
 			
 	celdas_visibles_actuales.clear()
+	iluminacion_actual.clear()
+	iluminacion_fuentes_percibidas.clear()
 
 	# 2. Proyectamos primero todas las fuentes de luz encendidas del mapa
 	_procesar_luces_mapa()
 
 	# 3. Proyectamos la luz del jugador (+1 casilla de penumbra)
 	proyectar_luz_fuente(centro_jugador, radio_jugador, 1, false)
+	_actualizar_conocimiento_jugador()
 	_actualizar_presentacion_interactuables()
 	revision_vision += 1
 
@@ -98,7 +119,7 @@ func _procesar_luces_mapa() -> void:
 				if fuente.encendida and definicion != null:
 					proyectar_luz_fuente(
 						coord, definicion.radio_luz, definicion.radio_penumbra,
-						definicion.atraviesa_muros
+						definicion.atraviesa_muros, _fuente_percibida_directamente(coord)
 					)
 				continue
 			if (
@@ -111,7 +132,7 @@ func _procesar_luces_mapa() -> void:
 				proyectar_luz_fuente(
 					coord, fuente.call(&"obtener_radio_luz"),
 					fuente.call(&"obtener_radio_penumbra"),
-					fuente.call(&"luz_atraviesa_muros")
+					fuente.call(&"luz_atraviesa_muros"), _fuente_percibida_directamente(coord)
 				)
 
 func _on_iluminacion_cambiada(_coord: Vector2i) -> void:
@@ -152,7 +173,7 @@ func _trazar_linea_bresenham(p0: Vector2i, p1: Vector2i) -> Array[Vector2i]:
 	return GeometriaGrid.trazar_linea(p0, p1)
 
 # --- PROYECTOR DE LUZ GENERICO ---
-func proyectar_luz_fuente(centro: Vector2i, radio_luz: int, radio_penumbra: int, atraviesa_muros: bool = false) -> void:
+func proyectar_luz_fuente(centro: Vector2i, radio_luz: int, radio_penumbra: int, atraviesa_muros: bool = false, fuente_percibida: bool = false) -> void:
 	var radio_total = radio_luz + radio_penumbra
 	var celdas_area = _obtener_area_circulo(centro, radio_total)
 
@@ -173,10 +194,10 @@ func proyectar_luz_fuente(centro: Vector2i, radio_luz: int, radio_penumbra: int,
 				and datos_tablero.has(coord)
 				and datos_tablero[coord].bloquea_vision_efectiva()
 			):
-				_aplicar_nivel_luz(coord, centro, radio_luz)
+				_aplicar_nivel_luz(coord, centro, radio_luz, fuente_percibida)
 				break
 				
-			_aplicar_nivel_luz(coord, centro, radio_luz)
+			_aplicar_nivel_luz(coord, centro, radio_luz, fuente_percibida)
 
 func _esquina_bloquea_vision(origen: Vector2i, destino: Vector2i) -> bool:
 	var flancos := GeometriaGrid.flancos_paso_diagonal(origen, destino)
@@ -188,17 +209,56 @@ func _esquina_bloquea_vision(origen: Vector2i, destino: Vector2i) -> bool:
 		and datos_tablero[flancos[1]].bloquea_vision_efectiva()
 	)
 
-func _aplicar_nivel_luz(coord: Vector2i, centro: Vector2i, radio_luz: int) -> void:
-	var distancia = int(Vector2(coord - centro).length())
-	
-	if distancia <= radio_luz:
-		# Luz central potente (Borra la sombra completamente)
-		_revelar_celda(coord)
-	else:
-		# Halo de penumbra
-		# Solo se aplica si la casilla no tiene ya luz potente (VISIBLE)
-		if datos_tablero.has(coord) and datos_tablero[coord].visibilidad != Celda.EstadoVisibilidad.VISIBLE:
+func _aplicar_nivel_luz(coord: Vector2i, centro: Vector2i, radio_luz: int, fuente_percibida: bool) -> void:
+	if not datos_tablero.has(coord):
+		return
+	var distancia := int(Vector2(coord - centro).length())
+	var nivel := NivelLuz.LUZ if distancia <= radio_luz else NivelLuz.PENUMBRA
+	iluminacion_actual[coord] = maxi(iluminacion_actual.get(coord, NivelLuz.OSCURIDAD), nivel)
+	if fuente_percibida:
+		iluminacion_fuentes_percibidas[coord] = maxi(
+			iluminacion_fuentes_percibidas.get(coord, NivelLuz.OSCURIDAD), nivel
+		)
+
+func _en_alcance_normal(coord: Vector2i) -> bool:
+	var alcance := maxi(ALCANCE_PERCEPCION_ILUMINADA, ultimo_radio_jugador)
+	return (coord - ultimo_centro_jugador).length_squared() <= alcance * alcance
+
+func _fuente_percibida_directamente(coord: Vector2i) -> bool:
+	# La elegibilidad no usa visibilidad ampliada ni recuerdos: no encadena fuentes.
+	return _en_alcance_normal(coord) and _tiene_linea_visual_jugador(coord)
+
+func _actualizar_conocimiento_jugador() -> void:
+	for coord: Vector2i in iluminacion_actual:
+		var nivel: int = iluminacion_actual[coord]
+		if not _en_alcance_normal(coord):
+			nivel = iluminacion_fuentes_percibidas.get(coord, NivelLuz.OSCURIDAD)
+		if nivel == NivelLuz.OSCURIDAD:
+			continue
+		if not _tiene_linea_visual_jugador(coord):
+			continue
+		if nivel == NivelLuz.LUZ:
+			_revelar_celda(coord)
+		else:
+			# shortcut: conservar penumbra explorada hasta acordar su presentación definitiva.
 			_oscurecer_celda(coord, Celda.EstadoVisibilidad.EXPLORADO)
+
+func _tiene_linea_visual_jugador(destino: Vector2i) -> bool:
+	if _validador_espacial != null:
+		return _validador_espacial.validar_linea_visual(ultimo_centro_jugador, destino) == &""
+	# Compatibilidad con la inicialización por diccionario sin TableroGrid.
+	if not datos_tablero.has(ultimo_centro_jugador):
+		return false
+	var linea := _trazar_linea_bresenham(ultimo_centro_jugador, destino)
+	for indice in range(1, linea.size()):
+		if _esquina_bloquea_vision(linea[indice - 1], linea[indice]):
+			return false
+		if indice < linea.size() - 1 and (
+			not datos_tablero.has(linea[indice])
+			or datos_tablero[linea[indice]].bloquea_vision_efectiva()
+		):
+			return false
+	return true
 
 func _revelar_celda(coord: Vector2i) -> void:
 	capa_oscuridad.erase_cell(coord)

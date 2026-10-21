@@ -252,7 +252,7 @@ contenido_inicial = Array[ExtResource("16_hu6da")]([SubResource("Resource_5sqel"
 y_sort_enabled = true
 
 [node name="PersonajeNPC" parent="Interactuables/Personajes" unique_id=151698438 instance=ExtResource("26_trompo")]
-position = Vector2(-635, -244)
+position = Vector2(-608, -240)
 nombre_unico = "Trompo"
 id_instancia = &"goblin_001"
 ajustar_a_celda_en_editor = true

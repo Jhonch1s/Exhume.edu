@@ -1,15 +1,34 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=23 format=3]
 
 [ext_resource type="Script" path="res://scenes/cinematicas/cinematica_imagenes.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/01_tribu_bosque.png" id="2_tribu"]
-[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/02_entrada_cueva.png" id="3_entrada"]
-[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/03_caida.png" id="4_caida"]
-[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/04_puerta_templo.png" id="5_puerta"]
-[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/05_templo_profundo.png" id="6_templo"]
-[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/06_asentamiento_banga.png" id="7_asentamiento"]
-[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/07_noticia.png" id="8_noticia"]
-[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/08_llegada_aventureros.png" id="9_llegada"]
-[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/09_umbral_mazmorra.png" id="10_umbral"]
+[ext_resource type="VideoStream" path="res://assets/videos/intro/01_tribu_bosque.ogv" id="2_vid_tribu"]
+[ext_resource type="VideoStream" path="res://assets/videos/intro/02_entrada_cueva.ogv" id="3_vid_entrada"]
+[ext_resource type="VideoStream" path="res://assets/videos/intro/03_caida.ogv" id="4_vid_caida"]
+[ext_resource type="VideoStream" path="res://assets/videos/intro/04_puerta_templo.ogv" id="5_vid_puerta"]
+[ext_resource type="VideoStream" path="res://assets/videos/intro/05_templo_profundo.ogv" id="6_vid_templo"]
+[ext_resource type="VideoStream" path="res://assets/videos/intro/06_asentamiento_banga.ogv" id="7_vid_asentamiento"]
+[ext_resource type="VideoStream" path="res://assets/videos/intro/07_noticia.ogv" id="8_vid_noticia"]
+[ext_resource type="VideoStream" path="res://assets/videos/intro/08_llegada_aventureros.ogv" id="9_vid_llegada"]
+[ext_resource type="VideoStream" path="res://assets/videos/intro/09_umbral_mazmorra.ogv" id="10_vid_umbral"]
+[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/01_tribu_bosque.png" id="11_tribu"]
+[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/02_entrada_cueva.png" id="12_entrada"]
+[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/03_caida.png" id="13_caida"]
+[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/04_puerta_templo.png" id="14_puerta"]
+[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/05_templo_profundo.png" id="15_templo"]
+[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/06_asentamiento_banga.png" id="16_asentamiento"]
+[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/07_noticia.png" id="17_noticia"]
+[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/08_llegada_aventureros.png" id="18_llegada"]
+[ext_resource type="Texture2D" path="res://assets/ilustraciones/intro/09_umbral_mazmorra.png" id="19_umbral"]
+[ext_resource type="Shader" uid="uid://cmw1kk6ofvqkm" path="res://scenes/menu/filtro_crt_luminancia.gdshader" id="20_crt"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_crt"]
+shader = ExtResource("20_crt")
+shader_parameter/tipo_mascara = 4
+shader_parameter/curvatura = 0.03
+shader_parameter/separacion_color_px = 0.45
+shader_parameter/fuerza_mascara = 0.72
+shader_parameter/brillo_mascara = 0.95
+shader_parameter/aspecto = 0.5625
 
 [node name="CinematicaImagenes" type="Control"]
 layout_mode = 3
@@ -19,7 +38,8 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_script")
-imagenes = Array[Texture2D]([ExtResource("2_tribu"), ExtResource("3_entrada"), ExtResource("4_caida"), ExtResource("5_puerta"), ExtResource("6_templo"), ExtResource("7_asentamiento"), ExtResource("8_noticia"), ExtResource("9_llegada"), ExtResource("10_umbral")])
+videos = Array[VideoStream]([ExtResource("2_vid_tribu"), ExtResource("3_vid_entrada"), ExtResource("4_vid_caida"), ExtResource("5_vid_puerta"), ExtResource("6_vid_templo"), ExtResource("7_vid_asentamiento"), ExtResource("8_vid_noticia"), ExtResource("9_vid_llegada"), ExtResource("10_vid_umbral")])
+imagenes = Array[Texture2D]([ExtResource("11_tribu"), ExtResource("12_entrada"), ExtResource("13_caida"), ExtResource("14_puerta"), ExtResource("15_templo"), ExtResource("16_asentamiento"), ExtResource("17_noticia"), ExtResource("18_llegada"), ExtResource("19_umbral")])
 
 [node name="Fondo" type="ColorRect" parent="."]
 layout_mode = 1
@@ -31,7 +51,22 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
+[node name="ContenedorAspecto" type="AspectRatioContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+ratio = 2.0
+
+[node name="Reproductor" type="VideoStreamPlayer" parent="ContenedorAspecto"]
+layout_mode = 2
+mouse_filter = 2
+expand = true
+
 [node name="Imagen" type="TextureRect" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -39,6 +74,19 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-texture = ExtResource("2_tribu")
+texture = ExtResource("11_tribu")
 expand_mode = 1
 stretch_mode = 5
+
+[node name="CopiaBuffer" type="BackBufferCopy" parent="."]
+copy_mode = 2
+
+[node name="FiltroCRT" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_crt")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

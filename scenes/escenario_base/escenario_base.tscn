@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://csb3u3lb5s2oi" path="res://scenes/escenario_base/escenario_base.gd" id="1_3j2a0"]
 [ext_resource type="Script" path="res://scenes/escenario_base/capa_vision_npc.gd" id="1_vision_npc"]
+[ext_resource type="Script" path="res://scenes/escenario_base/camara_escenario.gd" id="1_camara"]
 [ext_resource type="PackedScene" uid="uid://21yp2g6tjqu" path="res://scenes/Zona1/zona_1.tscn" id="2_3j2a0"]
 [ext_resource type="Texture2D" uid="uid://bj6drlln1vbvq" path="res://assets/tiles/indicators/path/path_isometric.png" id="2_85xdd"]
 [ext_resource type="TileSet" uid="uid://b514khvcqn1oi" path="res://assets/tile_sets/basics.tres" id="3_elvtm"]
@@ -26,6 +27,7 @@
 [ext_resource type="Texture2D" uid="uid://gequfsg3lbdd" path="res://assets/characters/player/dialogue/ladron.png" id="20_dialogo_ladron"]
 [ext_resource type="PackedScene" uid="uid://bppw0hq36w7qs" path="res://assets/characters/knight3d/magov2.glb" id="20_y446p"]
 [ext_resource type="Texture2D" uid="uid://fqjiksle3nk6" path="res://assets/characters/player/dialogue/mago.png" id="21_dialogo_mago"]
+[ext_resource type="PackedScene" uid="uid://c53k1y66e4vup" path="res://scenes/ui/inventario/panel_inventario_equipo.tscn" id="22_inventario_equipo"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_m8dhx"]
 texture = ExtResource("2_85xdd")
@@ -92,6 +94,7 @@ antialiased = true
 [node name="Camera2D" type="Camera2D" parent="." unique_id=643464011]
 position = Vector2(320, 181)
 zoom = Vector2(3, 3)
+script = ExtResource("1_camara")
 
 [node name="FiltroCRT" type="CanvasLayer" parent="." unique_id=274575882]
 layer = 3
@@ -112,6 +115,24 @@ visible = false
 
 [node name="HUD" parent="CanvasLayer" unique_id=207001 instance=ExtResource("17_hud")]
 
+[node name="EstadoCamara" type="Label" parent="CanvasLayer"]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -450.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 78.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.93, 0.85, 0.66, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 22
+text = "Bordes: explorar · Espacio: volver a la ficha"
+horizontal_alignment = 2
+autowrap_mode = 2
+
 [node name="PanelOrdenCombate" parent="CanvasLayer" unique_id=1800521258 instance=ExtResource("17_orden_combate")]
 anchors_preset = 5
 
@@ -125,6 +146,9 @@ anchors_preset = 5
 [node name="MenuContextualInteracciones" parent="CanvasLayer" unique_id=1288888575 instance=ExtResource("11_menu_contextual")]
 
 [node name="PanelInventarioCofre" parent="CanvasLayer" unique_id=131137301 instance=ExtResource("11_e1m65")]
+
+[node name="PanelInventarioEquipo" parent="CanvasLayer" instance=ExtResource("22_inventario_equipo")]
+visible = false
 
 [node name="CanvasLayerModalDados" type="CanvasLayer" parent="." unique_id=246906314]
 layer = 2
@@ -152,6 +176,7 @@ offset_bottom = 348.0
 [node name="KnightSubViewport" type="SubViewport" parent="KnightViewPort" unique_id=1890890032]
 transparent_bg = true
 handle_input_locally = false
+own_world_3d = true
 canvas_item_default_texture_filter = 0
 canvas_cull_mask = 4294966273
 render_target_update_mode = 0
@@ -179,6 +204,7 @@ offset_bottom = 40.0
 [node name="WizardSubViewport" type="SubViewport" parent="WizardViewPort" unique_id=1179709218]
 transparent_bg = true
 handle_input_locally = false
+own_world_3d = true
 canvas_item_default_texture_filter = 0
 render_target_update_mode = 0
 
@@ -206,6 +232,7 @@ offset_bottom = 40.0
 [node name="ThiefSubViewport" type="SubViewport" parent="ThiefViewPort" unique_id=1584483443]
 transparent_bg = true
 handle_input_locally = false
+own_world_3d = true
 render_target_update_mode = 0
 
 [node name="ladronmodelo" parent="ThiefViewPort/ThiefSubViewport" unique_id=1135471360 instance=ExtResource("16_0resi")]

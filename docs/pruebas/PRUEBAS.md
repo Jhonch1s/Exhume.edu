@@ -1,5 +1,36 @@
 # Pruebas
 
+Campamento (20-10-2026): [flujo jugable, persistencia y cobertura](CAMPAMENTO.md).
+`tests/interacciones/prueba_campamento.gd` pasó 129 comprobaciones en Zona1 y
+Templo: ida/vuelta, gasto sólo confirmado, bloqueos, mundo retenido, niebla,
+migración y guardar/cargar en una nueva instancia. La escena manual es
+`tests/interacciones/escena_prueba_campamento.tscn` (F6).
+`tests/interacciones/prueba_plantilla_zona.gd` comprueba la plantilla actualizada
+y el nuevo escenario editable `DescansoCuevas`.
+
+Luz y percepción (20-10-2026): `tests/fov/prueba_luz_percepcion.gd` cubre una
+habitación iluminada tras puerta, penumbra sin descubrimiento a través de pared,
+selección por celda/sprite e items, examen, trampas, movimiento real, humo,
+recuerdo sin NPC, percepción NPC independiente, esquina cerrada y carga desde
+otra posición (repetida y v1). Tras acordar antorcha en oscuridad y siete casillas
+hacia otras luces, cubre también ampliación por fuente percibida directamente y
+el recuerdo al perderla. `tests/fov/prueba_inicio_percepcion.gd` verifica ambas
+zonas reales, cámara libre sin descubrimiento y guardado/carga.
+`tests/fov/prueba_ampliacion_fuentes.gd` cubre tres fuentes sin encadenamiento,
+solapamiento de luz/penumbra, apagado, orden de recorrido, distancia, obstáculos
+y fuego. El recorrido integrado también carga ampliación activa y fuente apagada.
+Pasaron 65, 22 y 22 comprobaciones respectivamente (109 en total), junto con
+11 regresiones en Godot headless. La excepción aún no tiene valoración jugable manual.
+Se inspeccionaron cuatro capturas del renderizador OpenGL del corte anterior
+(inicio y cámara en zona lejana de cada mapa); persisten
+pequeños bordes/salientes en las máscaras de ocultación. La penumbra conserva
+provisionalmente su presentación;
+[diseño y límites](../contenido/VISION_ILUMINACION_Y_NIEBLA.md).
+
+[Cámara libre](CAMARA_LIBRE.md): bordes, Espacio, rueda y recentrado al iniciar turno
+propio. El 20-10-2026 pasaron 64 comprobaciones y siete regresiones; se revisó
+la interfaz renderizada en dos tamaños. Pendiente valoración jugable del usuario.
+
 La [consolidación de NPC del 15-10-2026](CONSOLIDACION_NPC.md) registra las
 correcciones de estados JSON y carga desde otro encuentro, la prueba de archivo
 recuperada y los conteos de rutas/FOV. Las cifras siguientes incluyen ese corte.
@@ -270,17 +301,18 @@ ni ejecutaron pruebas de este incremento. Revisión manual propuesta con F6:
    turnos de exploración. Memorias y orígenes mal formados o fuera del tablero se
    rechazan antes de modificar la partida.
 
-## Estado de las comprobaciones de cofres — 14 de septiembre de 2026
+## Estado de las comprobaciones de cofres — actualizado el 20-10-2026
 
 - El usuario ejecutó la prueba de capacidad y la prueba visual de casilla y confirmó
   sus resultados. La generación de contenido fue comprobada manualmente en juego;
   los items sin icono existen aunque su imagen no aparezca.
-- `prueba_layout_panel_cofre.gd` verificó cuatro tamaños con casillas estáticas.
-  Después el panel pasó a generar casillas en `mostrar()`. La prueba debe adaptarse
-  para abrir un cofre con contenido y exigir el número esperado de casillas: tal
-  como está, su bucle puede pasar sin comprobar ninguna casilla.
-- La prueba propuesta de panel dinámico no fue ejecutada por el usuario. No hay
-  cierre de regresión de apertura, recogida total ni modal.
+- `prueba_layout_panel_cofre.gd` abre un cofre real, exige sus cuatro casillas
+  dinámicas en cuatro tamaños y comprueba detalle, recogida parcial por capacidad,
+  recogida individual, cierre y contenido final. Ya no puede pasar con cero casillas.
+- `prueba_flujo_cofre_escenario.gd` verifica que `EscenarioBase` presenta el panel
+  al abrir, activa el bloqueo modal y de cámara, entrega el botín a la ficha
+  y libera el bloqueo al cerrar. Ambas pruebas pasaron el 20-10-2026; falta revisión
+  manual del recorrido con ratón real.
 - `prueba_persistencia_cofre.gd` verifica apertura, pilas restantes y rechazo de
   contenido inválido. La prueba completa de archivo incluye ahora el cofre real.
 - Las rutas corregidas de las estatuas 11 y 12 se comprobaron mediante una prueba
@@ -288,5 +320,5 @@ ni ejecutaron pruebas de este incremento. Revisión manual propuesta con F6:
   Esa prueba temporal no forma parte de la suite conservada.
 
 - `prueba_cofre_no_caminable.gd` verifica la caminabilidad efectiva de una celda
-  con cofre abierto/cerrado y después de retirarlo. Es una comprobación puntual;
-  no sustituye la regresión pendiente del flujo de inventario.
+  con cofre abierto/cerrado y después de retirarlo. Es una comprobación puntual
+  adicional al recorrido de panel e inventario.
