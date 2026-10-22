@@ -40,6 +40,11 @@ func obtener(clave: StringName) -> int:
 	return _restantes.get(clave, -1)
 
 
+func ajustar_movimiento(maximo: int) -> void:
+	_maximos[MOVIMIENTO] = maxi(0, maximo)
+	_restantes[MOVIMIENTO] = mini(_restantes[MOVIMIENTO], _maximos[MOVIMIENTO])
+
+
 func obtener_maximo(clave: StringName) -> int:
 	return _maximos.get(clave, -1)
 

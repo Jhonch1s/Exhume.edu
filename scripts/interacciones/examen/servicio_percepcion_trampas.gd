@@ -35,12 +35,8 @@ func evaluar(actor: Object) -> Array[ResultadoAccion]:
 		registro_conocimiento.registrar_intento_percepcion(
 			actor.call(&"obtener_id_observador"), id_objetivo
 		)
-		var tirada := motor_dados.resolver_prueba(
-			actor.call(&"obtener_voluntad"),
-			[],
-			[],
-			TiposTirada.Origen.AUTOMATICA,
-			TiposTirada.Presentacion.SOLO_LOG
+		var tirada := EfectosEquipo.resolver_prueba(
+			motor_dados, actor, "voluntad", TiposTirada.Origen.AUTOMATICA, TiposTirada.Presentacion.SOLO_LOG
 		)
 		if not tirada.valida:
 			resultados.append(ResultadoAccion.crear_bloqueo(tirada.motivo))
@@ -73,9 +69,9 @@ func _actor_valido(actor: Object) -> bool:
 		and actor.call(&"obtener_id_observador") is StringName
 		and actor.call(&"obtener_id_observador") != &""
 		and actor.has_method(&"obtener_voluntad")
-		and actor.call(&"obtener_voluntad") is int
-		and actor.call(&"obtener_voluntad") >= 1
-		and actor.call(&"obtener_voluntad") <= 5
+		and EfectosEquipo.base(actor, "voluntad") is int
+		and EfectosEquipo.base(actor, "voluntad") >= 1
+		and EfectosEquipo.base(actor, "voluntad") <= 5
 	)
 
 

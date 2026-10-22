@@ -20,6 +20,8 @@ mensajes = {
 &"dialogo_no_disponible": "Este personaje no tiene un diálogo disponible.",
 &"estado.caida_evitada": "Mantienes el equilibrio sobre el terreno resbaladizo.",
 &"estado.caido": "Pierdes el equilibrio y caes al suelo.",
+&"estado.atributo_reducido": "Un efecto de equipo reduce temporalmente un atributo del objetivo.",
+&"estado.efecto_equipo_resistido": "El objetivo supera la salvación y resiste el efecto del equipo.",
 &"estado.caido_renovado": "Vuelves a caer al suelo.",
 &"estado.destrabado": "Logras liberarte de la telaraña.",
 &"estado.enredado": "Quedas atrapado en la telaraña.",

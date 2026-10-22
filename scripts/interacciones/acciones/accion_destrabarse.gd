@@ -29,7 +29,7 @@ func validar_accion(contexto: ContextoAccion) -> StringName:
 		or contexto.actor.obtener_estado(&"enredado") == null
 	):
 		return &"actor_no_enredado"
-	var destreza: Variant = contexto.actor.obtener_destreza()
+	var destreza: Variant = EfectosEquipo.base(contexto.actor, "destreza")
 	if not destreza is int or destreza < 1 or destreza > 5:
 		return &"destreza_actor_invalida"
 	if (
@@ -48,10 +48,8 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 	if motivo != &"":
 		return ResultadoAccion.crear_bloqueo(motivo)
 	var es_jugador := contexto.actor is Ficha
-	var tirada := motor_dados.resolver_prueba(
-		contexto.actor.obtener_destreza(), [], [],
-		TiposTirada.Origen.SOLICITADA if es_jugador else TiposTirada.Origen.AUTOMATICA,
-		TiposTirada.Presentacion.PRIMER_PLANO if es_jugador else TiposTirada.Presentacion.SOLO_LOG
+	var tirada := EfectosEquipo.resolver_prueba(
+		motor_dados, contexto.actor, "destreza", TiposTirada.Origen.SOLICITADA if es_jugador else TiposTirada.Origen.AUTOMATICA, TiposTirada.Presentacion.PRIMER_PLANO if es_jugador else TiposTirada.Presentacion.SOLO_LOG
 	)
 	if not tirada.valida:
 		return ResultadoAccion.crear_fallo(tirada.motivo)

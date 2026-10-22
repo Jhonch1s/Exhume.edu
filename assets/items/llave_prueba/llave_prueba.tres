@@ -13,3 +13,6 @@ icono = ExtResource("2_icono")
 escena_mundo = ExtResource("3_escena")
 descripcion_base = "Una llave sencilla de hierro, diseñada para una cerradura de cripta común."
 etiquetas = Array[StringName]([&"llave", &"solido"])
+magnitudes = Dictionary[StringName, float]({
+&"peso": 0.2
+})

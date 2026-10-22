@@ -13,6 +13,7 @@ func _ready() -> void:
 	var hud := load("res://scenes/ui/hud/hud.tscn").instantiate() as HUD
 	add_child(hud)
 	hud.configurar_ficha(ficha)
+	hud.asignar_item_rapido(0, ficha.inventario.obtener_por_id(&"antorchas_prueba"))
 	for clase in ["Guerrero", "Ladrón", "Mago"]:
 		ficha.clase = clase
 		hud.actualizar_desde_ficha()
@@ -73,7 +74,7 @@ func _ready() -> void:
 		or (ranura_antorcha.get_node("Cantidad") as Label).text != "2"
 		or ranura_antorcha.text != ""
 		or ranura_antorcha.size != Vector2(82, 82)
-		or not ranura_antorcha.disabled
+		or ranura_antorcha.disabled
 	):
 		_fallar("El HUD no muestra las dos antorchas iniciales.")
 		return
@@ -122,6 +123,8 @@ func _ready() -> void:
 		_fallar("La iluminación inicial no se aplicó en la posición de la ficha.")
 		return
 	var coordenada := ficha_inicio.coordenada_mapa
+	var hud_escenario := escenario.get_node("CanvasLayer/HUD") as HUD
+	hud_escenario.asignar_item_rapido(0, ficha_inicio.inventario.obtener_por_id(&"jugador_antorchas_iniciales"))
 	if (
 		(vision.datos_tablero[coordenada] as Celda).visibilidad != Celda.EstadoVisibilidad.VISIBLE
 		or vision.capa_oscuridad.get_cell_source_id(coordenada) != -1
@@ -140,7 +143,6 @@ func _ready() -> void:
 		_fallar("No se pudo recoger la antorcha de prueba.")
 		return
 	var pila_inicial := ficha_inicio.inventario.obtener_por_id(&"jugador_antorchas_iniciales")
-	var hud_escenario := escenario.get_node("CanvasLayer/HUD") as HUD
 	if (
 		pila_inicial == null
 		or pila_inicial.cantidad != 4
@@ -163,6 +165,8 @@ func _ready() -> void:
 		)).exitosa:
 			_fallar("No se pudo recoger la piedra de prueba.")
 			return
+		if indice == 0:
+			hud_escenario.asignar_item_rapido(1, ficha_inicio.inventario.obtener_por_id(id))
 	var pila_piedras := ficha_inicio.inventario.obtener_por_id(&"piedra_recogida_0")
 	if (
 		pila_piedras == null

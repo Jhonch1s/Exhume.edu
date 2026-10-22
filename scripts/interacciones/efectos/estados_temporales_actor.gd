@@ -94,7 +94,7 @@ func validar_estado_persistente(datos_estados: Variant) -> StringName:
 		var clave: Variant = datos.get("clave")
 		var magnitud: Variant = datos.get("magnitud")
 		if (
-			not clave is String or clave not in ["enredado", "caido", "quemado", "veneno"]
+			not clave is String or (clave not in ["enredado", "caido", "quemado", "veneno"] and StringName(clave) not in EfectosEquipo.PENALIZACIONES)
 			or claves.has(clave) or not (magnitud is int or magnitud is float)
 			or not is_finite(float(magnitud)) or magnitud < 0.0
 			or not _es_entero(datos.get("duracion_total")) or datos["duracion_total"] <= 0
@@ -107,6 +107,7 @@ func validar_estado_persistente(datos_estados: Variant) -> StringName:
 			return &"estados_actor_guardados_invalidos"
 		if (
 			(magnitud == 0.0 and terminos.is_empty())
+			or (StringName(clave) in EfectosEquipo.PENALIZACIONES and (magnitud < 1 or magnitud > 5 or magnitud != floorf(magnitud) or datos["ticks_pendientes"] < 1 or not terminos.is_empty()))
 			or _validar_terminos_dano(terminos) != &""
 			or (clave in ["enredado", "caido"] and (magnitud != 1.0 or not terminos.is_empty()))
 			or (clave == "caido" and datos["ticks_pendientes"] != 1)

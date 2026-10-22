@@ -5,6 +5,8 @@ signal pasar_turno_solicitado
 signal ataque_doble_solicitado
 signal ocultarse_solicitado
 signal bola_fuego_solicitada
+signal habilidad_aprendida_solicitada
+signal item_rapido_solicitado(indice: int)
 
 const RETRATOS_POR_CLASE := {
 	"Guerrero": preload("res://assets/ui/panels/hud/retratos/guerrero.png"),
@@ -59,10 +61,12 @@ const RETRATOS_POR_CLASE := {
 
 var ficha: Ficha
 var ataque_doble_en_turno := false
+var aprendida_disponible := false
 var vida_objetivo := -1.0
 var energia_objetivo := -1.0
 var estado_hover: Control
 var tooltip_estado: PanelContainer
+var items_rapidos_asignados: Array[ItemInstancia] = [null, null, null, null]
 
 
 func _ready() -> void:
@@ -80,14 +84,40 @@ func _ready() -> void:
 	habilidades[0].pressed.connect(func(): ataque_doble_solicitado.emit())
 	habilidades[0].pressed.connect(func(): ocultarse_solicitado.emit())
 	habilidades[0].pressed.connect(func(): bola_fuego_solicitada.emit())
+	habilidades[1].pressed.connect(func(): habilidad_aprendida_solicitada.emit())
 	for indice in items_rapidos.size():
 		var ranura := items_rapidos[indice]
-		ranura.disabled = true
-		ranura.tooltip_text = "Atajo %d · Uso rápido todavía no implementado." % (indice + 5)
+		ranura.disabled = false
+		ranura.pressed.connect(_on_ranura_item_rapido_pulsada.bind(indice))
+		if ranura is CasillaItemRapido:
+			ranura.item_arrastrado_soltado.connect(asignar_item_rapido)
+			ranura.click_derecho_solicitado.connect(desasignar_item_rapido)
 	$HUDRoot/SeccionesHUD/SeccionHabilidades/Titulo.tooltip_text = "Habilidades de clase; cada uso se recupera al descansar."
-	$HUDRoot/SeccionesHUD/SeccionItems/Titulo.tooltip_text = "Muestra objetos del inventario; su uso rápido aún no está implementado."
+	$HUDRoot/SeccionesHUD/SeccionItems/Titulo.tooltip_text = "Acceso rápido a objetos. Arrastra ítems desde el inventario para asignarlos."
 	$HUDRoot/SeccionesHUD/SeccionJugador/Retrato.tooltip_text = "Tu personaje"
 	configurar_ficha(null)
+
+
+func asignar_item_rapido(indice: int, item: ItemInstancia) -> void:
+	if indice < 0 or indice >= items_rapidos_asignados.size() or item == null:
+		return
+	items_rapidos_asignados[indice] = item
+	_actualizar_items()
+
+
+func desasignar_item_rapido(indice: int) -> void:
+	if indice < 0 or indice >= items_rapidos_asignados.size():
+		return
+	items_rapidos_asignados[indice] = null
+	_actualizar_items()
+
+
+func _on_ranura_item_rapido_pulsada(indice: int) -> void:
+	if indice < 0 or indice >= items_rapidos_asignados.size():
+		return
+	if items_rapidos_asignados[indice] == null:
+		return
+	item_rapido_solicitado.emit(indice)
 
 
 func _conectar_feedback_boton(boton: Button) -> void:
@@ -175,6 +205,7 @@ func _actualizar_todo() -> void:
 
 
 func _actualizar_ataque_doble() -> void:
+	_actualizar_aprendida()
 	var boton := habilidades[0]
 	if ficha != null and ficha.clase == "Mago":
 		boton.text = "FUEGO\n%d/1" % ficha.usos_bola_fuego
@@ -183,10 +214,12 @@ func _actualizar_ataque_doble() -> void:
 			not ataque_doble_en_turno or ficha.usos_bola_fuego == 0
 			or ficha.obtener_recurso_turno(RecursosTurnoActor.ACCION_PRINCIPAL) < 1
 		)
-		boton.tooltip_text = "Atajo 1 · Bola de fuego: apunta y haz clic en la casilla de un enemigo a 4 casillas. 1 daño y 50% de quemarlo. Cuesta 1 acción principal y 1 uso por descanso. Esc cancela."
+		boton.tooltip_text = "Atajo 1 · Bola de fuego: enemigo a 4 casillas. 1 daño y 50% de Quemado. Su celda siempre arde durante 3 turnos, aunque no quede Quemado. 1 acción principal y 1 uso por descanso. Esc cancela."
 		return
 	if ficha != null and ficha.clase == "Ladrón":
 		boton.text = "OCULTAR\n%d/1" % ficha.usos_ocultarse
+		if ficha.turnos_oculto > 0:
+			boton.text = "OCULTO\n%d TURNOS" % ficha.turnos_oculto
 		boton.add_theme_font_size_override(&"font_size", 14)
 		boton.disabled = (
 			not ataque_doble_en_turno or ficha.usos_ocultarse == 0
@@ -212,6 +245,48 @@ func _actualizar_ataque_doble() -> void:
 	boton.tooltip_text = "Atajo 1 · Ataque doble: selecciona un enemigo adyacente. Cuesta 1 acción principal y 1 uso por descanso. Esc cancela."
 	if ficha.usos_ataque_doble == 0:
 		boton.tooltip_text = "Atajo 1 · Ataque doble agotado. Descansa para recuperar su uso."
+
+
+func _actualizar_aprendida() -> void:
+	var boton := habilidades[1]
+	boton.text = "II"
+	boton.tooltip_text = "La recompensa de nivel 2 aparecerá aquí."
+	if ficha == null:
+		boton.disabled = true
+		return
+	var ids := ficha.activas_aprendidas + ficha.pasivas_aprendidas
+	if ids.is_empty():
+		boton.disabled = true
+		return
+	var deshabilitada := true
+	var id: String = ids[0]
+	var opcion := CatalogoHabilidades.obtener(id)
+	boton.add_theme_font_size_override(&"font_size", 12)
+	boton.text = opcion["nombre"].to_upper().replace(" ", "\n")
+	if id == "transposicion":
+		boton.text = "TRANSPONER"
+	boton.tooltip_text = "Atajo 2 · %s\n%s\n%s" % [opcion["nombre"], opcion["descripcion"], opcion["coste"]]
+	if opcion["tipo"] == "Activa":
+		boton.text += "\n%d/1" % ficha.usos_activas.get(id, 0)
+		if id == "agarre" and ficha.agarre_pasos > 0:
+			boton.text += "\n%d PASOS" % ficha.agarre_pasos
+		deshabilitada = not aprendida_disponible or ficha.usos_activas.get(id, 0) < 1 or ficha.obtener_recurso_turno(opcion["recurso"]) < 1
+		if id == "paso_sombra" and ficha.turnos_oculto < 1:
+			deshabilitada = true
+			boton.tooltip_text += "\nFalta estar OCULTO. Se permite en combate con una acción adicional libre."
+	elif id == "golpe_desplazante":
+		boton.text = "EMPUJE\nAL ACERTAR"
+	elif id == "contagio_arcano":
+		deshabilitada = not aprendida_disponible
+		boton.text = "CONTAGIO\n" + (ficha.contagio_elegido.to_upper() if ficha.contagio_elegido != "" else "NO")
+	elif id == "inercia":
+		boton.text = "INERCIA\n%d PASOS" % ficha.pasos_inercia
+	else:
+		boton.text += "\nPASIVA"
+	if id in ficha.pasivas_usadas_turno:
+		boton.tooltip_text += "\nYa usaste esta oportunidad durante el turno."
+	# Cambiar disabled temporalmente cancela un clic que todavía está presionado.
+	boton.disabled = deshabilitada
 
 
 func _actualizar_vida(actual: int, maximo: int) -> void:
@@ -425,6 +500,9 @@ func _descripcion_estado(clave: StringName, estado: EstadoActor) -> String:
 	elif clave == &"caido":
 		titulo = "Caído"
 		descripcion = "Te levantarás al terminar este turno."
+	elif clave in EfectosEquipo.PENALIZACIONES:
+		titulo = "Atributo debilitado"
+		descripcion = "-%d %s mientras dure el efecto." % [int(estado.magnitud), String(clave).trim_prefix("debilitado_").to_upper()]
 	else:
 		descripcion = "Efecto activo."
 	if estado.ticks_pendientes > 0:
@@ -447,16 +525,36 @@ func _color_estado(clave: StringName) -> Color:
 
 
 func _actualizar_items() -> void:
-	var contenido: Array[ItemInstancia] = []
-	if ficha != null:
-		contenido = ficha.obtener_inventario().obtener_contenido()
+	var inv: Inventario = ficha.obtener_inventario() if ficha != null else null
 	for indice in items_rapidos.size():
 		var ranura := items_rapidos[indice]
-		var item: ItemInstancia = contenido[indice] if indice < contenido.size() else null
-		var icono := ranura.get_node("Icono") as TextureRect
-		icono.texture = item.definicion.icono if item != null else null
-		(ranura.get_node("Cantidad") as Label).text = str(item.cantidad) if item != null and item.cantidad > 1 else ""
-		ranura.text = "?" if item != null and icono.texture == null else ""
-		ranura.tooltip_text = (
-			"Atajo %d · %s" % [indice + 5, item.definicion.nombre if item != null else "Ranura de objeto rápido vacía"]
-		) + "\nEl uso rápido todavía no está implementado."
+		var item: ItemInstancia = items_rapidos_asignados[indice] if indice < items_rapidos_asignados.size() else null
+		if item != null and inv != null:
+			var item_en_inv := inv.obtener_por_id(item.id_instancia)
+			if item_en_inv == null or item_en_inv.cantidad <= 0:
+				items_rapidos_asignados[indice] = null
+				item = null
+			else:
+				item = item_en_inv
+				items_rapidos_asignados[indice] = item_en_inv
+		elif inv == null:
+			item = null
+
+		var icono := ranura.get_node_or_null("Icono") as TextureRect
+		var cantidad := ranura.get_node_or_null("Cantidad") as Label
+		if icono != null:
+			icono.texture = item.definicion.icono if item != null else null
+			icono.visible = item != null and icono.texture != null
+		if cantidad != null:
+			cantidad.text = str(item.cantidad) if item != null and item.cantidad > 1 else ""
+		ranura.text = ""
+		if item != null:
+			ranura.tooltip_text = (
+				"Atajo %d · %s (x%d)\n%s\nClic o atajo para usar (clic derecho para retirar)."
+				% [indice + 5, item.definicion.nombre, item.cantidad, item.definicion.descripcion_base]
+			)
+		else:
+			ranura.tooltip_text = (
+				"Atajo %d · Ranura rápida vacía.\nArrastra un ítem aquí desde el inventario para asignarlo."
+				% (indice + 5)
+			)

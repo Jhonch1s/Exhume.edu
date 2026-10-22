@@ -113,7 +113,8 @@ func _probar_exclusion_y_bando() -> void:
 func _probar_persistencia() -> void:
 	_preparar()
 	_npcs[0].aplicar_o_renovar_estado(&"veneno", 1, 1, 1)
-	_comprobar(_escenario.guardar_partida(RUTA_XP) == &"", "Guardar antes del tick mortal con XP cero.")
+	var motivo_guardado: StringName = _escenario.guardar_partida(RUTA_XP)
+	_comprobar(motivo_guardado == &"", "Guardar antes del tick mortal con XP cero: %s." % motivo_guardado)
 	_escenario.servicio_turnos.avanzar_turno(_npcs[0])
 	_comprobar(_xp() == 50 and _npcs[0].esta_muerto(), "La primera muerte indirecta entrega XP.")
 	_comprobar(_escenario.guardar_partida(RUTA_XP + ".despues") == &"", "Guardar cadáver y premio juntos.")

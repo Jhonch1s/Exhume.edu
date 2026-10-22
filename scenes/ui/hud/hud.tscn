@@ -6,6 +6,7 @@
 [ext_resource type="FontFile" uid="uid://c0l0sby5jy2p4" path="res://assets/ui/fonts/Amarante-Regular.ttf" id="3_font"]
 [ext_resource type="PackedScene" uid="uid://7yotsv0ybgvs" path="res://scenes/ui/interacciones/panel_registro_narrativo.tscn" id="4_log"]
 [ext_resource type="Script" path="res://scenes/ui/hud/estado_tooltip.gd" id="5_state_tip"]
+[ext_resource type="Script" path="res://scenes/ui/hud/casilla_item_rapido.gd" id="6_item_slot"]
 
 [sub_resource type="Shader" id="ShaderBarAnimated"]
 code = "shader_type canvas_item;\n\nuniform float speed = 0.55;\nuniform float intensity = 0.10;\n\nvoid fragment() {\n\tvec4 base = COLOR;\n\tfloat onda = sin(UV.x * 18.0 + UV.y * 3.0 + TIME * speed);\n\tfloat sombra = smoothstep(-0.65, 0.65, onda) * intensity;\n\tCOLOR = vec4(base.rgb * (1.0 - sombra), base.a);\n}\n"
@@ -540,6 +541,8 @@ offset_right = 86.0
 offset_bottom = 110.0
 theme_override_font_sizes/font_size = 22
 theme_override_styles/normal = SubResource("StyleSlot")
+script = ExtResource("6_item_slot")
+indice_rapido = 0
 
 [node name="Icono" type="TextureRect" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura1"]
 layout_mode = 1
@@ -559,7 +562,15 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_right = -6.0
+offset_bottom = -4.0
 mouse_filter = 2
+theme_override_colors/font_color = Color(0.92, 0.88, 0.76, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 20
 horizontal_alignment = 2
 vertical_alignment = 2
 
@@ -571,6 +582,8 @@ offset_right = 176.0
 offset_bottom = 110.0
 theme_override_font_sizes/font_size = 22
 theme_override_styles/normal = SubResource("StyleSlot")
+script = ExtResource("6_item_slot")
+indice_rapido = 1
 
 [node name="Icono" type="TextureRect" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura2"]
 layout_mode = 1
@@ -590,7 +603,15 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_right = -6.0
+offset_bottom = -4.0
 mouse_filter = 2
+theme_override_colors/font_color = Color(0.92, 0.88, 0.76, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 20
 horizontal_alignment = 2
 vertical_alignment = 2
 
@@ -602,6 +623,8 @@ offset_right = 266.0
 offset_bottom = 110.0
 theme_override_font_sizes/font_size = 22
 theme_override_styles/normal = SubResource("StyleSlot")
+script = ExtResource("6_item_slot")
+indice_rapido = 2
 
 [node name="Icono" type="TextureRect" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura3"]
 layout_mode = 1
@@ -621,7 +644,15 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_right = -6.0
+offset_bottom = -4.0
 mouse_filter = 2
+theme_override_colors/font_color = Color(0.92, 0.88, 0.76, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 20
 horizontal_alignment = 2
 vertical_alignment = 2
 
@@ -633,6 +664,8 @@ offset_right = 356.0
 offset_bottom = 110.0
 theme_override_font_sizes/font_size = 22
 theme_override_styles/normal = SubResource("StyleSlot")
+script = ExtResource("6_item_slot")
+indice_rapido = 3
 
 [node name="Icono" type="TextureRect" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura4"]
 layout_mode = 1
@@ -652,7 +685,15 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_right = -6.0
+offset_bottom = -4.0
 mouse_filter = 2
+theme_override_colors/font_color = Color(0.92, 0.88, 0.76, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 20
 horizontal_alignment = 2
 vertical_alignment = 2
 

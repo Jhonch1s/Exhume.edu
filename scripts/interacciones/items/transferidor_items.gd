@@ -77,11 +77,7 @@ func validar_recoger(contexto: ContextoAccion) -> StringName:
 		return inventario.validar_agregado(item_suelo.item)
 	if tablero.items_suelo_por_id.has(contexto.id_item_resultante):
 		return &"id_item_duplicado"
-	var parcial := ItemInstancia.new(
-		contexto.id_item_resultante,
-		item_suelo.item.definicion,
-		contexto.cantidad_item
-	)
+	var parcial := item_suelo.item.crear_porcion(contexto.id_item_resultante, contexto.cantidad_item)
 	return inventario.validar_agregado(parcial)
 
 
@@ -119,7 +115,8 @@ func construir_contexto_soltar(
 	origen: Vector2i,
 	destino: Vector2i,
 	cantidad: int = -1,
-	id_resultante: StringName = &""
+	id_resultante: StringName = &"",
+	ranura_equipo: int = -1
 ) -> ContextoAccion:
 	return ContextoAccion.new(
 		TiposInteraccion.TipoAccion.SOLTAR,
@@ -132,7 +129,7 @@ func construir_contexto_soltar(
 		[],
 		{},
 		1.0,
-		{},
+		{&"ranura_equipo": ranura_equipo} if ranura_equipo >= 0 else {},
 		TiposInteraccion.TipoLineaEfecto.NINGUNA,
 		{},
 		TiposInteraccion.PoliticaCobro.SOLO_EXITO,
@@ -209,7 +206,21 @@ func validar_accion(contexto: ContextoAccion) -> StringName:
 		return &"actor_sin_inventario"
 	var inventario_tipado := inventario as Inventario
 	var item := contexto.item as ItemInstancia
-	if inventario_tipado.obtener_por_id(item.id_instancia) != item:
+	if not item.es_valida():
+		return &"item_invalido"
+	var origen_equipo: Variant = contexto.metadatos.get(&"ranura_equipo", -1)
+	if not origen_equipo is int or origen_equipo < -1 or origen_equipo > 8:
+		return &"ranura_equipo_invalida"
+	var ranura: int = origen_equipo
+	if ranura >= 0:
+		var equipo := _obtener_equipo(contexto.actor)
+		if equipo == null or equipo.ranuras.get(ranura) != item:
+			return &"item_no_pertenece_equipo"
+		if inventario_tipado.obtener_por_id(item.id_instancia) != null:
+			return &"id_item_duplicado"
+		if contexto.cantidad_item != -1 and contexto.cantidad_item != item.cantidad:
+			return &"equipo_no_divisible"
+	elif inventario_tipado.obtener_por_id(item.id_instancia) != item:
 		return &"item_no_pertenece_inventario"
 	var motivo_cantidad := _validar_cantidad_transferencia(
 		item,
@@ -218,13 +229,14 @@ func validar_accion(contexto: ContextoAccion) -> StringName:
 	)
 	if motivo_cantidad != &"":
 		return motivo_cantidad
-	var motivo_retiro := inventario_tipado.validar_retiro(
-		item.id_instancia,
-		contexto.cantidad_item,
-		contexto.id_item_resultante
-	)
-	if motivo_retiro != &"":
-		return motivo_retiro
+	if ranura < 0:
+		var motivo_retiro := inventario_tipado.validar_retiro(
+			item.id_instancia,
+			contexto.cantidad_item,
+			contexto.id_item_resultante
+		)
+		if motivo_retiro != &"":
+			return motivo_retiro
 	if not contexto.tiene_celda_objetivo() or tablero == null:
 		return &"celda_objetivo_invalida"
 	var id_suelo := (
@@ -243,6 +255,8 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 	var motivo := validar_accion(contexto)
 	if motivo != &"":
 		return ResultadoAccion.crear_bloqueo(motivo)
+	if contexto.metadatos.get(&"ranura_equipo", -1) >= 0:
+		return _soltar_equipo(contexto)
 	var inventario := contexto.actor.call(&"obtener_inventario") as Inventario
 	var item := contexto.item as ItemInstancia
 	var retiro_total := (
@@ -283,6 +297,34 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 		&"coordenada_destino": contexto.celda_objetivo,
 	}]
 	return ResultadoAccion.crear_exito([&"item.soltado"], [], cambios)
+
+
+func _obtener_equipo(actor: Object) -> EquipoActor:
+	if not actor.has_method(&"obtener_equipo"):
+		return null
+	return actor.call(&"obtener_equipo") as EquipoActor
+
+
+func _soltar_equipo(contexto: ContextoAccion) -> ResultadoAccion:
+	var equipo := _obtener_equipo(contexto.actor)
+	var ranura: int = contexto.metadatos[&"ranura_equipo"]
+	var item := contexto.item as ItemInstancia
+	var item_suelo := ItemSuelo.new(item)
+	item_suelo.configurar_transferidor_items(self)
+	# El equipo pasa directamente al suelo, incluso con la mochila llena.
+	equipo.ranuras.erase(ranura)
+	if not tablero.registrar_item_suelo(contexto.celda_objetivo, item_suelo):
+		equipo.ranuras[ranura] = item
+		return ResultadoAccion.crear_fallo(&"registro_item_suelo_fallido")
+	equipo.cambiado.emit()
+	return ResultadoAccion.crear_exito([&"item.soltado"], [], [{
+		&"tipo": &"item_soltado",
+		&"id_instancia": item.id_instancia,
+		&"id_origen": item.id_instancia,
+		&"id_definicion": item.definicion.id_definicion,
+		&"cantidad": item.cantidad,
+		&"coordenada_destino": contexto.celda_objetivo,
+	}])
 
 
 func _validar_lanzar(contexto: ContextoAccion) -> StringName:
@@ -514,11 +556,7 @@ func _recoger_parcial(
 	inventario: Inventario,
 	coordenada: Vector2i
 ) -> ResultadoAccion:
-	var parcial := ItemInstancia.new(
-		contexto.id_item_resultante,
-		item_suelo.item.definicion,
-		contexto.cantidad_item
-	)
+	var parcial := item_suelo.item.crear_porcion(contexto.id_item_resultante, contexto.cantidad_item)
 	var agregado := inventario.agregar(parcial)
 	if not agregado.exitosa:
 		return ResultadoAccion.crear_fallo(agregado.motivo)

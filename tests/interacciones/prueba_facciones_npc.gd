@@ -329,18 +329,21 @@ func _probar_muerte_y_cierre() -> void:
 func _probar_xp() -> void:
 	_reiniciar()
 	var ficha: Ficha = _escenario.ficha_jugador
+	ficha.nivel = 1
+	ficha.nivel_recompensa_pendiente = 0
+	ficha.pasivas_aprendidas.clear()
 	ficha.experiencia_acumulada = 0
 	_npcs[0].vida_actual = 1
 	var resultado := _atacar([1, 6])
 	_comprobar(resultado.exitosa and _npcs[0].esta_muerto() and ficha.experiencia_acumulada == 50, "Un golpe mortal del jugador entrega la recompensa completa declarada.")
-	_comprobar(ficha.nivel == 1 and _escenario.hud.experiencia_barra.value == 50.0 and _escenario.hud.experiencia_barra.max_value == 100.0, "La barra muestra XP real sin subir nivel antes de implementar progresión.")
+	_comprobar(ficha.nivel == 1 and _escenario.hud.experiencia_barra.value == 50.0 and _escenario.hud.experiencia_barra.max_value == 100.0, "La barra muestra XP real sin subir antes de 100 XP.")
 	_npcs[0].recibir_danio(99, ficha)
 	_comprobar(ficha.experiencia_acumulada == 50, "Dañar otra vez el cadáver no duplica XP.")
 	var guardado: StringName = _escenario.guardar_partida(RUTA)
 	var carga: StringName = _escenario.cargar_partida(RUTA) if guardado == &"" else guardado
 	_comprobar(guardado == &"" and carga == &"" and ficha.experiencia_acumulada == 50 and _npcs[0].esta_muerto(), "K/C conserva XP y cadáver sin entregar otra recompensa: guardar=%s, cargar=%s, XP=%d." % [guardado, carga, ficha.experiencia_acumulada])
 	_npcs[1].recibir_danio(99, ficha)
-	_comprobar(ficha.experiencia_acumulada == 100 and ficha.nivel == 1 and _escenario.hud.experiencia_barra.value == 100.0, "Cada baja elegible da XP íntegra; alcanzar el umbral no implementa niveles.")
+	_comprobar(ficha.experiencia_acumulada == 100 and ficha.nivel == 2 and ficha.nivel_recompensa_pendiente == 2 and _escenario.hud.experiencia_barra.value == 0.0, "La segunda baja alcanza nivel 2 y deja una recompensa pendiente.")
 	_reiniciar()
 	ficha.experiencia_acumulada = 0
 	_configurar(_npcs[0], HOSTIL)

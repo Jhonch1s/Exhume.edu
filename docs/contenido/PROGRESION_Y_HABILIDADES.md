@@ -1,6 +1,6 @@
 # Progresión y habilidades: punto de partida
 
-Estado revisado el 20-10-2026. Este documento distingue reglas ya acordadas,
+Estado revisado el 21-10-2026. Este documento distingue reglas ya acordadas,
 comportamiento implementado y propuestas para el próximo corte. Las propuestas
 no son reglas vigentes.
 
@@ -12,11 +12,51 @@ no son reglas vigentes.
 - `GestorAcciones` ya valida alcance, línea de efecto, costes, resultados y
   efectos; `RecursosTurnoActor` lleva acción principal, adicional, reacción y
   movimiento. Se pueden reutilizar para habilidades activas.
-- La primera ranura del Guerrero activa «Ataque doble» y muestra su uso `1/1` o
-  `0/1`. Las otras ranuras siguen pendientes. No hay catálogo ni elección de
-  habilidades aprendidas; alcanzar un umbral de XP no cambia el nivel automáticamente.
+- La primera ranura activa «Ataque doble», «Ocultarse» o «Bola de fuego» según
+  la clase y muestra su uso `1/1` o `0/1`. Estas habilidades iniciales se conservan.
+- La base del corte de nivel 2 ya convierte 100 XP en nivel 2 y una recompensa
+  pendiente persistida. Migra guardados antiguos con XP suficiente y conserva
+  recursos gastados. La XP excedente permanece acumulada; este corte todavía
+  no concede niveles 3 o superiores.
 
-## Reglas acordadas que aún no están implementadas
+## Corte jugable de nivel 2
+
+**Regla actualizada por el usuario:** en nivel 2 se ofrecen, por clase,
+**dos habilidades activas y dos pasivas**. Se aprende **exactamente una de las
+cuatro**, además de conservar la habilidad inicial. El usuario quiere efectos
+que abran posibilidades creativas de juego. Esto reemplaza la preferencia
+anterior por ofrecer solo pasivas de clase.
+
+El usuario aprobó las doce recompensas del
+[catálogo de nivel 2](PROPUESTA_CATALOGO_NIVEL_2.md). Están implementadas:
+Guerrero (Ariete, Agarre, Golpe desplazante, Inercia), Ladrón (Señuelo,
+Paso de sombra, Escapista, Trampero), Mago (Transposición, Trasvase,
+Piromancia libre, Contagio arcano).
+
+**P** o el botón «Progresión» abre la elección fuera de combate, movimientos,
+acciones, diálogos y otros paneles. Se ven las cuatro opciones, sus efectos y
+costes. «Aprender» confirma exactamente una; cerrar o elegir después conserva
+el premio pendiente. Aprender no cura ni recupera recursos gastados. La activa
+nueva nace con su propio uso `1/1` y aparece en la ranura **2**; la primera
+habilidad continúa en **1**. Las pasivas aparecen también en la ranura 2 y en
+el resumen de progresión.
+
+**Golpe desplazante:** después de causar daño se ofrece Empujar / No empujar;
+no se configura antes del ataque. Rechazar conserva la oportunidad del turno.
+En Ataque doble puedes decidir después de cada golpe que cause daño: si empujas
+tras el primero y pierde alcance, no se ejecuta el segundo. **Contagio arcano:** 2 alterna desactivado,
+Veneno y Quemado. Las demás pasivas son automáticas.
+
+La ficha persiste pendientes, activas y pasivas aprendidas, usos independientes,
+modos opcionales, oportunidades gastadas, pasos de Inercia, Agarre y señuelos.
+Se validan clase e IDs; los vínculos con NPC y casillas se validan antes de
+restaurar el mundo. Cargar no repone usos ni límites por turno. Descansar
+recupera los usos de las activas aprendidas además de los iniciales.
+
+Ver [arenas y controles](../../scenes/pruebas_habilidades/README.md) y
+[verificación del corte](../pruebas/PROGRESION_NIVEL_2.md).
+
+## Reglas acordadas (implementación completa pendiente)
 
 - Cada salto cuesta `100 × nivel actual` XP; llegar al nivel N requiere
   `50 × N × (N − 1)` XP total. Así, nivel 2 comienza en 100 XP, nivel 3 en 300
@@ -27,7 +67,7 @@ no son reglas vigentes.
 - Si los tres atributos ya están en 5, el premio de atributo se reemplaza por
   una habilidad o pasiva. La XP no se divide entre futuros integrantes del grupo.
 
-## Propuesta de primer corte jugable
+## Propuesta original del primer corte (referencia histórica)
 
 1. Registrar premios pendientes separados de la XP y del nivel. Al alcanzar el
    umbral, mostrar una notificación. Resolver elecciones fuera de combate y de
@@ -109,7 +149,7 @@ enemigo; cada uno hace su propia tirada de FUE, admite esquiva de DES y causa
 el segundo. Un intento válido consume la acción y el uso aunque ambos golpes
 fallen; cancelar o elegir un objetivo inválido no los consume. No gasta
 energía adicional. En este primer corte el Guerrero dispone de ella desde el
-inicio; su adquisición mediante progresión sigue pendiente. El botón del HUD
+inicio y se conserva al aprender la recompensa de nivel 2. El botón del HUD
 activa la selección de objetivo sobre el mapa; pulsarlo de nuevo o usar Esc
 cancela la selección. Ambos golpes se registran en el historial y el panel
 de resultado muestra la última tirada.
@@ -125,12 +165,15 @@ objetivo visible. Dura dos turnos del jugador, contando el turno en que se
 activa; atacar o recibir cualquier daño lo termina antes, incluido el daño
 periódico de veneno o fuego. Si nadie más mantiene el encuentro, termina el
 combate por pérdida de percepción. La duración y el uso se guardan.
+Mientras está Oculto, la ficha se muestra al 40% de opacidad y el HUD indica
+los turnos restantes. Perder el sigilo devuelve su opacidad completa.
 
 **Implementado — Mago, «Bola de fuego»:** en combate o exploración elige un
 enemigo visible hasta cuatro casillas de distancia. Gasta una acción principal
 y su uso `1/1`, causa 1 punto de daño de fuego y tiene un 50 % de probabilidad
 de aplicar Quemado, el mismo estado de tres ticks de `1d2` usado por el fuego
-del escenario. El alcance, la línea de visión y el bando se validan antes del
+del escenario. Su celda siempre queda ardiendo tres turnos, salga o no Quemado;
+si ya había fuego, renueva la duración sin duplicarlo. El alcance, la línea de visión y el bando se validan antes del
 gasto; elegir un objetivo inválido o cancelar la selección no cobra. El uso se
 guarda y se recupera al descansar. El impacto inicial no tiene tirada de
 ataque ni esquiva. Lanzarlo desde exploración inicia el encuentro.
@@ -161,8 +204,8 @@ automáticamente las reglas del panfleto. Véase [prueba jugable y cobertura](..
 - ¿Adaptamos las tres habilidades emblemáticas del panfleto como opciones
   iniciales de clase, o partimos de otro catálogo?
 - ¿La elección inicial ocurre al crear el personaje o antes del primer turno?
-- ¿Qué pasiva inaugura el sistema? La pasiva no tiene ejemplo concreto en el
-  panfleto. Las tres habilidades activas iniciales ya están jugables.
+- El catálogo de nivel 2 ya fue aprobado e implementado. El balance y las
+  opciones de los niveles siguientes requieren nuevas pruebas y contenido.
 - Al subir FUE o DES, ¿el aumento de PV máximos o movimiento disponible aplica
   de inmediato, o desde el siguiente turno? El guardado actual deriva PV máximos
   de FUE+DES+VOL y movimiento máximo de DES+3; hay que migrarlo con cuidado.

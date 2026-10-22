@@ -18,7 +18,8 @@ escena_mundo = ExtResource("3_mundo")
 descripcion_base = "Una antorcha rudimentaria para conservar la luz durante la exploración."
 etiquetas = Array[StringName]([&"luz", &"consumible"])
 magnitudes = Dictionary[StringName, float]({
-&"duracion": 80.0
+&"duracion": 80.0,
+&"peso": 1.0
 })
 apilable = true
 cantidad_maxima = 10

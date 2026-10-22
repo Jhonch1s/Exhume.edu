@@ -279,17 +279,11 @@ func _activar_mecanismos() -> ResultadoAccion:
 
 
 func _resolver_desarme(contexto: ContextoAccion) -> ResultadoAccion:
-	var atributo := _obtener_atributo_desarme(contexto.actor, contexto.id_accion)
+	var atributo := "fuerza" if contexto.id_accion == &"desarmar_fue" else "destreza" if contexto.id_accion == &"desarmar_des" else "voluntad"
 	var desventajas: Array[StringName] = []
 	if contexto.actor.clase != "Guerrero":
 		desventajas.append(&"desarme_sin_especialidad")
-	var tirada := motor_dados.resolver_prueba(
-		atributo,
-		[],
-		desventajas,
-		TiposTirada.Origen.SOLICITADA,
-		TiposTirada.Presentacion.PRIMER_PLANO
-	)
+	var tirada := EfectosEquipo.resolver_prueba(motor_dados, contexto.actor, atributo, TiposTirada.Origen.SOLICITADA, TiposTirada.Presentacion.PRIMER_PLANO, "", desventajas)
 	if tirada.exitosa:
 		estado = Estado.DESACTIVADA
 		_actualizar_presentacion()
@@ -315,16 +309,6 @@ func _resolver_desarme(contexto: ContextoAccion) -> ResultadoAccion:
 		resultado.solicitudes_efecto,
 		resultado.destino_item
 	).con_tirada(tirada)
-
-
-func _obtener_atributo_desarme(actor: Ficha, id_accion: StringName) -> int:
-	match id_accion:
-		&"desarmar_fue":
-			return actor.obtener_fuerza()
-		&"desarmar_des":
-			return actor.obtener_destreza()
-		_:
-			return actor.obtener_voluntad()
 
 
 func _actualizar_presentacion() -> void:

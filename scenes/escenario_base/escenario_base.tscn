@@ -114,6 +114,7 @@ layer = 2
 visible = false
 
 [node name="HUD" parent="CanvasLayer" unique_id=207001 instance=ExtResource("17_hud")]
+z_index = 10
 
 [node name="EstadoCamara" type="Label" parent="CanvasLayer"]
 anchor_left = 1.0

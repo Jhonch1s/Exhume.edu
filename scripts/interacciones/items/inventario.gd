@@ -2,18 +2,48 @@ class_name Inventario
 extends RefCounted
 
 var _contenido: Array[ItemInstancia] = []
+var _ranuras: Array[ItemInstancia] = []
 var capacidad: int = -1
+
+
+func _asegurar_ranuras(minimo: int = 30) -> void:
+	var tamano: int = max(minimo, capacidad if capacidad > 0 else 30)
+	while _ranuras.size() < tamano:
+		_ranuras.append(null)
+	for item in _contenido:
+		if not _ranuras.has(item):
+			var libre := _ranuras.find(null)
+			if libre != -1:
+				_ranuras[libre] = item
+			else:
+				_ranuras.append(item)
+
+
+func obtener_en_ranura(indice: int) -> ItemInstancia:
+	_asegurar_ranuras()
+	if indice >= 0 and indice < _ranuras.size():
+		return _ranuras[indice]
+	return null
+
+
+func mover_ranura(origen: int, destino: int) -> void:
+	_asegurar_ranuras()
+	if origen < 0 or origen >= _ranuras.size() or destino < 0 or destino >= _ranuras.size() or origen == destino:
+		return
+	var temp := _ranuras[origen]
+	_ranuras[origen] = _ranuras[destino]
+	_ranuras[destino] = temp
+
+
+func obtener_ranuras(cantidad_ranuras: int = 30) -> Array[ItemInstancia]:
+	_asegurar_ranuras(cantidad_ranuras)
+	return _ranuras.slice(0, cantidad_ranuras)
 
 
 func obtener_estado_persistente() -> Array[Dictionary]:
 	var items: Array[Dictionary] = []
 	for item in _contenido:
-		items.append({
-			"id": String(item.id_instancia),
-			"definicion_id": String(item.definicion.id_definicion),
-			"definicion_path": item.definicion.resource_path,
-			"cantidad": item.cantidad,
-		})
+		items.append(item.obtener_estado_persistente())
 	return items
 
 
@@ -42,6 +72,8 @@ func validar_estado_persistente(datos: Variant) -> StringName:
 		var item := ItemInstancia.new(StringName(id_item), perfil, int(cantidad))
 		if perfil == null or String(perfil.id_definicion) != id_definicion or not item.es_valida():
 			return &"definicion_item_guardada_invalida"
+		if entrada.has("pasos_antorchas") and not item.validar_pasos_antorchas(entrada["pasos_antorchas"]):
+			return &"desgaste_antorcha_guardado_invalido"
 		ids[id_item] = true
 	return &""
 
@@ -52,11 +84,14 @@ func restaurar_estado_persistente(datos: Variant) -> StringName:
 		return motivo
 	var preparado: Array[ItemInstancia] = []
 	for entrada: Dictionary in datos:
-		preparado.append(ItemInstancia.new(
+		var item := ItemInstancia.new(
 			StringName(entrada["id"]),
 			ResourceLoader.load(entrada["definicion_path"]) as DefinicionItem,
 			int(entrada["cantidad"])
-		))
+		)
+		if entrada.has("pasos_antorchas"):
+			item.restaurar_pasos_antorchas(entrada["pasos_antorchas"])
+		preparado.append(item)
 	_contenido = preparado
 	_ordenar()
 	return &""
@@ -100,6 +135,7 @@ func agregar(item: ItemInstancia) -> ResultadoOperacionInventario:
 		return ResultadoOperacionInventario.crear_fallo(motivo)
 	_contenido.append(item)
 	_ordenar()
+	_asegurar_ranuras()
 	return ResultadoOperacionInventario.crear_exito(
 		item,
 		item.cantidad,
@@ -138,14 +174,17 @@ func retirar(
 	var item := obtener_por_id(id_instancia)
 	if cantidad == -1 or cantidad == item.cantidad:
 		_contenido.erase(item)
+		var idx := _ranuras.find(item)
+		if idx != -1:
+			_ranuras[idx] = null
 		return ResultadoOperacionInventario.crear_exito(
 			item,
 			item.cantidad,
 			item.id_instancia
 		)
 
+	var retirado := item.crear_porcion(nuevo_id, cantidad)
 	item._establecer_cantidad(item.cantidad - cantidad)
-	var retirado := ItemInstancia.new(nuevo_id, item.definicion, cantidad)
 	return ResultadoOperacionInventario.crear_exito(
 		retirado,
 		cantidad,
@@ -158,8 +197,12 @@ func consumir_unidad(id_instancia: StringName) -> bool:
 	var item := obtener_por_id(id_instancia)
 	if item == null:
 		return false
-	if item.cantidad == 1:
+	if item.cantidad <= 1:
+		item._establecer_cantidad(0)
 		_contenido.erase(item)
+		var idx := _ranuras.find(item)
+		if idx != -1:
+			_ranuras[idx] = null
 	else:
 		item._establecer_cantidad(item.cantidad - 1)
 	return true
@@ -184,8 +227,14 @@ func combinar(
 		return ResultadoOperacionInventario.crear_fallo(&"cantidad_maxima_superada")
 
 	var cantidad_movida := origen.cantidad
+	var pasos_combinados: Array[int] = destino.pasos_antorchas + origen.pasos_antorchas
 	destino._establecer_cantidad(destino.cantidad + cantidad_movida)
+	destino.pasos_antorchas = pasos_combinados
+	destino.pasos_antorchas.sort()
 	_contenido.erase(origen)
+	var indice := _ranuras.find(origen)
+	if indice != -1:
+		_ranuras[indice] = null
 	return ResultadoOperacionInventario.crear_exito(
 		destino,
 		cantidad_movida,
@@ -214,8 +263,8 @@ func separar(
 		return ResultadoOperacionInventario.crear_fallo(&"inventario_lleno") ##basta de tantos mensajes loko
 	
 
+	var separado := origen.crear_porcion(nuevo_id, cantidad)
 	origen._establecer_cantidad(origen.cantidad - cantidad)
-	var separado := ItemInstancia.new(nuevo_id, origen.definicion, cantidad)
 	_contenido.append(separado)
 	_ordenar()
 	return ResultadoOperacionInventario.crear_exito(
@@ -247,5 +296,8 @@ func transferir_a(
 	var resultado := destino.agregar(item)
 	if resultado.exitosa:
 		_contenido.erase(item)
+		var idx := _ranuras.find(item)
+		if idx != -1:
+			_ranuras[idx] = null
 
 	return resultado

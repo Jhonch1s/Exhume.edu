@@ -2,21 +2,67 @@
 
 [ext_resource type="Script" uid="uid://dnj01o0arwo21" path="res://scenes/ui/inventario/casilla_inventario.gd" id="1_bof3f"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBox_CasillaNormal"]
+bg_color = Color(0.04, 0.045, 0.055, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.015, 0.015, 0.02, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+shadow_color = Color(0, 0, 0, 0.8)
+shadow_size = 2
+shadow_offset = Vector2(1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_CasillaHover"]
+bg_color = Color(0.07, 0.08, 0.1, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.65, 0.52, 0.28, 0.9)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_size = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_CasillaPressed"]
+bg_color = Color(0.03, 0.035, 0.045, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.45, 0.35, 0.18, 0.9)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
 [node name="CasillaInventario" type="Button" unique_id=873975565]
 custom_minimum_size = Vector2(48, 48)
-offset_right = 8.0
-offset_bottom = 8.0
+offset_right = 48.0
+offset_bottom = 48.0
+theme_override_styles/normal = SubResource("StyleBox_CasillaNormal")
+theme_override_styles/hover = SubResource("StyleBox_CasillaHover")
+theme_override_styles/pressed = SubResource("StyleBox_CasillaPressed")
+theme_override_styles/disabled = SubResource("StyleBox_CasillaNormal")
 script = ExtResource("1_bof3f")
 
 [node name="Icono" type="TextureRect" parent="." unique_id=671490649]
+texture_filter = 1
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 6.0
-offset_top = 6.0
-offset_right = -6.0
-offset_bottom = -6.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -28,8 +74,11 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_right = -3.0
+offset_bottom = -2.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_font_sizes/font_size = 12
 text = "5"
 horizontal_alignment = 2
 vertical_alignment = 2

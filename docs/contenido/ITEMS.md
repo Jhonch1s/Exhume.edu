@@ -57,8 +57,8 @@ de compatibilidad con puertas, no una etiqueta distinta para cada cerradura.
 [DefinicionAntorcha](../../scripts/interacciones/items/definicion_antorcha.gd)
 hereda de `DefinicionItem` y añade radio de visión, pasos de atenuación, energía,
 escala y color de luz. `assets/items/antorcha/antorcha.tres` guarda esos valores
-y `magnitudes.duracion = 80` para el consumo. La ficha conserva sólo los pasos
-restantes de la unidad activa; véase [HUD y luz](../arquitectura/HUD_JUGADOR.md).
+y `magnitudes.duracion = 80` para el consumo. Cada unidad conserva sus pasos
+restantes en `ItemInstancia`; véase [HUD y luz](../arquitectura/HUD_JUGADOR.md).
 
 ## Estado de una pila y de su presencia en el mapa
 
@@ -69,8 +69,9 @@ restantes de la unidad activa; véase [HUD y luz](../arquitectura/HUD_JUGADOR.md
 | `id_instancia: StringName` | Identidad de esta pila. |
 | `definicion: DefinicionItem` | Referencia al recurso compartido. |
 | `cantidad: int` | Unidades actuales. |
+| `pasos_antorchas: Array[int]` | Pasos restantes por unidad de antorcha; vacío para otros ítems. |
 
-Son propiedades de lectura respaldadas por `_id_instancia`, `_definicion` y
+Las tres primeras son propiedades de lectura respaldadas por `_id_instancia`, `_definicion` y
 `_cantidad`. Métodos: `_init(id, definicion, cantidad = 1)`, `es_valida()` y el
 mutador interno `_establecer_cantidad(nueva_cantidad)`. Este último no valida:
 el contenido debe usar las operaciones de Inventario/TransferidorItems.
@@ -259,8 +260,13 @@ No están modelados hoy: rareza, precio, categoría de equipo, daño de arma,
 ranura de equipo, requisitos de uso, cargas,
 durabilidad por ejemplar, propietario persistente, recetas, sonidos generales,
 acciones de comer/beber/equipar ni un inventario por peso. Las antorchas son
-definiciones de ítem del inventario; la Ficha conserva únicamente el desgaste
-de la antorcha activa. Las raciones aún no están migradas y siguen siendo un
+definiciones de ítem del inventario; `ItemInstancia.pasos_antorchas` conserva
+los pasos restantes de cada unidad de la pila. Soltar, recoger, separar y combinar
+conservan esos valores, también al guardar/cargar en mochila, equipo o suelo.
+La Ficha consulta ese estado y prioriza las antorchas usadas antes de encender
+una nueva. Los guardados anteriores migran el contador de la antorcha activa.
+La prueba `tests/interacciones/prueba_desgaste_antorchas.gd` cubre estos casos.
+Las raciones aún no están migradas y siguen siendo un
 contador separado.
 
 ## Habilidades y modificadores futuros

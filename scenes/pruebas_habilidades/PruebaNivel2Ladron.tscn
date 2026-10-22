@@ -1,0 +1,7 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/pruebas_habilidades/escenario_nivel_dos.gd" id="1"]
+
+[node name="PruebaNivel2Ladron" type="Node2D"]
+script = ExtResource("1")
+clase = "Ladrón"

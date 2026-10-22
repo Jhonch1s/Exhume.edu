@@ -33,8 +33,8 @@ de los dados y textos. Véase
   las barras interpolan su valor al actualizarse.
 - Los tres engarces de antorcha leen la cantidad del inventario. El último
   engarce encendido representa el desgaste de la antorcha en uso; no es un
-  contador separado en la ficha. La ficha conserva los pasos restantes de esa
-  antorcha. El HUD aún usa `Ficha.PASOS_MAX_ANTORCHA` (80) como denominador del
+  contador separado en la ficha. La ficha consulta los pasos restantes de esa
+  unidad en `ItemInstancia.pasos_antorchas`. El HUD aún usa `Ficha.PASOS_MAX_ANTORCHA` (80) como denominador del
   color y del tooltip: si se crean antorchas con otra duración, habrá que leer
   ese máximo desde su definición también aquí.
 - Los engarces de acciones se crean según el máximo de acciones principales de
@@ -62,8 +62,10 @@ de los dados y textos. Véase
 La antorcha inicial es una `ItemInstancia` con cantidad 3 en el inventario, creada
 en `EscenarioBase.spawnear_ficha_inicial`. `Ficha.consumir_paso_antorcha()`
 descuenta un paso por movimiento; al agotarse una unidad, `Inventario` la consume
-y la ficha carga la duración de la siguiente. Guardado y carga conservan tanto
-el inventario como los pasos pendientes.
+y la ficha consulta los pasos que le quedan a la siguiente. Soltar, recoger,
+dividir y combinar pilas conservan el desgaste de cada unidad. Guardado y carga
+conservan esos valores en mochila, equipo y suelo; los guardados anteriores
+migran el contador de la antorcha activa.
 
 Al recoger del suelo un ítem con `apilable = true`, `EscenarioBase` lo combina
 con una pila de la misma definición si cabe completo. Esto incluye antorchas

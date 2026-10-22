@@ -10,17 +10,15 @@ func obtener_items_suelo(tablero: TableroGrid) -> Array[Dictionary]:
 	for id_item in ids:
 		var item_suelo := tablero.obtener_item_suelo(id_item)
 		var item := item_suelo.item
-		datos.append({
-			"id": String(item.id_instancia),
-			"definicion_id": String(item.definicion.id_definicion),
-			"definicion_path": item.definicion.resource_path,
-			"cantidad": item.cantidad,
+		var dato := item.obtener_estado_persistente()
+		dato.merge({
 			"coordenada": [item_suelo.coordenada_mapa.x, item_suelo.coordenada_mapa.y],
 			"desplazamiento_visual": [
 				item_suelo.desplazamiento_visual.x,
 				item_suelo.desplazamiento_visual.y,
 			],
 		})
+		datos.append(dato)
 		if item_suelo.variante_visual >= 0:
 			datos[-1]["variante_visual"] = item_suelo.variante_visual
 	return datos
@@ -72,9 +70,12 @@ func restaurar(items: Array, superficies: Array, tablero: TableroGrid) -> String
 	var items_nuevos: Array[Dictionary] = []
 	for datos: Dictionary in items:
 		var definicion := ResourceLoader.load(datos["definicion_path"]) as DefinicionItem
-		var item_suelo := ItemSuelo.new(ItemInstancia.new(
+		var item := ItemInstancia.new(
 			StringName(datos["id"]), definicion, int(datos["cantidad"])
-		))
+		)
+		if datos.has("pasos_antorchas"):
+			item.restaurar_pasos_antorchas(datos["pasos_antorchas"])
+		var item_suelo := ItemSuelo.new(item)
 		var desplazamiento: Array = datos.get("desplazamiento_visual", [0.0, 0.0])
 		item_suelo.configurar_desplazamiento_visual(Vector2(
 			float(desplazamiento[0]), float(desplazamiento[1])
@@ -136,6 +137,8 @@ func _validar_item(
 	var item := ItemInstancia.new(StringName(id_item), definicion, int(datos["cantidad"]))
 	if definicion == null or String(definicion.id_definicion) != id_definicion or not item.es_valida():
 		return &"definicion_item_guardada_invalida"
+	if datos.has("pasos_antorchas") and not item.validar_pasos_antorchas(datos["pasos_antorchas"]):
+		return &"desgaste_antorcha_guardado_invalido"
 	if datos.has("variante_visual"):
 		var variante: Variant = datos["variante_visual"]
 		if not _es_numero_entero(variante) or variante < 0 or definicion.escena_mundo == null:

@@ -18,7 +18,7 @@ const texturaVeneno = preload("res://scenes/efectos_superficie/particulaverde.pn
 const particulasLavaEscena = preload("res://scenes/efectos_superficie/particulas_quemado.tscn")
 var shaderMat = ShaderMaterial.new()
 var shaderMatQ = ShaderMaterial.new()
-var particulaFuegoInstancia: Node = null
+var particulaFuegoInstancia: Node2D = null
 const SONIDO_DANIO_DEFECTO: AudioStream = preload("res://assets/sonidos/sonidos finales/sonidos mmo/MMO_Game_Magic_Source_Armor_02_Metal_Hit_Shuffle.wav")
 const SONIDO_QUEMADURA_DEFECTO: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ambiente/fuego quemadura.wav")
 const SONIDO_VENENO_DEBUFF_DEFECTO: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ambiente/561216__terrytom__poison-debuff.wav")
@@ -46,11 +46,45 @@ var des: int = 4
 var vol: int = 2
 @export_range(1, 99, 1) var nivel: int = 1
 @export_range(0, 999999, 1) var experiencia_acumulada: int = 0
+# shortcut: este corte resuelve solo nivel 2; ampliar con el catálogo de niveles siguientes.
+const NIVEL_MAXIMO_IMPLEMENTADO := 2
+var nivel_recompensa_pendiente: int = 0
+var pasivas_aprendidas: Array[String] = []
+var activas_aprendidas: Array[String] = []
+var usos_activas: Dictionary = {}
+var pasivas_usadas_turno: Array[String] = []
+# Compatibilidad con guardados anteriores: estos modos ya no controlan el empuje.
+var empuje_habilitado := false
+var empuje_ultimo_doble := false
+var contagio_elegido := ""
+var pasos_inercia := 0
+var agarre_objetivo := ""
+var agarre_pasos := 0
+var senuelos: Dictionary = {}
 var energia_maxima: int = 200
 var energia_actual: int = 200
 var movimiento_por_turno: int:
 	get:
-		return RecursosTurnoActor.calcular_movimiento(des)
+		if esta_sobrecargado():
+			return 0
+		return RecursosTurnoActor.calcular_movimiento(obtener_destreza())
+
+var peso_maximo: float:
+	get:
+		return 15.0 + float(obtener_fuerza()) * 4.0
+
+
+func obtener_peso_actual() -> float:
+	var total := 0.0
+	if inventario != null:
+		for item in inventario.obtener_contenido():
+			if item != null and item.es_valida():
+				total += item.obtener_peso_total()
+	return total + equipo.obtener_peso()
+
+
+func esta_sobrecargado() -> bool:
+	return obtener_peso_actual() > peso_maximo
 @export_range(0, 9, 1) var acciones_principales_por_turno: int = 1
 @export_range(0, 9, 1) var acciones_adicionales_por_turno: int = 1
 @export_range(0, 9, 1) var reacciones_por_turno: int = 1
@@ -64,13 +98,24 @@ var origen: String = ""
 
 const ID_ANTORCHA := &"antorcha"
 const PASOS_MAX_ANTORCHA: int = 80
-var pasos_antorcha_actual: int = 0
+var pasos_antorcha_actual: int:
+	get:
+		var antorcha := obtener_pila_antorcha_activa()
+		return antorcha.pasos_antorchas[0] if antorcha != null else 0
+	set(valor):
+		var antorcha := obtener_pila_antorcha_activa()
+		if antorcha != null:
+			antorcha.pasos_antorchas[0] = valor
 var raciones: int = 3
 var usos_ataque_doble: int = 1
 var usos_ocultarse: int = 1
 var usos_bola_fuego: int = 1
-var turnos_oculto: int = 0
+var turnos_oculto: int = 0:
+	set(valor):
+		turnos_oculto = valor
+		_actualizar_visual_sigilo()
 var inventario: Inventario = Inventario.new()
+var equipo := EquipoActor.new()
 
 var coordenada_mapa: Vector2i = Vector2i.ZERO
 var capa_referencia: TileMapLayer = null
@@ -95,18 +140,38 @@ signal estado_cambiado(clave: StringName, estado: EstadoActor)
 signal recursos_turno_cambiados(recursos: RecursosTurnoActor)
 signal descanso_realizado
 signal usos_habilidades_cambiados
+signal progresion_cambiada
+signal golpe_conectado(objetivo: Object)
 
 
 
 
 func _init() -> void:
 	estados_temporales.estado_cambiado.connect(_on_estado_temporal_cambiado)
+	equipo.cambiado.connect(_on_equipo_cambiado)
+
+
+func obtener_equipo() -> EquipoActor:
+	return equipo
+
+
+func _on_equipo_cambiado() -> void:
+	if recursos_turno != null:
+		recursos_turno.ajustar_movimiento(RecursosTurnoActor.calcular_movimiento(obtener_destreza()))
+	progresion_cambiada.emit()
 
 
 func _on_estado_temporal_cambiado(clave: StringName, estado: EstadoActor) -> void:
+	if clave in EfectosEquipo.PENALIZACIONES:
+		_on_equipo_cambiado()
 	if clave == &"veneno" or clave == &"quemado":
 		_actualizar_efectos_estado()
 	estado_cambiado.emit(clave, estado)
+
+
+func _actualizar_visual_sigilo() -> void:
+	if is_instance_valid(sprite_render):
+		sprite_render.self_modulate.a = 0.4 if turnos_oculto > 0 else 1.0
 
 
 func _actualizar_efectos_estado() -> void:
@@ -117,7 +182,9 @@ func _actualizar_efectos_estado() -> void:
 	particulasVeneno.emitting = envenenado
 	sprite_render.material = shaderMatQ if quemado else shaderMat if envenenado else null
 	if quemado and not is_instance_valid(particulaFuegoInstancia):
-		particulaFuegoInstancia = particulasLavaEscena.instantiate()
+		particulaFuegoInstancia = particulasLavaEscena.instantiate() as Node2D
+		# El sprite renderizado está a escala 0,12; conservar el ancho de 64 px en el mapa.
+		particulaFuegoInstancia.scale = Vector2.ONE / sprite_render.scale
 		sprite_render.add_child(particulaFuegoInstancia)
 	elif not quemado and is_instance_valid(particulaFuegoInstancia):
 		particulaFuegoInstancia.queue_free()
@@ -140,6 +207,46 @@ func obtener_inventario() -> Inventario:
 	return inventario
 
 
+func ganar_experiencia(cantidad: int) -> void:
+	if cantidad <= 0:
+		return
+	experiencia_acumulada += cantidad
+	actualizar_progresion()
+	progresion_cambiada.emit()
+
+
+func actualizar_progresion() -> void:
+	if nivel < NIVEL_MAXIMO_IMPLEMENTADO and experiencia_acumulada >= 100:
+		nivel = 2
+		nivel_recompensa_pendiente = 2
+
+
+func conoce_habilidad(id: String) -> bool:
+	return id in pasivas_aprendidas or id in activas_aprendidas
+
+
+func aprender_recompensa(id: String) -> bool:
+	var opcion := CatalogoHabilidades.obtener(id)
+	if nivel_recompensa_pendiente != 2 or opcion.is_empty() or opcion["clase"] != clase:
+		return false
+	if not pasivas_aprendidas.is_empty() or not activas_aprendidas.is_empty():
+		return false
+	if opcion["tipo"] == "Activa":
+		activas_aprendidas.append(id)
+		usos_activas[id] = 1
+	else:
+		pasivas_aprendidas.append(id)
+	nivel_recompensa_pendiente = 0
+	progresion_cambiada.emit()
+	usos_habilidades_cambiados.emit()
+	return true
+
+
+func romper_agarre() -> void:
+	agarre_objetivo = ""
+	agarre_pasos = 0
+
+
 func descansar_en_campamento() -> StringName:
 	if not puede_actuar():
 		return &"descanso_jugador_sin_vida"
@@ -151,6 +258,8 @@ func descansar_en_campamento() -> StringName:
 	usos_ataque_doble = 1
 	usos_ocultarse = 1
 	usos_bola_fuego = 1
+	for id in activas_aprendidas:
+		usos_activas[id] = 1
 	puntos_vida_cambiados.emit(pv_actual, pv_max)
 	usos_habilidades_cambiados.emit()
 	descanso_realizado.emit()
@@ -200,31 +309,41 @@ func obtener_cantidad_antorchas() -> int:
 	return cantidad
 
 func obtener_antorcha_activa() -> DefinicionAntorcha:
-	var antorchas := inventario.obtener_por_definicion(ID_ANTORCHA)
-	if antorchas.is_empty() or pasos_antorcha_actual <= 0:
+	var antorcha := obtener_pila_antorcha_activa()
+	if antorcha == null or pasos_antorcha_actual <= 0:
 		return null
-	return antorchas[0].definicion as DefinicionAntorcha
+	return antorcha.definicion as DefinicionAntorcha
+
+
+func obtener_pila_antorcha_activa() -> ItemInstancia:
+	var activa: ItemInstancia = null
+	for item in inventario.obtener_por_definicion(ID_ANTORCHA):
+		if item.pasos_antorchas.is_empty():
+			continue
+		# Priorizar las usadas evita cambiar a una nueva al recoger otra pila.
+		var usada := item.pasos_antorchas[0] < item.obtener_duracion_antorcha()
+		if activa == null or (usada and (
+			activa.pasos_antorchas[0] == activa.obtener_duracion_antorcha()
+			or item.pasos_antorchas[0] < activa.pasos_antorchas[0]
+		)):
+			activa = item
+	return activa
 
 func activar_antorcha_si_necesario() -> bool:
-	var antorchas := inventario.obtener_por_definicion(ID_ANTORCHA)
-	if antorchas.is_empty():
-		pasos_antorcha_actual = 0
-		return false
-	if pasos_antorcha_actual > 0:
-		return true
-	pasos_antorcha_actual = int(antorchas[0].definicion.magnitudes.get(
-		&"duracion", float(PASOS_MAX_ANTORCHA)
-	))
 	return pasos_antorcha_actual > 0
 
 func obtener_fuerza() -> int:
-	return fue
+	return maxi(1, fue + EfectosEquipo.bono_atributo(self, "fuerza"))
 
 func obtener_destreza() -> int:
-	return des
+	return maxi(1, des + EfectosEquipo.bono_atributo(self, "destreza"))
 
 func obtener_voluntad() -> int:
-	return vol
+	return maxi(1, vol + EfectosEquipo.bono_atributo(self, "voluntad"))
+
+
+func obtener_atributo_base(atributo: String) -> int:
+	return {"fuerza": fue, "destreza": des, "voluntad": vol}.get(atributo, 0)
 
 func recibir_danio(cantidad: int, _fuente: Object = null) -> int:
 	if cantidad <= 0:
@@ -237,6 +356,16 @@ func recibir_danio(cantidad: int, _fuente: Object = null) -> int:
 		reproducir_efecto_danio()
 		reproducir_sonido_danio()
 		print("Vida de %s: %d/%d" % [nombre, pv_actual, pv_max])
+		puntos_vida_cambiados.emit(pv_actual, pv_max)
+	return aplicado
+
+func curar(cantidad: int) -> int:
+	if cantidad <= 0 or pv_actual >= pv_max:
+		return 0
+	var anterior := pv_actual
+	pv_actual = mini(pv_max, pv_actual + cantidad)
+	var aplicado := pv_actual - anterior
+	if aplicado > 0:
 		puntos_vida_cambiados.emit(pv_actual, pv_max)
 	return aplicado
 
@@ -313,6 +442,9 @@ func consumir_tick_estado(clave: StringName) -> Dictionary:
 	return resultado
 
 func iniciar_turno() -> void:
+	pasivas_usadas_turno.clear()
+	pasos_inercia = 0
+	romper_agarre()
 	if recursos_turno == null:
 		recursos_turno = _crear_recursos_turno(des)
 	else:
@@ -333,6 +465,8 @@ func obtener_recurso_turno(clave: StringName) -> int:
 	return recursos_turno.obtener(clave)
 
 func validar_coste_turno(clave: StringName, cantidad: int) -> StringName:
+	if clave == RecursosTurnoActor.MOVIMIENTO and pasos_inercia > 0 and cantidad > 0:
+		return &""
 	if recursos_turno == null:
 		iniciar_turno()
 	return recursos_turno.validar_consumo(clave, cantidad)
@@ -362,6 +496,15 @@ func obtener_estado_persistente() -> Dictionary:
 		"voluntad": vol,
 		"nivel": nivel,
 		"experiencia_acumulada": experiencia_acumulada,
+		"nivel_recompensa_pendiente": nivel_recompensa_pendiente,
+		"pasivas_aprendidas": pasivas_aprendidas.duplicate(),
+		"activas_aprendidas": activas_aprendidas.duplicate(),
+		"habilidades_nivel_dos": {
+			"usos": usos_activas.duplicate(), "pasivas_usadas": pasivas_usadas_turno.duplicate(),
+			"empujar": empuje_habilitado, "empuje_ultimo_doble": empuje_ultimo_doble, "contagio": contagio_elegido,
+			"pasos_inercia": pasos_inercia, "agarre_objetivo": agarre_objetivo,
+			"agarre_pasos": agarre_pasos, "senuelos": senuelos.duplicate(true),
+		},
 		"clase": clase,
 		"origen": origen,
 		"id_actor": String(id_actor),
@@ -379,6 +522,7 @@ func obtener_estado_persistente() -> Dictionary:
 		"movimiento_maximo": recursos_turno.obtener_maximo(RecursosTurnoActor.MOVIMIENTO),
 		"estados": estados_temporales.obtener_estado_persistente(),
 		"inventario": inventario.obtener_estado_persistente(),
+		"equipo": equipo.obtener_estado_persistente(),
 	}
 
 
@@ -398,7 +542,7 @@ func validar_estado_persistente(estado: Variant) -> StringName:
 		or estado.get("usos_ocultarse", 1) < 0 or estado.get("usos_ocultarse", 1) > 1
 		or not _es_numero_entero(estado.get("turnos_oculto", 0))
 		or estado.get("turnos_oculto", 0) < 0 or estado.get("turnos_oculto", 0) > 2
-		or (estado.get("turnos_oculto", 0) > 0 and (estado.get("usos_ocultarse", 1) != 0 or estado.get("clase") != "Ladrón"))
+		or (estado.get("turnos_oculto", 0) > 0 and estado.get("clase") != "Ladrón")
 	):
 		return &"ocultamiento_guardado_invalido"
 	if (
@@ -423,6 +567,9 @@ func validar_estado_persistente(estado: Variant) -> StringName:
 		or estado.get("experiencia_acumulada", 0) < 0
 	):
 		return &"progresion_ficha_guardada_invalida"
+	var motivo_progresion := _validar_progresion_guardada(estado)
+	if motivo_progresion != &"":
+		return motivo_progresion
 	if estado.get("id_actor") != String(id_actor):
 		return &"id_actor_guardado_no_coincide"
 	if estado.get("id_observador") != String(id_observador):
@@ -449,13 +596,47 @@ func validar_estado_persistente(estado: Variant) -> StringName:
 	if (
 		not _es_numero_entero(pasos_antorcha_guardados)
 		or pasos_antorcha_guardados < 0
-		or pasos_antorcha_guardados > PASOS_MAX_ANTORCHA
 	):
 		return &"recurso_antorcha_guardado_invalido"
 	if not estado.get("recursos_turno") is Dictionary:
 		return &"recursos_turno_guardados_invalidos"
+	var motivo_inventario := Inventario.new().validar_estado_persistente(estado.get("inventario"))
+	if motivo_inventario != &"":
+		return motivo_inventario
+	var limite_antorcha := 0
+	for dato: Dictionary in estado["inventario"]:
+		if dato["definicion_id"] == String(ID_ANTORCHA):
+			var perfil := load(dato["definicion_path"]) as DefinicionItem
+			limite_antorcha = maxi(limite_antorcha, int(perfil.magnitudes.get(&"duracion", float(PASOS_MAX_ANTORCHA))))
+	if pasos_antorcha_guardados > (limite_antorcha if limite_antorcha > 0 else PASOS_MAX_ANTORCHA):
+		return &"recurso_antorcha_guardado_invalido"
+	var equipo_guardado := EquipoActor.new()
+	var motivo_equipo := equipo_guardado.validar_estado_persistente(estado.get("equipo", []), estado.get("inventario", []) if estado.get("inventario") is Array else [])
+	if motivo_equipo != &"":
+		return motivo_equipo
+	equipo_guardado.restaurar_estado_persistente(estado.get("equipo", []))
+	var des_guardada := int(estado["destreza"])
+	var fuerza_guardada := int(estado["fuerza"])
+	for item: ItemInstancia in equipo_guardado.ranuras.values():
+		for efecto: Dictionary in item.definicion.efectos_equipo:
+			if efecto.tipo == "atributo" and efecto.atributo == "destreza":
+				des_guardada += int(efecto.valor)
+			if efecto.tipo == "atributo" and efecto.atributo == "fuerza":
+				fuerza_guardada += int(efecto.valor)
+	for efecto: Variant in estado.get("estados", []) if estado.get("estados") is Array else []:
+		if efecto is Dictionary and efecto.get("clave") == "debilitado_destreza" and (efecto.get("magnitud") is float or efecto.get("magnitud") is int):
+			des_guardada -= int(efecto.magnitud)
+		if efecto is Dictionary and efecto.get("clave") == "debilitado_fuerza" and (efecto.get("magnitud") is float or efecto.get("magnitud") is int):
+			fuerza_guardada -= int(efecto.magnitud)
 	var movimiento_guardado: Variant = estado.get("movimiento_maximo", 7)
-	var recursos_guardados := _crear_recursos_turno(int(estado["destreza"]))
+	var recursos_guardados := _crear_recursos_turno(maxi(1, des_guardada))
+	var inventario_guardado := Inventario.new()
+	inventario_guardado.restaurar_estado_persistente(estado["inventario"])
+	var peso_guardado := equipo_guardado.obtener_peso()
+	for item: ItemInstancia in inventario_guardado.obtener_contenido():
+		peso_guardado += item.obtener_peso_total()
+	if movimiento_guardado == 0 and peso_guardado > 15.0 + maxi(1, fuerza_guardada) * 4.0:
+		recursos_guardados.ajustar_movimiento(0)
 	if (
 		not _es_numero_entero(movimiento_guardado)
 		or (estado.has("movimiento_maximo") and movimiento_guardado != recursos_guardados.obtener_maximo(RecursosTurnoActor.MOVIMIENTO))
@@ -483,6 +664,25 @@ func restaurar_estado_persistente(estado: Variant) -> StringName:
 	vol = int(estado["voluntad"])
 	nivel = int(estado.get("nivel", 1))
 	experiencia_acumulada = int(estado.get("experiencia_acumulada", 0))
+	nivel_recompensa_pendiente = int(estado.get("nivel_recompensa_pendiente", 2 if nivel >= 2 else 0))
+	pasivas_aprendidas.assign(estado.get("pasivas_aprendidas", []))
+	activas_aprendidas.assign(estado.get("activas_aprendidas", []))
+	var habilidades: Dictionary = estado.get("habilidades_nivel_dos", {})
+	usos_activas = habilidades.get("usos", {}).duplicate()
+	for id in usos_activas:
+		usos_activas[id] = int(usos_activas[id])
+	pasivas_usadas_turno.assign(habilidades.get("pasivas_usadas", []))
+	empuje_habilitado = habilidades.get("empujar", false)
+	empuje_ultimo_doble = habilidades.get("empuje_ultimo_doble", false)
+	contagio_elegido = habilidades.get("contagio", "")
+	pasos_inercia = int(habilidades.get("pasos_inercia", 0))
+	agarre_objetivo = habilidades.get("agarre_objetivo", "")
+	agarre_pasos = int(habilidades.get("agarre_pasos", 0))
+	senuelos = habilidades.get("senuelos", {}).duplicate(true)
+	for id in senuelos:
+		senuelos[id] = [int(senuelos[id][0]), int(senuelos[id][1])]
+	# Los guardados previos podían acumular XP sin subir de nivel.
+	actualizar_progresion()
 	clase = estado["clase"]
 	origen = estado["origen"]
 	pv_max = fue + des + vol
@@ -498,16 +698,28 @@ func restaurar_estado_persistente(estado: Variant) -> StringName:
 	usos_ocultarse = int(estado.get("usos_ocultarse", 1))
 	usos_bola_fuego = int(estado.get("usos_bola_fuego", 1))
 	turnos_oculto = int(estado.get("turnos_oculto", 0))
-	pasos_antorcha_actual = int(estado.get("pasos_antorcha_actual", 0))
 	recursos_turno = _crear_recursos_turno(des)
 	recursos_turno.restaurar(estado["recursos_turno"], int(estado.get("movimiento_maximo", 7)))
 	inventario = inventario_nuevo
+	# Migrar el contador de partidas anteriores que aún no guardaban desgaste por unidad.
+	var antorchas_guardadas := inventario.obtener_por_definicion(ID_ANTORCHA)
+	if not antorchas_guardadas.is_empty() and int(estado.get("pasos_antorcha_actual", 0)) > 0:
+		for dato: Dictionary in estado["inventario"]:
+			if dato["id"] == String(antorchas_guardadas[0].id_instancia) and not dato.has("pasos_antorchas"):
+				antorchas_guardadas[0].pasos_antorchas[0] = mini(int(estado["pasos_antorcha_actual"]), antorchas_guardadas[0].obtener_duracion_antorcha())
+				break
+	equipo.restaurar_estado_persistente(estado.get("equipo", []))
 	activar_antorcha_si_necesario()
 	estados_temporales.restaurar_estado_persistente(estado["estados"])
+	# Restaurar el presupuesto efectivo sin reponer acciones ni pasos gastados.
+	recursos_turno = _crear_recursos_turno(obtener_destreza())
+	recursos_turno.ajustar_movimiento(movimiento_por_turno)
+	recursos_turno.restaurar(estado["recursos_turno"], int(estado.get("movimiento_maximo", 7)))
 	_actualizar_efectos_estado()
 	puntos_vida_cambiados.emit(pv_actual, pv_max)
 	recursos_turno_cambiados.emit(recursos_turno)
 	usos_habilidades_cambiados.emit()
+	progresion_cambiada.emit()
 	return &""
 
 
@@ -517,8 +729,72 @@ func _validar_estados_guardados(datos_estados: Variant) -> StringName:
 		else &"estados_ficha_guardados_invalidos"
 	)
 
+
+func _validar_progresion_guardada(estado: Dictionary, limite_recompensas: int = 1) -> StringName:
+	var aprendidas: Variant = estado.get("pasivas_aprendidas", [])
+	var activas: Variant = estado.get("activas_aprendidas", [])
+	var pendiente: Variant = estado.get("nivel_recompensa_pendiente", 2 if estado.get("nivel", 1) >= 2 else 0)
+	if not aprendidas is Array or not activas is Array or aprendidas.size() + activas.size() > limite_recompensas or not _es_numero_entero(pendiente):
+		return &"progresion_ficha_guardada_invalida"
+	for aprendida: Variant in aprendidas + activas:
+		if not aprendida is String:
+			return &"progresion_ficha_guardada_invalida"
+		var opcion := CatalogoHabilidades.obtener(aprendida)
+		if opcion.is_empty() or opcion["clase"] != estado.get("clase") or ((opcion["tipo"] == "Pasiva") != (aprendida in aprendidas)):
+			return &"progresion_ficha_guardada_invalida"
+	var sin_recompensa: bool = aprendidas.is_empty() and activas.is_empty()
+	pendiente = int(pendiente)
+	if pendiente not in [0, 2]:
+		return &"progresion_ficha_guardada_invalida"
+	if estado.get("nivel", 1) < 2 and (pendiente != 0 or not sin_recompensa):
+		return &"progresion_ficha_guardada_invalida"
+	if estado.get("nivel", 1) >= 2 and ((pendiente == 2) != sin_recompensa):
+		return &"progresion_ficha_guardada_invalida"
+	var datos: Variant = estado.get("habilidades_nivel_dos", {})
+	if not datos is Dictionary:
+		return &"habilidades_guardadas_invalidas"
+	var usos: Variant = datos.get("usos", {})
+	var gastadas: Variant = datos.get("pasivas_usadas", [])
+	if estado.get("turnos_oculto", 0) > 0 and estado.get("usos_ocultarse", 1) != 0 and "escapista" not in aprendidas:
+		return &"ocultamiento_guardado_invalido"
+	if not usos is Dictionary or usos.size() != activas.size() or not gastadas is Array:
+		return &"habilidades_guardadas_invalidas"
+	for id: String in activas:
+		if not _es_numero_entero(usos.get(id)) or usos[id] < 0 or usos[id] > 1:
+			return &"habilidades_guardadas_invalidas"
+	var vistas: Array = []
+	for id: Variant in gastadas:
+		if not id is String or id not in aprendidas or id in vistas or id not in ["golpe_desplazante", "inercia", "escapista", "contagio_arcano"]:
+			return &"habilidades_guardadas_invalidas"
+		vistas.append(id)
+	if not datos.get("empujar", false) is bool or not datos.get("empuje_ultimo_doble", false) is bool or not datos.get("contagio", "") is String:
+		return &"habilidades_guardadas_invalidas"
+	if datos.get("empujar", false) and "golpe_desplazante" not in aprendidas:
+		return &"habilidades_guardadas_invalidas"
+	if datos.get("empuje_ultimo_doble", false) and (not datos.get("empujar", false) or "golpe_desplazante" not in aprendidas):
+		return &"habilidades_guardadas_invalidas"
+	if datos.get("contagio", "") not in ["", "veneno", "quemado"] or (datos.get("contagio", "") != "" and "contagio_arcano" not in aprendidas):
+		return &"habilidades_guardadas_invalidas"
+	for campo in ["pasos_inercia", "agarre_pasos"]:
+		if not _es_numero_entero(datos.get(campo, 0)) or datos.get(campo, 0) < 0 or datos.get(campo, 0) > 2:
+			return &"habilidades_guardadas_invalidas"
+	if datos.get("pasos_inercia", 0) > 0 and "inercia" not in gastadas:
+		return &"habilidades_guardadas_invalidas"
+	if not datos.get("agarre_objetivo", "") is String or ((datos.get("agarre_objetivo", "") == "") != (datos.get("agarre_pasos", 0) == 0)):
+		return &"habilidades_guardadas_invalidas"
+	if datos.get("agarre_pasos", 0) > 0 and ("agarre" not in activas or usos.get("agarre") != 0):
+		return &"habilidades_guardadas_invalidas"
+	var senales: Variant = datos.get("senuelos", {})
+	if not senales is Dictionary or (not senales.is_empty() and ("senuelo" not in activas or usos.get("senuelo") != 0)):
+		return &"habilidades_guardadas_invalidas"
+	for id: Variant in senales:
+		var coord: Variant = senales[id]
+		if not id is String or id.is_empty() or not coord is Array or coord.size() != 2 or not _es_numero_entero(coord[0]) or not _es_numero_entero(coord[1]):
+			return &"habilidades_guardadas_invalidas"
+	return &""
+
 func _es_numero_entero(valor: Variant) -> bool:
-	return valor is int or (valor is float and is_equal_approx(valor, roundf(valor)))
+	return valor is int or (valor is float and is_finite(valor) and valor == roundf(valor))
 
 func _ready() -> void:
 	pv_max = fue + des + vol
@@ -602,6 +878,7 @@ func _aplicar_visual_clase() -> void:
 		if particulasVeneno.get_parent() == null:
 			sprite_render.add_child(particulasVeneno)
 		_actualizar_efectos_estado()
+		_actualizar_visual_sigilo()
 	else:
 		push_warning("No hay textura para dirección 0")
 
@@ -613,25 +890,17 @@ func inicializar(coordenada_inicial: Vector2i, capa: TileMapLayer) -> void:
 		global_position = capa_referencia.to_global(capa_referencia.map_to_local(coordenada_mapa))
 
 func consumir_paso_antorcha() -> bool:
-	var antorchas := inventario.obtener_por_definicion(ID_ANTORCHA)
-	if antorchas.is_empty():
-		pasos_antorcha_actual = 0
+	var antorcha := obtener_pila_antorcha_activa()
+	if antorcha == null:
 		return false
 	if not activar_antorcha_si_necesario():
 		return false
-	pasos_antorcha_actual -= 1
-	if pasos_antorcha_actual > 0:
+	if pasos_antorcha_actual > 1:
+		pasos_antorcha_actual -= 1
 		return true
-	if not inventario.consumir_unidad(antorchas[0].id_instancia):
+	if not inventario.consumir_unidad(antorcha.id_instancia):
 		return false
-	var siguientes := inventario.obtener_por_definicion(ID_ANTORCHA)
-	if siguientes.is_empty():
-		pasos_antorcha_actual = 0
-		return false
-	pasos_antorcha_actual = int(siguientes[0].definicion.magnitudes.get(
-		&"duracion", float(PASOS_MAX_ANTORCHA)
-	))
-	return true
+	return activar_antorcha_si_necesario()
 
 func solicitar_interrupcion() -> void:
 	movimiento.solicitar_interrupcion()
@@ -666,7 +935,10 @@ func validar_paso_movimiento(coste: int) -> bool:
 
 func consumir_paso_movimiento(coste: int) -> void:
 	energia_actual -= coste
-	consumir_recurso_turno(RecursosTurnoActor.MOVIMIENTO, coste)
+	if pasos_inercia > 0:
+		pasos_inercia -= 1
+	else:
+		consumir_recurso_turno(RecursosTurnoActor.MOVIMIENTO, coste)
 
 
 func orientar_paso_movimiento(origen: Vector2i, destino: Vector2i) -> void:

@@ -12,7 +12,7 @@ void fragment() {
 
     vec3 orange_mix = mix(tex_color.rgb, orange_tint.rgb, mix_amount);
 
-    COLOR = vec4(orange_mix, tex_color.a);
+    COLOR = vec4(orange_mix, COLOR.a);
 	// Called for every pixel the material is visible on.
 }
 

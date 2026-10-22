@@ -17,7 +17,7 @@ void fragment() {
     vec3 green_mix = mix(tex_color.rgb, green_tint.rgb, mix_amount);
 
     // disfruta
-    COLOR = vec4(green_mix, tex_color.a);
+    COLOR = vec4(green_mix, COLOR.a);
 }
 
 //void light() {

@@ -65,6 +65,7 @@ func actualizar() -> void:
 		ficha_campamento.usos_ataque_doble = ficha.usos_ataque_doble
 		ficha_campamento.usos_ocultarse = ficha.usos_ocultarse
 		ficha_campamento.usos_bola_fuego = ficha.usos_bola_fuego
+		ficha_campamento.usos_activas = ficha.usos_activas.duplicate()
 		ficha_campamento.turnos_oculto = ficha.turnos_oculto
 		escenario_descanso.hud.actualizar_desde_ficha()
 

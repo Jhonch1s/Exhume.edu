@@ -1,0 +1,92 @@
+{
+  "application": "Exhume · Forja de ítems",
+  "version": 1,
+  "items": [
+    {
+      "key": "8239519e-0312-4617-b2df-688084ee3fe8",
+      "id": "anillo_del_pulso",
+      "name": "Anillo del pulso",
+      "description": "Un anillo de prueba: fortalece al portador y modifica sus golpes.",
+      "kind": "objeto",
+      "tags": [
+        "anillo"
+      ],
+      "weight": 0.2,
+      "stackable": false,
+      "maxStack": 1,
+      "heal": "0",
+      "magnitudes": {},
+      "icon": {
+        "name": "slot_anillo.png",
+        "width": 24,
+        "height": 24,
+        "data": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAADBElEQVR4AeSUS08TURTH/3fAAi1vhpYKFJSHEAE1gRAJbHwlqIlGY3RjdMfGpX4Bv4ALtn4HFxp1ISYIMRiM8rDyKC3Y97tlprRDW3q9Y4T00iF2w8rJnMw9555zfvece+8IOObnPwI0tPXT5oExKnYO0kbLOaqrNtNiuntki8oMIp14Pklb+kZp7+gNWlUvIqMoKC0tQWVtLdp6+tF3+R7tv3SXosx0JEwTUKo30v5rtzAzNYUcJZAjMfhtPxFcnyf+1S9kc2maeGxWxDwuCIKAi+PjMDT1aEI0AXcmniAViyPqcUMO+aFLR6AkAiS/JcmYh0Tcm/Bs2FDOIOdHRiC2DxRANAHxWAwhrwtRPwMEbcRhX+OS74NUqBzyYvn7AkqIgPbevv2pg28BwNw1RN12O6SgD+mEXzPxQTQb7O4EWSUbsH6dh5LeRWlZNVcFByivbKKm9lOIBANQ5BgLL+6lGYmkdraxt5uGTt/ABXEAKuiQZidFCgSAvcQ/V5+fKRneItuhIBpamvPN4ACgGVBKsZfLcE7FKoJQglyO69AhAHMIeJ3F5ivwM1osIIQvnKsgyzZJV2FAhUFfEFyMQTSbkGUtzvflACdKWImZLGqq6/J9ihqXVTVTg6EKSVni/DmAwo6l7HNBLxph7h7mm8mF8UqduZs+fvqMN/7VOIBqS8k+wh4IAoHYWngzVZ98MdS30Ov3HyIUjsO6sAApsM5tQgFADU5EIzjJ7kNVowix7QJ9MflSs5qOwSv06oNHkJUk7D+scFoX1XBONAE+xzp8btYqthcdZ3vwavozKo2n6YlKI9VXm2it6cyfv6xoNGFjZQW2pWX8Wl+FEndxq1dJmoCsEiZhpwNB5yYkKYGAP4S+oRGM3byNGksnuoaG0dRqQTQaRTaVxNbKEuKe5YLkRwLUCUXykpDjG1mZfU3WmCzOTuPT2zeIOLewMP0BSzMfYZt7R1bn3pNUzKmZXM2jWYE6cVhS2y6SZdC05CEZ2UvS7MQd9tHSiwZoBRdjO3bAbwAAAP//6QWORAAAAAZJREFUAwDHGTlANlfpBAAAAABJRU5ErkJggg=="
+      },
+      "world": {
+        "name": "slot_anillo.png",
+        "width": 24,
+        "height": 24,
+        "data": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAADBElEQVR4AeSUS08TURTH/3fAAi1vhpYKFJSHEAE1gRAJbHwlqIlGY3RjdMfGpX4Bv4ALtn4HFxp1ISYIMRiM8rDyKC3Y97tlprRDW3q9Y4T00iF2w8rJnMw9555zfvece+8IOObnPwI0tPXT5oExKnYO0kbLOaqrNtNiuntki8oMIp14Pklb+kZp7+gNWlUvIqMoKC0tQWVtLdp6+tF3+R7tv3SXosx0JEwTUKo30v5rtzAzNYUcJZAjMfhtPxFcnyf+1S9kc2maeGxWxDwuCIKAi+PjMDT1aEI0AXcmniAViyPqcUMO+aFLR6AkAiS/JcmYh0Tcm/Bs2FDOIOdHRiC2DxRANAHxWAwhrwtRPwMEbcRhX+OS74NUqBzyYvn7AkqIgPbevv2pg28BwNw1RN12O6SgD+mEXzPxQTQb7O4EWSUbsH6dh5LeRWlZNVcFByivbKKm9lOIBANQ5BgLL+6lGYmkdraxt5uGTt/ABXEAKuiQZidFCgSAvcQ/V5+fKRneItuhIBpamvPN4ACgGVBKsZfLcE7FKoJQglyO69AhAHMIeJ3F5ivwM1osIIQvnKsgyzZJV2FAhUFfEFyMQTSbkGUtzvflACdKWImZLGqq6/J9ihqXVTVTg6EKSVni/DmAwo6l7HNBLxph7h7mm8mF8UqduZs+fvqMN/7VOIBqS8k+wh4IAoHYWngzVZ98MdS30Ov3HyIUjsO6sAApsM5tQgFADU5EIzjJ7kNVowix7QJ9MflSs5qOwSv06oNHkJUk7D+scFoX1XBONAE+xzp8btYqthcdZ3vwavozKo2n6YlKI9VXm2it6cyfv6xoNGFjZQW2pWX8Wl+FEndxq1dJmoCsEiZhpwNB5yYkKYGAP4S+oRGM3byNGksnuoaG0dRqQTQaRTaVxNbKEuKe5YLkRwLUCUXykpDjG1mZfU3WmCzOTuPT2zeIOLewMP0BSzMfYZt7R1bn3pNUzKmZXM2jWYE6cVhS2y6SZdC05CEZ2UvS7MQd9tHSiwZoBRdjO3bAbwAAAP//6QWORAAAAAZJREFUAwDHGTlANlfpBAAAAABJRU5ErkJggg=="
+      },
+      "illustration": {
+        "name": "slot_anillo.png",
+        "width": 24,
+        "height": 24,
+        "data": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAADBElEQVR4AeSUS08TURTH/3fAAi1vhpYKFJSHEAE1gRAJbHwlqIlGY3RjdMfGpX4Bv4ALtn4HFxp1ISYIMRiM8rDyKC3Y97tlprRDW3q9Y4T00iF2w8rJnMw9555zfvece+8IOObnPwI0tPXT5oExKnYO0kbLOaqrNtNiuntki8oMIp14Pklb+kZp7+gNWlUvIqMoKC0tQWVtLdp6+tF3+R7tv3SXosx0JEwTUKo30v5rtzAzNYUcJZAjMfhtPxFcnyf+1S9kc2maeGxWxDwuCIKAi+PjMDT1aEI0AXcmniAViyPqcUMO+aFLR6AkAiS/JcmYh0Tcm/Bs2FDOIOdHRiC2DxRANAHxWAwhrwtRPwMEbcRhX+OS74NUqBzyYvn7AkqIgPbevv2pg28BwNw1RN12O6SgD+mEXzPxQTQb7O4EWSUbsH6dh5LeRWlZNVcFByivbKKm9lOIBANQ5BgLL+6lGYmkdraxt5uGTt/ABXEAKuiQZidFCgSAvcQ/V5+fKRneItuhIBpamvPN4ACgGVBKsZfLcE7FKoJQglyO69AhAHMIeJ3F5ivwM1osIIQvnKsgyzZJV2FAhUFfEFyMQTSbkGUtzvflACdKWImZLGqq6/J9ihqXVTVTg6EKSVni/DmAwo6l7HNBLxph7h7mm8mF8UqduZs+fvqMN/7VOIBqS8k+wh4IAoHYWngzVZ98MdS30Ov3HyIUjsO6sAApsM5tQgFADU5EIzjJ7kNVowix7QJ9MflSs5qOwSv06oNHkJUk7D+scFoX1XBONAE+xzp8btYqthcdZ3vwavozKo2n6YlKI9VXm2it6cyfv6xoNGFjZQW2pWX8Wl+FEndxq1dJmoCsEiZhpwNB5yYkKYGAP4S+oRGM3byNGksnuoaG0dRqQTQaRTaVxNbKEuKe5YLkRwLUCUXykpDjG1mZfU3WmCzOTuPT2zeIOLewMP0BSzMfYZt7R1bn3pNUzKmZXM2jWYE6cVhS2y6SZdC05CEZ2UvS7MQd9tHSiwZoBRdjO3bAbwAAAP//6QWORAAAAAZJREFUAwDHGTlANlfpBAAAAABJRU5ErkJggg=="
+      },
+      "pickupSound": null,
+      "impactSound": null,
+      "worldWidth": 64,
+      "hframes": 1,
+      "vframes": 1,
+      "lockPattern": "",
+      "torch": {
+        "duration": 80,
+        "vision": 5,
+        "fade": 10,
+        "energy": 1.3,
+        "scale": 1,
+        "color": "#ffe500"
+      },
+      "impact": {
+        "type": "none",
+        "radius": 2,
+        "duration": 10,
+        "ticks": 3,
+        "dice": 1,
+        "sides": 2
+      },
+      "source": {
+        "id": "bomba_humo",
+        "path": "assets/items/bomba_humo/bomba_humo.tres",
+        "uid": "uid://duimmx1272hjc"
+      },
+      "updateExisting": false,
+      "equipmentEffects": [
+        {
+          "tipo": "atributo",
+          "atributo": "fuerza",
+          "valor": 1
+        },
+        {
+          "tipo": "dano",
+          "valor": 2,
+          "alcance": "directo"
+        },
+        {
+          "tipo": "tirada",
+          "prueba": "ataque",
+          "modo": "ventaja"
+        },
+        {
+          "tipo": "penalizacion",
+          "atributo": "fuerza",
+          "valor": 1,
+          "duracion": 2,
+          "alcance": "directo",
+          "salvacion": "voluntad"
+        }
+      ]
+    }
+  ]
+}

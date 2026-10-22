@@ -80,7 +80,7 @@ func validar_accion(contexto: ContextoAccion) -> StringName:
 		return &"celda_objetivo_invalida"
 	if contexto.actor == null or not contexto.actor.has_method(&"obtener_voluntad"):
 		return &"actor_sin_voluntad"
-	var voluntad: Variant = contexto.actor.call(&"obtener_voluntad")
+	var voluntad: Variant = EfectosEquipo.base(contexto.actor, "voluntad")
 	if not voluntad is int or voluntad < 1 or voluntad > 5:
 		return &"voluntad_actor_invalida"
 	var motivo_dados := motor_dados.validar_cantidad(
@@ -98,12 +98,8 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 	var motivo := validar_accion(contexto)
 	if motivo != &"":
 		return ResultadoAccion.crear_bloqueo(motivo)
-	var salvacion := motor_dados.resolver_prueba(
-		contexto.actor.call(&"obtener_voluntad"),
-		[],
-		[],
-		TiposTirada.Origen.AUTOMATICA,
-		TiposTirada.Presentacion.SOLO_LOG
+	var salvacion := EfectosEquipo.resolver_prueba(
+		motor_dados, contexto.actor, "voluntad", TiposTirada.Origen.AUTOMATICA, TiposTirada.Presentacion.SOLO_LOG
 	)
 	if not salvacion.valida:
 		return ResultadoAccion.crear_bloqueo(salvacion.motivo)

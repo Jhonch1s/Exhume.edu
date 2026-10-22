@@ -55,6 +55,9 @@ func validar_restauracion(
 	motivo = ficha.validar_estado_persistente(snapshot.get("ficha"))
 	if motivo != &"":
 		return motivo
+	motivo = _validar_habilidades_mundo(snapshot, tablero)
+	if motivo != &"":
+		return motivo
 	if snapshot.get("en_campamento", false) and (snapshot.get("rondas") != null or snapshot["ficha"]["pv_actual"] <= 0):
 		return &"campamento_guardado_invalido"
 	var coordenada: Array = snapshot["ficha"]["coordenada"]
@@ -68,6 +71,8 @@ func validar_restauracion(
 	var ids_inventario: Dictionary[String, bool] = {}
 	for item: Dictionary in snapshot["ficha"]["inventario"]:
 		ids_inventario[item["id"]] = true
+	for equipado: Dictionary in snapshot["ficha"].get("equipo", []):
+		ids_inventario[equipado["item"]["id"]] = true
 	for datos_interactuable: Dictionary in snapshot["interactuables"]:
 		var entidad := tablero.obtener_interactuable(
 			StringName(datos_interactuable["id"])
@@ -120,6 +125,30 @@ func validar_restauracion(
 			if npc == null or npc.obtener_definicion_personaje() == null or not npc.obtener_definicion_personaje().puede_combatir:
 				return &"bandos_guardados_invalidos"
 	return gestor_rondas.validar_estado_persistente(snapshot.get("rondas"))
+
+
+func _validar_habilidades_mundo(snapshot: Dictionary, tablero: TableroGrid) -> StringName:
+	var datos: Dictionary = snapshot["ficha"].get("habilidades_nivel_dos", {})
+	var agarrado: String = datos.get("agarre_objetivo", "")
+	if agarrado != "":
+		var encontrado := false
+		for entidad: Dictionary in snapshot["interactuables"]:
+			if entidad["id"] != agarrado:
+				continue
+			if not tablero.obtener_interactuable(StringName(agarrado)) is PersonajeNPC or entidad["estado"].get("vida_actual", 0) <= 0 or snapshot["ficha"]["pv_actual"] <= 0:
+				return &"agarre_guardado_invalido"
+			var origen: Array = snapshot["ficha"]["coordenada"]
+			var destino: Array = entidad["coordenada"]
+			if absi(int(origen[0]) - int(destino[0])) + absi(int(origen[1]) - int(destino[1])) != 1:
+				return &"agarre_guardado_invalido"
+			encontrado = true
+		if not encontrado:
+			return &"agarre_guardado_invalido"
+	for id: String in datos.get("senuelos", {}):
+		var coord: Array = datos["senuelos"][id]
+		if not tablero.obtener_interactuable(StringName(id)) is PersonajeNPC or not tablero.es_celda_valida(Vector2i(coord[0], coord[1])):
+			return &"senuelo_guardado_invalido"
+	return &""
 
 
 func restaurar(

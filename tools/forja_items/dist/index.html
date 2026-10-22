@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Crea objetos para Exhume. Edita imágenes, peso, pilas, etiquetas y efectos, y exporta recursos compatibles con Godot.">
+  <title>Exhume · Forja de ítems</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="core.js"></script><script defer src="catalog.js"></script><script defer src="app.js"></script>
+</head>
+<body>
+<svg class="symbols" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
+  <symbol id="i-forge" viewBox="0 0 24 24"><path d="M3 7h18l-4 5h-4v5l4 3H7l4-3v-5H7L3 9Zm5-4 5 4m3-5-2 5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-export" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 15v5h16v-5"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V4H4v12h4"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M5 3h9l5 5v13H5V3Zm9 0v6h5M8 13h8m-8 4h6"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="2"/><path d="m4 18 5-5 3 3 4-6 5 8"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L20 5"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7m4-7v7"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+</defs></svg>
+<header class="topbar">
+  <a class="brand" href="#" aria-label="Exhume Forja"><span class="brand-mark"><svg><use href="#i-forge"/></svg></span><span>EXHUME<small>HERRAMIENTAS DE MUNDO</small></span></a>
+  <div class="top-title">Forja de ítems <span class="version">01</span></div>
+  <div class="top-actions"><span id="save-state" role="status" class="save-state">Abriendo taller…</span><button id="backup" class="quiet" title="Descarga una copia editable con todas las imágenes"><svg><use href="#i-file"/></svg>Copia de seguridad</button><button id="open-export" class="primary"><svg><use href="#i-export"/></svg>Exportar para Godot</button></div>
+</header>
+<main class="workspace">
+  <aside class="library" aria-label="Biblioteca de ítems">
+    <div class="library-heading"><span class="eyebrow">TU BIBLIOTECA</span><span id="item-count" class="count">0</span></div>
+    <button id="new-item" class="new-item"><svg><use href="#i-plus"/></svg>Nuevo ítem<span>+</span></button>
+    <label class="search"><svg><use href="#i-search"/></svg><input id="search" type="search" placeholder="Buscar por nombre o ID" aria-label="Buscar ítems"></label>
+    <div id="item-list" class="item-list"></div>
+    <div class="library-bottom"><button id="templates" class="library-tool"><svg><use href="#i-forge"/></svg>Partir de una plantilla<span>5</span></button><button id="import-project" class="library-tool"><svg><use href="#i-file"/></svg>Importar proyecto</button><input id="project-file" type="file" accept=".json,application/json" hidden><p>Tu trabajo se guarda en este navegador.<br>Exporta una copia para llevarlo contigo.</p></div>
+  </aside>
+  <section class="editor" aria-label="Editor de ítem">
+    <div class="editor-heading"><div><div class="eyebrow">MESA DE TRABAJO</div><h1 id="editor-title">Un objeto, muchas posibilidades.</h1></div><div class="item-actions"><button id="duplicate" class="icon-button" title="Duplicar ítem" aria-label="Duplicar ítem"><svg><use href="#i-copy"/></svg></button><button id="delete" class="icon-button danger" title="Eliminar ítem" aria-label="Eliminar ítem"><svg><use href="#i-trash"/></svg></button></div></div>
+    <nav class="tabs" aria-label="Secciones del editor"><button data-tab="details" class="active" aria-selected="true">01 <span>Información</span></button><button data-tab="images" aria-selected="false">02 <span>Imágenes y audio</span></button><button data-tab="behavior" aria-selected="false">03 <span>Comportamiento</span></button></nav>
+    <form id="item-form" novalidate>
+      <section data-panel="details" class="tab-panel">
+        <div class="section-label"><span>Identidad</span><small>Lo que el jugador verá</small></div>
+        <label>Nombre del objeto<input id="name" data-field="name" maxlength="120" placeholder="Ej. Frasco de bruma" autocomplete="off"></label>
+        <div class="field-row"><label>ID del recurso<div class="input-prefix"><span>#</span><input id="item-id" data-field="id" maxlength="64" placeholder="frasco_de_bruma" spellcheck="false"></div><small>Único y estable. Se utiliza en el inventario y los guardados.</small></label><label>Tipo de objeto<select id="kind" data-field="kind"><option value="objeto">Objeto / consumible</option><option value="llave">Llave</option><option value="antorcha">Antorcha</option></select><small id="kind-help">Un recurso de inventario compatible con el juego.</small></label></div>
+        <label>Descripción<textarea id="description" data-field="description" rows="4" maxlength="12000" placeholder="Su aspecto, su historia y lo que sugiere hacer con él…"></textarea><small>Se muestra al examinar el objeto.</small></label>
+        <label id="update-original-wrap" class="switch-row" hidden><input id="update-original" data-field="updateExisting" type="checkbox"><span><b>Actualizar el original del juego</b><small id="original-help">El ZIP reemplazará su definición al copiarlo al proyecto.</small></span></label>
+        <div class="section-label spaced"><span>Carga y apilado</span><small>Cada objeto ocupa una ranura</small></div>
+        <div class="field-row"><label>Peso por unidad<div class="input-suffix"><input id="weight" data-field="weight" data-number type="number" min="0" max="99999" step="0.1"><span>kg</span></div></label><label class="switch-row compact"><input id="stackable" data-field="stackable" type="checkbox"><span><b>Se puede apilar</b><small>Las unidades comparten ranura.</small></span></label></div>
+        <label id="stack-limit">Unidades por pila<input id="max-stack" data-field="maxStack" data-number type="number" min="1" max="999" step="1"></label>
+        <div class="section-label spaced"><span>Etiquetas y equipo</span><small>Cómo encaja en el mundo</small></div>
+        <div id="tag-suggestions" class="tag-suggestions"></div>
+        <label>Otras etiquetas<input id="tags" placeholder="mineral, comida, solido…" autocomplete="off"><small>Separa con comas. Las etiquetas de curación, llave y efecto se añaden automáticamente.</small></label>
+        <p id="equipment-help" class="note"></p>
+        <details class="advanced"><summary>Magnitudes adicionales <span>Avanzado</span></summary><p>Datos numéricos para reglas que ya los interpreten, por ejemplo temperatura = -5. Escribir «curacion = 5» aquí no crea un efecto. Configura la curación en Comportamiento.</p><div id="magnitude-list"></div><button type="button" id="add-magnitude" class="quiet"><svg><use href="#i-plus"/></svg>Añadir magnitud</button></details>
+      </section>
+      <section data-panel="images" class="tab-panel" hidden>
+        <div class="section-label"><span>Imágenes</span><small>Arrastra archivos o pégalos desde el portapapeles</small></div>
+        <div class="image-grid" id="image-inputs"></div>
+        <p class="note">El icono aparece en la mochila y el HUD. Si no añades un sprite, también se usa en el suelo. Las imágenes se convierten a PNG.</p>
+        <div class="section-label spaced"><span>Presentación en el suelo</span><small>Escala y variantes</small></div>
+        <div class="field-row three"><label>Ancho visible<input data-field="worldWidth" data-number type="number" min="8" max="512" step="1"><small>En píxeles del mapa.</small></label><label>Columnas del sprite<input data-field="hframes" data-number type="number" min="1" max="32" step="1"></label><label>Filas del sprite<input data-field="vframes" data-number type="number" min="1" max="32" step="1"></label></div>
+        <p class="note">Con varias celdas en la imagen, el juego elige una variante al colocar el objeto. La vista previa muestra la primera.</p>
+        <div class="section-label spaced"><span>Audio</span><small>Opcional · WAV, OGG o MP3</small></div>
+        <div id="audio-inputs"></div>
+      </section>
+      <section data-panel="behavior" class="tab-panel" hidden>
+        <div class="section-label"><span>Efectos de equipo</span><small>Activos al equipar</small></div>
+        <p class="note">Combina bonos y contrapartidas. Elige una etiqueta de equipo en Información. Llevarlo en la mochila no activa sus efectos.</p>
+        <div id="equipment-effects"></div>
+        <button id="add-equipment-effect" type="button" class="quiet"><svg><use href="#i-plus"/></svg>Añadir efecto de equipo</button>
+        <p class="note">Los atributos base se conservan. Los bonos afectan a las tiradas, FUE a la carga y DES al movimiento, sin reponer pasos al equipar. Los PV máximos conservan su regla actual. El 1 sigue siendo crítico y el 6 pifia.</p>
+        <div class="section-label spaced"><span>Al usar</span><small>Acceso rápido del inventario</small></div>
+        <label>Curación al usar<div class="input-suffix"><input id="healing-formula" data-field="heal" type="text" maxlength="32" placeholder="1d6" spellcheck="false" aria-describedby="healing-help"><span>PV</span></div><small id="healing-help">5 = fija · 1d6 = entre 1 y 6 · 1d6+2 = entre 3 y 8 · 0 = sin curación.</small></label>
+        <div id="key-fields" hidden><label>Patrón de cerradura<input data-field="lockPattern" placeholder="cripta_simple" spellcheck="false"><small>La llave abre las cerraduras que compartan este patrón.</small></label></div>
+        <div id="torch-fields" hidden><div class="field-row"><label>Duración en pasos<input data-field="torch.duration" data-number type="number" min="1" max="9999"></label><label>Radio de visión<input data-field="torch.vision" data-number type="number" min="1" max="20"></label></div><div class="field-row"><label>Pasos de atenuación<input data-field="torch.fade" data-number type="number" min="0" max="999"></label><label>Color de luz<input data-field="torch.color" type="color"></label></div><div class="field-row"><label>Energía de luz<input data-field="torch.energy" data-number type="number" min="0" max="5" step="0.05"></label><label>Escala de luz<input data-field="torch.scale" data-number type="number" min="0.1" max="5" step="0.05"></label></div></div>
+        <div class="section-label spaced"><span>Al lanzar e impactar</span><small>El objeto se rompe y despliega el efecto</small></div>
+        <div id="effect-options" class="effect-options"><button type="button" data-effect="none"><span>—</span>Sin efecto<small>Objeto físico</small></button><button type="button" data-effect="humo"><span>≋</span>Humo<small>Cubre la visión</small></button><button type="button" data-effect="fuego"><span>♨</span>Fuego<small>Aplica Quemado</small></button><button type="button" data-effect="veneno"><span>◈</span>Veneno<small>Salvación de VOL</small></button></div>
+        <div id="impact-fields"><div class="field-row"><label>Radio de la superficie<input data-field="impact.radius" data-number type="number" min="0" max="8" step="1"><small>0 afecta solo la celda de impacto.</small></label><label>Duración de la superficie<input data-field="impact.duration" data-number type="number" min="1" max="99" step="1"><small>En turnos / rondas del juego.</small></label></div><div id="state-fields"><div class="field-row three"><label>Pulsos del estado<input data-field="impact.ticks" data-number type="number" min="1" max="99"></label><label>Dados por pulso<input data-field="impact.dice" data-number type="number" min="1" max="9"></label><label>Caras del dado<input data-field="impact.sides" data-number type="number" min="2" max="100"></label></div></div><div class="effect-footprint" id="effect-footprint"></div><p id="effect-help" class="note"></p></div>
+      </section>
+    </form>
+  </section>
+  <aside class="preview-pane" aria-label="Vista previa en vivo">
+    <div class="preview-heading"><span class="eyebrow">VISTA PREVIA</span><span class="live-dot">En vivo</span></div>
+    <div class="preview-tabs"><button data-view="inventory" class="active">Inventario</button><button data-view="world">Suelo</button><button data-view="examine">Examen</button></div>
+    <div id="preview-stage" class="preview-stage"></div>
+    <article class="item-card"><div id="preview-type" class="eyebrow">OBJETO</div><h2 id="preview-name"></h2><p id="preview-description"></p><div id="preview-stats" class="preview-stats"></div><div id="preview-tags" class="preview-tags"></div><ul id="preview-equipment-effects" class="equipment-summary"></ul></article>
+    <div class="stack-simulator"><div><span>Simular una pila</span><b id="stack-value">1 unidad</b></div><input type="range" id="preview-quantity" min="1" max="10" value="1" aria-label="Cantidad para simular peso de pila"><div class="stack-total"><span>Peso total</span><b id="stack-weight"></b></div></div>
+    <div id="validation" class="validation" aria-live="polite"></div>
+    <button id="preview-code" class="resource-link"><svg><use href="#i-file"/></svg>Ver recursos que se exportarán<svg><use href="#i-arrow"/></svg></button>
+    <p class="local-note">Diseña aquí. Prueba en tu mundo.</p>
+  </aside>
+</main>
+<dialog id="template-dialog" class="modal"><div class="modal-heading"><div><span class="eyebrow">UNA BASE CONOCIDA</span><h2>Elige un punto de partida</h2></div><button class="icon-button close-dialog" aria-label="Cerrar"><svg><use href="#i-close"/></svg></button></div><p>Plantillas basadas en los recursos actuales de tu juego. Puedes cambiarlas por completo.</p><div id="template-list" class="template-list"></div><button id="blank-item" class="quiet">O empezar con un objeto vacío <svg><use href="#i-arrow"/></svg></button></dialog>
+<dialog id="export-dialog" class="modal export-modal"><div class="modal-heading"><div><span class="eyebrow">DEL TALLER AL MUNDO</span><h2>Exportar para Godot</h2></div><button class="icon-button close-dialog" aria-label="Cerrar"><svg><use href="#i-close"/></svg></button></div><div class="export-scope"><label><input type="radio" name="scope" value="selected" checked>Ítem seleccionado</label><label><input type="radio" name="scope" value="all">Toda la biblioteca</label></div><div id="export-messages"></div><div id="export-files" class="export-files"></div><details id="code-details"><summary>Inspeccionar la definición .tres</summary><pre id="resource-code"></pre></details><div class="integration-steps"><span>1</span><p>Extrae el ZIP en la carpeta que contiene <code>project.godot</code>.</p><span>2</span><p>Godot importa imágenes y recursos. Asigna el <code>.tres</code> a un objeto de zona, cofre o inventario inicial.</p><span>3</span><p>Prueba el objeto. El ZIP incluye instrucciones y una ficha JSON para volver a editarlo aquí.</p></div><button id="download-zip" class="primary wide"><svg><use href="#i-export"/></svg>Descargar paquete ZIP</button></dialog>
+<dialog id="import-dialog" class="modal"><div class="modal-heading"><h2>Recuperar un proyecto</h2><button class="icon-button close-dialog" aria-label="Cerrar"><svg><use href="#i-close"/></svg></button></div><p id="import-info"></p><div class="dialog-actions"><button id="merge-import" class="primary">Añadir a mi biblioteca</button><button id="replace-import" class="quiet">Reemplazar mi biblioteca</button></div><p class="note">Al reemplazar, se descargará una copia de la biblioteca actual antes de continuar.</p></dialog>
+<dialog id="delete-dialog" class="modal small-modal"><h2>¿Eliminar este borrador?</h2><p>Se eliminará de este navegador. Los archivos que ya exportaste no cambian.</p><div class="dialog-actions"><button id="confirm-delete" class="danger-button">Eliminar ítem</button><button class="quiet close-dialog">Conservar</button></div></dialog>
+<div id="toast" role="status" class="toast" hidden></div>
+<noscript>Activa JavaScript para abrir el taller. Todos los archivos se procesan en tu navegador.</noscript>
+</body></html>

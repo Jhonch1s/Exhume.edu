@@ -52,7 +52,7 @@ func validar_accion(contexto: ContextoAccion) -> StringName:
 		or not contexto.actor.has_method(&"aplicar_o_renovar_estado")
 	):
 		return &"actor_no_admite_estados"
-	var destreza: Variant = contexto.actor.call(&"obtener_destreza")
+	var destreza: Variant = EfectosEquipo.base(contexto.actor, "destreza")
 	return &"" if destreza is int and destreza >= 1 and destreza <= 5 else &"destreza_actor_invalida"
 
 
@@ -60,9 +60,8 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 	var motivo := validar_accion(contexto)
 	if motivo != &"":
 		return ResultadoAccion.crear_bloqueo(motivo)
-	var salvacion := motor_dados.resolver_prueba(
-		contexto.actor.call(&"obtener_destreza"), [], [],
-		TiposTirada.Origen.AUTOMATICA, TiposTirada.Presentacion.SOLO_LOG
+	var salvacion := EfectosEquipo.resolver_prueba(
+		motor_dados, contexto.actor, "destreza", TiposTirada.Origen.AUTOMATICA, TiposTirada.Presentacion.SOLO_LOG
 	)
 	if not salvacion.valida:
 		return ResultadoAccion.crear_bloqueo(salvacion.motivo)

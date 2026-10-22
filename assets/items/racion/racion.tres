@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="DefinicionItem" format=3 uid="uid://c3racionitem01"]
+
+[ext_resource type="Script" path="res://scripts/interacciones/items/definicion_item.gd" id="1_definicion"]
+[ext_resource type="Texture2D" path="res://assets/items/racion/icons/racion_icono.png" id="2_icono"]
+[ext_resource type="PackedScene" path="res://scenes/items/racion_suelo.tscn" id="3_mundo"]
+
+[resource]
+script = ExtResource("1_definicion")
+id_definicion = &"racion"
+nombre = "Ración de viaje"
+icono = ExtResource("2_icono")
+escena_mundo = ExtResource("3_mundo")
+descripcion_base = "Alimento seco y duradero, esencial para recobrar fuerzas durante el descanso en campamentos."
+etiquetas = Array[StringName]([&"consumible", &"comida"])
+magnitudes = Dictionary[StringName, float]({
+&"peso": 0.5,
+&"recuperacion_pv": 50.0
+})
+apilable = true
+cantidad_maxima = 20

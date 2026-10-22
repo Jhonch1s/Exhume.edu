@@ -291,8 +291,8 @@ func _probar_alcance_diagonal() -> void:
 	)
 	resultado = entorno.gestor.procesar_accion(contexto)
 	_comprobar(
-		contexto.alcance_maximo == 7.0 and resultado.exitosa,
-		"Un actor con fuerza cero debe conservar siete celdas base."
+		entorno.ficha.obtener_fuerza() == 1 and contexto.alcance_maximo == 8.0 and resultado.exitosa,
+		"La fuerza efectiva mínima de 1 debe dar ocho celdas de alcance."
 	)
 	_liberar(entorno)
 

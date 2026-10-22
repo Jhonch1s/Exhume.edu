@@ -221,6 +221,7 @@ func _ready() -> void:
 	hud.ataque_doble_solicitado.connect(_on_ataque_doble_hud)
 	hud.ocultarse_solicitado.connect(_on_ocultarse_hud)
 	hud.bola_fuego_solicitada.connect(_on_bola_fuego_hud)
+	hud.item_rapido_solicitado.connect(_on_item_rapido_hud_solicitado)
 	panel_orden_combate.retrato_pulsado.connect(_on_retrato_combate_pulsado)
 	menu_contextual.opcion_accion_elegida.connect(_on_opcion_contextual_elegida)
 	menu_contextual.objetivo_elegido.connect(_on_objetivo_contextual_elegido)
@@ -234,6 +235,7 @@ func _ready() -> void:
 	panel_ficha_npc.cerrado.connect(_on_panel_resultado_cerrado)
 	panel_inventario_cofre.visibility_changed.connect(_actualizar_estado_modal_interaccion)
 	panel_inventario_equipo.visibility_changed.connect(_actualizar_estado_modal_interaccion)
+	panel_inventario_equipo.item_soltado_al_suelo.connect(_on_item_inventario_soltado_al_suelo)
 	DialogueManager.dialogue_started.connect(_on_dialogo_camara_iniciado)
 	DialogueManager.dialogue_ended.connect(_on_dialogo_camara_finalizado)
 	add_child(gestor_acciones)
@@ -1584,6 +1586,80 @@ func _on_bola_fuego_hud() -> void:
 		_cancelar_bola_fuego()
 	else:
 		_limpiar_hover_interaccion()
+
+
+func _on_item_rapido_hud_solicitado(indice: int) -> void:
+	if (
+		ficha_jugador == null
+		or not ficha_jugador.puede_actuar()
+		or ficha_jugador.esta_moviendose
+		or interaccion_modal_activa
+		or item_lanzamiento_pendiente != null
+	):
+		return
+	if en_combate and (not _es_turno_jugador() or _turno_exploracion_en_curso):
+		return
+	if indice < 0 or indice >= hud.items_rapidos_asignados.size():
+		return
+	var item: ItemInstancia = hud.items_rapidos_asignados[indice]
+	if item == null:
+		return
+	var item_en_inv := ficha_jugador.inventario.obtener_por_id(item.id_instancia)
+	if item_en_inv == null or item_en_inv.cantidad <= 0:
+		hud.items_rapidos_asignados[indice] = null
+		hud.actualizar_desde_ficha()
+		return
+
+	if &"arrojable" in item_en_inv.definicion.etiquetas:
+		_cancelar_bola_fuego()
+		seleccionando_item_lanzamiento = true
+		_on_item_contextual_elegido(item_en_inv)
+		return
+	if item_en_inv.definicion.id_definicion == &"antorcha":
+		var activa := ficha_jugador.obtener_pila_antorcha_activa()
+		if activa == null:
+			return
+		var duracion := int(activa.definicion.magnitudes.get(&"duracion", float(Ficha.PASOS_MAX_ANTORCHA)))
+		if ficha_jugador.pasos_antorcha_actual > 0:
+			if ficha_jugador.pasos_antorcha_actual >= duracion or ficha_jugador.obtener_cantidad_antorchas() < 2:
+				return
+			# La antorcha encendida permanece en la mochila hasta agotarse o reemplazarse.
+			ficha_jugador.inventario.consumir_unidad(activa.id_instancia)
+		ficha_jugador.activar_antorcha_si_necesario()
+		_actualizar_luz_jugador(ficha_jugador.coordenada_mapa)
+		registro_narrativo.registrar(
+			EntradaRegistroNarrativo.Categoria.SISTEMA,
+			"Usar antorcha",
+			"Enciendes una antorcha. Pasos al máximo (%d)." % ficha_jugador.pasos_antorcha_actual
+		)
+	elif (
+		item_en_inv.definicion.id_definicion == &"racion"
+		or item_en_inv.definicion.magnitudes.has(&"recuperacion_pv_dados")
+		or item_en_inv.definicion.magnitudes.has(&"recuperacion_pv")
+	):
+		var es_racion := item_en_inv.definicion.id_definicion == &"racion"
+		var valor_defecto := 5 if es_racion else 0
+		var formula := item_en_inv.definicion.obtener_formula_curacion(valor_defecto)
+		var curacion := item_en_inv.definicion.resolver_curacion(null, valor_defecto)
+		if curacion <= 0:
+			return
+		var pv_curados := ficha_jugador.curar(curacion)
+		ficha_jugador.inventario.consumir_unidad(item_en_inv.id_instancia)
+		if es_racion and ficha_jugador.raciones > 0:
+			ficha_jugador.raciones -= 1
+		var mensaje := "Tirada de curación: %s = %d. Recuperas %d PV." % [formula, curacion, pv_curados]
+		registro_narrativo.registrar(
+			EntradaRegistroNarrativo.Categoria.SISTEMA,
+			item_en_inv.definicion.nombre,
+			mensaje
+		)
+	else:
+		return
+
+	if panel_inventario_equipo != null and panel_inventario_equipo.visible:
+		panel_inventario_equipo.refrescar_mochila()
+		panel_inventario_equipo.refrescar_peso()
+	hud.actualizar_desde_ficha()
 
 
 func _seleccionar_objetivo_bola_fuego(coord: Vector2i, punto_global: Variant) -> void:
@@ -3321,9 +3397,18 @@ func _colocar_piedra_prueba() -> void:
 
 
 func _on_item_suelo_registrado(coord: Vector2i, item_suelo: ItemSuelo) -> void:
-	if item_suelo.item.definicion.escena_mundo == null:
-		return
-	var representacion := item_suelo.item.definicion.escena_mundo.instantiate() as Node2D
+	var representacion: Node2D = null
+	if item_suelo.item.definicion.escena_mundo != null:
+		representacion = item_suelo.item.definicion.escena_mundo.instantiate() as Node2D
+	elif item_suelo.item.definicion.icono != null:
+		var rep_fallback := RepresentacionItemSuelo.new()
+		var spr := Sprite2D.new()
+		spr.name = "Sprite2D"
+		spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		spr.texture = item_suelo.item.definicion.icono
+		rep_fallback.add_child(spr)
+		representacion = rep_fallback
+
 	if representacion == null:
 		return
 	var capa_suelo := zona_actual.get_node("CapaSuelo") as TileMapLayer
@@ -3359,6 +3444,87 @@ func _on_item_suelo_retirado(_coord: Vector2i, item_suelo: ItemSuelo) -> void:
 		_actualizar_luz_jugador(ficha_jugador.coordenada_mapa)
 	if recogida != null or item_suelo.item.definicion.id_definicion == &"antorcha":
 		hud.actualizar_desde_ficha()
+	if panel_inventario_equipo != null and panel_inventario_equipo.visible:
+		panel_inventario_equipo.refrescar_mochila()
+		panel_inventario_equipo.refrescar_peso()
+
+
+func _on_item_inventario_soltado_al_suelo(
+	item: ItemInstancia,
+	origen_indice: int,
+	es_equipo: bool,
+	punto_pantalla: Vector2
+) -> void:
+	if (
+		ficha_jugador == null
+		or not ficha_jugador.puede_actuar()
+		or ficha_jugador.esta_moviendose
+		or item == null
+	):
+		return
+	if en_combate and (not _es_turno_jugador() or _turno_exploracion_en_curso):
+		return
+
+	var capa_suelo := zona_actual.get_node("CapaSuelo") as TileMapLayer
+	var pos_mundo: Vector2 = (
+		get_canvas_transform().affine_inverse() * punto_pantalla
+		if punto_pantalla != Vector2.ZERO
+		else capa_suelo.get_global_mouse_position()
+	)
+	var coord_cursor: Vector2i = capa_suelo.local_to_map(capa_suelo.to_local(pos_mundo))
+	var coord_origen := ficha_jugador.coordenada_mapa
+	var coord_destino := coord_origen
+
+	var distancia := absi(coord_cursor.x - coord_origen.x) + absi(coord_cursor.y - coord_origen.y)
+	if distancia <= 1 and tablero.validar_colocacion_item_suelo(coord_cursor, ficha_jugador) == &"":
+		coord_destino = coord_cursor
+	elif tablero.validar_colocacion_item_suelo(coord_origen, ficha_jugador) == &"":
+		coord_destino = coord_origen
+	else:
+		var candidatas: Array[Vector2i] = [
+			Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT, Vector2i.UP
+		]
+		candidatas.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
+			return (coord_origen + a).distance_squared_to(coord_cursor) < (coord_origen + b).distance_squared_to(coord_cursor)
+		)
+		var encontrada := false
+		for dir in candidatas:
+			var c := coord_origen + dir
+			if tablero.validar_colocacion_item_suelo(c, ficha_jugador) == &"":
+				coord_destino = c
+				encontrada = true
+				break
+		if not encontrada:
+			return
+
+	if es_equipo:
+		if ficha_jugador.equipo == null or ficha_jugador.equipo.ranuras.get(origen_indice) != item:
+			return
+
+	var contexto := transferidor_items.construir_contexto_soltar(
+		ficha_jugador,
+		item,
+		coord_origen,
+		coord_destino,
+		-1,
+		&"",
+		origen_indice if es_equipo else -1
+	)
+	var resultado := gestor_acciones.procesar_accion(contexto)
+	if resultado.exitosa:
+		registro_narrativo.registrar(
+			EntradaRegistroNarrativo.Categoria.SISTEMA,
+			"Soltar ítem",
+			"Sueltas %s en el suelo." % item.definicion.nombre
+		)
+		if item.definicion.id_definicion == &"antorcha":
+			_actualizar_luz_jugador(ficha_jugador.coordenada_mapa)
+		if panel_inventario_equipo != null and panel_inventario_equipo.visible:
+			panel_inventario_equipo.refrescar_mochila()
+			panel_inventario_equipo.refrescar_equipo()
+			panel_inventario_equipo.refrescar_peso()
+		if hud != null:
+			hud.actualizar_desde_ficha()
 
 
 func _soltar_unico_item_prueba() -> void:

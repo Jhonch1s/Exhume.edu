@@ -198,6 +198,8 @@ func obtener_patrulla() -> PatrullaNPC:
 
 
 func _on_estado_temporal_cambiado(clave: StringName, estado: EstadoActor) -> void:
+	if clave == &"debilitado_destreza" and estado_personaje.recursos_turno != null:
+		estado_personaje.recursos_turno.ajustar_movimiento(estado_personaje.definicion.calcular_movimiento(obtener_destreza()))
 	if clave == &"quemado":
 		_actualizar_visual_quemado()
 	estado_cambiado.emit(clave, estado)
@@ -362,15 +364,19 @@ func obtener_iniciativa() -> int:
 
 
 func obtener_fuerza() -> int:
-	return atributos_actuales.get(&"fuerza", 0)
+	return maxi(1, obtener_atributo_base("fuerza") + EfectosEquipo.bono_atributo(self, "fuerza"))
 
 
 func obtener_destreza() -> int:
-	return atributos_actuales.get(&"destreza", 0)
+	return maxi(1, obtener_atributo_base("destreza") + EfectosEquipo.bono_atributo(self, "destreza"))
 
 
 func obtener_voluntad() -> int:
-	return atributos_actuales.get(&"voluntad", 0)
+	return maxi(1, obtener_atributo_base("voluntad") + EfectosEquipo.bono_atributo(self, "voluntad"))
+
+
+func obtener_atributo_base(atributo: String) -> int:
+	return atributos_actuales.get(StringName(atributo), 0)
 
 
 func puede_detectar_jugador(jugador: Ficha, validador: ValidadorEspacialTablero) -> bool:

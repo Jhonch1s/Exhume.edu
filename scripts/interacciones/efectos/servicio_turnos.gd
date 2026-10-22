@@ -57,9 +57,13 @@ func validar_accion(contexto: ContextoAccion) -> StringName:
 	if not claves is Array:
 		return &"resultado_estados_actor_invalido"
 	for clave in claves:
-		if not clave is StringName or clave not in [&"quemado", &"veneno", &"enredado", &"caido"]:
+		if not clave is StringName or clave not in [&"quemado", &"veneno", &"enredado", &"caido"] + EfectosEquipo.PENALIZACIONES:
 			return &"estado_persistente_no_admitido"
 		var estado: Variant = contexto.actor.call(&"obtener_estado", clave)
+		if clave in EfectosEquipo.PENALIZACIONES:
+			if not estado is EstadoActor or not EfectosEquipo.entero(estado.magnitud, 1, 5) or estado.ticks_pendientes < 1 or not estado.terminos_dano_tick.is_empty():
+				return &"estado_persistente_invalido"
+			continue
 		if clave == &"enredado":
 			if not estado is EstadoActor or estado.magnitud != 1.0 or estado.ticks_pendientes != 0:
 				return &"estado_persistente_invalido"
@@ -106,7 +110,7 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 	var rangos: Dictionary[StringName, Vector2i] = {}
 	for clave in claves:
 		var estado: EstadoActor = contexto.actor.call(&"obtener_estado", clave)
-		if clave in [&"enredado", &"caido"]:
+		if clave in [&"enredado", &"caido"] + EfectosEquipo.PENALIZACIONES:
 			continue
 		if estado.terminos_dano_tick.is_empty():
 			continue
@@ -126,6 +130,9 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 	for clave in claves:
 		var estado: EstadoActor = contexto.actor.call(&"obtener_estado", clave)
 		if clave == &"enredado":
+			continue
+		if clave in EfectosEquipo.PENALIZACIONES:
+			cambios.append(contexto.actor.call(&"consumir_tick_estado", clave))
 			continue
 		if clave == &"caido":
 			var cambio_caida: Variant = contexto.actor.call(&"consumir_tick_estado", clave)

@@ -230,7 +230,11 @@ func validar_estado_persistente(estado: Dictionary) -> StringName:
 		if recursos_turno == null or not estado["recursos_turno"] is Dictionary:
 			return &"recursos_turno_npc_guardados_invalidos"
 		var movimiento_guardado: Variant = estado.get("movimiento_maximo", 7)
-		var recursos_guardados := _crear_recursos_turno(int(atributos["destreza"]))
+		var destreza_guardada := int(atributos["destreza"])
+		for efecto: Dictionary in estado.get("estados", []):
+			if efecto.clave == "debilitado_destreza":
+				destreza_guardada -= int(efecto.magnitud)
+		var recursos_guardados := _crear_recursos_turno(maxi(1, destreza_guardada))
 		# Antes del movimiento fijo, los snapshots guardaban el máximo DES + 3.
 		var maximo_anterior := RecursosTurnoActor.calcular_movimiento(int(atributos["destreza"]))
 		var migra_movimiento: bool = definicion.movimiento_fijo >= 0 and movimiento_guardado == maximo_anterior
@@ -269,7 +273,8 @@ func restaurar_estado_persistente(estado: Dictionary) -> StringName:
 	estados_temporales.restaurar_estado_persistente(estado.get("estados", []))
 	if recursos_turno != null:
 		# Los snapshots v2 previos al combate no contenían reservas del NPC.
-		recursos_turno = _crear_recursos_turno(atributos_actuales[&"destreza"])
+		var penalizacion := estados_temporales.obtener_estado(&"debilitado_destreza")
+		recursos_turno = _crear_recursos_turno(maxi(1, atributos_actuales[&"destreza"] - int(penalizacion.magnitud if penalizacion != null else 0)))
 		if estado.has("recursos_turno"):
 			return recursos_turno.restaurar(estado["recursos_turno"], int(estado.get("movimiento_maximo", 7)))
 	return &""

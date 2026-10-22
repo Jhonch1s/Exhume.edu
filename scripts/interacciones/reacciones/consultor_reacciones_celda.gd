@@ -56,6 +56,8 @@ func obtener_reacciones(
 				incluir_dirigidas
 			)
 
+	if tipo == TiposInteraccion.TipoAccion.ENTRAR and actor is Ficha and actor.conoce_habilidad("trampero"):
+		reacciones = reacciones.filter(func(r: ReaccionCelda): return not (r.receptor is TrampaSuperficie and r.receptor.estado == TrampaSuperficie.Estado.DESCUBIERTA))
 	var fuentes_encadenadas_visitadas: Dictionary[int, bool] = {}
 	for reaccion in reacciones.duplicate():
 		_agregar_reacciones_encadenadas(
