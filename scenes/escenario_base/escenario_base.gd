@@ -24,7 +24,6 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 	zona_actual.get_node("CapaParedes") as CapaParedesOclusivas
 )
 @onready var camera_2d: CamaraEscenario = $Camera2D
-@onready var estado_camara: Label = $CanvasLayer/EstadoCamara
 @onready var capa_camino: TileMapLayer = $CapaCamino
 @onready var trayectoria_lanzamiento: Line2D = $TrayectoriaLanzamiento
 @onready var gestor_vision: FOVManager = $GestorVision
@@ -2678,17 +2677,6 @@ func _actualizar_camara(delta: float) -> void:
 		get_viewport().get_mouse_position(), _puntero_en_ventana
 		and get_window().has_focus()
 		and Input.get_mouse_button_mask() == 0, bloqueada)
-	var turno := "Exploración"
-	if en_combate and gestor_rondas != null:
-		turno = "Tu turno" if _es_turno_jugador() else "Turno de combatiente oculto"
-		var npc := gestor_rondas.actor_activo as PersonajeNPC
-		if npc != null:
-			var celda := tablero.obtener_celda(npc.coordenada_mapa)
-			if celda != null and celda.visibilidad == Celda.EstadoVisibilidad.VISIBLE:
-				turno = "Turno de %s" % npc.obtener_nombre_interaccion()
-	estado_camara.text = "%s\n%s" % [turno, (
-		"Cámara libre · Espacio: volver a la ficha" if camera_2d.libre
-		else "Siguiendo ficha · Bordes: explorar")]
 
 
 func _notification(what: int) -> void:

@@ -507,6 +507,8 @@ func registrar_efecto_superficie(coord: Vector2i, efecto: Object) -> bool:
 	efectos_superficie_por_id[id_efecto] = efecto
 	datos[coord].efectos_superficie.append(efecto)
 	efecto.call(&"configurar_registro", self, coord)
+	if efecto is HumoVeneno:
+		_actualizar_nubes_veneno(coord)
 	if efecto.has_method(&"esta_encendida"):
 		datos[coord].iluminacion.append(efecto)
 		iluminacion_cambiada.emit(coord)
@@ -535,8 +537,21 @@ func retirar_efecto_superficie(efecto: Object) -> bool:
 			datos[coord].iluminacion.erase(efecto)
 			iluminacion_cambiada.emit(coord)
 	efectos_superficie_por_id.erase(id_efecto)
+	if efecto is HumoVeneno:
+		efecto.hide()
+		_actualizar_nubes_veneno(coord)
 	efecto_superficie_retirado.emit(coord, efecto)
 	return true
+
+func _actualizar_nubes_veneno(coord: Vector2i) -> void:
+	if not datos.has(coord):
+		return
+	# Cada aporte conserva su duración, pero la transparencia se dibuja una sola vez.
+	var nube_visible := false
+	for efecto in datos[coord].efectos_superficie:
+		if efecto is HumoVeneno and efecto.has_node("AnimatedSprite2D"):
+			efecto.visible = not nube_visible
+			nube_visible = true
 
 func desplegar_efecto_superficie(
 	escena: PackedScene,

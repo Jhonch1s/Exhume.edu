@@ -12,6 +12,7 @@
 [ext_resource type="AudioStream" uid="uid://choev3ek0cmew" path="res://assets/music/menu/tema_menu_principal.mp3" id="10_musica_menu"]
 [ext_resource type="PackedScene" uid="uid://cgjdxbsbvqa7s" path="res://scenes/menu/componentes/menu_colgante.tscn" id="11_menu_colgante"]
 [ext_resource type="PackedScene" uid="uid://xk23b4orfmmv" path="res://scenes/menu/nueva_partida.tscn" id="12_nueva_partida"]
+[ext_resource type="Shader" uid="uid://cmw1kk6ofvqkm" path="res://scenes/menu/filtro_crt_luminancia.gdshader" id="13_crt"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_niebla"]
 shader = ExtResource("8_niebla")
@@ -41,6 +42,15 @@ shader_parameter/inicio_bordes = 0.48
 shader_parameter/fin_bordes = 1.02
 shader_parameter/inicio_derecha = 0.64
 shader_parameter/fuerza_derecha = 0.32
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_crt"]
+shader = ExtResource("13_crt")
+shader_parameter/tipo_mascara = 4
+shader_parameter/curvatura = 0.03
+shader_parameter/separacion_color_px = 0.45
+shader_parameter/fuerza_mascara = 0.72
+shader_parameter/brillo_mascara = 0.95
+shader_parameter/aspecto = 0.5625
 
 [node name="MenuPrincipal" type="Control" unique_id=1673646563]
 layout_mode = 3
@@ -168,6 +178,18 @@ grow_horizontal = 0
 [node name="NuevaPartida" parent="." unique_id=866725466 instance=ExtResource("12_nueva_partida")]
 visible = false
 layout_mode = 1
+
+[node name="FiltroCRT" type="CanvasLayer" parent="." unique_id=739281923]
+layer = 3
+
+[node name="Pantalla" type="ColorRect" parent="FiltroCRT" unique_id=892374182]
+material = SubResource("ShaderMaterial_crt")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
 [connection signal="continuar_presionado" from="MenuColgante" to="." method="_on_continuar_pressed"]
 [connection signal="nueva_excursion_presionada" from="MenuColgante" to="." method="_on_jugar_pressed"]

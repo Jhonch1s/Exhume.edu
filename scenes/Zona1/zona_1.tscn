@@ -4,6 +4,8 @@
 [ext_resource type="TileSet" uid="uid://ppf8ki7fg8h8" path="res://assets/tile_sets/structures/walls_cave.tres" id="2_kv68o"]
 [ext_resource type="Script" uid="uid://djd7c15wl4cxh" path="res://scenes/Zona1/capa_lava.gd" id="3_aevxn"]
 [ext_resource type="PackedScene" uid="uid://cau0w88c37mf2" path="res://scenes/interactuables/fuentes_luz/fuente_luz_interactuable.tscn" id="3_fuente_luz"]
+[ext_resource type="PackedScene" path="res://scenes/vfx/motas_polvo_antorcha.tscn" id="3_motas_polvo"]
+[ext_resource type="Script" uid="uid://3ww5owi0h6e6" path="res://scripts/render/polvo_ambiental.gd" id="3_polvo_ambiental"]
 [ext_resource type="TileSet" uid="uid://6tn667rbykno" path="res://assets/tile_sets/structures/cave_columns.tres" id="4_d77le"]
 [ext_resource type="PackedScene" uid="uid://2i3cbhvvxgs6" path="res://scenes/efectos_superficie/particulas_lava.tscn" id="4_ko8bm"]
 [ext_resource type="TileSet" uid="uid://cy3mjhp85u73y" path="res://assets/tile_sets/decorations/stalagmites_medium.tres" id="5_gu20q"]
@@ -14,7 +16,7 @@
 [ext_resource type="Resource" uid="uid://bpvm3w36ob568" path="res://assets/interactuables/luces/antorcha_pared_derecha.tres" id="11_pared_der"]
 [ext_resource type="PackedScene" uid="uid://cul4jkns6vh72" path="res://scenes/efectos_superficie/HumoVeneno.tscn" id="12_humo_veneno"]
 [ext_resource type="PackedScene" uid="uid://bxpf3kv60y8yj" path="res://scenes/interactuables/trampas/TrampaSuperficie.tscn" id="13_trampa_superficie"]
-[ext_resource type="PackedScene" uid="uid://c3kd5mb1jp31" path="res://scenes/interactuables/mecanismos/palanca_interactuable.tscn" id="14_palanca"]
+[ext_resource type="PackedScene" path="res://scenes/interactuables/mecanismos/palanca_interactuable.tscn" id="14_palanca"]
 [ext_resource type="Resource" uid="uid://blo5r1ln54gjo" path="res://assets/interactuables/mecanismos/palanca/palanca.tres" id="15_palanca_def"]
 [ext_resource type="PackedScene" path="res://scenes/interactuables/puertas/puerta_interactuable.tscn" id="16_puerta"]
 [ext_resource type="Resource" uid="uid://2lts1rw4c3bs" path="res://assets/interactuables/puertas/puerta/puerta.tres" id="17_puerta_def"]
@@ -26,7 +28,6 @@
 [ext_resource type="TileSet" uid="uid://dr6pcgl80juta" path="res://assets/tile_sets/surface_effects/fire.tres" id="23_a8yjn"]
 [ext_resource type="TileSet" uid="uid://b2soug6txnn72" path="res://assets/tile_sets/surface_effects/web.tres" id="24_igs8u"]
 [ext_resource type="Script" uid="uid://dkkd0pruoa4im" path="res://scripts/zonas/zona_explorable.gd" id="25_zona"]
-[ext_resource type="Texture2D" uid="uid://p3xo34i105vh" path="res://scenes/efectos_superficie/particulaverde.png" id="27_a8yjn"]
 [ext_resource type="Texture2D" uid="uid://kg0ilecnb3sn" path="res://scenes/efectos_superficie/venenoburbuja.png" id="27_a8yjn"]
 [ext_resource type="PackedScene" path="res://scenes/interactuables/guias/cartel_interactuable.tscn" id="28_cartel"]
 [ext_resource type="PackedScene" path="res://scenes/interactuables/guias/libro_interactuable.tscn" id="29_libro"]
@@ -110,11 +111,6 @@ y_sort_enabled = true
 position = Vector2(128, 0)
 particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pie_02_01"
-titulo_examen = null
-texto_examen = null
-ruta_fog_oculto = ""
-ruta_fog_explorado = null
-huella_celdas = null
 
 [node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaPie_02_01" unique_id=2008938200]
 position = Vector2(1, -48)
@@ -129,16 +125,13 @@ scale_amount_max = 2.0
 scale_amount_curve = SubResource("Curve_baiil")
 color_ramp = SubResource("Gradient_jkr0w")
 
+[node name="MotasPolvo" parent="Interactuables/FuentesLuz/AntorchaPie_02_01" unique_id=422075092 instance=ExtResource("3_motas_polvo")]
+
 [node name="AntorchaParedIzq_07_m05" parent="Interactuables/FuentesLuz" unique_id=1240586124 node_paths=PackedStringArray("particulas") instance=ExtResource("3_fuente_luz")]
 position = Vector2(96, -176)
 particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pared_izq_07_m05"
 definicion = ExtResource("10_pared_izq")
-titulo_examen = null
-texto_examen = null
-ruta_fog_oculto = ""
-ruta_fog_explorado = null
-huella_celdas = null
 
 [node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaParedIzq_07_m05" unique_id=1971366450]
 position = Vector2(-9, -56)
@@ -158,11 +151,6 @@ position = Vector2(1056, -176)
 particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pared_der_22_10"
 definicion = ExtResource("11_pared_der")
-titulo_examen = null
-texto_examen = null
-ruta_fog_oculto = ""
-ruta_fog_explorado = null
-huella_celdas = null
 
 [node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaParedDer_22_10" unique_id=1624143862]
 position = Vector2(9, -56)
@@ -181,11 +169,6 @@ color_ramp = SubResource("Gradient_jkr0w")
 position = Vector2(1120, 48)
 particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pie_16_18"
-titulo_examen = null
-texto_examen = null
-ruta_fog_oculto = ""
-ruta_fog_explorado = null
-huella_celdas = null
 
 [node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaPie_16_18" unique_id=995889327]
 position = Vector2(1, -48)
@@ -204,11 +187,6 @@ color_ramp = SubResource("Gradient_jkr0w")
 position = Vector2(128, -640)
 id_instancia = &"zona1_fogata_22_m19"
 definicion = ExtResource("9_fogata")
-titulo_examen = null
-texto_examen = null
-ruta_fog_oculto = ""
-ruta_fog_explorado = null
-huella_celdas = null
 
 [node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/Fogata_22_m19" unique_id=1959538116]
 position = Vector2(0, -10)
@@ -227,11 +205,6 @@ color_ramp = SubResource("Gradient_jkr0w")
 position = Vector2(960, -480)
 particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pie_30_m01"
-titulo_examen = null
-texto_examen = null
-ruta_fog_oculto = ""
-ruta_fog_explorado = null
-huella_celdas = null
 
 [node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaPie_30_m01" unique_id=1369276793]
 position = Vector2(1, -48)
@@ -250,11 +223,6 @@ color_ramp = SubResource("Gradient_jkr0w")
 position = Vector2(1216, -608)
 particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pie_38_m01"
-titulo_examen = null
-texto_examen = null
-ruta_fog_oculto = ""
-ruta_fog_explorado = null
-huella_celdas = null
 
 [node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaPie_38_m01" unique_id=1940974010]
 position = Vector2(1, -48)
@@ -273,11 +241,6 @@ color_ramp = SubResource("Gradient_jkr0w")
 position = Vector2(1184, -368)
 particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pie_30_06"
-titulo_examen = null
-texto_examen = null
-ruta_fog_oculto = ""
-ruta_fog_explorado = null
-huella_celdas = null
 
 [node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaPie_30_06" unique_id=963063108]
 position = Vector2(1, -48)
@@ -296,11 +259,6 @@ color_ramp = SubResource("Gradient_jkr0w")
 position = Vector2(1440, -496)
 particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pie_38_06"
-titulo_examen = null
-texto_examen = null
-ruta_fog_oculto = ""
-ruta_fog_explorado = null
-huella_celdas = null
 
 [node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaPie_38_06" unique_id=1499029479]
 position = Vector2(1, -48)
@@ -320,11 +278,6 @@ position = Vector2(2016, -816)
 particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pared_der_57_05"
 definicion = ExtResource("11_pared_der")
-titulo_examen = null
-texto_examen = null
-ruta_fog_oculto = ""
-ruta_fog_explorado = null
-huella_celdas = null
 
 [node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaParedDer_57_05" unique_id=1543410646]
 position = Vector2(9, -57)
@@ -344,11 +297,6 @@ position = Vector2(2240, -704)
 particulas = NodePath("CPUParticles2D2")
 id_instancia = &"zona1_antorcha_pared_der_57_12"
 definicion = ExtResource("11_pared_der")
-titulo_examen = null
-texto_examen = null
-ruta_fog_oculto = ""
-ruta_fog_explorado = null
-huella_celdas = null
 
 [node name="CPUParticles2D2" type="CPUParticles2D" parent="Interactuables/FuentesLuz/AntorchaParedDer_57_12" unique_id=1512025311]
 position = Vector2(9, -56)
@@ -371,12 +319,6 @@ position = Vector2(192, 0)
 ids_receptores_mecanismo = Array[StringName]([&"zona1_puerta_mecanismo_05_m03", &"zona1_puerta_mecanismo_06_m03"])
 id_instancia = &"zona1_palanca_03_m03"
 definicion = ExtResource("15_palanca_def")
-titulo_examen = null
-texto_examen = null
-ruta_fog_oculto = ""
-ruta_fog_explorado = null
-ajustar_a_celda_en_editor = Color(1, 1, 1, 1)
-huella_celdas = null
 
 [node name="Puertas" type="Node2D" parent="Interactuables" unique_id=244669734]
 y_sort_enabled = true
@@ -385,12 +327,6 @@ y_sort_enabled = true
 position = Vector2(224, 16)
 id_instancia = &"zona1_puerta_04_m03"
 definicion = ExtResource("17_puerta_def")
-titulo_examen = null
-texto_examen = null
-ruta_fog_oculto = ""
-ruta_fog_explorado = null
-ajustar_a_celda_en_editor = Color(1, 1, 1, 1)
-huella_celdas = null
 
 [node name="PuertaMecanismo_05_m03" parent="Interactuables/Puertas" unique_id=847474802 instance=ExtResource("16_puerta")]
 visible = false
@@ -398,12 +334,6 @@ position = Vector2(256, 32)
 bloqueada = false
 id_instancia = &"zona1_puerta_mecanismo_05_m03"
 definicion = ExtResource("18_puerta_mecanismo_def")
-titulo_examen = null
-texto_examen = null
-ruta_fog_oculto = ""
-ruta_fog_explorado = null
-ajustar_a_celda_en_editor = Color(1, 1, 1, 1)
-huella_celdas = null
 
 [node name="PuertaMecanismo_06_m03" parent="Interactuables/Puertas" unique_id=420118601 instance=ExtResource("16_puerta")]
 visible = false
@@ -411,12 +341,6 @@ position = Vector2(288, 48)
 bloqueada = false
 id_instancia = &"zona1_puerta_mecanismo_06_m03"
 definicion = ExtResource("19_puerta_mecanismo_der_def")
-titulo_examen = null
-texto_examen = null
-ruta_fog_oculto = ""
-ruta_fog_explorado = null
-ajustar_a_celda_en_editor = Color(1, 1, 1, 1)
-huella_celdas = null
 
 [node name="Trampas" type="Node2D" parent="Interactuables" unique_id=1893528667]
 y_sort_enabled = true
@@ -424,20 +348,10 @@ y_sort_enabled = true
 [node name="TrampaHumo_04_03" parent="Interactuables/Trampas" unique_id=1983383903 instance=ExtResource("13_trampa_superficie")]
 position = Vector2(256, 0)
 id_instancia = &"zona1_trampa_humo_04_03"
-titulo_examen = null
-texto_examen = null
-ruta_fog_oculto = ""
-ruta_fog_explorado = null
-huella_celdas = null
 
 [node name="TrampaHumo_05_03" parent="Interactuables/Trampas" unique_id=1636911757 instance=ExtResource("13_trampa_superficie")]
 position = Vector2(288, -16)
 id_instancia = &"zona1_trampa_humo_05_03"
-titulo_examen = null
-texto_examen = null
-ruta_fog_oculto = ""
-ruta_fog_explorado = null
-huella_celdas = null
 
 [node name="Personajes" type="Node2D" parent="Interactuables" unique_id=507425846]
 y_sort_enabled = true
@@ -448,39 +362,23 @@ y_sort_enabled = true
 [node name="Cartel_01" parent="Interactuables/Guias" unique_id=2081928375 instance=ExtResource("28_cartel")]
 position = Vector2(96, -16)
 id_instancia = &"zona1_cartel_01"
-titulo_examen = null
-texto_examen = null
-ruta_fog_oculto = ""
-ruta_fog_explorado = null
-huella_celdas = null
 
 [node name="Libro_01" parent="Interactuables/Guias" unique_id=2081928376 instance=ExtResource("29_libro")]
 position = Vector2(96, 16)
 variante = 2
 id_instancia = &"zona1_libro_01"
-titulo_examen = null
-texto_examen = null
-ruta_fog_oculto = ""
-ruta_fog_explorado = null
-huella_celdas = null
 
 [node name="Hojas_01" parent="Interactuables/Guias" unique_id=2081928377 instance=ExtResource("30_hojas")]
 position = Vector2(128, 32)
 id_instancia = &"zona1_hojas_01"
-titulo_examen = null
-texto_examen = null
-ruta_fog_oculto = ""
-ruta_fog_explorado = null
-huella_celdas = null
 
 [node name="Estandarte_01" parent="Interactuables/Guias" unique_id=2081928378 instance=ExtResource("31_estandarte")]
 position = Vector2(64, 32)
 id_instancia = &"zona1_estandarte_01"
-titulo_examen = null
-texto_examen = null
-ruta_fog_oculto = ""
-ruta_fog_explorado = null
-huella_celdas = null
+
+[node name="PolvoAmbiental" type="Node2D" parent="." unique_id=695366840]
+y_sort_enabled = true
+script = ExtResource("3_polvo_ambiental")
 
 [node name="EfectosSuperficie" type="Node2D" parent="." unique_id=378389863]
 y_sort_enabled = true

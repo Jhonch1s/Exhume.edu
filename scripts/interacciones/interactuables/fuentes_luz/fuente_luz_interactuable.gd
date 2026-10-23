@@ -22,6 +22,7 @@ const SONIDO_APAGAR_DEFECTO: AudioStream = preload("res://assets/sonidos/fuego/a
 @onready var reproductor_audio: AudioStreamPlayer2D = (
 	get_node_or_null(^"AudioStreamPlayer2D") as AudioStreamPlayer2D
 )
+var _motas_celda_visible := false
 
 
 func _ready() -> void:
@@ -191,6 +192,10 @@ func _reproducir_sonido_estado() -> void:
 
 
 func _actualizar_representacion() -> void:
+	var motas := get_node_or_null(^"MotasPolvo") as CPUParticles2D
+	if motas != null:
+		motas.visible = encendida and (_motas_celda_visible or Engine.is_editor_hint())
+		motas.emitting = motas.visible
 	if not is_instance_valid(sprite):
 		return
 	var datos := obtener_definicion_luz()
@@ -205,3 +210,12 @@ func _actualizar_representacion() -> void:
 	sprite.position = datos.desplazamiento_sprite - Vector2(
 		0.0, (region.size.y - datos.region_apagada.size.y) / 2.0
 	)
+
+
+func actualizar_presentacion_visibilidad(estado: int) -> void:
+	super.actualizar_presentacion_visibilidad(estado)
+	_motas_celda_visible = estado == Celda.EstadoVisibilidad.VISIBLE
+	var motas := get_node_or_null(^"MotasPolvo") as CPUParticles2D
+	if motas != null:
+		motas.visible = encendida and _motas_celda_visible
+		motas.emitting = motas.visible

@@ -1,13 +1,74 @@
 [gd_scene format=3 uid="uid://cul4jkns6vh72"]
 
 [ext_resource type="Script" uid="uid://bhkrk4oy3m0f5" path="res://scripts/interacciones/reacciones/efectos_superficie/humo_veneno.gd" id="1_script"]
-[ext_resource type="Texture2D" uid="uid://bvu2k5gk6dhce" path="res://assets/tiles/surface_effects/poison/sources/poison_smoke_isometric.png" id="2_guu82"]
+[ext_resource type="Texture2D" path="res://assets/tiles/surface_effects/poison/sources/poison_smoke_isometric_animated.png" id="2_textura"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1"]
+atlas = ExtResource("2_textura")
+region = Rect2(0, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2"]
+atlas = ExtResource("2_textura")
+region = Rect2(64, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3"]
+atlas = ExtResource("2_textura")
+region = Rect2(128, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4"]
+atlas = ExtResource("2_textura")
+region = Rect2(192, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5"]
+atlas = ExtResource("2_textura")
+region = Rect2(256, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6"]
+atlas = ExtResource("2_textura")
+region = Rect2(320, 0, 64, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_veneno"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
 
 [node name="HumoVeneno" type="Node2D" unique_id=700959491 groups=["efectos_superficie"]]
 script = ExtResource("1_script")
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=153905030]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=153905030]
 texture_filter = 1
-texture = ExtResource("2_guu82")
-region_enabled = true
-region_rect = Rect2(0, 0, 64, 32)
+sprite_frames = SubResource("SpriteFrames_veneno")
+autoplay = "default"

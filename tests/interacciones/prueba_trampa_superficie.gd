@@ -171,6 +171,7 @@ func _comprobar(condicion: bool, mensaje: String) -> void:
 
 
 func _probar_reaccion_en_cadena(tablero: TableroGrid) -> void:
+	tablero.obtener_celda(Vector2i(9, 0)).caminable = true
 	var trampas: Array[TrampaSuperficie] = []
 	for indice in range(3):
 		var trampa := TrampaSuperficie.new()
@@ -222,6 +223,46 @@ func _probar_reaccion_en_cadena(tablero: TableroGrid) -> void:
 	)
 	_comprobar(trampas.all(func(trampa): return trampa.estado == TrampaSuperficie.Estado.ACTIVADA), "Toda la cadena cardinal debe activarse.")
 	_comprobar(diagonal.estado != TrampaSuperficie.Estado.ACTIVADA, "Una trampa solamente diagonal no debe encadenarse.")
+	var celda_compartida := tablero.obtener_celda(Vector2i(9, 0))
+	var nubes: Array[HumoVeneno] = []
+	for efecto in celda_compartida.efectos_superficie:
+		if efecto is HumoVeneno:
+			nubes.append(efecto)
+	_comprobar(nubes.size() == 3, "Las tres trampas deben aportar veneno a la celda central.")
+	_comprobar(
+		nubes.filter(func(nube): return nube.is_visible_in_tree()).size() == 1,
+		"La celda compartida debe dibujar una sola nube sin acumular transparencias."
+	)
+	if nubes.size() == 3:
+		var persistencia := PersistenciaContenidoDinamico.new()
+		var superficies: Array = persistencia.obtener_superficies(tablero)
+		_comprobar(
+			persistencia.restaurar([], superficies, tablero) == &"",
+			"Las nubes superpuestas deben restaurarse correctamente."
+		)
+		nubes.clear()
+		for efecto in celda_compartida.efectos_superficie:
+			if efecto is HumoVeneno:
+				nubes.append(efecto)
+		_comprobar(
+			nubes.filter(func(nube): return nube.is_visible_in_tree()).size() == 1,
+			"Cargar las nubes superpuestas debe conservar un solo dibujo por celda."
+		)
+		for indice in nubes.size():
+			nubes[indice].restaurar_turnos_restantes_superficie(indice + 1)
+		var procesador := ProcesadorSuperficies.new(tablero)
+		for restantes in [2, 1, 0]:
+			_comprobar(procesador.procesar_fin_ronda().exitosa, "El veneno debe poder expirar.")
+			var activas := celda_compartida.efectos_superficie.filter(func(efecto): return efecto is HumoVeneno)
+			_comprobar(activas.size() == restantes, "Cada nube debe conservar su propia duración.")
+			_comprobar(
+				activas.filter(func(nube): return nube.is_visible_in_tree()).size() == mini(1, restantes),
+				"Debe verse una nube mientras quede veneno, incluso antes de liberar los nodos expirados."
+			)
+			_comprobar(
+				nubes.all(func(nube): return nube in activas or not nube.is_visible_in_tree()),
+				"Las nubes expiradas deben ocultarse inmediatamente aunque su liberación sea diferida."
+			)
 
 	gestor.queue_free()
 	for trampa in trampas:

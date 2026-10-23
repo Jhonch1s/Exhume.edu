@@ -183,13 +183,12 @@ func _probar_integracion() -> void:
 	_comprobar(camara.position.is_equal_approx(camara.limitar_posicion(ficha.global_position, escenario.get_viewport_rect().size)), "Recentrado automático respeta límites.")
 	camara.libre = true
 	escenario._actualizar_camara(0)
-	_comprobar(escenario.estado_camara.text.contains("Tu turno") and escenario.estado_camara.text.contains("Cámara libre"), "Indicador fijo conserva modo y turno.")
+	_comprobar(not escenario.has_node("CanvasLayer/EstadoCamara"), "La esquina superior derecha debe quedar libre del indicador de cámara y exploración.")
 	var celda_npc: Celda = escenario.tablero.obtener_celda(npc.coordenada_mapa)
 	celda_npc.visibilidad = Celda.EstadoVisibilidad.EXPLORADO
 	gestor.finalizar_turno_activo()
 	escenario._actualizar_ui_combate()
 	escenario._actualizar_camara(0)
-	_comprobar(escenario.estado_camara.text.contains("oculto") and not escenario.estado_camara.text.contains(npc.obtener_nombre_interaccion()), "El indicador no revela identidad del actor oculto.")
 	escenario.panel_resultado_accion.show()
 	escenario._actualizar_estado_modal_interaccion()
 	camara.libre = true
