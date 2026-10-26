@@ -108,7 +108,7 @@ func _probar() -> void:
 	var tiradas_antes: int = escenario.historial_tiradas.obtener_entradas().size()
 	escenario._seleccionar_objetivo_ataque_doble(destino, null)
 	comprobar(npc.esta_derrotado() and ficha.usos_ataque_doble == 0 and not escenario.seleccionando_ataque_doble, "Seleccionar objetivo desde el botón resuelve el golpe letal.")
-	comprobar(escenario.historial_tiradas.obtener_entradas().size() == tiradas_antes + 2, "Si el primer golpe mata, solo se registran ataque y defensa.")
+	comprobar(escenario.historial_tiradas.obtener_entradas().size() == tiradas_antes + 3, "Si el primer golpe mata, se registran ataque, defensa y daño.")
 	escena.queue_free()
 	await process_frame
 	finalizar()

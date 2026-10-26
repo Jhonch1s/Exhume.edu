@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="DefinicionItem" format=3]
+
+[ext_resource type="Script" path="res://scripts/interacciones/items/definicion_item.gd" id="definicion"]
+[ext_resource type="Texture2D" path="res://assets/items/forja/pocion_1/icono.png" id="icono"]
+[ext_resource type="PackedScene" path="res://assets/items/forja/pocion_1/suelo.tscn" id="mundo"]
+[ext_resource type="Texture2D" path="res://assets/items/forja/pocion_1/ilustracion.png" id="ilustracion"]
+
+
+[resource]
+script = ExtResource("definicion")
+id_definicion = &"pocion_1"
+nombre = "Pocion"
+descripcion_base = "Una pequeña poción curativa."
+icono = ExtResource("icono")
+escena_mundo = ExtResource("mundo")
+ilustracion_examen = ExtResource("ilustracion")
+etiquetas = Array[StringName]([&"consumible"])
+magnitudes = Dictionary[StringName, float]({
+&"temperatura": 0.0,
+&"peso": 0.1,
+&"recuperacion_pv": 0.0,
+&"recuperacion_pv_dados": 1.0,
+&"recuperacion_pv_caras": 6.0
+})
+apilable = true
+cantidad_maxima = 10

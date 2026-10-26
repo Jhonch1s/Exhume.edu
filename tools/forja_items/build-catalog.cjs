@@ -10,7 +10,7 @@ async function image(relative, width) {
   const definitions = [
     ['bomba_humo', 'Bomba de humo', 'objeto', ['arrojable', 'fragil', 'humo'], 1, 10, 'assets/items/bomba_humo/icons/bomba_humo_icono.png', 'assets/items/bomba_humo/sprites/bomba_humo_isometric1.png'],
     ['piedra', 'Piedra', 'objeto', ['mineral', 'solido', 'contundente', 'arrojable'], 3, 99, 'assets/items/piedra/icons/piedra_icon.png.png', 'assets/items/piedra/sprites/piedra_isometrica.png'],
-    ['racion', 'Ración de viaje', 'objeto', ['consumible', 'comida'], 0.5, 20, 'assets/items/racion/icons/racion_icono.png'],
+    ['racion', 'Ración de viaje', 'objeto', ['consumible', 'comida'], 0.5, 20, 'assets/items/racion/icons/racion_icono.png', 'assets/items/racion/sprites/racion.png'],
     ['llave_prueba', 'Llave de cripta', 'llave', ['llave', 'solido'], 0.2, 1, 'assets/items/llave_prueba/icons/llave_prueba_icono.png', 'assets/items/llave_prueba/sprite/llave_prueba.png'],
     ['antorcha', 'Antorcha', 'antorcha', ['luz', 'consumible'], 1, 10, 'assets/items/antorcha/icons/antorcha_icono.png', 'assets/items/antorcha/sprites/antorcha.png'],
   ];

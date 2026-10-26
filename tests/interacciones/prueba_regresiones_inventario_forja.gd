@@ -130,11 +130,30 @@ func _probar_caidas() -> void:
 	for delta in [Vector2i.ZERO, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT, Vector2i.UP, Vector2i.ONE]:
 		escenario.tablero.datos[origen + delta] = Celda.new(&"piso_vacio", true, 0, Celda.EstadoVisibilidad.VISIBLE)
 	var anillo := _anillo(&"anillo_diagonal")
+	escenario.panel_inventario_equipo.abrir(ficha)
+	var casilla_anillo := escenario.panel_inventario_equipo.ranuras_equipo_nodos[7] as CasillaInventario
+	escenario.panel_inventario_equipo._mostrar_tooltip(casilla_anillo)
+	var limite_inventario := escenario.hud.get_node("HUDRoot/SeccionesHUD/SeccionJugador/Retrato") as Control
+	var tooltip_inventario: PanelContainer = escenario.panel_inventario_equipo.tooltip_flotante
+	comprobar(tooltip_inventario != null and tooltip_inventario.get_global_rect().end.y <= limite_inventario.get_global_rect().position.y, "El hover del inventario queda encima del HUD.")
+	escenario.panel_inventario_equipo.cerrar()
 	escenario._on_item_inventario_soltado_al_suelo(anillo, 7, true, _punto(origen + Vector2i.ONE))
 	var suelo: ItemSuelo = escenario.tablero.obtener_item_suelo(anillo.id_instancia)
 	comprobar(suelo != null and suelo.item == anillo, "Un cursor diagonal elige una caída dentro de alcance.")
 	comprobar(not ficha.equipo.ranuras.has(7) and ficha.inventario.obtener_por_id(anillo.id_instancia) == null, "El anillo pasa una sola vez del equipo al suelo.")
 	comprobar(ficha.obtener_fuerza() == ficha.fue, "Soltar elimina el bono equipado.")
+	anillo.definicion.ilustracion_examen = ImageTexture.create_from_image(Image.create(8, 8, false, Image.FORMAT_RGBA8))
+	var opciones := suelo.obtener_opciones_accion(ficha)
+	comprobar(opciones.size() == 2 and opciones[0].id == &"examinar" and opciones[1].id == &"recoger", "El suelo ofrece Examinar y Recoger.")
+	var contexto_examen := ConstructorContextoAccion.new().construir_desde_opcion(opciones[0], ficha, origen, suelo.coordenada_mapa) as ContextoAccion
+	var resultado_examen: ResultadoAccion = escenario.gestor_acciones.procesar_accion(contexto_examen)
+	comprobar(resultado_examen.exitosa and suelo.item == anillo, "Examinar el ítem del suelo no lo recoge ni exige movimiento.")
+	escenario._presentar_resultado_contextual(anillo.definicion.nombre, resultado_examen, contexto_examen)
+	comprobar(escenario.panel_examen_ilustrado.visible and escenario.panel_examen_ilustrado.imagen.texture == anillo.definicion.ilustracion_examen, "Inspeccionar el suelo abre la ilustración.")
+	var ventana_examen := escenario.panel_examen_ilustrado.get_node("Ventana") as Control
+	var limite_hud := escenario.hud.get_node("HUDRoot/SeccionesHUD/SeccionJugador/Retrato") as Control
+	comprobar(ventana_examen.get_global_rect().end.y <= limite_hud.get_global_rect().position.y, "La ilustración queda encima del HUD.")
+	escenario.panel_examen_ilustrado.ocultar()
 	var lleno := _anillo(&"anillo_mochila_llena")
 	ficha.inventario.capacidad = ficha.inventario.obtener_contenido().size()
 	comprobar(ficha.inventario.esta_lleno(), "La mochila está llena.")

@@ -77,6 +77,11 @@ func obtener_opciones_accion(_actor: Object = null) -> Array[OpcionAccion]:
 	if not _esta_registrado or _transferidor_items == null:
 		return []
 	return [OpcionAccion.crear_habilitada(
+		&"examinar",
+		TiposInteraccion.TipoAccion.EXAMINAR,
+		&"interaccion.examinar",
+		self
+	), OpcionAccion.crear_habilitada(
 		&"recoger",
 		TiposInteraccion.TipoAccion.RECOGER,
 		&"interaccion.recoger",
@@ -96,22 +101,29 @@ func construir_contexto_accion(
 	if (
 		opcion == null
 		or opcion.objetivo != self
-		or opcion.tipo != TiposInteraccion.TipoAccion.RECOGER
+		or opcion.tipo not in [TiposInteraccion.TipoAccion.EXAMINAR, TiposInteraccion.TipoAccion.RECOGER]
 		or actor == null
 		or not _coordenada_mapa is Vector2i
 		or celda_objetivo != _coordenada_mapa
 	):
 		return null
+	if opcion.tipo == TiposInteraccion.TipoAccion.EXAMINAR:
+		return ContextoAccion.new(opcion.tipo, actor, origen, celda_objetivo, self)
 	return _transferidor_items.construir_contexto_recoger(actor, self, origen)
 
 
 func validar_accion(contexto: ContextoAccion) -> StringName:
+	if contexto != null and contexto.tipo == TiposInteraccion.TipoAccion.EXAMINAR:
+		return &"" if _esta_registrado and contexto.objetivo == self and contexto.celda_objetivo == _coordenada_mapa and es_valido() else &"item_suelo_invalido"
 	if _transferidor_items == null:
 		return &"transferidor_items_no_configurado"
 	return _transferidor_items.validar_recoger(contexto)
 
 
 func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
+	if contexto != null and contexto.tipo == TiposInteraccion.TipoAccion.EXAMINAR:
+		var motivo := validar_accion(contexto)
+		return ResultadoAccion.crear_exito() if motivo == &"" else ResultadoAccion.crear_bloqueo(motivo)
 	if _transferidor_items == null:
 		return ResultadoAccion.crear_bloqueo(&"transferidor_items_no_configurado")
 	return _transferidor_items.recoger(contexto)

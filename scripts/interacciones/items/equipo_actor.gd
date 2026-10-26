@@ -3,21 +3,26 @@ extends RefCounted
 
 signal cambiado
 var ranuras: Dictionary = {}
+var propietario: Object
 const ETIQUETAS := [["cabeza", "casco"], ["amuleto", "collar"], ["pecho", "armadura"], ["arma", "arrojable"], ["escudo", "luz"], ["guantes"], ["botas"], ["anillo"], ["luz"]]
 
 
-static func compatible(item: ItemInstancia, ranura: int) -> bool:
+static func compatible(item: ItemInstancia, ranura: int, clase_actor: String = "") -> bool:
 	if item == null or not item.es_valida() or ranura < 0 or ranura >= ETIQUETAS.size():
+		return false
+	if not item.definicion.clases_permitidas.is_empty() and StringName(clase_actor) not in item.definicion.clases_permitidas:
 		return false
 	for etiqueta in ETIQUETAS[ranura]:
 		if StringName(etiqueta) in item.definicion.etiquetas:
 			return true
-	return (ranura == 3 and item.definicion.id_definicion == &"piedra") or (ranura == 8 and item.definicion.id_definicion == &"antorcha")
+	return (ranura == 3 and item.definicion.id_definicion == &"piedra") or (ranura == 4 and &"daga" in item.definicion.etiquetas) or (ranura == 8 and item.definicion.id_definicion == &"antorcha")
 
 
 func equipar(inventario: Inventario, id: StringName, ranura: int) -> StringName:
 	var item := inventario.obtener_por_id(id)
-	if not compatible(item, ranura):
+	if not compatible(item, ranura, propietario.clase if is_instance_valid(propietario) else ""):
+		return &"equipo_incompatible"
+	if (ranura == 3 and item.definicion.requiere_dos_manos and ranuras.has(4)) or (ranura == 4 and ranuras.has(3) and (ranuras[3] as ItemInstancia).definicion.requiere_dos_manos):
 		return &"equipo_incompatible"
 	for equipado: ItemInstancia in ranuras.values():
 		if equipado.id_instancia == id:
@@ -61,11 +66,13 @@ func obtener_estado_persistente() -> Array[Dictionary]:
 	return datos
 
 
-func validar_estado_persistente(datos: Variant, mochila: Array = []) -> StringName:
+func validar_estado_persistente(datos: Variant, mochila: Array = [], clase_actor: String = "") -> StringName:
 	if not datos is Array or datos.size() > 9:
 		return &"equipo_guardado_invalido"
 	var ids: Array = []
 	var ocupadas: Array = []
+	var arma_dos_manos := false
+	var mano_secundaria_ocupada := false
 	for item: Dictionary in mochila:
 		ids.append(item.get("id"))
 	for dato: Variant in datos:
@@ -77,15 +84,21 @@ func validar_estado_persistente(datos: Variant, mochila: Array = []) -> StringNa
 		var motivo := temporal.restaurar_estado_persistente([dato.item])
 		if motivo != &"":
 			return motivo
-		if not compatible(temporal.obtener_contenido()[0], int(dato.ranura)):
+		if not compatible(temporal.obtener_contenido()[0], int(dato.ranura), clase_actor):
 			return &"equipo_guardado_incompatible"
+		if int(dato.ranura) == 3:
+			arma_dos_manos = temporal.obtener_contenido()[0].definicion.requiere_dos_manos
+		if int(dato.ranura) == 4:
+			mano_secundaria_ocupada = true
 		ocupadas.append(int(dato.ranura))
 		ids.append(dato.item.id)
+	if arma_dos_manos and mano_secundaria_ocupada:
+		return &"equipo_guardado_incompatible"
 	return &""
 
 
-func restaurar_estado_persistente(datos: Array) -> StringName:
-	var motivo := validar_estado_persistente(datos)
+func restaurar_estado_persistente(datos: Array, clase_actor: String = "") -> StringName:
+	var motivo := validar_estado_persistente(datos, [], clase_actor)
 	if motivo != &"":
 		return motivo
 	ranuras.clear()

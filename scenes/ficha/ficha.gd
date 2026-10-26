@@ -148,6 +148,7 @@ signal golpe_conectado(objetivo: Object)
 
 func _init() -> void:
 	estados_temporales.estado_cambiado.connect(_on_estado_temporal_cambiado)
+	equipo.propietario = self
 	equipo.cambiado.connect(_on_equipo_cambiado)
 
 
@@ -611,10 +612,10 @@ func validar_estado_persistente(estado: Variant) -> StringName:
 	if pasos_antorcha_guardados > (limite_antorcha if limite_antorcha > 0 else PASOS_MAX_ANTORCHA):
 		return &"recurso_antorcha_guardado_invalido"
 	var equipo_guardado := EquipoActor.new()
-	var motivo_equipo := equipo_guardado.validar_estado_persistente(estado.get("equipo", []), estado.get("inventario", []) if estado.get("inventario") is Array else [])
+	var motivo_equipo := equipo_guardado.validar_estado_persistente(estado.get("equipo", []), estado.get("inventario", []) if estado.get("inventario") is Array else [], estado.get("clase", ""))
 	if motivo_equipo != &"":
 		return motivo_equipo
-	equipo_guardado.restaurar_estado_persistente(estado.get("equipo", []))
+	equipo_guardado.restaurar_estado_persistente(estado.get("equipo", []), estado.get("clase", ""))
 	var des_guardada := int(estado["destreza"])
 	var fuerza_guardada := int(estado["fuerza"])
 	for item: ItemInstancia in equipo_guardado.ranuras.values():
@@ -708,7 +709,7 @@ func restaurar_estado_persistente(estado: Variant) -> StringName:
 			if dato["id"] == String(antorchas_guardadas[0].id_instancia) and not dato.has("pasos_antorchas"):
 				antorchas_guardadas[0].pasos_antorchas[0] = mini(int(estado["pasos_antorcha_actual"]), antorchas_guardadas[0].obtener_duracion_antorcha())
 				break
-	equipo.restaurar_estado_persistente(estado.get("equipo", []))
+	equipo.restaurar_estado_persistente(estado.get("equipo", []), clase)
 	activar_antorcha_si_necesario()
 	estados_temporales.restaurar_estado_persistente(estado["estados"])
 	# Restaurar el presupuesto efectivo sin reponer acciones ni pasos gastados.

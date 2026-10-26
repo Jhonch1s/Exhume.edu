@@ -100,6 +100,36 @@ static func bono_dano(actor: Object, es_arma: bool) -> int:
 	return bono
 
 
+static func bono_fuerza_dano(actor: Object) -> int:
+	var fuerza := base(actor, "fuerza") + bono_atributo(actor, "fuerza")
+	return maxi(0, floori(float(fuerza - 1) / 2.0))
+
+
+static func terminos_dano_armas(actor: Object) -> Array[Dictionary]:
+	var terminos: Array[Dictionary] = []
+	if actor.has_method("obtener_equipo"):
+		var ranuras: Dictionary = actor.obtener_equipo().ranuras
+		var principal: ItemInstancia = ranuras.get(3)
+		if principal != null:
+			_agregar_dado_arma(terminos, principal)
+			var secundaria: ItemInstancia = ranuras.get(4)
+			if secundaria != null and &"daga" in principal.definicion.etiquetas and &"daga" in secundaria.definicion.etiquetas:
+				_agregar_dado_arma(terminos, secundaria)
+	if terminos.is_empty():
+		terminos.append({&"cantidad": 1, &"caras": 2, &"signo": 1})
+	return terminos
+
+
+static func _agregar_dado_arma(terminos: Array[Dictionary], item: ItemInstancia) -> void:
+	var magnitudes := item.definicion.magnitudes
+	if magnitudes.has(&"dano_arma_dados") and magnitudes.has(&"dano_arma_caras"):
+		terminos.append({
+			&"cantidad": int(magnitudes[&"dano_arma_dados"]),
+			&"caras": int(magnitudes[&"dano_arma_caras"]),
+			&"signo": 1,
+		})
+
+
 static func aplicar_impacto(actor: Object, objetivo: Object, es_arma: bool, motor: MotorDados, aplicador: AplicadorEfectos, evento: StringName) -> Array:
 	var resultados: Array = []
 	for entrada in entradas(actor):

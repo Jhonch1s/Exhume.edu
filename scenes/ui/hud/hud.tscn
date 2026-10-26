@@ -545,6 +545,7 @@ script = ExtResource("6_item_slot")
 indice_rapido = 0
 
 [node name="Icono" type="TextureRect" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura1"]
+texture_filter = 1
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -586,6 +587,7 @@ script = ExtResource("6_item_slot")
 indice_rapido = 1
 
 [node name="Icono" type="TextureRect" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura2"]
+texture_filter = 1
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -627,6 +629,7 @@ script = ExtResource("6_item_slot")
 indice_rapido = 2
 
 [node name="Icono" type="TextureRect" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura3"]
+texture_filter = 1
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -668,6 +671,7 @@ script = ExtResource("6_item_slot")
 indice_rapido = 3
 
 [node name="Icono" type="TextureRect" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura4"]
+texture_filter = 1
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

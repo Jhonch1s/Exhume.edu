@@ -16,6 +16,8 @@ extends Resource
 @export var magnitudes: Dictionary[StringName, float] = {}
 @export var reaccion_impacto: Resource
 @export var efectos_equipo: Array[Dictionary] = []
+@export var clases_permitidas: Array[StringName] = []
+@export var requiere_dos_manos: bool = false
 
 @export_category("Apilado")
 @export var apilable: bool = false
@@ -85,6 +87,13 @@ func es_valida() -> bool:
 		if etiqueta == &"" or etiquetas_vistas.has(etiqueta):
 			return false
 		etiquetas_vistas[etiqueta] = true
+	var clases_vistas: Dictionary[StringName, bool] = {}
+	for clase_permitida in clases_permitidas:
+		if clase_permitida not in [&"Guerrero", &"Ladrón", &"Mago"] or clases_vistas.has(clase_permitida):
+			return false
+		clases_vistas[clase_permitida] = true
+	if requiere_dos_manos and &"arma" not in etiquetas:
+		return false
 	for clave in magnitudes:
 		var valor := magnitudes[clave]
 		if clave == &"" or not is_finite(valor):
@@ -97,5 +106,14 @@ func es_valida() -> bool:
 		if cantidad != floor(cantidad) or cantidad < 1 or cantidad > 9:
 			return false
 		if caras != floor(caras) or caras < 2 or caras > 100:
+			return false
+	if magnitudes.has(&"dano_arma_dados") or magnitudes.has(&"dano_arma_caras"):
+		var cantidad: float = magnitudes.get(&"dano_arma_dados", 0.0)
+		var caras: float = magnitudes.get(&"dano_arma_caras", 0.0)
+		if cantidad != floor(cantidad) or cantidad < 1 or cantidad > 9:
+			return false
+		if caras != floor(caras) or caras < 2 or caras > 100:
+			return false
+		if &"arma" not in etiquetas:
 			return false
 	return true

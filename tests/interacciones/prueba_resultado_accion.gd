@@ -84,6 +84,11 @@ func _probar_exito_y_copias_defensivas() -> void:
 		and con_tirada.con_costes_consumidos({&"energia": 1.0}).tirada == tirada,
 		"Una tirada resuelta debe conservarse al confirmar costes."
 	)
+	var dano := MotorDados.new(generador).resolver([{&"cantidad": 1, &"caras": 3, &"signo": 1}])
+	_comprobar(
+		con_tirada.con_tirada_dano(dano).con_costes_consumidos({&"energia": 1.0}).tirada_dano == dano,
+		"La tirada de daño debe conservarse al confirmar costes."
+	)
 
 
 func _probar_fallo() -> void:

@@ -10,7 +10,7 @@
 [ext_resource type="Texture2D" uid="uid://fchmjxxiw3lx" path="res://assets/ui/panels/new_game/buttons/back_board.png" id="9_back_board"]
 [ext_resource type="Texture2D" uid="uid://drdgi42lejtuk" path="res://assets/ui/panels/new_game/buttons/small_button.png" id="10_small_button"]
 [ext_resource type="Texture2D" uid="uid://f4wev484h5gw" path="res://assets/ui/panels/new_game/fields/name_field.png" id="11_name_field"]
-[ext_resource type="Texture2D" uid="uid://dgdpqwcjg6ub0" path="res://assets/ui/panels/new_game/knight.jpg" id="12_knight"]
+[ext_resource type="Texture2D" uid="uid://cyc3an2nxqu8q" path="res://assets/ui/panels/new_game/knight.jpg" id="12_knight"]
 [ext_resource type="FontFile" uid="uid://c0l0sby5jy2p4" path="res://assets/ui/fonts/Amarante-Regular.ttf" id="13_font"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBox_vacio"]
@@ -38,12 +38,16 @@ texture_margin_right = 24.0
 texture_margin_bottom = 10.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_celda"]
-bg_color = Color(0.93, 0.92, 0.88, 0.9)
+bg_color = Color(0.12, 0.14, 0.18, 0.95)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.12, 0.11, 0.09, 0.8)
+border_color = Color(0.32, 0.38, 0.48, 0.85)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
 [node name="NuevaPartida" type="Control" unique_id=1961532444]
 layout_mode = 3
@@ -97,9 +101,9 @@ stretch_mode = 5
 [node name="EncabezadoAtributosIzquierda" type="TextureRect" parent="RigIzquierdo/Cadenas" unique_id=1497451637]
 layout_mode = 0
 offset_left = 115.0
-offset_top = 159.0
+offset_top = 158.0
 offset_right = 172.0
-offset_bottom = 272.0
+offset_bottom = 271.0
 mouse_filter = 2
 texture = ExtResource("3_chain")
 expand_mode = 1
@@ -108,9 +112,9 @@ stretch_mode = 5
 [node name="EncabezadoAtributosDerecha" type="TextureRect" parent="RigIzquierdo/Cadenas" unique_id=706597481]
 layout_mode = 0
 offset_left = 434.0
-offset_top = 158.0
+offset_top = 157.0
 offset_right = 479.0
-offset_bottom = 278.0
+offset_bottom = 277.0
 mouse_filter = 2
 texture = ExtResource("3_chain")
 expand_mode = 1
@@ -141,9 +145,9 @@ stretch_mode = 5
 [node name="Encabezado" type="TextureRect" parent="RigIzquierdo" unique_id=208911528]
 layout_mode = 0
 offset_left = 46.0
-offset_top = 37.0
+offset_top = 36.0
 offset_right = 556.0
-offset_bottom = 207.0
+offset_bottom = 206.0
 mouse_filter = 2
 texture = ExtResource("4_title_board")
 expand_mode = 1
@@ -164,7 +168,7 @@ alignment = 1
 
 [node name="Titulo" type="Label" parent="RigIzquierdo/Encabezado/Contenido" unique_id=1539059839]
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 42
 text = "CREA TU AVENTURERO"
@@ -172,7 +176,7 @@ horizontal_alignment = 1
 
 [node name="Subtitulo" type="Label" parent="RigIzquierdo/Encabezado/Contenido" unique_id=991927249]
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 17
 text = "Graba tu nombre antes de descender"
@@ -208,7 +212,7 @@ alignment = 1
 [node name="Titulo" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido" unique_id=502192850]
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 39
 text = "ATRIBUTOS INICIALES"
@@ -218,7 +222,7 @@ horizontal_alignment = 1
 custom_maximum_size = Vector2(420, -1)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 17
 text = "Lanza 1d6 · repite únicamente los resultados 1 y 6"
@@ -235,7 +239,7 @@ alignment = 1
 [node name="Nombre" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/Fuerza" unique_id=1879247196]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 26
 text = "FUERZA (FUE)"
@@ -245,7 +249,7 @@ vertical_alignment = 1
 [node name="Valor" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/Fuerza" unique_id=581192953]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 30
 text = "–"
@@ -255,7 +259,7 @@ vertical_alignment = 1
 [node name="Tirar" type="Button" parent="RigIzquierdo/Atributos/Margen/Contenido/Fuerza" unique_id=1136236500]
 custom_minimum_size = Vector2(110, 56)
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_colors/font_hover_color = Color(0.18, 0.05, 0.04, 1)
 theme_override_fonts/font = ExtResource("13_font")
 theme_override_styles/normal = SubResource("StyleBox_boton_pequeno")
@@ -273,7 +277,7 @@ alignment = 1
 [node name="Nombre" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/Destreza" unique_id=838586143]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 26
 text = "DESTREZA (DES)"
@@ -283,7 +287,7 @@ vertical_alignment = 1
 [node name="Valor" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/Destreza" unique_id=1548720174]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 30
 text = "–"
@@ -293,7 +297,7 @@ vertical_alignment = 1
 [node name="Tirar" type="Button" parent="RigIzquierdo/Atributos/Margen/Contenido/Destreza" unique_id=249285583]
 custom_minimum_size = Vector2(110, 56)
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_colors/font_hover_color = Color(0.18, 0.05, 0.04, 1)
 theme_override_fonts/font = ExtResource("13_font")
 theme_override_styles/normal = SubResource("StyleBox_boton_pequeno")
@@ -311,7 +315,7 @@ alignment = 1
 [node name="Nombre" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/Voluntad" unique_id=917357295]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 26
 text = "VOLUNTAD (VOL)"
@@ -321,7 +325,7 @@ vertical_alignment = 1
 [node name="Valor" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/Voluntad" unique_id=1314258612]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 30
 text = "–"
@@ -331,7 +335,7 @@ vertical_alignment = 1
 [node name="Tirar" type="Button" parent="RigIzquierdo/Atributos/Margen/Contenido/Voluntad" unique_id=334067977]
 custom_minimum_size = Vector2(110, 56)
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_colors/font_hover_color = Color(0.18, 0.05, 0.04, 1)
 theme_override_fonts/font = ExtResource("13_font")
 theme_override_styles/normal = SubResource("StyleBox_boton_pequeno")
@@ -365,7 +369,7 @@ vertical_alignment = 1
 [node name="Estado" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido" unique_id=966890178]
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_fonts/font = ExtResource("13_font")
 text = "Ningún atributo resuelto"
 horizontal_alignment = 1
@@ -388,7 +392,7 @@ stretch_mode = 6
 
 [node name="Boton" type="Button" parent="RigIzquierdo/Volver" unique_id=643066215]
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_colors/font_hover_color = Color(0.22, 0.04, 0.035, 1)
 theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 27
@@ -464,7 +468,7 @@ alignment = 1
 [node name="Titulo" type="Label" parent="RigCentral/Ficha/Margen/Contenido" unique_id=1560398483]
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 39
 text = "FICHA DE AVENTURERO"
@@ -496,8 +500,8 @@ vertical_alignment = 1
 custom_minimum_size = Vector2(400, 58)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_colors/font_placeholder_color = Color(0.2, 0.18, 0.15, 0.65)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
+theme_override_colors/font_placeholder_color = Color(0.55, 0.52, 0.46, 0.65)
 theme_override_fonts/font = ExtResource("13_font")
 theme_override_styles/normal = SubResource("StyleBox_campo_nombre")
 theme_override_styles/focus = SubResource("StyleBox_campo_nombre")
@@ -508,8 +512,8 @@ max_length = 32
 custom_minimum_size = Vector2(400, 58)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_colors/font_placeholder_color = Color(0.2, 0.18, 0.15, 0.65)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
+theme_override_colors/font_placeholder_color = Color(0.55, 0.52, 0.46, 0.65)
 theme_override_fonts/font = ExtResource("13_font")
 theme_override_styles/normal = SubResource("StyleBox_campo_nombre")
 theme_override_styles/focus = SubResource("StyleBox_campo_nombre")
@@ -526,7 +530,7 @@ alignment = 1
 [node name="PV" type="Label" parent="RigCentral/Ficha/Margen/Contenido/Resumen" unique_id=183391267]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_fonts/font = ExtResource("13_font")
 text = "PV MÁXIMOS: ––"
 horizontal_alignment = 1
@@ -534,7 +538,7 @@ horizontal_alignment = 1
 [node name="Clase" type="Label" parent="RigCentral/Ficha/Margen/Contenido/Resumen" unique_id=1873567418]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_fonts/font = ExtResource("13_font")
 text = "CLASE: PENDIENTE"
 horizontal_alignment = 1
@@ -543,7 +547,7 @@ horizontal_alignment = 1
 custom_minimum_size = Vector2(560, 0)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_fonts/font = ExtResource("13_font")
 text = "ORIGEN: SIN DETERMINAR"
 horizontal_alignment = 1
@@ -552,7 +556,7 @@ horizontal_alignment = 1
 custom_minimum_size = Vector2(560, 0)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_fonts/font = ExtResource("13_font")
 text = "EQUIPO: Daga Mellada · Farol de Sebo · Mapa Roto"
 horizontal_alignment = 1
@@ -661,7 +665,7 @@ stretch_mode = 6
 
 [node name="Comenzar" type="Button" parent="RigDerecho/ComenzarRig/Tabla" unique_id=1225638852]
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_colors/font_disabled_color = Color(0.18, 0.16, 0.13, 0.55)
 theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 28
@@ -700,7 +704,7 @@ alignment = 1
 [node name="Titulo" type="Label" parent="RigDerecho/Ritual/Margen/Contenido" unique_id=1524616384]
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 39
 text = "RITUAL DE ORIGEN"
@@ -710,7 +714,7 @@ horizontal_alignment = 1
 custom_minimum_size = Vector2(440, 0)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 17
 text = "Deja caer el relicario para desvelar la tierra de tus ancestros."
@@ -734,7 +738,7 @@ theme_override_styles/panel = SubResource("StyleBox_celda")
 
 [node name="Texto" type="Label" parent="RigDerecho/Ritual/Margen/Contenido/Origenes/OrigenI" unique_id=1519627066]
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 26
 text = "ORIGEN I
@@ -750,7 +754,7 @@ theme_override_styles/panel = SubResource("StyleBox_celda")
 
 [node name="Texto" type="Label" parent="RigDerecho/Ritual/Margen/Contenido/Origenes/OrigenII" unique_id=1752484904]
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 26
 text = "ORIGEN II
@@ -766,7 +770,7 @@ theme_override_styles/panel = SubResource("StyleBox_celda")
 
 [node name="Texto" type="Label" parent="RigDerecho/Ritual/Margen/Contenido/Origenes/OrigenIII" unique_id=681110924]
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 26
 text = "ORIGEN III
@@ -782,7 +786,7 @@ theme_override_styles/panel = SubResource("StyleBox_celda")
 
 [node name="Texto" type="Label" parent="RigDerecho/Ritual/Margen/Contenido/Origenes/OrigenIV" unique_id=2056742192]
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 26
 text = "ORIGEN IV
@@ -794,7 +798,7 @@ vertical_alignment = 1
 custom_minimum_size = Vector2(440, 64)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 26
 text = "DEJAR CAER RELICARIO"
@@ -802,7 +806,7 @@ text = "DEJAR CAER RELICARIO"
 [node name="Estado" type="Label" parent="RigDerecho/Ritual/Margen/Contenido" unique_id=1095423145]
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
 theme_override_fonts/font = ExtResource("13_font")
 theme_override_font_sizes/font_size = 26
 text = "Origen sin determinar"

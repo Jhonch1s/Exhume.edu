@@ -174,6 +174,14 @@ func _probar_limites_viewport(
 		and menu.position.y >= menu.margen_viewport,
 		"El menú debe respetar los bordes izquierdo y superior."
 	)
+	var hud := Control.new()
+	menu.get_parent().add_child(hud)
+	hud.position.y = tamano_viewport.y * 0.7
+	menu.hud_inferior = hud
+	menu._posicion_solicitada = Vector2(100000, 100000)
+	menu._ajustar_posicion_al_viewport()
+	_comprobar(menu.position.y + menu.size.y <= hud.position.y - menu.margen_viewport + 0.1, "El menú queda encima de la franja del HUD.")
+	hud.free()
 
 
 func _probar_objetivos_multiples(

@@ -45,20 +45,35 @@ func configurar(nuevo_item: ItemInstancia) -> void:
 
 
 func obtener_texto_tooltip() -> String:
-	if item == null or not item.es_valida():
+	return texto_tooltip_item(item)
+
+
+static func texto_tooltip_item(nuevo_item: ItemInstancia) -> String:
+	if nuevo_item == null or not nuevo_item.es_valida():
 		return ""
-	var peso_unitario: float = item.definicion.obtener_peso()
-	var peso_total: float = item.obtener_peso_total()
-	var texto_peso: String = "Peso: %.1f kg" % peso_total if item.cantidad == 1 else "Peso: %.1f kg (%.1f c/u)" % [peso_total, peso_unitario]
-	var encabezado: String = "%s (x%d)" % [item.definicion.nombre, item.cantidad] if item.cantidad > 1 else item.definicion.nombre
-	var descripcion := item.definicion.descripcion_base
-	for efecto: Dictionary in item.definicion.efectos_equipo:
+	var peso_unitario: float = nuevo_item.definicion.obtener_peso()
+	var peso_total: float = nuevo_item.obtener_peso_total()
+	var texto_peso: String = "Peso: %.1f kg" % peso_total if nuevo_item.cantidad == 1 else "Peso: %.1f kg (%.1f c/u)" % [peso_total, peso_unitario]
+	var encabezado: String = "%s (x%d)" % [nuevo_item.definicion.nombre, nuevo_item.cantidad] if nuevo_item.cantidad > 1 else nuevo_item.definicion.nombre
+	var descripcion := nuevo_item.definicion.descripcion_base
+	if not nuevo_item.definicion.clases_permitidas.is_empty():
+		var clases: Array[String] = []
+		for clase_permitida in nuevo_item.definicion.clases_permitidas:
+			clases.append(String(clase_permitida))
+		descripcion += "\nSolo: " + ", ".join(clases) + "."
+	if nuevo_item.definicion.requiere_dos_manos:
+		descripcion += "\nArma a dos manos."
+	for efecto: Dictionary in nuevo_item.definicion.efectos_equipo:
 		descripcion += "\n" + EfectosEquipo.describir(efecto)
 	return "%s\n%s\n%s" % [encabezado, texto_peso, descripcion]
 
 
 func crear_cuadro_tooltip() -> PanelContainer:
-	var texto := obtener_texto_tooltip()
+	return crear_cuadro_tooltip_item(item)
+
+
+static func crear_cuadro_tooltip_item(nuevo_item: ItemInstancia) -> PanelContainer:
+	var texto := texto_tooltip_item(nuevo_item)
 	if texto.is_empty():
 		return null
 	
@@ -97,6 +112,14 @@ func crear_cuadro_tooltip() -> PanelContainer:
 	titulo.add_theme_font_size_override(&"font_size", 16)
 	titulo.add_theme_color_override(&"font_color", Color("#d4a34b"))
 	contenido.add_child(titulo)
+	if nuevo_item.definicion.ilustracion_examen != null:
+		var ilustracion := TextureRect.new()
+		ilustracion.texture = nuevo_item.definicion.ilustracion_examen
+		ilustracion.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		ilustracion.custom_minimum_size = Vector2(160, 160)
+		ilustracion.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		ilustracion.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		contenido.add_child(ilustracion)
 
 	if not peso_texto.is_empty():
 		var peso_lbl := Label.new()

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="DefinicionItem" format=3 uid="uid://dxxyxqu65g0wu"]
+
+[ext_resource type="Script" uid="uid://brbgghxl8rc0q" path="res://scripts/interacciones/items/definicion_item.gd" id="definicion"]
+[ext_resource type="Texture2D" uid="uid://dgn8beck1fhr7" path="res://assets/items/forja/daga_inicial/icono.png" id="icono"]
+[ext_resource type="Texture2D" uid="uid://7luqy31v7jl8" path="res://assets/items/forja/daga_inicial/ilustracion.png" id="ilustracion"]
+[ext_resource type="PackedScene" path="res://assets/items/forja/daga_inicial/suelo.tscn" id="mundo"]
+
+[resource]
+script = ExtResource("definicion")
+id_definicion = &"daga_inicial"
+nombre = "Daga desgastada"
+icono = ExtResource("icono")
+escena_mundo = ExtResource("mundo")
+descripcion_base = "Su hoja oscura apenas refleja la luz; el filo conserva un cuidado inquietante."
+ilustracion_examen = ExtResource("ilustracion")
+etiquetas = Array[StringName]([&"arma", &"daga"])
+magnitudes = Dictionary[StringName, float]({
+&"dano_arma_caras": 2.0,
+&"dano_arma_dados": 1.0,
+&"peso": 0.5
+})
+clases_permitidas = Array[StringName]([&"Ladrón"])

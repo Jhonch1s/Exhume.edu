@@ -907,7 +907,7 @@ func _resolver_ataque_basico(contexto: ContextoAccion) -> ResultadoAccion:
 		resultado.estado, resultado.motivo, resultado.mensajes, resultado.efectos_aplicados,
 		cambios, resultado.costes_consumidos, resultado.interrumpe_movimiento,
 		resultado.terminal, resultado.solicitudes_efecto, resultado.destino_item,
-		resultado.tirada, resultado.tirada_defensa
+		resultado.tirada, resultado.tirada_defensa, resultado.tirada_dano
 	)
 
 

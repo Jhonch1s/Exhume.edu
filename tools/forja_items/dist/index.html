@@ -51,6 +51,9 @@
         <div id="tag-suggestions" class="tag-suggestions"></div>
         <label>Otras etiquetas<input id="tags" placeholder="mineral, comida, solido…" autocomplete="off"><small>Separa con comas. Las etiquetas de curación, llave y efecto se añaden automáticamente.</small></label>
         <p id="equipment-help" class="note"></p>
+        <div class="section-label spaced"><span>Clases que pueden equiparlo</span><small>Sin marcar = todas</small></div>
+        <div id="class-restrictions" class="tag-suggestions"></div>
+        <label class="switch-row"><input data-field="twoHanded" type="checkbox"><span><b>Arma a dos manos</b><small>Ocupa ambas manos; exige la etiqueta Arma.</small></span></label>
         <details class="advanced"><summary>Magnitudes adicionales <span>Avanzado</span></summary><p>Datos numéricos para reglas que ya los interpreten, por ejemplo temperatura = -5. Escribir «curacion = 5» aquí no crea un efecto. Configura la curación en Comportamiento.</p><div id="magnitude-list"></div><button type="button" id="add-magnitude" class="quiet"><svg><use href="#i-plus"/></svg>Añadir magnitud</button></details>
       </section>
       <section data-panel="images" class="tab-panel" hidden>
@@ -65,6 +68,7 @@
       </section>
       <section data-panel="behavior" class="tab-panel" hidden>
         <div class="section-label"><span>Efectos de equipo</span><small>Activos al equipar</small></div>
+        <label>Daño del arma al acertar<input id="weapon-dice" data-field="weaponDice" type="text" maxlength="12" placeholder="1d3" spellcheck="false"><small>0 = sin dado de arma · espada 1d3 · daga o bastón 1d2. A la tirada se añade el bono de FUE.</small></label>
         <p class="note">Combina bonos y contrapartidas. Elige una etiqueta de equipo en Información. Llevarlo en la mochila no activa sus efectos.</p>
         <div id="equipment-effects"></div>
         <button id="add-equipment-effect" type="button" class="quiet"><svg><use href="#i-plus"/></svg>Añadir efecto de equipo</button>

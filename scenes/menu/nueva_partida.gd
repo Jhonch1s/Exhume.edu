@@ -83,7 +83,7 @@ func _ready() -> void:
 	for atributo: StringName in botones_tirada:
 		var boton: Button = botones_tirada[atributo]
 		boton.add_theme_stylebox_override(&"disabled", boton.get_theme_stylebox(&"normal"))
-		boton.add_theme_color_override(&"font_disabled_color", Color.BLACK)
+		boton.add_theme_color_override(&"font_disabled_color", Color(0.6, 0.58, 0.54, 0.7))
 		boton.pressed.connect(_tirar_atributo.bind(atributo))
 	for nombre_clase: String in botones_clase:
 		botones_clase[nombre_clase].pressed.connect(_elegir_clase.bind(nombre_clase))
@@ -94,7 +94,7 @@ func _ready() -> void:
 	for nodo in find_children("*", "Button", true, false):
 		_activar_hover(nodo as Button)
 	retrato.texture = RETRATO_INICIAL
-	zona_dado.add_theme_color_override(&"font_color", Color.BLACK)
+	zona_dado.add_theme_color_override(&"font_color", Color(0.86, 0.82, 0.74, 1.0))
 	_actualizar_comenzar()
 
 
@@ -131,9 +131,9 @@ func _tirar_atributo(atributo: StringName) -> void:
 	atributos[atributo] = resultado
 	valores[atributo].text = str(resultado)
 	botones_tirada[atributo].self_modulate = Color(0.62, 0.62, 0.62, 1.0)
-	botones_tirada[atributo].add_theme_color_override(&"font_disabled_color", Color.BLACK)
-	botones_tirada[atributo].add_theme_color_override(&"font_outline_color", Color.BLACK)
-	botones_tirada[atributo].add_theme_constant_override(&"outline_size", 1)
+	botones_tirada[atributo].add_theme_color_override(&"font_disabled_color", Color(0.6, 0.58, 0.54, 0.7))
+	botones_tirada[atributo].add_theme_color_override(&"font_outline_color", Color(0.08, 0.09, 0.12, 0.95))
+	botones_tirada[atributo].add_theme_constant_override(&"outline_size", 2)
 	zona_dado.text = "PLACEHOLDER DADO\nRESULTADO: %d" % resultado
 	estado_atributos.text = "%d de 3 atributos resueltos" % atributos.size()
 	if atributos.size() == 3:
@@ -191,7 +191,9 @@ func _sortear_origen() -> void:
 	marcador_relicario.text = "●\nRELICARIO"
 	marcador_relicario.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	marcador_relicario.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	marcador_relicario.add_theme_color_override(&"font_color", Color.BLACK)
+	marcador_relicario.add_theme_color_override(&"font_color", Color(1.0, 0.92, 0.65, 1.0))
+	marcador_relicario.add_theme_color_override(&"font_outline_color", Color(0.08, 0.09, 0.12, 0.95))
+	marcador_relicario.add_theme_constant_override(&"outline_size", 4)
 	marcador_relicario.add_theme_font_size_override(&"font_size", 20)
 	marcador_relicario.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	marcador_relicario.z_index = 20

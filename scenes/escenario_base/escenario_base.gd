@@ -64,6 +64,16 @@ const modeloLadron = preload("res://assets/characters/knight3d/modeloladron2.glb
 const ESCENA_FICHA = preload("res://scenes/ficha/ficha.tscn")
 const DEFINICION_PIEDRA = preload("res://assets/items/piedra/piedra.tres")
 const DEFINICION_ANTORCHA = preload("res://assets/items/antorcha/antorcha.tres")
+const DEFINICION_ESPADA_INICIAL = preload("res://assets/items/forja/espada_inicial/espada_inicial.tres")
+const DEFINICION_ESCUDO_INICIAL = preload("res://assets/items/forja/escudo_inicial/escudo_inicial.tres")
+const DEFINICION_CASCO_INICIAL = preload("res://assets/items/forja/casco_inicial/casco_inicial.tres")
+const DEFINICION_PECHERA_INICIAL = preload("res://assets/items/forja/pechera_inicial/pechera_inicial.tres")
+const DEFINICION_DAGA_INICIAL = preload("res://assets/items/forja/daga_inicial/daga_inicial.tres")
+const DEFINICION_CAPUCHA_INICIAL = preload("res://assets/items/forja/capucha_inicial/capucha_inicial.tres")
+const DEFINICION_BOTAS_LADRON = preload("res://assets/items/forja/botas_ladron_inicial/botas_ladron_inicial.tres")
+const DEFINICION_BASTON_INICIAL = preload("res://assets/items/forja/baston_inicial/baston_inicial.tres")
+const DEFINICION_TUNICA_MAGO = preload("res://assets/items/forja/tunica_mago_inicial/tunica_mago_inicial.tres")
+const DEFINICION_BOTAS_MAGO = preload("res://assets/items/forja/botas_mago_iniciales/botas_mago_iniciales.tres")
 const SONIDO_PASO_1 = preload("res://assets/sonidos/sonidos finales/sonido pasos/Light Armor Running 1_05.wav")
 const SONIDO_PASO_2 = preload("res://assets/sonidos/sonidos finales/sonido pasos/Light Armor Running 1_06.wav")
 const SONIDO_MONSTRUO_CADENAS = preload("res://assets/sonidos/enemigo/munstro con cadenas.wav")
@@ -94,6 +104,12 @@ var _modo_proceso_antes_campamento: ProcessMode
 var _audio_antes_campamento: Dictionary = {}
 var _acciones_en_resolucion := 0
 var boton_campamento: Button
+var panel_empuje: ConfirmationDialog
+var habilidades_nivel_dos = preload("res://scripts/interacciones/habilidades_nivel_dos.gd").new(self)
+var panel_progresion: ConfirmationDialog
+var boton_progresion: Button
+var habilidad_en_seleccion := ""
+var fuente_trasvase: Variant = null
 var es_escenario_de_descanso := false
 var control_descanso: Node
 @export var catalogo_mensajes: CatalogoMensajesInteraccion
@@ -209,6 +225,11 @@ func _ready() -> void:
 	$CanvasLayerModalDados.visible = true
 	CursorJuego.establecer_cursor(CursorJuego.Tipo.DEFAULT)
 	nombreClase = EstadoPartida.aventurero_pendiente.get("clase", nombreClase)
+	var limite_hud := hud.get_node("HUDRoot/SeccionesHUD/SeccionJugador/Retrato") as Control
+	menu_contextual.hud_inferior = limite_hud
+	panel_inventario_equipo.hud_inferior = limite_hud
+	panel_examen_ilustrado.hud_inferior = limite_hud
+	panel_examen_ilustrado._ajustar_al_viewport()
 
 	panel_registro_narrativo.observar(registro_narrativo)
 	gestor_acciones.accion_finalizada.connect(_on_agresion_resuelta)
@@ -216,10 +237,12 @@ func _ready() -> void:
 	gestor_acciones.accion_finalizada.connect(func(_contexto, _resultado): _acciones_en_resolucion = maxi(0, _acciones_en_resolucion - 1))
 	if not es_escenario_de_descanso:
 		_crear_acceso_campamento()
+		_crear_acceso_progresion()
 	hud.pasar_turno_solicitado.connect(_on_pasar_turno_hud)
 	hud.ataque_doble_solicitado.connect(_on_ataque_doble_hud)
 	hud.ocultarse_solicitado.connect(_on_ocultarse_hud)
 	hud.bola_fuego_solicitada.connect(_on_bola_fuego_hud)
+	hud.habilidad_aprendida_solicitada.connect(_on_habilidad_aprendida_hud)
 	hud.item_rapido_solicitado.connect(_on_item_rapido_hud_solicitado)
 	panel_orden_combate.retrato_pulsado.connect(_on_retrato_combate_pulsado)
 	menu_contextual.opcion_accion_elegida.connect(_on_opcion_contextual_elegida)
@@ -282,9 +305,15 @@ func _ready() -> void:
 		centrar_camara_en_ficha()
 
 func _process(delta: float) -> void:
+	_actualizar_decision_empuje()
 	if is_instance_valid(campamento):
 		CursorJuego.ocultar_probabilidad_ataque()
 		return
+	if ficha_jugador != null:
+		habilidades_nivel_dos.limpiar_agarre()
+	if is_instance_valid(boton_progresion):
+		boton_progresion.text = "Nivel 2 · Elegir recompensa [P]" if ficha_jugador != null and ficha_jugador.nivel_recompensa_pendiente == 2 else "Progresión [P]"
+		boton_progresion.disabled = motivo_bloqueo_campamento() != &""
 	if is_instance_valid(boton_campamento):
 		var motivo_campamento := motivo_bloqueo_campamento()
 		boton_campamento.disabled = motivo_campamento != &""
@@ -294,7 +323,7 @@ func _process(delta: float) -> void:
 	if ficha_jugador and capa_paredes_oclusivas:
 		capa_paredes_oclusivas.actualizar_occlusion(ficha_jugador.global_position)
 	_actualizar_audio_proximidad()
-	if en_combate and not _restaurando_partida:
+	if en_combate and not _restaurando_partida and _acciones_en_resolucion == 0 and habilidades_nivel_dos.empuje_pendiente == null and not _esperar_escapista():
 		_resolver_perdida_agro()
 		_actualizar_ui_combate()
 	_actualizar_disponibilidad_turno()
@@ -344,6 +373,9 @@ func _process(delta: float) -> void:
 			_actualizar_previsualizacion_lanzamiento(coord_actual)
 			ultima_coordenada_hover = coord_actual
 		return
+	if habilidad_en_seleccion != "":
+		_previsualizar_habilidad_nueva(coord_actual)
+		return
 	if seleccionando_bola_fuego:
 		_actualizar_previsualizacion_bola_fuego(coord_actual, get_global_mouse_position())
 		return
@@ -368,12 +400,7 @@ func _process(delta: float) -> void:
 			ficha_jugador
 		)
 		if en_combate:
-			camino_actual_tentativo = pathfinding.limitar_camino_por_movimiento(
-				camino_actual_tentativo,
-				tablero.datos,
-				ficha_jugador,
-				ficha_jugador.obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO)
-			)
+			camino_actual_tentativo = _limitar_camino_jugador(camino_actual_tentativo)
 		pathfinding.dibujar_trayectoria(camino_actual_tentativo, capa_camino)
 	else:
 		camino_actual_tentativo.clear()
@@ -391,6 +418,14 @@ func _input(event: InputEvent) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_P:
+		abrir_progresion()
+		get_viewport().set_input_as_handled()
+		return
+	if habilidad_en_seleccion != "" and event.is_action_pressed(&"ui_cancel"):
+		_cancelar_habilidad_nueva()
+		get_viewport().set_input_as_handled()
+		return
 	if not es_escenario_de_descanso and event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_B:
 		entrar_campamento()
 		get_viewport().set_input_as_handled()
@@ -511,6 +546,9 @@ func _manejar_clic_izquierdo(coord: Vector2i, punto_global: Variant = null) -> v
 	if item_lanzamiento_pendiente != null:
 		_seleccionar_celda_lanzamiento(coord)
 		return
+	if habilidad_en_seleccion != "":
+		_seleccionar_habilidad_nueva(coord)
+		return
 	if seleccionando_ataque_doble:
 		_seleccionar_objetivo_ataque_doble(coord, punto_global)
 		return
@@ -523,6 +561,9 @@ func _manejar_clic_izquierdo(coord: Vector2i, punto_global: Variant = null) -> v
 	_abrir_menu_contextual(get_viewport().get_mouse_position())
 
 func _manejar_clic_derecho(coord: Vector2i) -> void:
+	if habilidad_en_seleccion != "":
+		_cancelar_habilidad_nueva()
+		return
 	if not ficha_jugador:
 		return
 	if not ficha_jugador.puede_actuar():
@@ -554,12 +595,7 @@ func _manejar_clic_derecho(coord: Vector2i) -> void:
 		ficha_jugador
 	)
 	if en_combate:
-		camino_confirmado = pathfinding.limitar_camino_por_movimiento(
-			camino_confirmado,
-			tablero.datos,
-			ficha_jugador,
-			ficha_jugador.obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO)
-		)
+		camino_confirmado = _limitar_camino_jugador(camino_confirmado)
 	if camino_confirmado.size() <= 1:
 		print("No te puedes mover ahi")
 		return
@@ -732,7 +768,9 @@ func _procesar_turno_npc_exploracion(npc: PersonajeNPC, secuencia: int) -> bool:
 	npc.iniciar_turno()
 	var decisor := _obtener_decisor_npc(npc)
 	while _exploracion_npc_vigente(secuencia) and npc.puede_actuar() and npc.obtener_estado(&"caido") == null:
-		var plan := decisor.elegir(npc, tablero, pathfinding)
+		var plan: Dictionary = habilidades_nivel_dos.plan_senuelo(npc)
+		if plan.is_empty():
+			plan = decisor.elegir(npc, tablero, pathfinding)
 		var decision: StringName = plan["decision"]
 		if decision == &"liberarse":
 			if not _liberar_npc(npc):
@@ -780,6 +818,7 @@ func _procesar_turno_npc_exploracion(npc: PersonajeNPC, secuencia: int) -> bool:
 		return false
 	if not npc.puede_actuar():
 		return true
+	ficha_jugador.senuelos.erase(String(npc.id_instancia))
 	var resultado := servicio_turnos.avanzar_turno(npc)
 	if not resultado.exitosa:
 		push_warning("No se pudo cerrar el turno de exploración de %s: %s" % [npc.id_instancia, resultado.motivo])
@@ -795,6 +834,8 @@ func _procesar_turno_npc_exploracion(npc: PersonajeNPC, secuencia: int) -> bool:
 
 
 func _motivo_bloqueo_persistencia(exigir_reposo: bool, registrar_diagnostico: bool = true) -> StringName:
+	if habilidades_nivel_dos != null and (habilidades_nivel_dos.desplazando or habilidades_nivel_dos.empuje_pendiente != null):
+		return &"partida_accion_en_curso"
 	if is_instance_valid(campamento) and campamento.descanso_pendiente:
 		return &"partida_interaccion_activa"
 	_actualizar_estado_modal_interaccion()
@@ -861,6 +902,7 @@ func cargar_partida(ruta: String = RUTA_GUARDADO) -> StringName:
 	gestor_vision.tiene_vision_calculada = tenia_vision
 	if motivo != &"":
 		return motivo
+	_cancelar_habilidad_nueva()
 	if snapshot.has("celdas_exploradas"):
 		gestor_vision.reconstruir_niebla_restaurada()
 	_actualizar_luz_al_cargar()
@@ -901,6 +943,187 @@ func cargar_partida(ruta: String = RUTA_GUARDADO) -> StringName:
 func obtener_id_zona() -> StringName:
 	var ruta := zona_actual.scene_file_path
 	return &"zona1" if ruta == "res://scenes/Zona1/zona_1.tscn" else StringName(ruta)
+
+
+func _crear_acceso_progresion() -> void:
+	panel_progresion = preload("res://scenes/ui/personajes/panel_progresion.gd").new()
+	add_child(panel_progresion)
+	panel_progresion.visibility_changed.connect(_actualizar_estado_modal_interaccion)
+	panel_progresion.recompensa_elegida.connect(_aprender_recompensa)
+	boton_progresion = Button.new()
+	boton_progresion.name = "AccesoProgresion"
+	boton_progresion.position = Vector2(24, 124)
+	boton_progresion.custom_minimum_size = Vector2(270, 44)
+	boton_progresion.text = "Progresión [P]"
+	boton_progresion.tooltip_text = "Consulta tu nivel y aprende una de las cuatro recompensas de tu clase al llegar a 100 XP. Fuera de combate."
+	boton_progresion.pressed.connect(abrir_progresion)
+	$CanvasLayer.add_child(boton_progresion)
+
+
+func abrir_progresion() -> StringName:
+	var motivo := motivo_bloqueo_campamento()
+	if motivo != &"" or not is_instance_valid(panel_progresion):
+		return motivo if motivo != &"" else &"progresion_no_disponible"
+	_cancelar_habilidad_nueva()
+	_cancelar_bola_fuego()
+	seleccionando_ataque_doble = false
+	var opciones: Array[Dictionary] = []
+	var resumen := "Nivel %d · %d XP acumulados.\n\n" % [ficha_jugador.nivel, ficha_jugador.experiencia_acumulada]
+	if ficha_jugador.nivel_recompensa_pendiente == 2:
+		opciones = CatalogoHabilidades.opciones(ficha_jugador.clase)
+	elif ficha_jugador.nivel < 2:
+		resumen += "Tu próxima recompensa llega a 100 XP: eliges UNA entre dos activas y dos pasivas de tu clase. Conservas tu habilidad inicial."
+	else:
+		for id in ficha_jugador.activas_aprendidas + ficha_jugador.pasivas_aprendidas:
+			var opcion := CatalogoHabilidades.obtener(id)
+			resumen += "%s · %s\n%s\n%s\n" % [opcion["nombre"], opcion["tipo"], opcion["descripcion"], opcion["coste"]]
+		resumen += "\nConservas tu habilidad inicial. El corte actual llega al nivel 2; la XP sobrante se guarda."
+	panel_progresion.mostrar(ficha_jugador.nivel, opciones, resumen)
+	_actualizar_estado_modal_interaccion()
+	return &""
+
+
+func _aprender_recompensa(id: String) -> void:
+	panel_progresion.hide()
+	_actualizar_estado_modal_interaccion()
+	if motivo_bloqueo_campamento() != &"" or not ficha_jugador.aprender_recompensa(id):
+		return
+	hud.actualizar_desde_ficha()
+	habilidades_nivel_dos.registrar("Recompensa aprendida", CatalogoHabilidades.obtener(id)["nombre"] + ". Conservas tu habilidad inicial. Consulta la ranura 2.")
+
+
+func _actualizar_decision_empuje() -> void:
+	if habilidades_nivel_dos == null or habilidades_nivel_dos.empuje_pendiente == null or _acciones_en_resolucion > 0:
+		return
+	# El resultado del ataque básico se lee antes de abrir otra ventana exclusiva.
+	if is_instance_valid(panel_resultado_accion) and panel_resultado_accion.visible:
+		return
+	if not is_instance_valid(panel_empuje):
+		panel_empuje = ConfirmationDialog.new()
+		panel_empuje.title = "Golpe desplazante · ¡Has acertado!"
+		panel_empuje.dialog_text = "Has causado daño. ¿Empujar al enemigo una casilla?\nEs opcional y solo puedes empujar una vez por turno.\nSi lo alejas tras el primer golpe de Ataque doble, el segundo pierde alcance."
+		panel_empuje.get_ok_button().text = "Empujar"
+		panel_empuje.get_cancel_button().text = "No empujar"
+		panel_empuje.exclusive = true
+		add_child(panel_empuje)
+		panel_empuje.confirmed.connect(func(): _resolver_decision_empuje(true))
+		panel_empuje.canceled.connect(func(): _resolver_decision_empuje(false))
+	if not panel_empuje.visible:
+		panel_empuje.popup_centered()
+		panel_empuje.get_cancel_button().grab_focus()
+
+
+func _resolver_decision_empuje(aceptar: bool) -> void:
+	if _acciones_en_resolucion > 0:
+		return
+	if is_instance_valid(panel_empuje):
+		panel_empuje.hide()
+	await habilidades_nivel_dos.resolver_empuje(aceptar)
+
+
+func _on_habilidad_aprendida_hud() -> void:
+	if not hud.aprendida_disponible or ficha_jugador == null or _acciones_en_resolucion > 0:
+		return
+	if ficha_jugador.conoce_habilidad("golpe_desplazante"):
+		return # La decisión se ofrece después de causar daño.
+	elif ficha_jugador.conoce_habilidad("contagio_arcano"):
+		var estados := ["", "veneno", "quemado"]
+		ficha_jugador.contagio_elegido = estados[(estados.find(ficha_jugador.contagio_elegido) + 1) % estados.size()]
+	elif not ficha_jugador.activas_aprendidas.is_empty():
+		var id: String = ficha_jugador.activas_aprendidas[0]
+		if ficha_jugador.usos_activas.get(id, 0) < 1:
+			return
+		var anterior := habilidad_en_seleccion
+		_cancelar_habilidad_nueva()
+		_cancelar_bola_fuego()
+		seleccionando_ataque_doble = false
+		if anterior != id:
+			habilidad_en_seleccion = id
+	ficha_jugador.usos_habilidades_cambiados.emit()
+
+
+func _cancelar_habilidad_nueva() -> void:
+	habilidad_en_seleccion = ""
+	fuente_trasvase = null
+	if is_instance_valid(trayectoria_lanzamiento):
+		trayectoria_lanzamiento.clear_points()
+	if is_instance_valid(capa_selector):
+		capa_selector.clear()
+	CursorJuego.ocultar_probabilidad_ataque()
+
+
+func _seleccionar_habilidad_nueva(coord: Vector2i) -> void:
+	if habilidad_en_seleccion == "trasvase" and fuente_trasvase == null:
+		if habilidades_nivel_dos.validar(habilidad_en_seleccion, coord) == &"":
+			fuente_trasvase = coord
+		return
+	var resultado: ResultadoAccion = await habilidades_nivel_dos.ejecutar(habilidad_en_seleccion, coord, fuente_trasvase)
+	if resultado.exitosa:
+		_cancelar_habilidad_nueva()
+	else:
+		CursorJuego.mostrar_probabilidad_ataque("OBJETIVO INVÁLIDO · NO SE GASTÓ EL USO · ESC CANCELA")
+
+
+func _previsualizar_habilidad_nueva(coord: Vector2i) -> void:
+	capa_selector.clear()
+	capa_camino.clear()
+	trayectoria_lanzamiento.clear_points()
+	camino_actual_tentativo.clear()
+	CursorJuego.establecer_cursor(CursorJuego.Tipo.LANZAR)
+	var motivo: StringName = habilidades_nivel_dos.validar(habilidad_en_seleccion, coord, fuente_trasvase)
+	var opcion := CatalogoHabilidades.obtener(habilidad_en_seleccion)
+	var texto: String = opcion["nombre"].to_upper()
+	if motivo != &"":
+		if habilidad_en_seleccion == "paso_sombra" and ficha_jugador.turnos_oculto < 1:
+			texto += " · REQUIERE ESTAR OCULTO"
+		elif motivo == &"recursos_turno_insuficientes":
+			texto += " · SIN ACCIÓN DISPONIBLE · OCULTARSE TAMBIÉN GASTA LA ADICIONAL" if habilidad_en_seleccion == "paso_sombra" else " · SIN ACCIÓN DISPONIBLE"
+		else:
+			texto += " · ELIGE UN OBJETIVO VÁLIDO CON ALCANCE Y PASO LIBRES"
+	elif habilidad_en_seleccion == "trasvase":
+		texto += " · " + ("CLIC: SUPERFICIE DE ORIGEN" if fuente_trasvase == null else "CLIC: SUELO LIBRE DE DESTINO")
+	else:
+		texto += " · CLIC PARA USAR · EL DESTINO ACTIVA PELIGROS"
+	CursorJuego.mostrar_probabilidad_ataque(texto + " · ESC CANCELA")
+	var celda := tablero.obtener_celda(coord)
+	if celda != null and celda.visibilidad == Celda.EstadoVisibilidad.VISIBLE:
+		capa_selector.set_cell(coord, 0, Vector2i(1, 1))
+		if habilidad_en_seleccion == "ariete" and motivo == &"":
+			var dir := coord - ficha_jugador.coordenada_mapa
+			for paso in range(1, 3):
+				var siguiente := coord + dir * paso
+				if not habilidades_nivel_dos.libre(siguiente):
+					break
+				capa_selector.set_cell(siguiente, 0, Vector2i(1, 1))
+	if fuente_trasvase is Vector2i:
+		capa_selector.set_cell(fuente_trasvase, 0, Vector2i(1, 1))
+
+
+func _esperar_escapista() -> bool:
+	return ficha_jugador != null and ficha_jugador.esta_moviendose and ficha_jugador.conoce_habilidad("escapista") and "escapista" not in ficha_jugador.pasivas_usadas_turno
+
+
+func _limitar_camino_jugador(camino: Array[Vector2i]) -> Array[Vector2i]:
+	if ficha_jugador.pasos_inercia == 0:
+		return pathfinding.limitar_camino_por_movimiento(camino, tablero.datos, ficha_jugador, ficha_jugador.obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO))
+	var resultado: Array[Vector2i] = [ficha_jugador.coordenada_mapa]
+	var libres := ficha_jugador.pasos_inercia
+	var restante := ficha_jugador.obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO)
+	for coord in camino:
+		if coord == ficha_jugador.coordenada_mapa:
+			continue
+		if libres > 0:
+			libres -= 1
+		else:
+			restante -= tablero.obtener_celda(coord).calcular_coste_movimiento(ficha_jugador)
+			if restante < 0:
+				break
+		resultado.append(coord)
+	return resultado
+
+
+func _crear_ficha() -> Ficha:
+	return ESCENA_FICHA.instantiate() as Ficha
 
 
 func _crear_acceso_campamento() -> void:
@@ -1050,6 +1273,7 @@ func _procesar_entrada_paso_actor(
 		destino,
 		actor
 	)
+	habilidades_nivel_dos.al_paso(origen, destino, actor)
 
 func _resolver_reacciones_movimiento(
 	tipo: TiposInteraccion.TipoAccion,
@@ -1158,6 +1382,13 @@ func _registrar_resultado_narrativo(
 			defensa.atributo_efectivo, defensa.dado_seleccionado,
 			"éxito" if defensa.exitosa else "fallo",
 		])
+	if resultado.tirada_dano != null:
+		var atacante: Node2D = actor if actor != null else ficha_jugador
+		detalles.append("Daño: %s + %d FUE + %d equipo" % [
+			_formatear_pista_tirada(resultado.tirada_dano),
+			EfectosEquipo.bono_fuerza_dano(atacante),
+			EfectosEquipo.bono_dano(atacante, true),
+		])
 	var mensajes: Array[String] = []
 	for id_mensaje in resultado.mensajes:
 		if actor is PersonajeNPC and String(id_mensaje).begins_with("estado."):
@@ -1173,7 +1404,7 @@ func _registrar_resultado_narrativo(
 				sujeto = "%s recibe" % efecto.objetivo.obtener_nombre_interaccion()
 			mensajes.append("%s [hint=\"%s\"]%d de daño[/hint]." % [
 				sujeto,
-				_formatear_pista_tirada(resultado.tirada), int(efecto.magnitud)
+				_formatear_pista_tirada(resultado.tirada_dano if resultado.tirada_dano != null else resultado.tirada), int(efecto.magnitud)
 			])
 	if mensajes.is_empty() and resultado.motivo != &"":
 		mensajes.append(
@@ -1254,7 +1485,7 @@ func spawnear_ficha_inicial(id_spawn: StringName = &"entrada") -> void:
 	var coord_inicio := _obtener_coordenada_spawn(id_spawn, capa_suelo)
 	if coord_inicio == Vector2i(-999, -999):
 		return
-	ficha_jugador = ESCENA_FICHA.instantiate()
+	ficha_jugador = _crear_ficha()
 	ficha_jugador.sprite_render = Sprite2D.new()
 	subviewportKnight.size = Vector2i(512,512)
 	subviewportWizard.size = Vector2i(512, 512)
@@ -1278,6 +1509,7 @@ func spawnear_ficha_inicial(id_spawn: StringName = &"entrada") -> void:
 	var datos_aventurero := EstadoPartida.consumir_aventurero()
 	if not datos_aventurero.is_empty() and not ficha_jugador.configurar_creacion(datos_aventurero):
 		push_error("La ficha se creó con valores por defecto: datos de aventurero inválidos.")
+	_equipar_carga_inicial(ficha_jugador)
 	ficha_jugador.inventario.agregar(ItemInstancia.new(
 		&"jugador_antorchas_iniciales", DEFINICION_ANTORCHA, 3
 	))
@@ -1285,7 +1517,48 @@ func spawnear_ficha_inicial(id_spawn: StringName = &"entrada") -> void:
 	zona_actual.add_child(ficha_jugador)
 	ficha_jugador.inicializar(coord_inicio, capa_suelo)
 	ficha_jugador.paso_dado.connect(_on_ficha_paso_dado)
+	ficha_jugador.golpe_conectado.connect(habilidades_nivel_dos.al_golpe)
+	ficha_jugador.movimiento_terminado.connect(func(_interrumpido):
+		habilidades_nivel_dos.al_terminar_movimiento()
+		if en_combate:
+			_resolver_perdida_agro()
+	)
+	ficha_jugador.progresion_cambiada.connect(hud.actualizar_desde_ficha)
 	tablero.ocupar_celda(coord_inicio, ficha_jugador)
+
+
+func _equipar_carga_inicial(ficha: Ficha) -> void:
+	var piezas: Array[Dictionary] = []
+	match ficha.clase:
+		"Guerrero":
+			piezas = [
+				{"id": &"jugador_espada_inicial", "definicion": DEFINICION_ESPADA_INICIAL, "ranura": 3},
+				{"id": &"jugador_escudo_inicial", "definicion": DEFINICION_ESCUDO_INICIAL, "ranura": 4},
+				{"id": &"jugador_casco_inicial", "definicion": DEFINICION_CASCO_INICIAL, "ranura": 0},
+				{"id": &"jugador_pechera_inicial", "definicion": DEFINICION_PECHERA_INICIAL, "ranura": 2},
+			]
+		"Ladrón":
+			piezas = [
+				{"id": &"jugador_daga_principal", "definicion": DEFINICION_DAGA_INICIAL, "ranura": 3},
+				{"id": &"jugador_daga_secundaria", "definicion": DEFINICION_DAGA_INICIAL, "ranura": 4},
+				{"id": &"jugador_capucha_inicial", "definicion": DEFINICION_CAPUCHA_INICIAL, "ranura": 0},
+				{"id": &"jugador_botas_ladron", "definicion": DEFINICION_BOTAS_LADRON, "ranura": 6},
+			]
+		"Mago":
+			piezas = [
+				{"id": &"jugador_baston_inicial", "definicion": DEFINICION_BASTON_INICIAL, "ranura": 3},
+				{"id": &"jugador_tunica_inicial", "definicion": DEFINICION_TUNICA_MAGO, "ranura": 2},
+				{"id": &"jugador_botas_mago", "definicion": DEFINICION_BOTAS_MAGO, "ranura": 6},
+			]
+	for pieza in piezas:
+		var item := ItemInstancia.new(pieza.id, pieza.definicion)
+		var agregado := ficha.inventario.agregar(item)
+		if not agregado.exitosa:
+			push_error("No se pudo añadir el equipo inicial %s: %s" % [pieza.id, agregado.motivo])
+			continue
+		var motivo := ficha.equipo.equipar(ficha.inventario, item.id_instancia, pieza.ranura)
+		if motivo != &"":
+			push_error("No se pudo equipar %s: %s" % [pieza.id, motivo])
 
 
 func _obtener_coordenada_spawn(
@@ -1325,7 +1598,7 @@ func _on_ficha_paso_dado(nueva_coord: Vector2i) -> void:
 		print("El jugador se ha quedado completamente a oscuras.")
 	hud.actualizar_desde_ficha()
 	_actualizar_luz_jugador(nueva_coord)
-	if en_combate and gestor_rondas != null:
+	if en_combate and gestor_rondas != null and not _esperar_escapista():
 		_resolver_perdida_agro()
 	_evaluar_agro_npc()
 
@@ -1526,6 +1799,7 @@ func _evaluar_agro_npc() -> void:
 
 
 func _on_pasar_turno_hud() -> void:
+	_cancelar_habilidad_nueva()
 	seleccionando_ataque_doble = false
 	_cancelar_bola_fuego()
 	if ficha_jugador == null or not ficha_jugador.puede_actuar() or ficha_jugador.esta_moviendose or interaccion_modal_activa:
@@ -1538,6 +1812,7 @@ func _on_pasar_turno_hud() -> void:
 
 
 func _on_ataque_doble_hud() -> void:
+	_cancelar_habilidad_nueva()
 	if (
 		ficha_jugador == null or ficha_jugador.clase != "Guerrero"
 		or not ficha_jugador.puede_actuar() or ficha_jugador.usos_ataque_doble < 1
@@ -1554,6 +1829,7 @@ func _on_ataque_doble_hud() -> void:
 
 
 func _on_ocultarse_hud() -> void:
+	_cancelar_habilidad_nueva()
 	if (
 		ficha_jugador == null or ficha_jugador.clase != "Ladrón"
 		or not ficha_jugador.puede_actuar() or ficha_jugador.usos_ocultarse < 1
@@ -1571,6 +1847,7 @@ func _on_ocultarse_hud() -> void:
 
 
 func _on_bola_fuego_hud() -> void:
+	_cancelar_habilidad_nueva()
 	if (
 		ficha_jugador == null or ficha_jugador.clase != "Mago"
 		or not ficha_jugador.puede_actuar() or ficha_jugador.usos_bola_fuego < 1
@@ -1670,6 +1947,13 @@ func _seleccionar_objetivo_bola_fuego(coord: Vector2i, punto_global: Variant) ->
 		_registrar_resultado_narrativo("Bola de fuego", resultado, EntradaRegistroNarrativo.Categoria.OBJETO)
 		_presentar_resultado_contextual("Bola de fuego", resultado)
 		return
+	if ficha_jugador.conoce_habilidad("piromancia_libre"):
+		var resultado: ResultadoAccion = habilidades_nivel_dos.lanzar_al_suelo(coord)
+		if resultado.exitosa:
+			_cancelar_bola_fuego()
+		else:
+			CursorJuego.mostrar_probabilidad_ataque("ELIGE SUELO VACÍO VISIBLE A 4 CASILLAS")
+		return
 	_presentar_resultado_contextual("Bola de fuego", ResultadoAccion.crear_bloqueo(&"objetivo_no_combatiente"))
 
 
@@ -1708,7 +1992,7 @@ func _actualizar_previsualizacion_bola_fuego(coord: Vector2i, punto_global: Vect
 	elif not linea_libre:
 		mensaje += "SIN LÍNEA DE VISIÓN"
 	elif objetivo == null:
-		mensaje += "ELIGE UN ENEMIGO"
+		mensaje += "CLIC: CREAR FUEGO (3 TURNOS)" if ficha_jugador.conoce_habilidad("piromancia_libre") else "ELIGE UN ENEMIGO"
 	else:
 		mensaje += "CLIC PARA LANZAR"
 	CursorJuego.mostrar_probabilidad_ataque(mensaje)
@@ -1764,11 +2048,15 @@ func ejecutar_bola_fuego(objetivo: PersonajeNPC) -> ResultadoAccion:
 	if not ficha_jugador.consumir_recurso_turno(RecursosTurnoActor.ACCION_PRINCIPAL, 1):
 		return ResultadoAccion.crear_bloqueo(&"recursos_turno_insuficientes")
 	ficha_jugador.consumir_bola_fuego()
+	var celda_impacto := objetivo.coordenada_mapa
 	var aplica_quemado := randf() < 0.5
 	var efecto: Variant = aplicador.aplicar(dano)
 	if efecto is StringName:
 		return ResultadoAccion.crear_fallo(efecto)
 	var efectos: Array = [efecto]
+	habilidades_nivel_dos.encender_celda(celda_impacto)
+	if efecto.magnitud > 0:
+		habilidades_nivel_dos.al_golpe(objetivo)
 	if objetivo.puede_actuar() and aplica_quemado:
 		var estado: Variant = aplicador.aplicar(quemado)
 		if estado is StringName:
@@ -1780,7 +2068,7 @@ func ejecutar_bola_fuego(objetivo: PersonajeNPC) -> ResultadoAccion:
 func _seleccionar_objetivo_ataque_doble(coord: Vector2i, punto_global: Variant) -> void:
 	for objetivo in selector_objetivos.obtener_objetivos_perceptibles(tablero, coord, ficha_jugador, punto_global):
 		if objetivo is PersonajeNPC and objetivo.puede_actuar():
-			var golpes := ejecutar_ataque_doble(objetivo)
+			var golpes := await ejecutar_ataque_doble(objetivo)
 			if golpes.is_empty():
 				return
 			if golpes[0].tirada != null:
@@ -1826,8 +2114,12 @@ func ejecutar_ataque_doble(objetivo: PersonajeNPC) -> Array[ResultadoAccion]:
 	if primero.tirada == null:
 		return golpes
 	ficha_jugador.consumir_ataque_doble()
-	if objetivo.puede_actuar():
+	if habilidades_nivel_dos.empuje_pendiente != null:
+		await habilidades_nivel_dos.empuje_resuelto
+	if objetivo.puede_actuar() and habilidades_nivel_dos._distancia(ficha_jugador.coordenada_mapa, objetivo.coordenada_mapa) == 1:
 		golpes.append(objetivo.resolver_golpe_extra_ataque_doble(contexto))
+		if habilidades_nivel_dos.empuje_pendiente != null:
+			await habilidades_nivel_dos.empuje_resuelto
 	return golpes
 
 
@@ -1843,6 +2135,8 @@ func _mostrar_resultados_ataque_doble(golpes: Array[ResultadoAccion]) -> void:
 				historial_tiradas.registrar(resultado.tirada)
 			if resultado.tirada_defensa != null:
 				historial_tiradas.registrar(resultado.tirada_defensa)
+			if resultado.tirada_dano != null:
+				historial_tiradas.registrar(resultado.tirada_dano)
 		else:
 			_presentar_resultado_contextual(titulo, resultado)
 
@@ -1900,6 +2194,8 @@ func _finalizar_turno_combate() -> void:
 	if not en_combate or gestor_rondas == null:
 		return
 	var actor_finalizado := gestor_rondas.actor_activo as Node2D
+	if actor_finalizado is PersonajeNPC:
+		ficha_jugador.senuelos.erase(String(actor_finalizado.id_instancia))
 	var avance := gestor_rondas.finalizar_turno_activo()
 	if not avance.exitoso:
 		push_warning("No se pudo avanzar turno de combate: %s" % avance.motivo)
@@ -1928,6 +2224,9 @@ func _finalizar_turno_combate() -> void:
 
 
 func _plan_combate_npc(npc: PersonajeNPC) -> Dictionary:
+	var senuelo: Dictionary = habilidades_nivel_dos.plan_senuelo(npc)
+	if not senuelo.is_empty():
+		return senuelo
 	var visibles: Array[Object] = []
 	for actor in _actores_combate():
 		if gestor_rondas.son_oponentes(npc, actor) and npc.puede_ver_actor(actor, validador_espacial):
@@ -1977,9 +2276,11 @@ func _programar_turno_npc() -> void:
 				historial_tiradas.registrar(resultado.tirada)
 			if resultado.tirada_defensa != null:
 				historial_tiradas.registrar(resultado.tirada_defensa)
+			if resultado.tirada_dano != null:
+				historial_tiradas.registrar(resultado.tirada_dano)
 			_registrar_resultado_narrativo(
 				"Ataque de %s" % npc.obtener_nombre_interaccion(),
-				resultado, EntradaRegistroNarrativo.Categoria.DANO, "FUE"
+				resultado, EntradaRegistroNarrativo.Categoria.DANO, "FUE", npc
 			)
 			if _resolver_fin_combate():
 				return
@@ -2057,17 +2358,24 @@ func _on_muerte_npc_con_xp(_fuente: Object, victima: PersonajeNPC) -> void:
 		return
 	if gestor_rondas.obtener_bando(victima) != GestorRondas.Bando.OPONENTE:
 		return
+	habilidades_nivel_dos.al_derrotar(_fuente, victima)
 	# El bando de la víctima determina la recompensa; no exige autor ni daño previo.
 	var recompensa: int = victima.obtener_definicion_personaje().experiencia_recompensa_derrota
 	if recompensa <= 0:
 		return
-	ficha_jugador.experiencia_acumulada += recompensa
+	var nivel_anterior := ficha_jugador.nivel
+	ficha_jugador.ganar_experiencia(recompensa)
 	hud.actualizar_desde_ficha()
 	registro_narrativo.registrar(
 		EntradaRegistroNarrativo.Categoria.SISTEMA,
 		"Experiencia",
 		"Ganas %d XP por derrotar a %s." % [recompensa, victima.obtener_nombre_interaccion()]
 	)
+	if ficha_jugador.nivel > nivel_anterior:
+		registro_narrativo.registrar(
+			EntradaRegistroNarrativo.Categoria.SISTEMA, "Nuevo nivel",
+			"Alcanzas el nivel 2. Tienes una recompensa pendiente para elegir fuera de combate."
+		)
 
 
 func _on_derrota_npc_combate(_derrotado: bool) -> void:
@@ -2091,6 +2399,9 @@ func _resolver_fin_combate(reponer_recursos: bool = true) -> bool:
 
 
 func _terminar_combate(reponer_recursos: bool = true, conservar_memoria: bool = false) -> void:
+	if ficha_jugador != null:
+		ficha_jugador.romper_agarre()
+	_cancelar_habilidad_nueva()
 	CursorJuego.ocultar_probabilidad_ataque()
 	seleccionando_ataque_doble = false
 	seleccionando_bola_fuego = false
@@ -2185,6 +2496,7 @@ func _actualizar_ui_combate() -> void:
 
 
 func _actualizar_disponibilidad_turno() -> void:
+	hud.aprendida_disponible = not es_escenario_de_descanso and ficha_jugador != null and ficha_jugador.puede_actuar() and not ficha_jugador.esta_moviendose and not interaccion_modal_activa and not _turno_exploracion_en_curso and (not en_combate or _es_turno_jugador()) and item_lanzamiento_pendiente == null and _dialogos_camara.is_empty()
 	var motivo := ""
 	if ficha_jugador == null or not ficha_jugador.puede_actuar():
 		motivo = "No puedes actuar"
@@ -3069,12 +3381,7 @@ func _buscar_camino_interaccion(
 		if camino.is_empty():
 			continue
 		if en_combate:
-			var limitado := pathfinding.limitar_camino_por_movimiento(
-				camino,
-				tablero.datos,
-				ficha_jugador,
-				ficha_jugador.obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO)
-			)
+			var limitado := _limitar_camino_jugador(camino)
 			if limitado.size() != camino.size():
 				continue
 		var coste := 0
@@ -3182,6 +3489,20 @@ func _presentar_resultado_contextual(
 		contexto != null
 		and contexto.tipo == TiposInteraccion.TipoAccion.EXAMINAR
 		and resultado.exitosa
+		and contexto.objetivo is ItemSuelo
+	):
+		var definicion_item := (contexto.objetivo as ItemSuelo).item.definicion
+		panel_examen_ilustrado.mostrar(
+			definicion_item.nombre,
+			definicion_item.ilustracion_examen if definicion_item.ilustracion_examen != null else definicion_item.icono,
+			definicion_item.descripcion_base
+		)
+		_actualizar_estado_modal_interaccion()
+		return
+	if (
+		contexto != null
+		and contexto.tipo == TiposInteraccion.TipoAccion.EXAMINAR
+		and resultado.exitosa
 		and contexto.objetivo is Interactuable
 		and contexto.objetivo.definicion != null
 	):
@@ -3220,6 +3541,8 @@ func _presentar_resultado_contextual(
 	historial_tiradas.registrar(resultado.tirada)
 	if resultado.tirada_defensa != null:
 		historial_tiradas.registrar(resultado.tirada_defensa)
+	if resultado.tirada_dano != null:
+		historial_tiradas.registrar(resultado.tirada_dano)
 	var mensajes: Array[String] = []
 	for id_mensaje in resultado.mensajes:
 		mensajes.append(
@@ -3806,6 +4129,8 @@ func _cancelar_lanzamiento() -> void:
 func _actualizar_estado_modal_interaccion() -> void:
 	var siguiente := (
 		lanzamiento_en_vuelo
+		or (habilidades_nivel_dos != null and habilidades_nivel_dos.empuje_pendiente != null)
+		or (is_instance_valid(panel_progresion) and panel_progresion.visible)
 		or dialogo_npc_activo
 		or (
 			is_instance_valid(panel_inventario_cofre)

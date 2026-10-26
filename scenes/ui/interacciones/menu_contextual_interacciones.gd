@@ -14,6 +14,7 @@ signal cancelado
 @onready var contenedor_opciones: VBoxContainer = $Margen/Contenido/Opciones
 
 var _posicion_solicitada: Vector2 = Vector2.ZERO
+var hud_inferior: Control
 
 
 func _ready() -> void:
@@ -147,6 +148,8 @@ func _ajustar_posicion_al_viewport() -> void:
 	if not visible:
 		return
 	var tamano_viewport := get_viewport_rect().size
+	if is_instance_valid(hud_inferior) and hud_inferior.is_visible_in_tree():
+		tamano_viewport.y = minf(tamano_viewport.y, hud_inferior.get_global_rect().position.y)
 	var tamano_menu := size.max(get_combined_minimum_size())
 	var minimo := Vector2(margen_viewport, margen_viewport)
 	var maximo := Vector2(

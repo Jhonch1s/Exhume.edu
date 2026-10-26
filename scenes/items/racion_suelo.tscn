@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/interacciones/items/representacion_item_suelo.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/items/racion/icons/racion_icono.png" id="2_textura"]
+[ext_resource type="Texture2D" path="res://assets/items/racion/sprites/racion.png" id="2_textura"]
 
 [node name="RacionSuelo" type="Node2D"]
 script = ExtResource("1_script")

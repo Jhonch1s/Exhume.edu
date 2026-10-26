@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/efectos_superficie/Humo.tscn" id="1"]
+
+[node name="HumoItem" instance=ExtResource("1")]
+duracion_superficie = 10

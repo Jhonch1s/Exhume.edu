@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="DefinicionLlave" format=3 uid="uid://x3ujg6bp8qgt"]
 
 [ext_resource type="Script" uid="uid://cyh3yxrc1cjqk" path="res://scripts/interacciones/items/definicion_llave.gd" id="1_definicion"]
-[ext_resource type="Texture2D" uid="uid://ciptcjh48w784" path="res://assets/items/llave_prueba/llave_placeholder.svg" id="2_icono"]
+[ext_resource type="Texture2D" uid="uid://83gy46m2ad0j" path="res://assets/items/llave_prueba/icons/llave_prueba_icono.png" id="2_icono"]
 [ext_resource type="PackedScene" path="res://scenes/items/llave_suelo.tscn" id="3_escena"]
 
 [resource]

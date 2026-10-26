@@ -62,7 +62,7 @@
     text($('#editor-title'), item.name || 'Un objeto por descubrir');
     for (const field of $$('[data-field]')) { const value = read(item, field.dataset.field); if (field.type === 'checkbox') field.checked = !!value; else field.value = value ?? ''; }
     $('#tags').value = item.tags.join(', ');
-    renderConditions(); renderImages(); renderAudio(); renderMagnitudes(); renderTags(); renderEquipmentEffects();
+    renderConditions(); renderImages(); renderAudio(); renderMagnitudes(); renderTags(); renderClassRestrictions(); renderEquipmentEffects();
   }
   function renderConditions() {
     const item = current(); if (!item) return;
@@ -85,8 +85,17 @@
   }
   function renderTags() {
     const area = $('#tag-suggestions'); area.replaceChildren(); const item = current(); if (!item) return;
-    const suggestions = { arrojable: 'Arrojable', consumible: 'Consumible', arma: 'Arma', escudo: 'Escudo', casco: 'Cabeza', armadura: 'Pecho', guantes: 'Guantes', botas: 'Botas', amuleto: 'Amuleto', anillo: 'Anillo' };
+    const suggestions = { arrojable: 'Arrojable', consumible: 'Consumible', arma: 'Arma', daga: 'Daga / otra mano', escudo: 'Escudo', casco: 'Cabeza', armadura: 'Pecho', guantes: 'Guantes', botas: 'Botas', amuleto: 'Amuleto', anillo: 'Anillo' };
     for (const [tag, label] of Object.entries(suggestions)) { const button = make('button', item.tags.includes(tag) ? 'active' : '', label); button.type = 'button'; button.setAttribute('aria-pressed', item.tags.includes(tag)); button.addEventListener('click', () => { item.tags = item.tags.includes(tag) ? item.tags.filter(value => value !== tag) : [...item.tags, tag]; $('#tags').value = item.tags.join(', '); renderTags(); changed(); }); area.append(button); }
+  }
+  function renderClassRestrictions() {
+    const area = $('#class-restrictions'); area.replaceChildren(); const item = current(); if (!item) return;
+    for (const [name, label] of Object.entries(F.CLASSES)) {
+      const button = make('button', item.classRestrictions.includes(name) ? 'active' : '', label); button.type = 'button';
+      button.setAttribute('aria-pressed', item.classRestrictions.includes(name));
+      button.addEventListener('click', () => { item.classRestrictions = item.classRestrictions.includes(name) ? item.classRestrictions.filter(value => value !== name) : [...item.classRestrictions, name]; renderClassRestrictions(); changed(); });
+      area.append(button);
+    }
   }
   function renderEquipmentEffects() {
     const area = $('#equipment-effects'); area.replaceChildren(); const item = current(); if (!item) return;
@@ -181,10 +190,12 @@
       if (world) { const sprite = make('div', 'world-sprite'); sprite.style.width = Math.min(220, item.worldWidth) + 'px'; sprite.style.height = Math.min(220, item.worldWidth) * (world.height / item.vframes) / (world.width / item.hframes) + 'px'; sprite.style.maxHeight = '190px'; sprite.style.backgroundImage = 'url(' + world.data + ')'; sprite.style.backgroundSize = item.hframes * 100 + '% ' + item.vframes * 100 + '%'; sprite.style.backgroundRepeat = 'no-repeat'; area.append(sprite); } else area.append(make('span', 'placeholder-art', '◇')); stage.append(area, make('div', 'bag-caption', 'SUELO ISOMÉTRICO · PRIMERA VARIANTE'));
     } else { if (item.illustration || item.icon) stage.append(image(item.illustration || item.icon, 'examine-image')); else stage.append(make('span', 'placeholder-art', '◇')); }
     const heal = F.healing(item.heal);
-    text($('#preview-type'), item.kind === 'llave' ? 'LLAVE · ' + (item.lockPattern || 'sin patrón') : item.kind === 'antorcha' ? 'LUZ DE EXPLORACIÓN' : item.impact.type !== 'none' ? 'ARROJABLE · ' + F.SURFACES[item.impact.type][0].toUpperCase() : item.equipmentEffects.length ? 'EQUIPO · ' + F.equipment(item).join(' / ').toUpperCase() : heal?.max > 0 ? 'CONSUMIBLE · CURACIÓN' : 'OBJETO DE INVENTARIO');
+    text($('#preview-type'), item.kind === 'llave' ? 'LLAVE · ' + (item.lockPattern || 'sin patrón') : item.kind === 'antorcha' ? 'LUZ DE EXPLORACIÓN' : item.impact.type !== 'none' ? 'ARROJABLE · ' + F.SURFACES[item.impact.type][0].toUpperCase() : (item.equipmentEffects.length || F.healing(item.weaponDice)?.dice > 0) ? 'EQUIPO · ' + F.equipment(item).join(' / ').toUpperCase() : heal?.max > 0 ? 'CONSUMIBLE · CURACIÓN' : 'OBJETO DE INVENTARIO');
     text($('#preview-name'), item.name || 'Objeto sin nombre'); text($('#preview-description'), item.description || 'La historia de este objeto todavía no está escrita.');
     const stats = $('#preview-stats'); stats.replaceChildren(make('span', '', format(item.weight) + ' kg / ud.'), make('span', '', item.stackable ? 'Pila de ' + item.maxStack : 'No apilable'));
     if (heal?.max > 0) stats.append(make('span', '', '+' + heal.formula + ' PV al usar' + (heal.dice ? ' · ' + heal.min + '–' + heal.max + ' PV' : '')));
+    const weapon = F.healing(item.weaponDice);
+    if (weapon?.dice > 0) stats.append(make('span', '', weapon.formula + ' de daño + bono de FUE'));
     const tagArea = $('#preview-tags'); tagArea.replaceChildren(...F.tags(item).map(tag => make('span', '', tag)));
     const effectArea = $('#preview-equipment-effects'); effectArea.replaceChildren(...item.equipmentEffects.map(effect => make('li', '', F.effectDescription(effect))));
     quantity = Math.max(1, Math.min(quantity, item.stackable ? item.maxStack : 1)); $('#preview-quantity').max = item.stackable ? item.maxStack : 1; $('#preview-quantity').value = quantity; $('#preview-quantity').disabled = !item.stackable;

@@ -9,6 +9,11 @@ func _initialize() -> void:
 
 
 func _probar() -> void:
+	var script_laboratorio := load("res://scenes/pruebas_habilidades/laboratorio_habilidades.gd") as Script
+	if script_laboratorio == null or not script_laboratorio.can_instantiate():
+		push_error("El laboratorio debe compilar con sus scripts base antes de iniciar.")
+		quit(1)
+		return
 	var laboratorio: Node = load("res://scenes/pruebas_habilidades/LaboratorioHabilidades.tscn").instantiate()
 	root.add_child(laboratorio)
 	await esperar(laboratorio)

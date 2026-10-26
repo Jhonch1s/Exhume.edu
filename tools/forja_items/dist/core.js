@@ -6,13 +6,14 @@
   'use strict';
   const VERSION = 1;
   const SURFACES = { fuego: ['Fuego', 'Quemado'], humo: ['Humo', 'Cobertura visual'], veneno: ['HumoVeneno', 'Veneno'] };
-  const SLOTS = { arma: 'Mano principal', escudo: 'Mano secundaria', casco: 'Cabeza', armadura: 'Pecho', guantes: 'Manos', botas: 'Pies', amuleto: 'Amuleto', anillo: 'Anillo', luz: 'Antorcha / mano secundaria' };
+  const SLOTS = { arma: 'Mano principal', daga: 'Mano secundaria', escudo: 'Mano secundaria', casco: 'Cabeza', armadura: 'Pecho', guantes: 'Manos', botas: 'Pies', amuleto: 'Amuleto', anillo: 'Anillo', luz: 'Antorcha / mano secundaria' };
+  const CLASSES = { Guerrero: 'Guerrero', 'Ladrón': 'Ladrón', Mago: 'Mago' };
   const RESERVED = ['antorcha', 'racion', 'piedra', 'bomba_humo', 'llave_prueba'];
   const clone = value => JSON.parse(JSON.stringify(value));
   const slug = value => String(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 64);
   const uid = () => globalThis.crypto?.randomUUID?.() || 'item_' + Date.now() + '_' + Math.random().toString(36).slice(2);
   function createItem(preset = {}) {
-    const item = { key: uid(), id: '', name: '', description: '', kind: 'objeto', tags: [], weight: 0.5, stackable: false, maxStack: 1, heal: 0, magnitudes: {}, icon: null, world: null, illustration: null, pickupSound: null, impactSound: null, worldWidth: 64, hframes: 1, vframes: 1, lockPattern: '', torch: { duration: 80, vision: 5, fade: 10, energy: 1.3, scale: 1, color: '#ffe500' }, impact: { type: 'none', radius: 0, duration: 7, ticks: 3, dice: 1, sides: 2 }, source: null, updateExisting: false };
+    const item = { key: uid(), id: '', name: '', description: '', kind: 'objeto', tags: [], classRestrictions: [], twoHanded: false, weight: 0.5, stackable: false, maxStack: 1, heal: 0, weaponDice: '0', magnitudes: {}, icon: null, world: null, illustration: null, pickupSound: null, impactSound: null, worldWidth: 64, hframes: 1, vframes: 1, lockPattern: '', torch: { duration: 80, vision: 5, fade: 10, energy: 1.3, scale: 1, color: '#ffe500' }, impact: { type: 'none', radius: 0, duration: 7, ticks: 3, dice: 1, sides: 2 }, source: null, updateExisting: false };
     item.equipmentEffects = [];
     const input = clone(preset);
     for (const key of Object.keys(item)) {
@@ -95,12 +96,18 @@
       if (item.stackable) warnings.push('El equipo aporta sus efectos una sola vez por objeto equipado; la cantidad de la pila no multiplica los bonos.');
     }
     if (!Array.isArray(item.tags) || item.tags.length > 50 || item.tags.some(t => typeof t !== 'string' || !/^[a-z][a-z0-9_]{0,63}$/.test(t))) errors.push('Revisa las etiquetas: letras minúsculas, números y guiones bajos.');
+    if (!Array.isArray(item.classRestrictions) || new Set(item.classRestrictions).size !== item.classRestrictions.length || item.classRestrictions.some(name => !Object.hasOwn(CLASSES, name))) errors.push('Clases permitidas inválidas. Elige Guerrero, Ladrón o Mago sin repetir.');
+    else if (item.classRestrictions.length && !equipment(item).length) errors.push('Las restricciones de clase requieren una etiqueta de equipo.');
+    if (typeof item.twoHanded !== 'boolean' || (item.twoHanded && !item.tags.includes('arma'))) errors.push('Dos manos requiere la etiqueta Arma.');
     if (typeof item.stackable !== 'boolean') errors.push('Apilado inválido.');
     number(item.weight, 0, 99999, 'Peso');
     number(item.maxStack, 1, 999, 'Máximo de pila', true);
     if (!item.stackable && item.maxStack !== 1) errors.push('Un objeto no apilable debe tener un máximo de 1.');
     const heal = healing(item.heal);
     if (!heal) errors.push('Curación: escribe 0, una cantidad fija (5) o dados (1d6, 2d4+2). Hasta 9 dados de 2 a 100 caras y bono de 0 a 9999.');
+    const weapon = healing(item.weaponDice);
+    if (!weapon || weapon.bonus !== 0) errors.push('Daño del arma: escribe 0 o dados sin bono, por ejemplo 1d2, 1d3 o 2d2.');
+    else if (weapon.dice > 0 && !equipment(item).includes('Mano principal')) errors.push('El daño del arma requiere la etiqueta Arma.');
     number(item.worldWidth, 8, 512, 'Ancho en el suelo');
     number(item.hframes, 1, 32, 'Columnas del sprite', true);
     number(item.vframes, 1, 32, 'Filas del sprite', true);
@@ -124,7 +131,7 @@
     }
     if (!item.magnitudes || typeof item.magnitudes !== 'object' || Array.isArray(item.magnitudes)) errors.push('Magnitudes inválidas.');
     else for (const [key, value] of Object.entries(item.magnitudes)) {
-      if (!/^[a-z][a-z0-9_]{0,63}$/.test(key) || ['peso', 'recuperacion_pv', 'recuperacion_pv_dados', 'recuperacion_pv_caras', 'duracion'].includes(key)) errors.push('Magnitud adicional inválida o reservada: ' + key);
+      if (!/^[a-z][a-z0-9_]{0,63}$/.test(key) || ['peso', 'recuperacion_pv', 'recuperacion_pv_dados', 'recuperacion_pv_caras', 'dano_arma_dados', 'dano_arma_caras', 'duracion'].includes(key)) errors.push('Magnitud adicional inválida o reservada: ' + key);
       else number(value, key === 'temperatura' ? -99999 : 0, 99999, 'Magnitud ' + key);
     }
     for (const field of ['icon', 'world', 'illustration', 'pickupSound', 'impactSound']) {
@@ -192,17 +199,21 @@
     const world = item.world || item.icon;
     add('suelo.png', decode(world.data));
     const scale = item.worldWidth / (world.width / item.hframes);
-    add('suelo.tscn', '[gd_scene format=3]\n\n[ext_resource type="Script" path="res://scripts/interacciones/items/representacion_item_suelo.gd" id="1"]\n[ext_resource type="Texture2D" path=' + quote('res://' + path + 'suelo.png') + ' id="2"]\n\n[node name="ItemSuelo" type="Node2D"]\nscript = ExtResource("1")\n\n[node name="Sprite2D" type="Sprite2D" parent="."]\ntexture_filter = 1\ntexture = ExtResource("2")\nscale = Vector2(' + float(scale) + ', ' + float(scale) + ')\nposition = Vector2(0, ' + float(-world.height / item.vframes * scale / 2) + ')\nhframes = ' + item.hframes + '\nvframes = ' + item.vframes + '\n');
+    add('suelo.tscn', '[gd_scene format=3]\n\n[ext_resource type="Script" path="res://scripts/interacciones/items/representacion_item_suelo.gd" id="1"]\n[ext_resource type="Texture2D" path=' + quote('res://' + path + 'suelo.png') + ' id="2"]\n\n[node name="ItemSuelo" type="Node2D"]\nscript = ExtResource("1")\n\n[node name="Sprite2D" type="Sprite2D" parent="."]\ntexture_filter = 1\ntexture = ExtResource("2")\nscale = Vector2(' + float(scale) + ', ' + float(scale) + ')\nposition = Vector2(0, 0)\nhframes = ' + item.hframes + '\nvframes = ' + item.vframes + '\n');
     properties.push('escena_mundo = ' + ref('PackedScene', 'res://' + path + 'suelo.tscn', 'mundo'));
     for (const [field, name, property, type] of [['illustration', 'ilustracion', 'ilustracion_examen', 'Texture2D'], ['pickupSound', 'recoger', 'sonido_recoger', 'AudioStream'], ['impactSound', 'impacto', 'sonido_impacto', 'AudioStream']]) {
       const value = assetRef(field, name, type);
       if (value) properties.push(property + ' = ' + value);
     }
     properties.push('etiquetas = Array[StringName]([' + tags(item).map(tag => '&' + quote(tag)).join(', ') + '])');
+    if (item.classRestrictions.length) properties.push('clases_permitidas = Array[StringName]([' + item.classRestrictions.map(name => '&' + quote(name)).join(', ') + '])');
+    if (item.twoHanded) properties.push('requiere_dos_manos = true');
     const magnitudes = { ...item.magnitudes, peso: item.weight };
     const heal = healing(item.heal);
     if (heal.max > 0) magnitudes.recuperacion_pv = heal.bonus;
     if (heal.dice > 0) { magnitudes.recuperacion_pv_dados = heal.dice; magnitudes.recuperacion_pv_caras = heal.sides; }
+    const weapon = healing(item.weaponDice);
+    if (weapon.dice > 0) { magnitudes.dano_arma_dados = weapon.dice; magnitudes.dano_arma_caras = weapon.sides; }
     if (item.kind === 'antorcha') magnitudes.duracion = item.torch.duration;
     properties.push('magnitudes = Dictionary[StringName, float]({\n' + Object.entries(magnitudes).map(([key, value]) => '&' + quote(key) + ': ' + float(value)).join(',\n') + '\n})');
     properties.push('apilable = ' + item.stackable, 'cantidad_maxima = ' + item.maxStack);
@@ -256,5 +267,5 @@
     for (const bytes of [...locals, ...centrals, end]) { output.set(bytes, at); at += bytes.length; }
     return output;
   }
-  return { VERSION, SURFACES, SLOTS, RESERVED, ATTRIBUTES, TESTS, EFFECT_TYPES, effectDefault, validEffects, effectDescription, createItem, clone, slug, uid, healing, tags, equipment, validate, parseProject, project, exportItem, exportFiles, zip, crc32 };
+  return { VERSION, SURFACES, SLOTS, CLASSES, RESERVED, ATTRIBUTES, TESTS, EFFECT_TYPES, effectDefault, validEffects, effectDescription, createItem, clone, slug, uid, healing, tags, equipment, validate, parseProject, project, exportItem, exportFiles, zip, crc32 };
 });

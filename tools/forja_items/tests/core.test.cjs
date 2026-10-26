@@ -17,6 +17,7 @@ for (const item of items) {
   check(files.some(file => file.path.endsWith('/ficha.forja.json')), 'ficha reeditable');
   const restored = F.parseProject(JSON.parse(files.find(file => file.path.endsWith('.json')).data)).items[0];
   check(restored.icon.data === item.icon.data && restored.id === item.id, 'ida y vuelta');
+  check(files.find(file => file.path.endsWith('/suelo.tscn')).data.includes('position = Vector2(0, 0)'), 'sprite de suelo centrado en su celda');
 }
 for (const seed of seeds) {
   const item = F.createItem({ ...seed, updateExisting: true });
@@ -56,14 +57,21 @@ check(F.equipment(items[0]).includes('Mano principal'), 'equipo arrojable');
 check(F.tags(items.find(item => item.kind === 'llave')).includes('llave'), 'llave semántica');
 for (const type of ['fuego', 'veneno']) items.push(F.createItem({ ...seeds[0], id: 'forja_' + type, impact: { type, radius: 2, duration: 13, ticks: 4, dice: 2, sides: 6 } }));
 items.push(potion, F.createItem({ ...potion, id: 'pocion_2d4_mas_2', heal: '2d4+2' }), F.createItem({ ...potion, id: 'pocion_fija', heal: '5' }));
-const sword = F.createItem({ ...seeds[0], id: 'espada_forja', name: 'Espada de prueba de Forja', tags: ['arma'], stackable: false, maxStack: 1, impact: { type: 'none' }, equipmentEffects: [
+const sword = F.createItem({ ...seeds[0], id: 'espada_forja', name: 'Espada de prueba de Forja', tags: ['arma'], weaponDice: '1d3', stackable: false, maxStack: 1, impact: { type: 'none' }, equipmentEffects: [
   { tipo: 'atributo', atributo: 'fuerza', valor: 1 },
   { tipo: 'dano', valor: 2, alcance: 'arma' },
   { tipo: 'tirada', prueba: 'ataque', modo: 'ventaja' },
   { tipo: 'estado', estado: 'veneno', valor: 1, duracion: 2, alcance: 'arma', salvacion: '' },
   { tipo: 'penalizacion', atributo: 'fuerza', valor: 1, duracion: 2, alcance: 'arma', salvacion: '' }
 ] });
-const ring = F.createItem({ ...sword, id: 'anillo_forja', name: 'Anillo de prueba de Forja', tags: ['anillo'], equipmentEffects: [
+sword.classRestrictions = ['Guerrero'];
+check(F.exportItem(sword)[0].data.includes('clases_permitidas = Array[StringName]([&"Guerrero"])'), 'clase permitida exportada');
+check(F.parseProject(F.project([sword])).items[0].classRestrictions[0] === 'Guerrero', 'clase permitida conservada');
+invalid({ classRestrictions: ['Paladín'] });
+invalid({ classRestrictions: ['Mago', 'Mago'] });
+invalid({ classRestrictions: ['Guerrero'], tags: [], impact: { type: 'none' } });
+invalid({ twoHanded: true, tags: [], impact: { type: 'none' } });
+const ring = F.createItem({ ...sword, id: 'anillo_forja', name: 'Anillo de prueba de Forja', tags: ['anillo'], weaponDice: '0', equipmentEffects: [
   { tipo: 'atributo', atributo: 'voluntad', valor: 1 }, { tipo: 'atributo', atributo: 'destreza', valor: -1 },
   { tipo: 'dano', valor: 1, alcance: 'directo' }, { tipo: 'tirada', prueba: 'voluntad', modo: 'ventaja' }
 ] });
@@ -73,10 +81,20 @@ for (const item of [sword, ring]) {
   check(exported.includes('efectos_equipo = Array[Dictionary]('), 'efectos exportados nativos');
   check(F.parseProject(F.project([item])).items[0].equipmentEffects.length === item.equipmentEffects.length, 'ida y vuelta efectos');
 }
+check(F.exportItem(sword)[0].data.includes('&"dano_arma_dados": 1.0') && F.exportItem(sword)[0].data.includes('&"dano_arma_caras": 3.0'), 'dado de espada exportado');
+check(F.parseProject(F.project([sword])).items[0].weaponDice === '1d3', 'dado de arma conservado en la ficha');
+for (const weaponDice of ['1d1', '1d3+2', '5', '0d2', '']) check(F.validate(F.createItem({ ...sword, weaponDice })).errors.length > 0, 'dado de arma inválido: ' + weaponDice);
+check(F.validate(F.createItem({ ...sword, tags: [] })).errors.length > 0, 'dado de arma exige mano principal');
 for (const equipmentEffects of [null, {}, [null], [{ tipo: 'otro' }], [{ tipo: 'atributo', atributo: 'fuerza', valor: 0 }], [{ tipo: 'atributo', atributo: 'fuerza', valor: 6 }], [{ tipo: 'tirada', prueba: 'todas', modo: 'ventaja' }], Array(17).fill(F.effectDefault())]) invalid({ equipmentEffects });
 invalid({ tags: [], impact: { type: 'none' }, equipmentEffects: [F.effectDefault()] });
 check(F.validate(F.createItem({ ...ring, equipmentEffects: [{ tipo: 'dano', valor: 1, alcance: 'arma' }] })).errors.length > 0, 'arma requiere mano principal');
-items.push(sword, ring);
+const dagger = F.createItem({ ...sword, id: 'daga_forja', name: 'Daga de prueba', tags: ['arma', 'daga'], weaponDice: '1d2', equipmentEffects: [] });
+const staff = F.createItem({ ...sword, id: 'baston_forja', name: 'Bastón de prueba', weaponDice: '1d2', equipmentEffects: [] });
+staff.classRestrictions = ['Mago'];
+staff.twoHanded = true;
+check(F.exportItem(staff)[0].data.includes('requiere_dos_manos = true'), 'bastón a dos manos exportado');
+check(F.validate(dagger).errors.length === 0 && F.validate(staff).errors.length === 0, 'daga y bastón aceptan 1d2');
+items.push(sword, ring, dagger, staff);
 items[0].description = 'Frasco «bruma»\nDijo: "ábreme". Ruta \\ y una ñ.';
 items[0].illustration = items[0].icon;
 items[0].magnitudes = { temperatura: -4.5 };

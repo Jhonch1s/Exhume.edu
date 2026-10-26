@@ -9,6 +9,8 @@ También puedes servirlo con `node tools/forja_items/preview.cjs` desde la raíz
 1. Pulsa **Nuevo ítem**. Puedes partir de un objeto vacío o de cinco plantillas del juego: bomba de humo, piedra, ración, llave y antorcha.
 2. En **Información**, completa nombre, ID estable, descripción, peso, apilado y etiquetas de equipo. La vista previa muestra la ranura y calcula el peso de una pila.
 3. En **Imágenes y audio**, selecciona o arrastra el icono, sprite de suelo e ilustración. También puedes pegar una imagen sobre su recuadro. Se convierten a PNG y se incluyen en la ficha. Admite sprites con varias filas/columnas, escala de suelo y sonidos WAV, OGG o MP3.
+
+El sprite de suelo se centra en la celda. Si dibujas un sprite de una sola celda de 64×32, usa ancho en suelo 64 y una fila y columna; la escena exportada deja su posición en `(0, 0)`.
 4. En **Comportamiento**, configura curación al usar o una superficie al impactar: humo, fuego o veneno. Para una poción escribe `1d6` en **Curación al usar**: recuperará entre 1 y 6 PV con una tirada nueva en cada uso. También admite cantidades fijas (`5`) y dados más un bono (`1d6+2`, entre 3 y 8 PV). `0` desactiva la curación. El radio muestra las casillas afectadas. La duración de la superficie y los pulsos/dados del estado se ajustan por separado. Llaves y antorchas tienen sus propios campos.
 5. Revisa la vista previa en **Inventario**, **Suelo** o **Examen** y corrige los avisos antes de exportar. Puedes duplicar fichas y buscar por nombre o ID.
 
@@ -34,7 +36,7 @@ Las plantillas crean variantes con IDs nuevos. **Actualizar el original del jueg
 - Impacto: las superficies existentes de humo, fuego y humo venenoso. El objeto se consume al impactar; el veneno conserva la salvación de Voluntad.
 - Llaves: patrón de cerradura, comparado por ID.
 - Antorchas: duración, radio de visión, atenuación, intensidad, escala y color. **El encendido desde el acceso rápido aún depende del ID `antorcha` en el juego**. Una variante con otro ID se puede equipar; para cambiar la antorcha que sí se enciende, edita la plantilla y actualiza el original.
-- Equipo: las etiquetas determinan las ranuras compatibles. Configura sus bonificaciones en **Comportamiento → Efectos de equipo**. Las magnitudes adicionales guardan datos para otras reglas; escribir `curacion = 5` ahí no crea una curación.
+- Equipo: las etiquetas determinan las ranuras compatibles. En **Información → Clases que pueden equiparlo**, deja todas sin marcar para uso universal o marca una o varias clases. Marca **Arma a dos manos** para impedir el uso de la mano secundaria. Configura sus bonificaciones en **Comportamiento → Efectos de equipo**. Las magnitudes adicionales guardan datos para otras reglas; escribir `curacion = 5` ahí no crea una curación.
 
 ## Desarrollo y comprobaciones
 
@@ -56,6 +58,8 @@ Comprueba carga de recursos, PNG, texto Unicode y escapes, pila/peso, variantes 
 ## Efectos de equipo
 
 En **Información**, marca una etiqueta compatible (Arma, Anillo, Pecho, etc.). En **Comportamiento → Efectos de equipo**, pulsa **Añadir efecto de equipo** tantas veces como efectos quieras combinar, hasta 16:
+
+Para un arma, escribe su tirada en **Daño del arma al acertar**: `1d3` para espada o `1d2` para daga y bastón. La etiqueta **Arma** es obligatoria. Dos dagas, una en cada mano, tiran `2d2` en un único ataque; el bono de Fuerza se suma una vez: `max(0, floor((FUE efectiva - 1) / 2))`. El valor `0` deja el objeto sin dado propio.
 
 Ejemplo para importar: [Anillo del pulso](ejemplos/anillo_del_pulso.forja.json), con +1 FUE, +2 daño directo, ventaja de ataque y reducción de FUE al objetivo si falla su salvación.
 

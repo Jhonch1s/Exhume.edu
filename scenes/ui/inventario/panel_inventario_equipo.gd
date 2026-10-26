@@ -62,6 +62,7 @@ var equipo_actual: Dictionary:
 		return ficha_actual.equipo.ranuras if ficha_actual != null else _equipo_previsualizacion
 var capacidad_mochila: int = 30
 var tooltip_flotante: PanelContainer = null
+var hud_inferior: Control
 
 
 func _ready() -> void:
@@ -215,9 +216,12 @@ func _mostrar_tooltip(casilla: CasillaInventario) -> void:
 	
 	var ancla := casilla.get_global_rect()
 	var pantalla := get_viewport_rect().size
+	if is_instance_valid(hud_inferior) and hud_inferior.is_visible_in_tree():
+		pantalla.y = minf(pantalla.y, hud_inferior.get_global_rect().position.y)
 	var pos_x: float = ancla.position.x - tooltip_flotante.size.x - 8.0
 	if pos_x < 8.0:
 		pos_x = ancla.end.x + 8.0
+	pos_x = clampf(pos_x, 8.0, maxf(8.0, pantalla.x - tooltip_flotante.size.x - 8.0))
 	var pos_y: float = clampf(ancla.position.y - 4.0, 8.0, maxf(8.0, pantalla.y - tooltip_flotante.size.y - 8.0))
 	
 	tooltip_flotante.global_position = Vector2(pos_x, pos_y)
@@ -294,7 +298,7 @@ func _al_soltar_item(
 
 
 func _item_compatible_con_ranura(item: ItemInstancia, ranura: int) -> bool:
-	return EquipoActor.compatible(item, ranura)
+	return EquipoActor.compatible(item, ranura, ficha_actual.clase if ficha_actual != null else "")
 
 
 func _can_drop_data(at_position: Vector2, data: Variant) -> bool:

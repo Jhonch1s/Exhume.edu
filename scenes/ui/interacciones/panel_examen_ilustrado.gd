@@ -7,6 +7,7 @@ signal cerrado
 @onready var boton_cerrar: Button = $Ventana/Margen/Contenido/Cabecera/Cerrar
 @onready var imagen: TextureRect = $Ventana/Margen/Contenido/Cuerpo/Imagen
 @onready var etiqueta_texto: RichTextLabel = $Ventana/Margen/Contenido/Cuerpo/Texto
+var hud_inferior: Control
 
 
 func _ready() -> void:
@@ -17,6 +18,7 @@ func _ready() -> void:
 
 
 func mostrar(titulo: String, ilustracion: Texture2D, texto: String) -> void:
+	_ajustar_al_viewport()
 	etiqueta_titulo.text = titulo
 	imagen.texture = ilustracion
 	etiqueta_texto.text = texto
@@ -40,3 +42,5 @@ func _unhandled_key_input(event: InputEvent) -> void:
 func _ajustar_al_viewport() -> void:
 	position = Vector2.ZERO
 	size = get_viewport_rect().size
+	if is_instance_valid(hud_inferior) and hud_inferior.is_visible_in_tree():
+		size.y = minf(size.y, hud_inferior.get_global_rect().position.y - 8.0)

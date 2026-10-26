@@ -16,6 +16,8 @@ Implementados en el editor y en el juego. Consulta `tools/forja_items/README.md`
 
 `alcance=arma` exige una pieza compatible con mano principal y solo se activa al llevarla en esa ranura. Se aplica a los ataques básicos, incluidos los dos golpes de Ataque doble. `alcance=directo` se aplica a esos ataques y a Bola de fuego. No incluye daño de superficies ni pulsos de estados. Ariete sigue siendo un desplazamiento, no un ataque de arma.
 
+Tras acertar y fallar la esquiva, el ataque básico tira el daño del arma. La Forja guarda ese dado como `dano_arma_dados` y `dano_arma_caras` en `DefinicionItem.magnitudes`: espada `1d3`, daga `1d2` y bastón `1d2`. Dos dagas equipadas tiran `2d2` en el mismo ataque. Se suma una sola vez el bono `max(0, floor((FUE efectiva - 1) / 2))` y después los bonos de daño de equipo. Sin un arma configurada se tira `1d2`. Cada golpe de Ataque doble hace su propia tirada. El daño mágico del mago se definirá aparte.
+
 `salvacion` es vacío (sin salvación) o fuerza/destreza/voluntad. Cada fila con salvación se comprueba de forma independiente. Resistir tiene feedback narrativo. Fallar, esquivar o no causar daño no activa los efectos.
 
 ## Modelo y persistencia

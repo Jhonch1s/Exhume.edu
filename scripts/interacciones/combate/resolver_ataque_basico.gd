@@ -51,10 +51,17 @@ static func resolver(
 		return ResultadoAccion.crear_exito(
 			[StringName(prefijo + "ataque_esquivado")]
 		).con_tirada(ataque).con_tirada_defensa(esquiva)
+	var tirada_dano := motor_dados.resolver(
+		EfectosEquipo.terminos_dano_armas(contexto.actor), 1,
+		TiposTirada.Origen.SOLICITADA if es_jugador else TiposTirada.Origen.AUTOMATICA,
+		TiposTirada.Presentacion.PRIMER_PLANO if es_jugador else TiposTirada.Presentacion.SOLO_LOG
+	)
+	if not tirada_dano.valida:
+		return ResultadoAccion.crear_fallo(tirada_dano.motivo).con_tirada(ataque).con_tirada_defensa(esquiva)
 	var solicitud := SolicitudEfecto.new(
 		contexto.id_accion, &"dano", defensor,
 		contexto.id_evento if contexto.id_evento != &"" else contexto.id_accion,
-		float(1 + EfectosEquipo.bono_dano(contexto.actor, true)), 0, TiposInteraccion.PoliticaApilado.NO_APILAR_Y_RENOVAR, contexto.actor
+		float(tirada_dano.total_efectivo + EfectosEquipo.bono_fuerza_dano(contexto.actor) + EfectosEquipo.bono_dano(contexto.actor, true)), 0, TiposInteraccion.PoliticaApilado.NO_APILAR_Y_RENOVAR, contexto.actor
 	)
 	var efecto: Variant = aplicador_efectos.aplicar(solicitud)
 	if efecto is StringName:
@@ -66,7 +73,7 @@ static func resolver(
 		efectos.append_array(EfectosEquipo.aplicar_impacto(contexto.actor, defensor, true, motor_dados, aplicador_efectos, contexto.id_evento))
 	return ResultadoAccion.crear_exito(
 		[StringName(prefijo + "ataque_acertado")], efectos
-	).con_tirada(ataque).con_tirada_defensa(esquiva)
+	).con_tirada(ataque).con_tirada_defensa(esquiva).con_tirada_dano(tirada_dano)
 
 
 static func probabilidad_entre_actores(atacante: Object, defensor: Object) -> float:

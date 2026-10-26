@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="DefinicionItem" format=3]
+
+[ext_resource type="Script" path="res://scripts/interacciones/items/definicion_item.gd" id="definicion"]
+[ext_resource type="Texture2D" path="res://assets/items/forja/baston_inicial/icono.png" id="icono"]
+[ext_resource type="PackedScene" path="res://assets/items/forja/baston_inicial/suelo.tscn" id="mundo"]
+[ext_resource type="Texture2D" path="res://assets/items/forja/baston_inicial/ilustracion.png" id="ilustracion"]
+
+
+[resource]
+script = ExtResource("definicion")
+id_definicion = &"baston_inicial"
+nombre = "Bastón de madera oscura"
+descripcion_base = "Madera retorcida ceñida con plata opaca; sus marcas arcanas casi se han borrado."
+icono = ExtResource("icono")
+escena_mundo = ExtResource("mundo")
+ilustracion_examen = ExtResource("ilustracion")
+etiquetas = Array[StringName]([&"arma"])
+clases_permitidas = Array[StringName]([&"Mago"])
+requiere_dos_manos = true
+magnitudes = Dictionary[StringName, float]({
+&"peso": 1.0,
+&"dano_arma_dados": 1.0,
+&"dano_arma_caras": 2.0
+})
+apilable = false
+cantidad_maxima = 1

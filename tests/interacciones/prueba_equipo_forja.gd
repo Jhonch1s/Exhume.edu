@@ -56,6 +56,23 @@ func _probar() -> void:
 	e.set_process(false)
 	var f: Ficha = e.ficha_jugador
 	var npc: PersonajeNPC = escena.get("_enemigos")[0]
+	var espada_inicial: ItemInstancia = f.equipo.ranuras.get(3)
+	comprobar(espada_inicial != null and espada_inicial.definicion.id_definicion == &"espada_inicial", "El Guerrero comienza con la espada exportada equipada.")
+	comprobar(CasillaInventario.texto_tooltip_item(espada_inicial).contains("Solo: Guerrero"), "El inventario explica la restricción de clase.")
+	comprobar(EquipoActor.new().validar_estado_persistente(f.equipo.obtener_estado_persistente(), [], "Ladrón") == &"equipo_guardado_incompatible", "Un guardado no puede equipar armas de otra clase.")
+	comprobar(EfectosEquipo.terminos_dano_armas(f)[0].caras == 3, "La espada inicial aporta 1d3 al combate.")
+	var sprite_espada := espada_inicial.definicion.escena_mundo.instantiate() as RepresentacionItemSuelo
+	comprobar(sprite_espada.get_node("Sprite2D").position == Vector2.ZERO, "El sprite 64×32 de la espada queda centrado en la celda.")
+	sprite_espada.free()
+	var tooltip_espada := CasillaInventario.crear_cuadro_tooltip_item(espada_inicial)
+	var ilustraciones := tooltip_espada.find_children("*", "TextureRect", true, false)
+	comprobar(not ilustraciones.is_empty() and (ilustraciones[0] as TextureRect).texture == espada_inicial.definicion.ilustracion_examen, "El hover de inventario muestra la ilustración de la espada.")
+	tooltip_espada.free()
+	f.equipo.desequipar(f.inventario, 3)
+	f.clase = "Ladrón"
+	comprobar(f.equipo.equipar(f.inventario, espada_inicial.id_instancia, 3) == &"equipo_incompatible", "El Ladrón no puede equipar la espada exclusiva del Guerrero.")
+	f.clase = "Guerrero"
+	f.inventario.retirar(espada_inicial.id_instancia)
 	var espada := ItemInstancia.new(&"espada_web", definicion("espada_forja"))
 	var anillo := ItemInstancia.new(&"anillo_web", definicion("anillo_forja"))
 	comprobar(espada.es_valida() and anillo.es_valida(), "Recursos exportados válidos con efectos.")
@@ -96,7 +113,9 @@ func _probar() -> void:
 	var esquiva := ResolverAtaqueBasico.resolver(contexto, npc, motor([1, 1, 1]), aplicador)
 	comprobar(esquiva.exitosa and npc.vida_actual == vida and npc.obtener_estado(&"debilitado_fuerza") == null, "Esquivar evita también efectos de equipo.")
 	var acierto := ResolverAtaqueBasico.resolver(contexto, npc, motor([1, 1, 6]), aplicador)
-	comprobar(acierto.exitosa and vida - npc.vida_actual == 4, "Golpe exitoso aplica daño base más tres adicionales.")
+	var dado_espada: ResultadoTirada = acierto.tirada_dano
+	comprobar(dado_espada != null and dado_espada.terminos.size() == 1 and dado_espada.terminos[0].caras == 3, "La espada exportada tira 1d3 después de acertar.")
+	comprobar(acierto.exitosa and vida - npc.vida_actual == dado_espada.total_efectivo + EfectosEquipo.bono_fuerza_dano(f) + 3, "El daño suma dado de espada, FUE efectiva y bonos de equipo.")
 	comprobar(npc.obtener_estado(&"veneno") != null and npc.obtener_estado(&"debilitado_fuerza") != null, "Se combinan veneno y penalización al acertar.")
 	comprobar(npc.obtener_fuerza() == maxi(1, npc.obtener_atributo_base("fuerza") - 1), "El debuff afecta a los atributos del enemigo.")
 	var datos_npc := npc.obtener_estado_persistente()
@@ -119,10 +138,11 @@ func _probar() -> void:
 	npc.restaurar_estado_persistente(datos_npc)
 	comprobar(npc.obtener_estado(&"debilitado_fuerza") != null, "La carga restaura el estado temporal.")
 	var snapshot := JSON.parse_string(JSON.stringify(f.obtener_estado_persistente())) as Dictionary
+	var cantidad_equipo_snapshot := f.equipo.ranuras.size()
 	comprobar(f.validar_estado_persistente(snapshot) == &"", "Snapshot con equipo y valores JSON válido.")
 	f.equipo.desequipar(f.inventario, 3)
 	comprobar(f.obtener_fuerza() == fuerza_base and EfectosEquipo.bono_dano(f, true) == 1, "Desequipar retira solo sus propios efectos.")
-	comprobar(f.restaurar_estado_persistente(snapshot) == &"" and f.equipo.ranuras.size() == 2 and f.obtener_fuerza() == fuerza_base + 1, "Cargar restaura ranuras y efectos una vez.")
+	comprobar(f.restaurar_estado_persistente(snapshot) == &"" and f.equipo.ranuras.size() == cantidad_equipo_snapshot and f.obtener_fuerza() == fuerza_base + 1, "Cargar restaura ranuras y efectos una vez.")
 	comprobar(f.inventario.obtener_por_id(espada.id_instancia) == null, "No se duplica el objeto entre mochila y equipo al cargar.")
 	var duplicado := snapshot.duplicate(true)
 	duplicado.inventario.append(duplicado.equipo[0].item)
@@ -156,6 +176,40 @@ func _probar() -> void:
 	f.iniciar_turno()
 	comprobar(f.esta_sobrecargado() and f.obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO) == 0, "La carga incluye el equipo y puede impedir movimiento.")
 	comprobar(f.validar_estado_persistente(JSON.parse_string(JSON.stringify(f.obtener_estado_persistente()))) == &"", "Se puede guardar estando sobrecargado con equipo.")
+	var daga_principal := ItemInstancia.new(&"daga_principal", definicion("daga_forja"))
+	var daga_secundaria := ItemInstancia.new(&"daga_secundaria", definicion("daga_forja"))
+	var baston := ItemInstancia.new(&"baston", definicion("baston_forja"))
+	comprobar(daga_principal.es_valida() and baston.es_valida(), "Forja exporta daga y bastón con dado 1d2.")
+	f.inventario.agregar(daga_principal)
+	f.inventario.agregar(daga_secundaria)
+	f.inventario.agregar(baston)
+	comprobar(f.equipo.equipar(f.inventario, daga_principal.id_instancia, 3) == &"" and f.equipo.equipar(f.inventario, daga_secundaria.id_instancia, 4) == &"", "Una daga puede ocupar cada mano.")
+	var dados_dagas := EfectosEquipo.terminos_dano_armas(f)
+	comprobar(dados_dagas.size() == 2 and dados_dagas[0].caras == 2 and dados_dagas[1].caras == 2, "Las dos dagas tiran 2d2 y FUE se suma una vez.")
+	comprobar(f.equipo.equipar(f.inventario, baston.id_instancia, 3) == &"equipo_incompatible", "El Guerrero no puede equipar el bastón del Mago.")
+	f.equipo.desequipar(f.inventario, 4)
+	f.clase = "Mago"
+	comprobar(f.equipo.equipar(f.inventario, baston.id_instancia, 3) == &"" and EfectosEquipo.terminos_dano_armas(f).size() == 1 and EfectosEquipo.terminos_dano_armas(f)[0].caras == 2, "El bastón tira 1d2.")
+	comprobar(f.equipo.equipar(f.inventario, daga_secundaria.id_instancia, 4) == &"equipo_incompatible", "El bastón a dos manos impide equipar la otra mano.")
+	for configuracion in [
+		{"clase": "Guerrero", "ranuras": [0, 2, 3, 4], "arma": &"espada_inicial"},
+		{"clase": "Ladrón", "ranuras": [0, 3, 4, 6], "arma": &"daga_inicial"},
+		{"clase": "Mago", "ranuras": [2, 3, 6], "arma": &"baston_inicial"},
+	]:
+		var ficha_prueba := e._crear_ficha() as Ficha
+		ficha_prueba.clase = configuracion.clase
+		e._equipar_carga_inicial(ficha_prueba)
+		var ranuras_reales: Array = ficha_prueba.equipo.ranuras.keys()
+		ranuras_reales.sort()
+		comprobar(ranuras_reales == configuracion.ranuras and ficha_prueba.equipo.ranuras[3].definicion.id_definicion == configuracion.arma, "Carga inicial completa de %s." % configuracion.clase)
+		ficha_prueba.free()
+	for id_consumible in [&"pocion_1", &"frasco_de_bruma"]:
+		var definicion_consumible := load("res://assets/items/forja/%s/%s.tres" % [id_consumible, id_consumible]) as DefinicionItem
+		comprobar(definicion_consumible != null and definicion_consumible.es_valida() and definicion_consumible.icono != null and definicion_consumible.ilustracion_examen != null and definicion_consumible.escena_mundo != null, "El consumible %s carga sus tres imágenes." % id_consumible)
+	var pocion := load("res://assets/items/forja/pocion_1/pocion_1.tres") as DefinicionItem
+	comprobar(pocion.obtener_formula_curacion() == "1d6", "La poción exportada muestra curación 1d6.")
+	var curacion_pocion := pocion.resolver_curacion()
+	comprobar(curacion_pocion >= 1 and curacion_pocion <= 6, "La poción exportada tira de 1 a 6 PV.")
 	escena.queue_free()
 	await process_frame
 	print("EQUIPO_FORJA: %d comprobaciones, %d fallos" % [casos, fallos.size()])
