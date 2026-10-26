@@ -258,6 +258,7 @@ func _ready() -> void:
 	panel_inventario_cofre.visibility_changed.connect(_actualizar_estado_modal_interaccion)
 	panel_inventario_equipo.visibility_changed.connect(_actualizar_estado_modal_interaccion)
 	panel_inventario_equipo.item_soltado_al_suelo.connect(_on_item_inventario_soltado_al_suelo)
+	panel_inventario_equipo.item_uso_solicitado.connect(_on_item_inventario_uso_solicitado)
 	DialogueManager.dialogue_started.connect(_on_dialogo_camara_iniciado)
 	DialogueManager.dialogue_ended.connect(_on_dialogo_camara_finalizado)
 	add_child(gestor_acciones)
@@ -1865,6 +1866,18 @@ func _on_bola_fuego_hud() -> void:
 
 
 func _on_item_rapido_hud_solicitado(indice: int) -> void:
+	if indice < 0 or indice >= hud.items_rapidos_asignados.size():
+		return
+	_usar_item_inventario(hud.items_rapidos_asignados[indice])
+
+
+func _on_item_inventario_uso_solicitado(item: ItemInstancia) -> void:
+	panel_inventario_equipo.cerrar()
+	_actualizar_estado_modal_interaccion()
+	_usar_item_inventario(item)
+
+
+func _usar_item_inventario(item: ItemInstancia) -> void:
 	if (
 		ficha_jugador == null
 		or not ficha_jugador.puede_actuar()
@@ -1875,14 +1888,13 @@ func _on_item_rapido_hud_solicitado(indice: int) -> void:
 		return
 	if en_combate and (not _es_turno_jugador() or _turno_exploracion_en_curso):
 		return
-	if indice < 0 or indice >= hud.items_rapidos_asignados.size():
-		return
-	var item: ItemInstancia = hud.items_rapidos_asignados[indice]
 	if item == null:
 		return
 	var item_en_inv := ficha_jugador.inventario.obtener_por_id(item.id_instancia)
 	if item_en_inv == null or item_en_inv.cantidad <= 0:
-		hud.items_rapidos_asignados[indice] = null
+		for indice in hud.items_rapidos_asignados.size():
+			if hud.items_rapidos_asignados[indice] == item:
+				hud.items_rapidos_asignados[indice] = null
 		hud.actualizar_desde_ficha()
 		return
 
@@ -1914,6 +1926,9 @@ func _on_item_rapido_hud_solicitado(indice: int) -> void:
 		or item_en_inv.definicion.magnitudes.has(&"recuperacion_pv")
 	):
 		var es_racion := item_en_inv.definicion.id_definicion == &"racion"
+		if ficha_jugador.pv_actual >= ficha_jugador.pv_max:
+			registro_narrativo.registrar(EntradaRegistroNarrativo.Categoria.SISTEMA, item_en_inv.definicion.nombre, "Ya tienes la vida completa.")
+			return
 		var valor_defecto := 5 if es_racion else 0
 		var formula := item_en_inv.definicion.obtener_formula_curacion(valor_defecto)
 		var curacion := item_en_inv.definicion.resolver_curacion(null, valor_defecto)

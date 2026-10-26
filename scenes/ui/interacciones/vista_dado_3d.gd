@@ -23,6 +23,12 @@ signal presionado
 		color_contorno = valor
 		_actualizar_contorno()
 
+## Orientación horizontal para bandejas o rectángulos anchos (ej. menú de creación).
+@export var modo_horizontal: bool = false:
+	set(valor):
+		modo_horizontal = valor
+		_configurar_orientacion()
+
 const ANGULOS_POR_VALOR := {
 	1: 270.0,
 	2: 30.0,
@@ -36,6 +42,7 @@ const SONIDO_GIRAR_DADO: AudioStream = preload("res://assets/sonidos/sonidos fin
 
 @onready var pivote_dado: Node3D = $SubViewport/PivoteDado
 @onready var modelo_dado: Node3D = $SubViewport/PivoteDado/Dado
+@onready var camara: Camera3D = $SubViewport/Camera3D
 
 var _animacion: Tween
 var _esta_en_hover := false
@@ -48,6 +55,7 @@ var _reproductor_audio: AudioStreamPlayer
 
 func _ready() -> void:
 	_actualizar_contorno()
+	_configurar_orientacion()
 	mouse_entered.connect(_al_entrar_mouse)
 	mouse_exited.connect(_al_salir_mouse)
 	_reproductor_audio = AudioStreamPlayer.new()
@@ -55,6 +63,22 @@ func _ready() -> void:
 	_reproductor_audio.stream = SONIDO_GIRAR_DADO
 	_reproductor_audio.volume_db = -6.0
 	add_child(_reproductor_audio)
+
+
+func _configurar_orientacion() -> void:
+	if not is_inside_tree() or not is_node_ready():
+		return
+	if modo_horizontal:
+		camara.position = Vector3(0.0, 0.45, 2.2)
+		camara.rotation_degrees = Vector3(-18.0, 0.0, 0.0)
+		camara.size = 0.82
+		pivote_dado.rotation_degrees = Vector3(0.0, 0.0, -90.0)
+	else:
+		camara.position = Vector3(0.0, 0.0, 2.7526426)
+		camara.rotation_degrees = Vector3.ZERO
+		camara.size = 0.9636804
+		pivote_dado.rotation_degrees = Vector3.ZERO
+		modelo_dado.rotation_degrees = Vector3.ZERO
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -86,7 +110,13 @@ func mostrar_valor(valor: int) -> void:
 		return
 	if _animacion != null and _animacion.is_running():
 		_animacion.kill()
-	pivote_dado.rotation_degrees = Vector3(0.0, float(ANGULOS_POR_VALOR[valor]), 0.0)
+	var angulo := float(ANGULOS_POR_VALOR[valor])
+	if modo_horizontal:
+		pivote_dado.rotation_degrees = Vector3(0.0, 0.0, -90.0)
+		modelo_dado.rotation_degrees = Vector3(0.0, angulo, 0.0)
+	else:
+		pivote_dado.rotation_degrees = Vector3(0.0, angulo, 0.0)
+		modelo_dado.rotation_degrees = Vector3.ZERO
 
 
 func animar_a_valor(valor: int) -> void:
@@ -96,10 +126,11 @@ func animar_a_valor(valor: int) -> void:
 		_animacion.kill()
 	if is_instance_valid(_reproductor_audio):
 		_reproductor_audio.play()
-	var angulo_actual := pivote_dado.rotation_degrees.y
+	var nodo_giro: Node3D = modelo_dado if modo_horizontal else pivote_dado
+	var angulo_actual := nodo_giro.rotation_degrees.y
 	var diferencia := fposmod(float(ANGULOS_POR_VALOR[valor]) - fposmod(angulo_actual, 360.0), 360.0)
 	_animacion = create_tween()
 	_animacion.tween_property(
-		pivote_dado, "rotation_degrees:y", angulo_actual + 1440.0 + diferencia, 1.35
+		nodo_giro, "rotation_degrees:y", angulo_actual + 1440.0 + diferencia, 1.35
 	).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
 	_animacion.tween_callback(animacion_finalizada.emit)

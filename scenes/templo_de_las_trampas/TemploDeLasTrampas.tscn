@@ -29,6 +29,7 @@
 [ext_resource type="Resource" uid="uid://duimmx1272hjc" path="res://assets/items/bomba_humo/bomba_humo.tres" id="17_5njko"]
 [ext_resource type="Resource" uid="uid://dxscf7l388d5k" path="res://assets/items/piedra/piedra.tres" id="18_njd4s"]
 [ext_resource type="PackedScene" path="res://scenes/zonas/ItemSueloZona.tscn" id="19_njd4s"]
+[ext_resource type="Resource" path="res://assets/items/forja/pocion_1/pocion_1.tres" id="19_wpq30"]
 [ext_resource type="Resource" uid="uid://dcbclcer2wmfn" path="res://assets/items/antorcha/antorcha.tres" id="20_8pgsv"]
 [ext_resource type="PackedScene" uid="uid://gsnmo7fvpda3" path="res://scenes/interactuables/cofres/cofre_interactuable.tscn" id="25_om0fx"]
 [ext_resource type="PackedScene" uid="uid://bqisrtoea4aai" path="res://scenes/personajes/npc.tscn" id="26_trompo"]
@@ -42,6 +43,11 @@ metadata/_custom_type_script = "uid://bjmk05ma4ww44"
 script = ExtResource("16_hu6da")
 definicion = ExtResource("18_njd4s")
 cantidad = 3
+metadata/_custom_type_script = "uid://bjmk05ma4ww44"
+
+[sub_resource type="Resource" id="Resource_qxh5a"]
+script = ExtResource("16_hu6da")
+definicion = ExtResource("19_wpq30")
 metadata/_custom_type_script = "uid://bjmk05ma4ww44"
 
 [node name="TemploDeLasTrampas" type="Node2D" unique_id=1292300722]
@@ -247,7 +253,7 @@ y_sort_enabled = true
 
 [node name="CofreInteractuable" parent="Interactuables/Cofres" unique_id=1433795063 instance=ExtResource("25_om0fx")]
 position = Vector2(-320, -288)
-contenido_inicial = Array[ExtResource("16_hu6da")]([SubResource("Resource_5sqel"), SubResource("Resource_i1fw8")])
+contenido_inicial = Array[ExtResource("16_hu6da")]([SubResource("Resource_5sqel"), SubResource("Resource_i1fw8"), SubResource("Resource_qxh5a")])
 
 [node name="Personajes" type="Node2D" parent="Interactuables" unique_id=1853873199]
 y_sort_enabled = true

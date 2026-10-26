@@ -3,6 +3,7 @@ extends Control
 
 signal menu_cerrado
 signal item_soltado_al_suelo(item: ItemInstancia, origen_indice: int, es_equipo: bool, punto_pantalla: Vector2)
+signal item_uso_solicitado(item: ItemInstancia)
 
 const ESCENA_CASILLA := preload("res://scenes/ui/inventario/casilla_inventario.tscn")
 const SONIDO_CLICK: AudioStream = preload("res://assets/sonidos/boton madera/boton click.wav")
@@ -34,6 +35,7 @@ enum RanuraEquipo {
 @onready var marco_principal: TextureRect = $FondoAtenuado/MarcoPrincipal
 @onready var contenedor_mochila: GridContainer = $FondoAtenuado/MarcoPrincipal/LadoMochila/GridMochila
 @onready var boton_cerrar: Button = $FondoAtenuado/MarcoPrincipal/BotonCerrar
+@onready var boton_usar: Button = $FondoAtenuado/MarcoPrincipal/LadoMochila/BotonUsar
 
 # EstadÃ­sticas / Atributos (Lado izquierdo)
 @onready var label_nombre_heroe: Label = $FondoAtenuado/MarcoPrincipal/LadoEquipo/InfoHeroe/NombreHeroe
@@ -67,6 +69,7 @@ var hud_inferior: Control
 
 func _ready() -> void:
 	boton_cerrar.pressed.connect(cerrar)
+	boton_usar.pressed.connect(_solicitar_uso_item)
 	_inicializar_ranuras_equipo()
 	if inventario_actual == null:
 		_generar_vista_mochila_vacia()
@@ -82,6 +85,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func abrir(ficha: Ficha = null) -> void:
 	ficha_actual = ficha
+	item_seleccionado = null
 	visible = true
 	if ficha_actual != null:
 		inventario_actual = ficha_actual.obtener_inventario()
@@ -94,11 +98,13 @@ func abrir(ficha: Ficha = null) -> void:
 	refrescar_mochila()
 	refrescar_equipo()
 	refrescar_peso()
+	_actualizar_boton_usar()
 
 
 func cerrar() -> void:
 	visible = false
 	item_seleccionado = null
+	_actualizar_boton_usar()
 	_ocultar_tooltip()
 	menu_cerrado.emit()
 
@@ -143,6 +149,8 @@ func _generar_vista_mochila_vacia() -> void:
 
 
 func refrescar_mochila() -> void:
+	if item_seleccionado != null and (inventario_actual == null or inventario_actual.obtener_por_id(item_seleccionado.id_instancia) != item_seleccionado):
+		item_seleccionado = null
 	for hijo in contenedor_mochila.get_children():
 		hijo.queue_free()
 	
@@ -164,6 +172,7 @@ func refrescar_mochila() -> void:
 		casilla.raton_salio.connect(_ocultar_tooltip)
 	
 	refrescar_peso()
+	_actualizar_boton_usar()
 
 
 func refrescar_equipo() -> void:
@@ -235,6 +244,28 @@ func _ocultar_tooltip() -> void:
 
 func _al_seleccionar_item_mochila(item: ItemInstancia) -> void:
 	item_seleccionado = item
+	_actualizar_boton_usar()
+
+
+func _actualizar_boton_usar() -> void:
+	if not is_instance_valid(boton_usar):
+		return
+	var definicion := item_seleccionado.definicion if item_seleccionado != null else null
+	var esta_en_mochila := item_seleccionado != null and inventario_actual != null and inventario_actual.obtener_por_id(item_seleccionado.id_instancia) == item_seleccionado
+	var usable := esta_en_mochila and definicion != null and (
+		definicion.id_definicion == &"antorcha"
+		or definicion.id_definicion == &"racion"
+		or definicion.magnitudes.has(&"recuperacion_pv_dados")
+		or definicion.magnitudes.has(&"recuperacion_pv")
+		or &"arrojable" in definicion.etiquetas
+	)
+	boton_usar.disabled = not usable
+	boton_usar.text = ("Lanzar " if usable and &"arrojable" in definicion.etiquetas else "Usar ") + definicion.nombre if usable else "Selecciona un consumible"
+
+
+func _solicitar_uso_item() -> void:
+	if not boton_usar.disabled and item_seleccionado != null:
+		item_uso_solicitado.emit(item_seleccionado)
 
 
 func _al_seleccionar_ranura_equipo(tipo: RanuraEquipo) -> void:
@@ -242,6 +273,7 @@ func _al_seleccionar_ranura_equipo(tipo: RanuraEquipo) -> void:
 	if item == null:
 		return
 	item_seleccionado = item
+	_actualizar_boton_usar()
 
 
 func _al_soltar_item(
