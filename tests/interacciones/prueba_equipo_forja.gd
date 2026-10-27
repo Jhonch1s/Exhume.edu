@@ -58,6 +58,15 @@ func _probar() -> void:
 	var npc: PersonajeNPC = escena.get("_enemigos")[0]
 	var espada_inicial: ItemInstancia = f.equipo.ranuras.get(3)
 	comprobar(espada_inicial != null and espada_inicial.definicion.id_definicion == &"espada_inicial", "El Guerrero comienza con la espada exportada equipada.")
+	comprobar(EfectosEquipo.bono_armadura(f) == 2, "Escudo y pechera reducen 2 puntos de daño físico en conjunto.")
+	var fuerza_npc_original: int = npc.atributos_actuales[&"fuerza"]
+	npc.atributos_actuales[&"fuerza"] = 5
+	var vida_defensa := f.pv_actual
+	var contexto_defensa := ContextoAccion.new(TiposInteraccion.TipoAccion.INTERACTUAR, npc, null, null, f, null, &"ataque_basico")
+	var golpe_defensa := ResolverAtaqueBasico.resolver(contexto_defensa, f, motor([1, 6, 6]), AplicadorEfectos.new())
+	comprobar(golpe_defensa.tirada_dano != null and vida_defensa - f.pv_actual == maxi(1, golpe_defensa.tirada_dano.total_efectivo + EfectosEquipo.bono_fuerza_dano(npc) - 2), "La protección reduce el daño físico real sin anular el golpe.")
+	f.curar(f.pv_max)
+	npc.atributos_actuales[&"fuerza"] = fuerza_npc_original
 	comprobar(CasillaInventario.texto_tooltip_item(espada_inicial).contains("Solo: Guerrero"), "El inventario explica la restricción de clase.")
 	comprobar(EquipoActor.new().validar_estado_persistente(f.equipo.obtener_estado_persistente(), [], "Ladrón") == &"equipo_guardado_incompatible", "Un guardado no puede equipar armas de otra clase.")
 	comprobar(EfectosEquipo.terminos_dano_armas(f)[0].caras == 3, "La espada inicial aporta 1d3 al combate.")
@@ -79,6 +88,7 @@ func _probar() -> void:
 	var fuerza_base := f.fue
 	var des_base := f.des
 	var vol_base := f.vol
+	var vol_equipo_inicial := f.obtener_voluntad()
 	var peso_antes := f.obtener_peso_actual()
 	var snapshot_anterior := JSON.parse_string(JSON.stringify(f.obtener_estado_persistente())) as Dictionary
 	snapshot_anterior.erase("equipo")
@@ -92,7 +102,7 @@ func _probar() -> void:
 	var pasos := f.obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO)
 	comprobar(f.equipo.equipar(f.inventario, espada.id_instancia, 3) == &"", "Equipar espada exportada.")
 	comprobar(f.equipo.equipar(f.inventario, anillo.id_instancia, 7) == &"", "Equipar anillo exportado.")
-	comprobar(f.obtener_fuerza() == fuerza_base + 1 and f.obtener_voluntad() == vol_base + 1 and f.obtener_destreza() == des_base - 1, "Bonos y contrapartida efectivos.")
+	comprobar(f.obtener_fuerza() == fuerza_base + 1 and f.obtener_voluntad() == vol_equipo_inicial + 1 and f.obtener_destreza() == des_base - 1, "Bonos y contrapartida efectivos.")
 	comprobar(f.fue == fuerza_base and f.des == des_base and f.vol == vol_base, "Los atributos base no se modifican.")
 	comprobar(is_equal_approx(f.obtener_peso_actual(), peso_total) and peso_total > peso_antes, "El equipo sigue contando para la carga.")
 	comprobar(f.obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO) <= pasos, "Equipar no repone movimiento.")
@@ -152,7 +162,7 @@ func _probar() -> void:
 	panel.abrir(f)
 	comprobar(panel.equipo_actual == f.equipo.ranuras and panel.label_stats.text.contains("+1"), "La interfaz usa el modelo y muestra aportes efectivos.")
 	panel._al_soltar_item(7, true, 0, false)
-	comprobar(not f.equipo.ranuras.has(7) and f.obtener_voluntad() == vol_base, "Desequipar desde UI retira bonos.")
+	comprobar(not f.equipo.ranuras.has(7) and f.obtener_voluntad() == vol_equipo_inicial, "Desequipar desde UI retira bonos.")
 	panel.queue_free()
 	comprobar(f.validar_estado_persistente(snapshot_anterior) == &"", "Los guardados previos sin equipo siguen siendo válidos.")
 	# Reemplazar una pieza y rechazar desequipado con mochila llena sin perderla.
@@ -202,6 +212,13 @@ func _probar() -> void:
 		var ranuras_reales: Array = ficha_prueba.equipo.ranuras.keys()
 		ranuras_reales.sort()
 		comprobar(ranuras_reales == configuracion.ranuras and ficha_prueba.equipo.ranuras[3].definicion.id_definicion == configuracion.arma, "Carga inicial completa de %s." % configuracion.clase)
+		match configuracion.clase:
+			"Guerrero":
+				comprobar(EfectosEquipo.bono_armadura(ficha_prueba) == 2 and ficha_prueba.obtener_voluntad() == ficha_prueba.vol + 1, "Escudo, pechera y casco protegen al Guerrero.")
+			"Ladrón":
+				comprobar(ficha_prueba.obtener_destreza() == ficha_prueba.des + 1 and EfectosEquipo.fuentes(ficha_prueba, "destreza", "esquiva", "ventaja").size() == 1, "Botas y capucha mejoran al Ladrón.")
+			"Mago":
+				comprobar(ficha_prueba.obtener_voluntad() == ficha_prueba.vol + 1 and ficha_prueba.obtener_destreza() == ficha_prueba.des + 1, "Túnica y botas mejoran al Mago.")
 		ficha_prueba.free()
 	for id_consumible in [&"pocion_1", &"frasco_de_bruma"]:
 		var definicion_consumible := load("res://assets/items/forja/%s/%s.tres" % [id_consumible, id_consumible]) as DefinicionItem

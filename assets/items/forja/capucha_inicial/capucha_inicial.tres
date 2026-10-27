@@ -16,6 +16,7 @@ escena_mundo = ExtResource("mundo")
 ilustracion_examen = ExtResource("ilustracion")
 etiquetas = Array[StringName]([&"casco"])
 clases_permitidas = Array[StringName]([&"Ladrón"])
+efectos_equipo = Array[Dictionary]([{"tipo": "tirada", "prueba": "esquiva", "modo": "ventaja"}])
 magnitudes = Dictionary[StringName, float]({
 &"peso": 0.5
 })

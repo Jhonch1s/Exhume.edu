@@ -88,6 +88,9 @@ check(F.validate(F.createItem({ ...sword, tags: [] })).errors.length > 0, 'dado 
 for (const equipmentEffects of [null, {}, [null], [{ tipo: 'otro' }], [{ tipo: 'atributo', atributo: 'fuerza', valor: 0 }], [{ tipo: 'atributo', atributo: 'fuerza', valor: 6 }], [{ tipo: 'tirada', prueba: 'todas', modo: 'ventaja' }], Array(17).fill(F.effectDefault())]) invalid({ equipmentEffects });
 invalid({ tags: [], impact: { type: 'none' }, equipmentEffects: [F.effectDefault()] });
 check(F.validate(F.createItem({ ...ring, equipmentEffects: [{ tipo: 'dano', valor: 1, alcance: 'arma' }] })).errors.length > 0, 'arma requiere mano principal');
+const chest = F.createItem({ ...ring, id: 'pechera_forja', tags: ['armadura'], equipmentEffects: [{ tipo: 'armadura', valor: 1 }] });
+check(!F.validate(chest).errors.length && F.exportItem(chest)[0].data.includes('"tipo":"armadura"'), 'protección física exportada');
+check(F.validate(F.createItem({ ...chest, equipmentEffects: [{ tipo: 'armadura', valor: 0 }] })).errors.length > 0, 'protección física inválida');
 const dagger = F.createItem({ ...sword, id: 'daga_forja', name: 'Daga de prueba', tags: ['arma', 'daga'], weaponDice: '1d2', equipmentEffects: [] });
 const staff = F.createItem({ ...sword, id: 'baston_forja', name: 'Bastón de prueba', weaponDice: '1d2', equipmentEffects: [] });
 staff.classRestrictions = ['Mago'];

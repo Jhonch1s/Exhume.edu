@@ -116,6 +116,7 @@
       select('Tipo', 'tipo', F.EFFECT_TYPES);
       if (['atributo', 'penalizacion'].includes(effect.tipo)) select('Atributo', 'atributo', F.ATTRIBUTES);
       if (effect.tipo === 'atributo') number('Bono / penalización', 'valor', -5, 5);
+      if (effect.tipo === 'armadura') number('Daño físico reducido', 'valor', 1, 5);
       if (effect.tipo === 'tirada') { select('Tirada', 'prueba', F.TESTS); select('Modo', 'modo', { ventaja: 'Ventaja', desventaja: 'Desventaja' }); }
       if (['dano', 'estado', 'penalizacion'].includes(effect.tipo)) {
         select('Alcance', 'alcance', { arma: 'Arma de mano principal', directo: 'Ataques y Bola de fuego' });

@@ -17,6 +17,9 @@ static func validar(efectos: Variant) -> bool:
 		if not e is Dictionary:
 			return false
 		match e.get("tipo"):
+			"armadura":
+				if not entero(e.get("valor"), 1, 5):
+					return false
 			"atributo":
 				if e.get("atributo") not in ATRIBUTOS or not entero(e.get("valor"), -5, 5) or e.valor == 0:
 					return false
@@ -100,6 +103,14 @@ static func bono_dano(actor: Object, es_arma: bool) -> int:
 	return bono
 
 
+static func bono_armadura(actor: Object) -> int:
+	var bono := 0
+	for entrada in entradas(actor):
+		if entrada.efecto.tipo == "armadura":
+			bono += int(entrada.efecto.valor)
+	return bono
+
+
 static func bono_fuerza_dano(actor: Object) -> int:
 	var fuerza := base(actor, "fuerza") + bono_atributo(actor, "fuerza")
 	return maxi(0, floori(float(fuerza - 1) / 2.0))
@@ -151,6 +162,7 @@ static func aplicar_impacto(actor: Object, objetivo: Object, es_arma: bool, moto
 
 static func describir(e: Dictionary) -> String:
 	match e.tipo:
+		"armadura": return "Equipado: reduce %d de daño de ataques físicos (mínimo 1)." % int(e.valor)
 		"atributo": return "Equipado: %+d %s." % [int(e.valor), String(e.atributo).to_upper()]
 		"tirada": return "Equipado: %s en %s." % [e.modo, e.prueba]
 		"dano": return "Al acertar (%s): +%d daño." % [e.alcance, int(e.valor)]

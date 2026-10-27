@@ -1390,6 +1390,13 @@ func _registrar_resultado_narrativo(
 			EfectosEquipo.bono_fuerza_dano(atacante),
 			EfectosEquipo.bono_dano(atacante, true),
 		])
+		for efecto_dano in resultado.efectos_aplicados:
+			if efecto_dano.tipo == &"dano":
+				var dano_bruto := resultado.tirada_dano.total_efectivo + EfectosEquipo.bono_fuerza_dano(atacante) + EfectosEquipo.bono_dano(atacante, true)
+				var reducido := mini(EfectosEquipo.bono_armadura(efecto_dano.objetivo), maxi(0, dano_bruto - 1))
+				if reducido > 0:
+					detalles.append("Protección: −%d de daño físico" % reducido)
+				break
 	var mensajes: Array[String] = []
 	for id_mensaje in resultado.mensajes:
 		if actor is PersonajeNPC and String(id_mensaje).begins_with("estado."):

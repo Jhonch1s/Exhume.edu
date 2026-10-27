@@ -61,7 +61,7 @@ static func resolver(
 	var solicitud := SolicitudEfecto.new(
 		contexto.id_accion, &"dano", defensor,
 		contexto.id_evento if contexto.id_evento != &"" else contexto.id_accion,
-		float(tirada_dano.total_efectivo + EfectosEquipo.bono_fuerza_dano(contexto.actor) + EfectosEquipo.bono_dano(contexto.actor, true)), 0, TiposInteraccion.PoliticaApilado.NO_APILAR_Y_RENOVAR, contexto.actor
+		float(maxi(1, tirada_dano.total_efectivo + EfectosEquipo.bono_fuerza_dano(contexto.actor) + EfectosEquipo.bono_dano(contexto.actor, true) - EfectosEquipo.bono_armadura(defensor))), 0, TiposInteraccion.PoliticaApilado.NO_APILAR_Y_RENOVAR, contexto.actor
 	)
 	var efecto: Variant = aplicador_efectos.aplicar(solicitud)
 	if efecto is StringName:
