@@ -36,6 +36,7 @@ const ORIGENES := ["Mina Ciénaga", "Bastión Solitario", "Cripta Apócrifa", "P
 }
 @onready var estado_atributos: Label = $RigIzquierdo/Atributos/Margen/Contenido/Estado
 @onready var zona_dado: Label = $RigIzquierdo/Atributos/Margen/Contenido/ZonaTirada/MarginContainer/Texto
+@onready var vista_dado: VistaDado3D = $RigIzquierdo/Atributos/Margen/Contenido/ZonaTirada/MarginContainer/VistaDado3D
 @onready var retrato: TextureRect = $RigCentral/Ficha/Margen/Contenido/IlustracionClase
 @onready var nombre: LineEdit = $RigCentral/Ficha/Margen/Contenido/Nombre
 @onready var titulo_aventurero: LineEdit = $RigCentral/Ficha/Margen/Contenido/TituloAventurero
@@ -95,7 +96,17 @@ func _ready() -> void:
 		_activar_hover(nodo as Button)
 	retrato.texture = RETRATO_INICIAL
 	zona_dado.add_theme_color_override(&"font_color", Color(0.86, 0.82, 0.74, 1.0))
+	if is_instance_valid(vista_dado):
+		vista_dado.mostrar_valor(1)
+		vista_dado.presionado.connect(_al_presionar_dado)
 	_actualizar_comenzar()
+
+
+func _al_presionar_dado() -> void:
+	for atributo: StringName in [&"fuerza", &"destreza", &"voluntad"]:
+		if not atributos.has(atributo) and not botones_tirada[atributo].disabled:
+			_tirar_atributo(atributo)
+			break
 
 
 func _activar_hover(boton: Button) -> void:
@@ -119,14 +130,21 @@ func _animar_hover(boton: Button, escala: float) -> void:
 func _tirar_atributo(atributo: StringName) -> void:
 	if atributos.has(atributo):
 		return
-	botones_tirada[atributo].disabled = true
+	for atr in botones_tirada:
+		botones_tirada[atr].disabled = true
 	var tirada := motor_dados.resolver([{&"cantidad": 1, &"caras": 6, &"signo": 1}])
 	var resultado: int = tirada.terminos[0][&"resultados"][0]
-	zona_dado.text = "PLACEHOLDER DADO\n[ %d ]" % resultado
-	await get_tree().create_timer(0.55).timeout
+	zona_dado.text = "Lanzando..."
+	if is_instance_valid(vista_dado):
+		vista_dado.animar_a_valor(resultado)
+		await vista_dado.animacion_finalizada
+	else:
+		await get_tree().create_timer(0.55).timeout
 	if resultado == 1 or resultado == 6:
-		zona_dado.text = "PLACEHOLDER DADO\n[ %d ] — REPITE" % resultado
-		botones_tirada[atributo].disabled = false
+		zona_dado.text = "Tirada: %d · Repite (1 o 6)" % resultado
+		for atr in botones_tirada:
+			if not atributos.has(atr):
+				botones_tirada[atr].disabled = false
 		return
 	atributos[atributo] = resultado
 	valores[atributo].text = str(resultado)
@@ -134,8 +152,11 @@ func _tirar_atributo(atributo: StringName) -> void:
 	botones_tirada[atributo].add_theme_color_override(&"font_disabled_color", Color(0.6, 0.58, 0.54, 0.7))
 	botones_tirada[atributo].add_theme_color_override(&"font_outline_color", Color(0.08, 0.09, 0.12, 0.95))
 	botones_tirada[atributo].add_theme_constant_override(&"outline_size", 2)
-	zona_dado.text = "PLACEHOLDER DADO\nRESULTADO: %d" % resultado
+	zona_dado.text = "Resultado: %d" % resultado
 	estado_atributos.text = "%d de 3 atributos resueltos" % atributos.size()
+	for atr in botones_tirada:
+		if not atributos.has(atr):
+			botones_tirada[atr].disabled = false
 	if atributos.size() == 3:
 		resolver_clase()
 	_actualizar_comenzar()

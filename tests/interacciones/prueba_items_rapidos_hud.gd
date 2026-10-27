@@ -145,6 +145,20 @@ func _probar() -> void:
 		definicion_pocion.magnitudes[&"recuperacion_pv_dados"] = valores[0]
 		definicion_pocion.magnitudes[&"recuperacion_pv_caras"] = valores[1]
 		comprobar(not definicion_pocion.es_valida(), "Se rechaza configuración de dados inválida: %s." % str(valores))
+	var pocion_exportada := ItemInstancia.new(&"pocion_exportada_test", load("res://assets/items/forja/pocion_1/pocion_1.tres") as DefinicionItem, 2)
+	comprobar(ficha.inventario.agregar(pocion_exportada).exitosa, "La poción exportada entra en la mochila.")
+	var panel_inventario: PanelInventarioEquipo = escenario.panel_inventario_equipo
+	panel_inventario.abrir(ficha)
+	panel_inventario._al_seleccionar_item_mochila(pocion_exportada)
+	comprobar(not panel_inventario.boton_usar.disabled and panel_inventario.boton_usar.text.contains("Pocion"), "La mochila ofrece Usar para la poción.")
+	panel_inventario.boton_usar.pressed.emit()
+	comprobar(pocion_exportada.cantidad == 2 and not panel_inventario.visible, "A vida completa, no consume la poción y cierra la mochila.")
+	ficha.recibir_danio(6)
+	var vida_previa := ficha.pv_actual
+	panel_inventario.abrir(ficha)
+	panel_inventario._al_seleccionar_item_mochila(pocion_exportada)
+	panel_inventario.boton_usar.pressed.emit()
+	comprobar(ficha.pv_actual > vida_previa and pocion_exportada.cantidad == 1, "Usar desde la mochila cura 1d6 y consume una unidad.")
 
 	escena.queue_free()
 	await process_frame

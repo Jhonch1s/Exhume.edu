@@ -12,6 +12,7 @@
 [ext_resource type="Texture2D" uid="uid://f4wev484h5gw" path="res://assets/ui/panels/new_game/fields/name_field.png" id="11_name_field"]
 [ext_resource type="Texture2D" uid="uid://cyc3an2nxqu8q" path="res://assets/ui/panels/new_game/knight.jpg" id="12_knight"]
 [ext_resource type="FontFile" uid="uid://c0l0sby5jy2p4" path="res://assets/ui/fonts/Amarante-Regular.ttf" id="13_font"]
+[ext_resource type="PackedScene" uid="uid://brapvx1v3eovq" path="res://scenes/ui/interacciones/vista_dado_3d.tscn" id="14_vista_dado"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBox_vacio"]
 
@@ -360,11 +361,26 @@ texture = ExtResource("8_dice_frame")
 expand_mode = 1
 stretch_mode = 6
 
+[node name="VistaDado3D" parent="RigIzquierdo/Atributos/Margen/Contenido/ZonaTirada/MarginContainer" unique_id=1849182042 instance=ExtResource("14_vista_dado")]
+custom_minimum_size = Vector2(420, 200)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+tamano_pixel = 2
+modo_horizontal = true
+
 [node name="Texto" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/ZonaTirada/MarginContainer" unique_id=1778646343]
 layout_mode = 2
-text = "ZONA DE ANIMACIÓN DEL DADO"
+size_flags_vertical = 8
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
+theme_override_colors/font_shadow_color = Color(0.08, 0.09, 0.12, 0.95)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_fonts/font = ExtResource("13_font")
+theme_override_font_sizes/font_size = 17
+text = "Toca el dado o pulsa Tirar"
 horizontal_alignment = 1
-vertical_alignment = 1
+vertical_alignment = 2
 
 [node name="Estado" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido" unique_id=966890178]
 layout_mode = 2
