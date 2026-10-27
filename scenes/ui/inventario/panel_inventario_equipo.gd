@@ -6,6 +6,7 @@ signal item_soltado_al_suelo(item: ItemInstancia, origen_indice: int, es_equipo:
 
 const ESCENA_CASILLA := preload("res://scenes/ui/inventario/casilla_inventario.tscn")
 const SONIDO_CLICK: AudioStream = preload("res://assets/sonidos/boton madera/boton click.wav")
+const SONIDO_BAG: AudioStream = preload("res://assets/sonidos/sonidos finales/sonidos extras/Bag 01.wav")
 
 const RUTAS_RANURAS := {
 	RanuraEquipo.CABEZA: "res://assets/ui/icons/ranuras/slot_cabeza.png",
@@ -80,9 +81,26 @@ func _unhandled_input(event: InputEvent) -> void:
 		cerrar()
 
 
+var _reproductor_audio: AudioStreamPlayer
+
+
+func _reproducir_audio(stream: AudioStream, vol: float = -6.0) -> void:
+	if stream == null or not is_inside_tree():
+		return
+	if not is_instance_valid(_reproductor_audio):
+		_reproductor_audio = AudioStreamPlayer.new()
+		_reproductor_audio.name = "AudioInventario"
+		add_child(_reproductor_audio)
+	_reproductor_audio.stream = stream
+	_reproductor_audio.volume_db = vol
+	_reproductor_audio.pitch_scale = randf_range(0.96, 1.04)
+	_reproductor_audio.play()
+
+
 func abrir(ficha: Ficha = null) -> void:
 	ficha_actual = ficha
 	visible = true
+	_reproducir_audio(SONIDO_BAG, -6.0)
 	if ficha_actual != null:
 		inventario_actual = ficha_actual.obtener_inventario()
 		label_nombre_heroe.text = ficha_actual.nombre
@@ -258,6 +276,7 @@ func _al_soltar_item(
 	if not origen_es_equipo and not destino_es_equipo:
 		inventario_actual.mover_ranura(origen_indice, destino_indice)
 		refrescar_mochila()
+		_reproducir_audio(SONIDO_BAG, -8.0)
 		return
 	
 	# Caso 2: Equipar desde la mochila a una ranura de equipo
@@ -269,6 +288,7 @@ func _al_soltar_item(
 			ficha_actual.equipo.equipar(inventario_actual, item.id_instancia, destino_indice)
 			refrescar_mochila()
 			refrescar_equipo()
+			_reproducir_audio(SONIDO_BAG, -8.0)
 			return
 		if _item_compatible_con_ranura(item, destino_indice):
 			var reemplazado: ItemInstancia = equipo_actual.get(destino_indice, null)
@@ -278,6 +298,7 @@ func _al_soltar_item(
 				inventario_actual.agregar(reemplazado)
 			refrescar_mochila()
 			refrescar_equipo()
+			_reproducir_audio(SONIDO_BAG, -8.0)
 		return
 	
 	# Caso 3: Desequipar desde equipo a la mochila
@@ -286,6 +307,7 @@ func _al_soltar_item(
 			ficha_actual.equipo.desequipar(inventario_actual, origen_indice)
 			refrescar_mochila()
 			refrescar_equipo()
+			_reproducir_audio(SONIDO_BAG, -8.0)
 			return
 		var item: ItemInstancia = equipo_actual.get(origen_indice, null)
 		if item == null:
@@ -294,6 +316,7 @@ func _al_soltar_item(
 		inventario_actual.agregar(item)
 		refrescar_mochila()
 		refrescar_equipo()
+		_reproducir_audio(SONIDO_BAG, -8.0)
 		return
 
 

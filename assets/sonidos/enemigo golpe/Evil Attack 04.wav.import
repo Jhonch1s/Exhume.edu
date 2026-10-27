@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://brcnj5yjd2k3"
+path="res://.godot/imported/Evil Attack 04.wav-2d499e59ae05a0e5cbf74c27018b50fb.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/enemigo golpe/Evil Attack 04.wav"
+dest_files=["res://.godot/imported/Evil Attack 04.wav-2d499e59ae05a0e5cbf74c27018b50fb.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

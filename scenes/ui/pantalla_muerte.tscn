@@ -1,0 +1,111 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/pantalla_muerte.gd" id="1_script"]
+[ext_resource type="Shader" path="res://assets/shaders/niebla_roja_muerte.gdshader" id="2_shader"]
+[ext_resource type="Texture2D" uid="uid://3thacbakujuy" path="res://assets/shaders/Niebla roja pixelada en sombras.png" id="3_textura_niebla"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_niebla"]
+shader = ExtResource("2_shader")
+shader_parameter/velocidad_x = 0.015
+shader_parameter/velocidad_y = 0.004
+shader_parameter/brillo = 0.75
+shader_parameter/borde_inicio = 0.25
+shader_parameter/borde_fin = 0.72
+shader_parameter/textura_niebla = ExtResource("3_textura_niebla")
+
+[node name="PantallaMuerte" type="CanvasLayer"]
+process_mode = 3
+layer = 95
+script = ExtResource("1_script")
+
+[node name="FondoNegro" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="NieblaRoja" type="TextureRect" parent="FondoNegro"]
+material = SubResource("ShaderMaterial_niebla")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_textura_niebla")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="ContenedorCentral" type="VBoxContainer" parent="FondoNegro"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -240.0
+offset_right = 320.0
+offset_bottom = 240.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 22
+alignment = 1
+
+[node name="ImagenMuertePersonalizada" type="TextureRect" parent="FondoNegro/ContenedorCentral"]
+visible = false
+custom_minimum_size = Vector2(360, 240)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TituloMuerte" type="Label" parent="FondoNegro/ContenedorCentral"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.82, 0.08, 0.08, 1)
+theme_override_colors/font_shadow_color = Color(0.12, 0, 0, 0.95)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 3
+theme_override_font_sizes/font_size = 54
+text = "HAS MUERTO"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SubtituloMuerte" type="Label" parent="FondoNegro/ContenedorCentral"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.68, 0.52, 0.52, 1)
+theme_override_font_sizes/font_size = 18
+text = "El abismo reclama tu cuerpo en la oscuridad."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Espaciador" type="Control" parent="FondoNegro/ContenedorCentral"]
+custom_minimum_size = Vector2(0, 16)
+layout_mode = 2
+
+[node name="Botonera" type="HBoxContainer" parent="FondoNegro/ContenedorCentral"]
+layout_mode = 2
+theme_override_constants/separation = 28
+alignment = 1
+
+[node name="BotonVolverJugar" type="Button" parent="FondoNegro/ContenedorCentral/Botonera"]
+custom_minimum_size = Vector2(200, 46)
+layout_mode = 2
+theme_override_colors/font_hover_color = Color(1, 0.4, 0.4, 1)
+theme_override_colors/font_focus_color = Color(1, 0.4, 0.4, 1)
+theme_override_font_sizes/font_size = 18
+text = "Volver a jugar"
+
+[node name="BotonCargar" type="Button" parent="FondoNegro/ContenedorCentral/Botonera"]
+custom_minimum_size = Vector2(180, 46)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Cargar partida"
+
+[node name="AudioTensionMuerte" type="AudioStreamPlayer" parent="."]
+volume_db = -2.0
+
+[node name="AudioNarradorMuerte" type="AudioStreamPlayer" parent="."]
+volume_db = 3.5

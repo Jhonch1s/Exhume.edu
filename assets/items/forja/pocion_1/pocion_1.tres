@@ -4,6 +4,7 @@
 [ext_resource type="Texture2D" path="res://assets/items/forja/pocion_1/icono.png" id="icono"]
 [ext_resource type="PackedScene" path="res://assets/items/forja/pocion_1/suelo.tscn" id="mundo"]
 [ext_resource type="Texture2D" path="res://assets/items/forja/pocion_1/ilustracion.png" id="ilustracion"]
+[ext_resource type="AudioStream" uid="uid://c3vbqftn0fae8" path="res://assets/sonidos/posiones/Potion and Alchemy 01.wav" id="sonido_recoger_res"]
 
 
 [resource]
@@ -14,6 +15,7 @@ descripcion_base = "Una pequeña poción curativa."
 icono = ExtResource("icono")
 escena_mundo = ExtResource("mundo")
 ilustracion_examen = ExtResource("ilustracion")
+sonido_recoger = ExtResource("sonido_recoger_res")
 etiquetas = Array[StringName]([&"consumible"])
 magnitudes = Dictionary[StringName, float]({
 &"temperatura": 0.0,

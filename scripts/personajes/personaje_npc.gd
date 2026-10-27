@@ -77,13 +77,21 @@ signal combate_iniciado(npc: PersonajeNPC)
 
 const SONIDO_ESPADA_1: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ataque/Sword Swing 1_3.wav")
 const SONIDO_ESPADA_2: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ataque/Sword Swing 1_4.wav")
+const SONIDO_ESPADA_CABALLERO_1: AudioStream = preload("res://assets/sonidos/espada, daga y escudo/Sword Swing 2_3.wav")
+const SONIDO_ESPADA_CABALLERO_2: AudioStream = preload("res://assets/sonidos/espada, daga y escudo/Sword Swing 2_4.wav")
+const SONIDO_DAGA_LADRON: AudioStream = preload("res://assets/sonidos/espada, daga y escudo/Sword Swing 5_2.wav")
+const SONIDO_FALLO_WHOOSH_1: AudioStream = preload("res://assets/sonidos/espada, daga y escudo/Whoosh 6_3.wav")
+const SONIDO_FALLO_WHOOSH_2: AudioStream = preload("res://assets/sonidos/espada, daga y escudo/Whoosh 6_4.wav")
+const SONIDO_ESCUDO_BLOQUEO: AudioStream = preload("res://assets/sonidos/espada, daga y escudo/Shield Metal 1_3.wav")
+const ESCENA_CORTE_SANGRE: PackedScene = preload("res://scenes/vfx/efecto_corte_sangre.tscn")
+
+static var _whoosh_alternado: bool = false
 const SONIDO_QUEMADURA: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ambiente/fuego quemadura.wav")
 const PARTICULAS_QUEMADO: PackedScene = preload("res://scenes/efectos_superficie/particulas_quemado.tscn")
 const SHADER_QUEMADO: Shader = preload("res://assets/ui/shaders/quemado.gdshader")
 
 var reproductor_audio: AudioStreamPlayer2D
 var reproductor_proximidad: AudioStreamPlayer2D
-var temporizador_proximidad: Timer
 var particulas_quemado: Node2D
 var material_quemado: ShaderMaterial
 
@@ -645,28 +653,11 @@ func _inicializar_audio_npc() -> void:
 		reproductor_proximidad.name = "AudioProximidadNPC"
 		reproductor_proximidad.max_distance = 450.0
 		add_child(reproductor_proximidad)
-	if temporizador_proximidad == null:
-		temporizador_proximidad = Timer.new()
-		temporizador_proximidad.name = "TimerProximidadNPC"
-		temporizador_proximidad.one_shot = true
-		temporizador_proximidad.timeout.connect(_on_temporizador_proximidad_timeout)
-		add_child(temporizador_proximidad)
-		_programar_proximidad()
-
-
-func _programar_proximidad() -> void:
-	if is_instance_valid(temporizador_proximidad) and vida_actual > 0:
-		temporizador_proximidad.start(randf_range(14.0, 32.0))
-
-
-func _on_temporizador_proximidad_timeout() -> void:
-	if vida_actual > 0:
-		reproducir_sonido_proximidad()
-	_programar_proximidad()
 
 
 func _on_coordenada_cambiada(_anterior: Vector2i, _nueva: Vector2i) -> void:
-	reproducir_paso_monstruo()
+	if en_oposicion_encuentro:
+		reproducir_paso_monstruo()
 
 
 func mover_a_coordenada(nueva_coordenada: Vector2i) -> void:
@@ -677,6 +668,8 @@ func mover_a_coordenada(nueva_coordenada: Vector2i) -> void:
 
 
 func reproducir_paso_monstruo() -> void:
+	if not en_oposicion_encuentro:
+		return
 	_inicializar_audio_npc()
 	var perfil := obtener_definicion_personaje()
 	if perfil != null and is_instance_valid(reproductor_audio):
@@ -709,6 +702,8 @@ func _reproducir_sonido_quemadura() -> void:
 
 
 func reproducir_sonido_proximidad() -> void:
+	if not en_oposicion_encuentro:
+		return
 	_inicializar_audio_npc()
 	var perfil := obtener_definicion_personaje()
 	if perfil != null and is_instance_valid(reproductor_proximidad):
@@ -723,9 +718,53 @@ func reproducir_sonido_proximidad() -> void:
 func reproducir_sonido_ataque_espada() -> void:
 	_inicializar_audio_npc()
 	if is_instance_valid(reproductor_audio):
-		reproductor_audio.stream = SONIDO_ESPADA_1 if randf() < 0.5 else SONIDO_ESPADA_2
+		reproductor_audio.stream = SONIDO_ESPADA_CABALLERO_1 if randf() < 0.5 else SONIDO_ESPADA_CABALLERO_2
 		reproductor_audio.volume_db = -4.0
 		reproductor_audio.pitch_scale = randf_range(0.95, 1.05)
+		reproductor_audio.play()
+
+
+func reproducir_sonido_resultado_combate(resultado: ResultadoAccion, atacante: Object) -> void:
+	_inicializar_audio_npc()
+	if not is_instance_valid(reproductor_audio) or resultado == null:
+		return
+	
+	var es_acierto: bool = false
+	var es_esquiva: bool = false
+	for msg in resultado.mensajes:
+		var s := String(msg)
+		if s.ends_with("ataque_acertado"):
+			es_acierto = true
+		elif s.ends_with("ataque_esquivado"):
+			es_esquiva = true
+
+	var stream: AudioStream = null
+	if es_acierto:
+		var clase_atacante := ""
+		if atacante is Ficha:
+			clase_atacante = (atacante as Ficha).clase
+		
+		if clase_atacante == "Ladrón":
+			stream = SONIDO_DAGA_LADRON
+		else:
+			stream = SONIDO_ESPADA_CABALLERO_1 if randf() < 0.5 else SONIDO_ESPADA_CABALLERO_2
+		
+		if get_parent() != null:
+			EfectoCorteSangre.instanciar_en(get_parent(), global_position)
+	elif es_esquiva:
+		if randf() < 0.4:
+			stream = SONIDO_ESCUDO_BLOQUEO
+		else:
+			stream = SONIDO_FALLO_WHOOSH_2 if _whoosh_alternado else SONIDO_FALLO_WHOOSH_1
+			_whoosh_alternado = not _whoosh_alternado
+	else:
+		stream = SONIDO_FALLO_WHOOSH_2 if _whoosh_alternado else SONIDO_FALLO_WHOOSH_1
+		_whoosh_alternado = not _whoosh_alternado
+	
+	if stream != null:
+		reproductor_audio.stream = stream
+		reproductor_audio.volume_db = -4.0
+		reproductor_audio.pitch_scale = randf_range(0.96, 1.04)
 		reproductor_audio.play()
 
 
@@ -891,7 +930,7 @@ func _resolver_ataque_basico(contexto: ContextoAccion) -> ResultadoAccion:
 	var resultado := ResolverAtaqueBasico.resolver(contexto, self, motor_dados, aplicador_efectos)
 	if resultado.tirada == null:
 		return resultado
-	reproducir_sonido_ataque_espada()
+	reproducir_sonido_resultado_combate(resultado, contexto.actor)
 	combate_iniciado.emit(self)
 	# El intento cuenta también al fallar o ser esquivado; el daño no lo duplica.
 	en_oposicion_encuentro = true

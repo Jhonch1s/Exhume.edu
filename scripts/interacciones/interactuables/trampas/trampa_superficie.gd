@@ -27,6 +27,9 @@ enum Estado {
 @export_category("Presentacion")
 @export_enum("Veneno:0", "Fuego:1", "Neutra:2") var fila_atlas: int = 0
 
+const SONIDO_BOMBA_HUMO: AudioStream = preload("res://assets/sonidos/varios/editados/bomba humo.wav")
+static var _ultimo_audio_veneno_ms: int = 0
+
 var motor_dados: MotorDados = MotorDados.new()
 var _tween_descubrimiento: Tween
 
@@ -219,6 +222,7 @@ func _activar() -> ResultadoAccion:
 		return ResultadoAccion.crear_fallo(&"superficie_no_desplegada")
 	estado = Estado.ACTIVADA
 	_actualizar_presentacion()
+	_reproducir_audio_activacion()
 	var cambios: Array[Dictionary] = []
 	for coord in afectadas:
 		cambios.append({
@@ -232,6 +236,36 @@ func _activar() -> ResultadoAccion:
 		{},
 		interrumpe_al_activar
 	)
+
+
+func _reproducir_audio_activacion() -> void:
+	var es_veneno: bool = fila_atlas == 0
+	if escena_superficie != null and (
+		escena_superficie.resource_path.contains("Veneno")
+		or escena_superficie.resource_path.contains("HumoVeneno")
+	):
+		es_veneno = true
+	if not es_veneno:
+		return
+	var ahora := Time.get_ticks_msec()
+	if ahora - _ultimo_audio_veneno_ms < 120:
+		return
+	_ultimo_audio_veneno_ms = ahora
+	var reproductor := AudioStreamPlayer.new()
+	reproductor.name = "AudioTrampaVeneno"
+	reproductor.stream = SONIDO_BOMBA_HUMO
+	reproductor.volume_db = -10.5
+	reproductor.bus = &"Master"
+	var arbol := get_tree()
+	if arbol != null and arbol.current_scene != null:
+		arbol.current_scene.add_child(reproductor)
+	else:
+		add_child(reproductor)
+	reproductor.finished.connect(func():
+		if is_instance_valid(reproductor):
+			reproductor.queue_free()
+	)
+	reproductor.play()
 
 
 func _activar_mecanismos() -> ResultadoAccion:

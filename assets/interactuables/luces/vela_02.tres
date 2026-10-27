@@ -6,6 +6,7 @@
 
 [ext_resource type="AudioStream" uid="uid://bkujengynsmy1" path="res://assets/sonidos/fuego/encender fuego fosforo.wav" id="4_encender"]
 [ext_resource type="AudioStream" uid="uid://du3pwabgs4h5" path="res://assets/sonidos/fuego/apagar fuego.wav" id="5_apagar"]
+[ext_resource type="AudioStream" uid="uid://bgigaywlt6td4" path="res://assets/sonidos/fuego/SmallFire1.wav" id="6_ambiente"]
 
 [resource]
 script = ExtResource("2_2cj4w")
@@ -17,6 +18,7 @@ textura = ExtResource("3_2cj4w")
 region_encendida = Rect2(64, 32, 64, 42)
 region_apagada = Rect2(64, 0, 64, 32)
 desplazamiento_sprite = Vector2(0, 0)
+sonido_ambiente = ExtResource("6_ambiente")
 sonido_encender = ExtResource("4_encender")
 sonido_apagar = ExtResource("5_apagar")
 id_definicion = &"vela_02"
