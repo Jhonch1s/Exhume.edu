@@ -17,6 +17,7 @@ extends Interactuable
 @export var contenido_inicial: Array[EntradaInventarioInicial] = []
 
 const SONIDO_ABRIR_DEFECTO: AudioStream = preload("res://assets/sonidos/sonidos finales/sonidos mmo/MMO_Game_Magic_Source_Chest_02_Door_Unlock_Open_Close.wav")
+const SONIDO_LOCKER_BLOQUEADO: AudioStream = preload("res://assets/sonidos/lleves y candados/Locker 1.wav")
 
 var inventario: Inventario = Inventario.new()
 var reproductor_audio: AudioStreamPlayer2D
@@ -178,11 +179,22 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 
 	var motivo := validar_accion(contexto)
 	if motivo != &"":
+		reproducir_sonido_bloqueado()
 		return ResultadoAccion.crear_bloqueo(motivo)
 
 	abierto = true
 	reproducir_sonido_abrir()
 	return ResultadoAccion.crear_exito()
+
+
+func reproducir_sonido_bloqueado() -> void:
+	if Engine.is_editor_hint():
+		return
+	var reproductor := _obtener_reproductor_audio()
+	if is_instance_valid(reproductor):
+		reproductor.stream = SONIDO_LOCKER_BLOQUEADO
+		reproductor.pitch_scale = randf_range(0.97, 1.03)
+		reproductor.play()
 
 
 func _obtener_reproductor_audio() -> AudioStreamPlayer2D:

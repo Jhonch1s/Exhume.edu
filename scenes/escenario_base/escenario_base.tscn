@@ -6,7 +6,6 @@
 [ext_resource type="PackedScene" uid="uid://21yp2g6tjqu" path="res://scenes/Zona1/zona_1.tscn" id="2_3j2a0"]
 [ext_resource type="Texture2D" uid="uid://bj6drlln1vbvq" path="res://assets/tiles/indicators/path/path_isometric.png" id="2_85xdd"]
 [ext_resource type="TileSet" uid="uid://b514khvcqn1oi" path="res://assets/tile_sets/basics.tres" id="3_elvtm"]
-[ext_resource type="AudioStream" uid="uid://b64t4hje6pskj" path="res://assets/music/Echoes of Time v2.mp3" id="7_541xx"]
 [ext_resource type="Script" uid="uid://dmxu10ah1q6vf" path="res://scripts/fov_manager.gd" id="7_t484h"]
 [ext_resource type="Shader" uid="uid://cmw1kk6ofvqkm" path="res://scenes/menu/filtro_crt_luminancia.gdshader" id="8_crt"]
 [ext_resource type="PackedScene" uid="uid://qsn46qnxpghl" path="res://scenes/ui/interacciones/panel_resultado_accion.tscn" id="9_panel_resultado"]
@@ -140,9 +139,7 @@ visible = false
 [node name="PanelResultadoAccion" parent="CanvasLayerModalDados" unique_id=1054421084 instance=ExtResource("9_panel_resultado")]
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1734531678]
-stream = ExtResource("7_541xx")
 volume_db = -15.0
-autoplay = true
 
 [node name="GestorVision" type="Node" parent="." unique_id=1841790396]
 script = ExtResource("7_t484h")

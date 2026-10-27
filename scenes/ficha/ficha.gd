@@ -24,6 +24,8 @@ const SONIDO_QUEMADURA_DEFECTO: AudioStream = preload("res://assets/sonidos/soni
 const SONIDO_VENENO_DEBUFF_DEFECTO: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ambiente/561216__terrytom__poison-debuff.wav")
 const SONIDO_TOS_1: AudioStream = preload("res://assets/sonidos/toser/editado/varias toses.wav")
 const SONIDO_TOS_2: AudioStream = preload("res://assets/sonidos/toser/editado/varias toses 2.wav")
+const SONIDO_CURACION_MAGICA: AudioStream = preload("res://assets/sonidos/posiones/Magic Heal 03.wav")
+const SONIDO_COMER: AudioStream = preload("res://assets/sonidos/comer/573577__vibritherabjit123__short-crisps-eating-noise-editado.wav")
 const ScriptEstadoPartida = preload("res://scripts/estado_partida.gd")
 
 var _tos_variante_dos: bool = false
@@ -367,8 +369,15 @@ func curar(cantidad: int) -> int:
 	pv_actual = mini(pv_max, pv_actual + cantidad)
 	var aplicado := pv_actual - anterior
 	if aplicado > 0:
+		reproducir_sonido_curacion()
 		puntos_vida_cambiados.emit(pv_actual, pv_max)
 	return aplicado
+
+func reproducir_sonido_curacion() -> void:
+	_reproducir_audio_en_ficha(SONIDO_CURACION_MAGICA, -4.0)
+
+func reproducir_sonido_comer() -> void:
+	_reproducir_audio_en_ficha(SONIDO_COMER, -4.0)
 
 func reproducir_efecto_danio() -> void:
 	if is_instance_valid(particulasDanio):

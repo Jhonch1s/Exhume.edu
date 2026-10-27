@@ -84,11 +84,26 @@ const SONIDOS_AMBIENTE_TENEBROSO: Array[AudioStream] = [
 	preload("res://assets/sonidos/sonidos finales/sonido ambiente/Dungeon Atmosphere - Dark.wav"),
 ]
 const SONIDO_CREEPY: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ambiente/Creepy Noise 1.wav")
+const SONIDO_AMBIENTE_ENTRADA_ZONA: AudioStream = preload("res://assets/sonidos/sonidos ambiente dungeon/Ambient 29.wav")
+const SONIDO_AMBIENTE_FONDO_30: AudioStream = preload("res://assets/sonidos/sonidos ambiente dungeon/Ambient 30.wav")
+const SONIDO_BREATH_1: AudioStream = preload("res://assets/sonidos/tension/Breath 1.wav")
+const SONIDO_BREATH_2: AudioStream = preload("res://assets/sonidos/tension/Breath 2.wav")
+const SONIDO_CAMPANAS_ESTATUA: AudioStream = preload("res://assets/sonidos/campana/campanas.wav")
+const SONIDO_DADO_EXITO: AudioStream = preload("res://assets/sonidos/narrador/la fortuna te perdona.mp3")
+const SONIDO_DADO_FRACASO: AudioStream = preload("res://assets/sonidos/narrador/tu suerte se agota.mp3")
+const SONIDO_NARRADOR_TEMPLO_TRAMPAS: AudioStream = preload("res://assets/sonidos/narrador/templo de las trampas.mp3")
+const SONIDO_LATIDO_CORAZON: AudioStream = preload("res://assets/sonidos/corazon/332819__loudernoises__heartbeat-80bpm-limited.wav")
+
+const ESCENA_PANTALLA_MUERTE = preload("res://scenes/ui/pantalla_muerte.tscn")
+const ESCENA_PRESENTACION_ZONA = preload("res://scenes/ui/presentacion_zona.tscn")
+const SHADER_CERCA_MUERTE = preload("res://assets/ui/shaders/cerca_muerte.gdshader")
+
+const SONIDO_MAGIA_FUEGO: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido magia/Magic Element Fire 03.wav")
 
 const PLAYLIST_EXPLORACION: Array[AudioStream] = [
 	preload("res://assets/sonidos/sonidos finales/musica buena/Fire Dungeon.ogg"),
 	preload("res://assets/sonidos/sonidos finales/musica buena/Mines.ogg"),
-	preload("res://assets/sonidos/sonidos finales/musica buena/Torture Chamber.ogg"),
+	preload("res://assets/sonidos/sonidos finales/musica buena/Necropolis.ogg"),
 ]
 
 const PLAYLIST_COMBATE: Array[AudioStream] = [
@@ -119,7 +134,7 @@ var control_descanso: Node
 @export var ilustracion_dialogo_mago: Texture2D
 @export_range(0.02, 0.5, 0.01) var duracion_paso_lanzamiento: float = 0.08
 @export_range(1, 12, 1) var radio_audio_lava: int = 3
-@export_range(1, 12, 1) var radio_audio_fuego: int = 4
+@export_range(1, 12, 1) var radio_audio_fuego: int = 6
 @export_range(0.2, 60.0, 0.1) var intervalo_exploracion_npc: float = 1.0
 
 var tablero: TableroGrid = TableroGrid.new()
@@ -194,13 +209,25 @@ var persistencia_partida := PersistenciaPartida.new()
 @onready var reproductor_musica: AudioStreamPlayer = $AudioStreamPlayer
 var reproductor_pasos: AudioStreamPlayer2D
 var reproductor_lava: AudioStreamPlayer2D
-var reproductor_fuego: AudioStreamPlayer2D
+var reproductor_fuego: AudioStreamPlayer
 var reproductor_monstruo: AudioStreamPlayer
 var reproductor_ambiente_tenebroso: AudioStreamPlayer
 var reproductor_creepy: AudioStreamPlayer
 var reproductor_examen: AudioStreamPlayer
 var reproductor_recoleccion: AudioStreamPlayer
 var reproductor_impacto: AudioStreamPlayer2D
+var reproductor_campana_estatua: AudioStreamPlayer
+var reproductor_narrador_dados: AudioStreamPlayer
+var reproductor_latido: AudioStreamPlayer
+var reproductor_magia_fuego: AudioStreamPlayer
+var reproductor_ocultarse: AudioStreamPlayer
+var guardado_en_fogata_realizado: bool = false
+var pantalla_muerte: PantallaMuerte
+var presentacion_zona: PresentacionZona
+var capa_cerca_muerte: CanvasLayer
+var rect_cerca_muerte: ColorRect
+var material_cerca_muerte: ShaderMaterial
+var _estado_cerca_muerte_activo: bool = false
 var temporizador_monstruo: Timer
 var temporizador_ambiente_tenebroso: Timer
 var indice_musica_exploracion: int = 0
@@ -224,6 +251,9 @@ func _ready() -> void:
 	$CanvasLayer.visible = true
 	$CanvasLayerModalDados.visible = true
 	CursorJuego.establecer_cursor(CursorJuego.Tipo.DEFAULT)
+	guardado_en_fogata_realizado = EstadoPartida.guardado_en_fogata_realizado
+	if not guardado_en_fogata_realizado and FileAccess.file_exists(RUTA_GUARDADO):
+		DirAccess.remove_absolute(RUTA_GUARDADO)
 	nombreClase = EstadoPartida.aventurero_pendiente.get("clase", nombreClase)
 	var limite_hud := hud.get_node("HUDRoot/SeccionesHUD/SeccionJugador/Retrato") as Control
 	menu_contextual.hud_inferior = limite_hud
@@ -252,6 +282,7 @@ func _ready() -> void:
 	menu_contextual.cancelado.connect(_on_menu_contextual_cancelado)
 	panel_resultado_accion.resultado_presentado.connect(_on_resultado_accion_presentado)
 	panel_resultado_accion.tirada_presentada.connect(_on_tirada_presentada)
+	panel_resultado_accion.veredicto_revelado.connect(_reproducir_narrador_tirada)
 	panel_resultado_accion.cerrado.connect(_on_panel_resultado_cerrado)
 	panel_examen_ilustrado.cerrado.connect(_on_panel_resultado_cerrado)
 	panel_ficha_npc.cerrado.connect(_on_panel_resultado_cerrado)
@@ -296,9 +327,13 @@ func _ready() -> void:
 	_inicializar_audio_ambiente()
 	if not es_escenario_de_descanso:
 		_inicializar_musica()
+		_presentar_entrada_nueva_zona()
 	await spawnear_ficha_inicial()
 	if ficha_jugador:
 		hud.configurar_ficha(ficha_jugador)
+		if not ficha_jugador.puntos_vida_cambiados.is_connected(_on_vida_jugador_cambiada):
+			ficha_jugador.puntos_vida_cambiados.connect(_on_vida_jugador_cambiada)
+		_on_vida_jugador_cambiada(ficha_jugador.pv_actual, ficha_jugador.pv_max)
 		capa_vision_npc.configurar(tablero, validador_espacial, ficha_jugador, gestor_vision)
 		_colocar_piedra_prueba()
 		_actualizar_luz_jugador(ficha_jugador.coordenada_mapa)
@@ -428,7 +463,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	if not es_escenario_de_descanso and event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_B:
-		entrar_campamento()
+		if is_instance_valid(campamento):
+			salir_campamento()
+		else:
+			entrar_campamento()
 		get_viewport().set_input_as_handled()
 		return
 	if not _dialogos_camara.is_empty():
@@ -869,14 +907,21 @@ func guardar_partida(ruta: String = RUTA_GUARDADO) -> StringName:
 	if snapshot.is_empty():
 		return &"guardado_invalido"
 	snapshot["escena_zona"] = zona_actual.scene_file_path
-	snapshot["en_campamento"] = is_instance_valid(campamento)
-	return persistencia_partida.archivos.guardar(ruta, snapshot)
+	snapshot["guardado_en_fogata"] = true
+	snapshot["en_campamento"] = false
+	var resultado: StringName = persistencia_partida.archivos.guardar(ruta, snapshot)
+	if resultado == &"":
+		guardado_en_fogata_realizado = true
+		EstadoPartida.guardado_en_fogata_realizado = true
+	return resultado
 
 
 func cargar_partida(ruta: String = RUTA_GUARDADO) -> StringName:
-	var bloqueo := _motivo_bloqueo_persistencia(true)
-	if bloqueo != &"":
-		return bloqueo
+	var muerto: bool = ficha_jugador != null and ficha_jugador.pv_actual <= 0
+	if not muerto:
+		var bloqueo := _motivo_bloqueo_persistencia(true)
+		if bloqueo != &"":
+			return bloqueo
 	var snapshot: Variant = persistencia_partida.archivos.cargar(ruta)
 	if snapshot is StringName:
 		return snapshot
@@ -932,12 +977,11 @@ func cargar_partida(ruta: String = RUTA_GUARDADO) -> StringName:
 	camino_actual_tentativo.clear()
 	capa_camino.clear()
 	centrar_camara_en_ficha()
-	if snapshot.get("en_campamento", false):
-		if not is_instance_valid(campamento):
-			_mostrar_campamento()
-		campamento.actualizar()
-	elif is_instance_valid(campamento):
-		salir_campamento()
+	if is_instance_valid(campamento):
+		if snapshot.get("en_campamento", false):
+			campamento.actualizar()
+		else:
+			salir_campamento()
 	return &""
 
 
@@ -1173,8 +1217,13 @@ func entrar_campamento() -> StringName:
 
 
 func _mostrar_campamento() -> void:
+	if is_instance_valid(campamento):
+		return
 	CursorJuego.ocultar_probabilidad_ataque()
-	_modo_proceso_antes_campamento = process_mode
+	if is_instance_valid(presentacion_zona):
+		presentacion_zona.queue_free()
+		presentacion_zona = null
+	_modo_proceso_antes_campamento = Node.PROCESS_MODE_INHERIT
 	campamento = ESCENA_CAMPAMENTO.instantiate()
 	campamento.escenario = self
 	# Conserva el árbol y todos sus nodos; el campamento procesa en su propia capa.
@@ -1195,12 +1244,15 @@ func salir_campamento() -> StringName:
 		return &"partida_interaccion_activa"
 	campamento.queue_free()
 	campamento = null
-	process_mode = _modo_proceso_antes_campamento
+	process_mode = Node.PROCESS_MODE_INHERIT
 	for nodo in _audio_antes_campamento:
 		if is_instance_valid(nodo):
 			nodo.stream_paused = _audio_antes_campamento[nodo]
 	_audio_antes_campamento.clear()
 	hud.actualizar_desde_ficha()
+	_limpiar_seleccion_interaccion()
+	interaccion_modal_activa = false
+	_actualizar_estado_modal_interaccion()
 	return &""
 
 
@@ -1745,6 +1797,14 @@ func _on_agresion_resuelta(contexto: ContextoAccion, resultado: ResultadoAccion)
 		return
 	if victima.obtener_id_actor() not in gestor_rondas.defendidos:
 		gestor_rondas.defendidos.append(victima.obtener_id_actor())
+	if victima == ficha_jugador and resultado != null:
+		var es_acierto := false
+		for msg in resultado.mensajes:
+			if String(msg).ends_with("ataque_acertado"):
+				es_acierto = true
+				break
+		if es_acierto and ficha_jugador != null and ficha_jugador.get_parent() != null:
+			EfectoCorteSangre.instanciar_en(ficha_jugador.get_parent(), ficha_jugador.global_position)
 	var testigos: Array[PersonajeNPC] = []
 	for entidad in tablero.interactuables_por_id.values():
 		if not entidad is PersonajeNPC or entidad == victima or entidad == contexto.actor:
@@ -1840,6 +1900,7 @@ func _on_ocultarse_hud() -> void:
 	):
 		return
 	ficha_jugador.ocultarse()
+	_reproducir_sonido_ocultarse()
 	registro_narrativo.registrar(
 		EntradaRegistroNarrativo.Categoria.SISTEMA, "Ocultarse",
 		"El Ladrón desaparece de la vista durante dos turnos. Atacar o recibir daño rompe el sigilo."
@@ -2063,6 +2124,7 @@ func ejecutar_bola_fuego(objetivo: PersonajeNPC) -> ResultadoAccion:
 	if not ficha_jugador.consumir_recurso_turno(RecursosTurnoActor.ACCION_PRINCIPAL, 1):
 		return ResultadoAccion.crear_bloqueo(&"recursos_turno_insuficientes")
 	ficha_jugador.consumir_bola_fuego()
+	reproducir_sonido_magia_fuego()
 	var celda_impacto := objetivo.coordenada_mapa
 	var aplica_quemado := randf() < 0.5
 	var efecto: Variant = aplicador.aplicar(dano)
@@ -2645,7 +2707,9 @@ func _inicializar_audio_ambiente() -> void:
 	reproductor_lava = _crear_reproductor_2d(&"AudioLava", -18.0, 220.0)
 	reproductor_lava.attenuation = 2.0
 	reproductor_lava.stream = SONIDO_LAVA
-	reproductor_fuego = _crear_reproductor_2d(&"AudioFuegoCercano", -18.0, 380.0)
+	reproductor_fuego = _crear_reproductor_global(&"AudioFuegoCercano", -30.0)
+	reproductor_fuego.bus = &"Master"
+	reproductor_fuego.finished.connect(_on_fuego_finished)
 
 	reproductor_monstruo = _crear_reproductor_global(&"AudioMonstruoCadenas", -28.0)
 	reproductor_monstruo.stream = SONIDO_MONSTRUO_CADENAS
@@ -2656,6 +2720,8 @@ func _inicializar_audio_ambiente() -> void:
 	reproductor_examen = _crear_reproductor_global(&"AudioExamen", -16.0)
 	reproductor_recoleccion = _crear_reproductor_global(&"AudioRecoleccion", -15.0)
 	reproductor_impacto = _crear_reproductor_2d(&"AudioImpacto", -8.0, 800.0)
+	reproductor_magia_fuego = _crear_reproductor_global(&"AudioMagiaFuego", -6.0)
+	reproductor_ocultarse = _crear_reproductor_global(&"AudioOcultarse", -10.0)
 
 	temporizador_monstruo = _crear_temporizador_audio(&"_on_temporizador_monstruo_timeout")
 	temporizador_ambiente_tenebroso = _crear_temporizador_audio(&"_on_temporizador_ambiente_tenebroso_timeout")
@@ -2672,7 +2738,14 @@ func _inicializar_musica() -> void:
 
 
 func _actualizar_fade_fin_musica() -> void:
-	if not is_instance_valid(reproductor_musica) or not reproductor_musica.playing or _transicionando_musica:
+	if not is_instance_valid(reproductor_musica):
+		return
+	if not reproductor_musica.playing:
+		if not _transicionando_musica and not es_escenario_de_descanso and not is_instance_valid(campamento):
+			if pantalla_muerte == null or not pantalla_muerte.visible:
+				_reproducir_siguiente_musica_exploracion(true)
+		return
+	if _transicionando_musica:
 		return
 	if tween_musica != null and tween_musica.is_running():
 		return
@@ -2683,7 +2756,7 @@ func _actualizar_fade_fin_musica() -> void:
 	if duracion <= 6.0:
 		return
 	var pos := reproductor_musica.get_playback_position()
-	if pos >= duracion - 3.5:
+	if pos >= duracion - 3.8:
 		_transicionando_musica = true
 		if en_combate:
 			_reproducir_siguiente_musica_combate(true)
@@ -2692,8 +2765,7 @@ func _actualizar_fade_fin_musica() -> void:
 
 
 func _on_musica_terminada() -> void:
-	if _transicionando_musica:
-		return
+	_transicionando_musica = false
 	if en_combate:
 		_reproducir_siguiente_musica_combate(true)
 	else:
@@ -2705,7 +2777,7 @@ func _reproducir_siguiente_musica_exploracion(con_fade: bool = true) -> void:
 		return
 	var stream: AudioStream = PLAYLIST_EXPLORACION[indice_musica_exploracion % PLAYLIST_EXPLORACION.size()]
 	indice_musica_exploracion = (indice_musica_exploracion + 1) % PLAYLIST_EXPLORACION.size()
-	_cambiar_pista_musica(stream, -16.0, con_fade)
+	_cambiar_pista_musica(stream, -7.5, con_fade)
 
 
 func _reproducir_siguiente_musica_combate(con_fade: bool = true) -> void:
@@ -2713,7 +2785,7 @@ func _reproducir_siguiente_musica_combate(con_fade: bool = true) -> void:
 		return
 	var stream: AudioStream = PLAYLIST_COMBATE[indice_musica_combate % PLAYLIST_COMBATE.size()]
 	indice_musica_combate = (indice_musica_combate + 1) % PLAYLIST_COMBATE.size()
-	_cambiar_pista_musica(stream, -14.0, con_fade)
+	_cambiar_pista_musica(stream, -7.0, con_fade)
 
 
 func _cambiar_pista_musica(nuevo_stream: AudioStream, volumen_objetivo_db: float, con_fade: bool = true) -> void:
@@ -2722,20 +2794,28 @@ func _cambiar_pista_musica(nuevo_stream: AudioStream, volumen_objetivo_db: float
 		return
 	if tween_musica != null and tween_musica.is_running():
 		tween_musica.kill()
+	_desactivar_loop_audio(nuevo_stream)
 	if not con_fade or not reproductor_musica.playing:
 		reproductor_musica.stream = nuevo_stream
-		reproductor_musica.volume_db = volumen_objetivo_db
+		reproductor_musica.volume_db = -32.0
 		reproductor_musica.play()
-		_transicionando_musica = false
+		tween_musica = create_tween()
+		tween_musica.tween_property(reproductor_musica, "volume_db", volumen_objetivo_db, 3.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween_musica.tween_callback(func():
+			_transicionando_musica = false
+		)
 		return
 	tween_musica = create_tween()
-	tween_musica.tween_property(reproductor_musica, "volume_db", -60.0, 2.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	# Transición de salida suave (fade out)
+	tween_musica.tween_property(reproductor_musica, "volume_db", -48.0, 3.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween_musica.tween_callback(func():
 		if is_instance_valid(reproductor_musica):
 			reproductor_musica.stream = nuevo_stream
+			reproductor_musica.volume_db = -32.0
 			reproductor_musica.play()
 	)
-	tween_musica.tween_property(reproductor_musica, "volume_db", volumen_objetivo_db, 1.8).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	# Transición de entrada suave (fade in)
+	tween_musica.tween_property(reproductor_musica, "volume_db", volumen_objetivo_db, 3.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
 	tween_musica.tween_callback(func():
 		_transicionando_musica = false
 	)
@@ -2752,13 +2832,23 @@ func _on_temporizador_ambiente_tenebroso_timeout() -> void:
 			reproductor_creepy.volume_db = -28.0
 			reproductor_creepy.pitch_scale = randf_range(0.92, 1.05)
 			reproductor_creepy.play()
-	elif is_instance_valid(reproductor_ambiente_tenebroso) and not SONIDOS_AMBIENTE_TENEBROSO.is_empty():
-		var sonido: AudioStream = SONIDOS_AMBIENTE_TENEBROSO.pick_random()
-		_desactivar_loop_audio(sonido)
-		reproductor_ambiente_tenebroso.stream = sonido
-		reproductor_ambiente_tenebroso.volume_db = -26.0
-		reproductor_ambiente_tenebroso.pitch_scale = randf_range(0.95, 1.05)
-		reproductor_ambiente_tenebroso.play()
+	elif is_instance_valid(reproductor_ambiente_tenebroso):
+		var sonido: AudioStream = null
+		var volumen_ambiente: float = -26.0
+		# Ocasionalmente reproduce Ambient 30 de fondo a menor volumen
+		if generador_azar_audio.randf() < 0.35:
+			sonido = SONIDO_AMBIENTE_FONDO_30
+			volumen_ambiente = -32.0
+		elif not SONIDOS_AMBIENTE_TENEBROSO.is_empty():
+			sonido = SONIDOS_AMBIENTE_TENEBROSO.pick_random()
+			volumen_ambiente = -26.0
+
+		if sonido != null:
+			_desactivar_loop_audio(sonido)
+			reproductor_ambiente_tenebroso.stream = sonido
+			reproductor_ambiente_tenebroso.volume_db = volumen_ambiente
+			reproductor_ambiente_tenebroso.pitch_scale = randf_range(0.95, 1.05)
+			reproductor_ambiente_tenebroso.play()
 	_programar_ambiente_tenebroso()
 
 
@@ -2785,9 +2875,38 @@ func _reproducir_sonido_examen(sonido: AudioStream) -> void:
 	reproductor_examen.play()
 
 
+func _reproducir_campanas_estatua() -> void:
+	if not is_instance_valid(reproductor_campana_estatua):
+		reproductor_campana_estatua = _crear_reproductor_global(&"AudioCampanaEstatua", -26.0)
+	_desactivar_loop_audio(SONIDO_CAMPANAS_ESTATUA)
+	reproductor_campana_estatua.stream = SONIDO_CAMPANAS_ESTATUA
+	reproductor_campana_estatua.volume_db = -26.0
+	reproductor_campana_estatua.play()
+
+
 func _desactivar_loop_audio(sonido: AudioStream) -> void:
 	if sonido is AudioStreamWAV:
 		(sonido as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_DISABLED
+	elif sonido is AudioStreamOggVorbis:
+		(sonido as AudioStreamOggVorbis).loop = false
+
+
+func reproducir_sonido_magia_fuego() -> void:
+	if not is_instance_valid(reproductor_magia_fuego):
+		reproductor_magia_fuego = _crear_reproductor_global(&"AudioMagiaFuego", -6.0)
+	_desactivar_loop_audio(SONIDO_MAGIA_FUEGO)
+	reproductor_magia_fuego.stream = SONIDO_MAGIA_FUEGO
+	reproductor_magia_fuego.volume_db = -6.0
+	reproductor_magia_fuego.play()
+
+
+func _reproducir_sonido_ocultarse() -> void:
+	if not is_instance_valid(reproductor_ocultarse):
+		reproductor_ocultarse = _crear_reproductor_global(&"AudioOcultarse", -10.0)
+	_desactivar_loop_audio(SONIDO_BREATH_2)
+	reproductor_ocultarse.stream = SONIDO_BREATH_2
+	reproductor_ocultarse.volume_db = -10.0
+	reproductor_ocultarse.play()
 
 
 func _reproducir_sonido_impacto(sonido: AudioStream, celda: Variant = null) -> void:
@@ -2857,36 +2976,42 @@ func _reproducir_sonido_paso() -> void:
 	reproductor_pasos.play()
 
 
+func _on_fuego_finished() -> void:
+	if is_instance_valid(reproductor_fuego) and reproductor_fuego.stream != null:
+		var fuente := _buscar_fuente_fuego_cercana()
+		if not fuente.is_empty():
+			reproductor_fuego.play()
+
+
 func _actualizar_audio_proximidad() -> void:
 	if ficha_jugador == null:
 		return
 	var fuente_lava := _buscar_fuente_lava_cercana()
 	_actualizar_reproductor_proximidad(reproductor_lava, SONIDO_LAVA, fuente_lava)
 
-	var fuente_fuego := _buscar_fuente_fuego_cercana()
-	var sonido_fuego: AudioStream = null
-	if fuente_fuego.has(&"sonido"):
-		sonido_fuego = fuente_fuego[&"sonido"] as AudioStream
-	_actualizar_reproductor_proximidad(reproductor_fuego, sonido_fuego, fuente_fuego)
-	_actualizar_proximidad_monstruos()
+	_actualizar_audio_fuego()
 
 
-func _actualizar_proximidad_monstruos() -> void:
-	if ficha_jugador == null:
+func _actualizar_audio_fuego() -> void:
+	if not is_instance_valid(reproductor_fuego) or ficha_jugador == null:
 		return
-	var npcs_evaluados: Array[PersonajeNPC] = []
-	if tablero != null:
-		for interactuable in tablero.interactuables_por_id.values():
-			if interactuable is PersonajeNPC and interactuable.vida_actual > 0 and interactuable not in npcs_evaluados:
-				npcs_evaluados.append(interactuable)
-	if zona_actual != null:
-		for nodo in zona_actual.find_children("*", "", true, false):
-			if nodo is PersonajeNPC and nodo.vida_actual > 0 and nodo not in npcs_evaluados:
-				npcs_evaluados.append(nodo)
-	for npc in npcs_evaluados:
-		var distancia := _distancia_cuadricula(ficha_jugador.coordenada_mapa, npc.coordenada_mapa)
-		if distancia <= 4 and randf() < 0.04:
-			npc.reproducir_sonido_proximidad()
+	var fuente_fuego := _buscar_fuente_fuego_cercana()
+	if fuente_fuego.is_empty() or not fuente_fuego.has(&"sonido") or fuente_fuego[&"sonido"] == null:
+		if reproductor_fuego.playing:
+			reproductor_fuego.stop()
+		return
+	var sonido_fuego: AudioStream = fuente_fuego[&"sonido"]
+	var dist_px: float = fuente_fuego.get(&"distancia", 999.0)
+	var radio_max_px: float = float(maxi(radio_audio_fuego, 6)) * 64.0
+	var factor := clampf(1.0 - (dist_px / radio_max_px), 0.0, 1.0)
+	var volumen_calc := lerpf(-38.0, -12.0, factor * factor)
+	
+	_preparar_loop_audio(sonido_fuego)
+	if reproductor_fuego.stream != sonido_fuego:
+		reproductor_fuego.stream = sonido_fuego
+	reproductor_fuego.volume_db = volumen_calc
+	if not reproductor_fuego.playing:
+		reproductor_fuego.play()
 
 
 func _actualizar_reproductor_proximidad(
@@ -2932,30 +3057,47 @@ func _buscar_fuente_lava_cercana() -> Dictionary:
 
 
 func _buscar_fuente_fuego_cercana() -> Dictionary:
+	if ficha_jugador == null:
+		return {}
 	var mejor_distancia := INF
 	var mejor_fuente: FuenteLuzInteractuable = null
-	for celda_variant in tablero.datos.values():
-		var celda := celda_variant as Celda
-		if celda == null:
+	var pos_jugador := ficha_jugador.global_position
+	var radio_max_px: float = float(maxi(radio_audio_fuego, 6)) * 64.0
+
+	var candidatas: Array[FuenteLuzInteractuable] = []
+	if zona_actual != null:
+		for nodo in zona_actual.find_children("*", "", true, false):
+			if nodo is FuenteLuzInteractuable and nodo not in candidatas:
+				candidatas.append(nodo)
+	if tablero != null:
+		for interactuable in tablero.interactuables_por_id.values():
+			if interactuable is FuenteLuzInteractuable and interactuable not in candidatas:
+				candidatas.append(interactuable)
+		for celda_variant in tablero.datos.values():
+			var celda := celda_variant as Celda
+			if celda != null:
+				for fuente in celda.iluminacion:
+					if fuente is FuenteLuzInteractuable and fuente not in candidatas:
+						candidatas.append(fuente)
+
+	for fuente in candidatas:
+		if not is_instance_valid(fuente) or not fuente.encendida:
 			continue
-		for fuente in celda.iluminacion:
-			if not fuente is FuenteLuzInteractuable or not is_instance_valid(fuente):
-				continue
-			var distancia := _distancia_cuadricula(
-				ficha_jugador.coordenada_mapa,
-				fuente.coordenada_mapa
-			)
-			if distancia > radio_audio_fuego or distancia >= mejor_distancia:
-				continue
-			if fuente.obtener_sonido_ambiente() == null:
-				continue
-			mejor_distancia = distancia
-			mejor_fuente = fuente
+		var sonido := fuente.obtener_sonido_ambiente()
+		if sonido == null:
+			continue
+		var dist_px := pos_jugador.distance_to(fuente.global_position)
+		if dist_px > radio_max_px or dist_px >= mejor_distancia:
+			continue
+		mejor_distancia = dist_px
+		mejor_fuente = fuente
+
 	if mejor_fuente == null:
 		return {}
 	return {
 		&"posicion": mejor_fuente.global_position,
 		&"sonido": mejor_fuente.obtener_sonido_ambiente(),
+		&"distancia": mejor_distancia,
 	}
 
 
@@ -2965,7 +3107,14 @@ func _distancia_cuadricula(a: Vector2i, b: Vector2i) -> int:
 
 func _preparar_loop_audio(sonido: AudioStream) -> void:
 	if sonido is AudioStreamWAV:
-		(sonido as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_FORWARD
+		var wav := sonido as AudioStreamWAV
+		wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
+		if wav.loop_end <= wav.loop_begin:
+			wav.loop_end = int(wav.get_length() * wav.mix_rate)
+	elif sonido != null and "loop" in sonido:
+		sonido.set("loop", true)
+	elif sonido is AudioStreamOggVorbis:
+		(sonido as AudioStreamOggVorbis).loop = true
 
 func centrar_camara_en_ficha() -> void:
 	if ficha_jugador and camera_2d:
@@ -3524,6 +3673,8 @@ func _presentar_resultado_contextual(
 		var sonido_examen: AudioStream = contexto.objetivo.definicion.obtener_sonido_examen()
 		if sonido_examen != null:
 			_reproducir_sonido_examen(sonido_examen)
+		if contexto.objetivo.definicion.id_definicion == &"trampero_sin_rostro":
+			_reproducir_campanas_estatua()
 		if contexto.objetivo.definicion.ilustracion_examen != null:
 			var texto_final: String = ""
 			if contexto.objetivo.has_method(&"obtener_texto_examen"):
@@ -3691,6 +3842,188 @@ func _on_resultado_accion_presentado(_resultado: ResultadoAccion) -> void:
 
 func _on_tirada_presentada(_resultado: Variant) -> void:
 	_actualizar_estado_modal_interaccion()
+
+
+func _reproducir_narrador_tirada(resultado: Variant) -> void:
+	if resultado == null:
+		return
+	var stream: AudioStream = null
+	if "exitosa" in resultado:
+		stream = SONIDO_DADO_EXITO if resultado.exitosa else SONIDO_DADO_FRACASO
+	if stream == null:
+		return
+	if not is_instance_valid(reproductor_narrador_dados):
+		reproductor_narrador_dados = _crear_reproductor_global(&"AudioNarradorDados", 2.5)
+	_desactivar_loop_audio(stream)
+	reproductor_narrador_dados.volume_db = 2.5
+	reproductor_narrador_dados.stream = stream
+	reproductor_narrador_dados.play()
+
+
+func _presentar_entrada_nueva_zona() -> void:
+	if es_escenario_de_descanso:
+		return
+	var rep_ambiente := _crear_reproductor_global(&"AudioAmbienteEntrada", -8.0)
+	_desactivar_loop_audio(SONIDO_AMBIENTE_ENTRADA_ZONA)
+	rep_ambiente.stream = SONIDO_AMBIENTE_ENTRADA_ZONA
+	rep_ambiente.play()
+
+	var rep_aliento := _crear_reproductor_global(&"AudioAlientoEntrada", -6.0)
+	var stream_aliento := SONIDO_BREATH_1 if randf() < 0.5 else SONIDO_BREATH_2
+	_desactivar_loop_audio(stream_aliento)
+	rep_aliento.stream = stream_aliento
+	rep_aliento.play()
+
+	var nombre := "TEMPLO DE LAS TRAMPAS"
+	if zona_actual != null:
+		if zona_actual.has_method(&"obtener_nombre_zona"):
+			nombre = String(zona_actual.call(&"obtener_nombre_zona"))
+		elif "nombre_zona" in zona_actual and not (zona_actual.nombre_zona as String).is_empty():
+			nombre = String(zona_actual.nombre_zona)
+		elif zona_actual.scene_file_path.contains("Templo"):
+			nombre = "TEMPLO DE LAS TRAMPAS"
+		else:
+			nombre = zona_actual.name.to_upper()
+
+	if nombre.to_upper().contains("TEMPLO"):
+		var rep_narrador := _crear_reproductor_global(&"AudioNarradorZona", 2.5)
+		_desactivar_loop_audio(SONIDO_NARRADOR_TEMPLO_TRAMPAS)
+		rep_narrador.stream = SONIDO_NARRADOR_TEMPLO_TRAMPAS
+		rep_narrador.play()
+
+	presentacion_zona = ESCENA_PRESENTACION_ZONA.instantiate() as PresentacionZona
+	add_child(presentacion_zona)
+	presentacion_zona.presentar(nombre)
+
+
+func _on_vida_jugador_cambiada(actual: int, maximo: int) -> void:
+	if maximo <= 0:
+		return
+	if actual <= 0:
+		_desactivar_estado_cerca_muerte()
+		_mostrar_pantalla_muerte()
+		return
+	var porcentaje := float(actual) / float(maximo)
+	if porcentaje <= 0.50:
+		_activar_estado_cerca_muerte(porcentaje)
+	else:
+		_desactivar_estado_cerca_muerte()
+
+
+func _inicializar_overlay_cerca_muerte() -> void:
+	if capa_cerca_muerte != null and is_instance_valid(capa_cerca_muerte):
+		return
+	capa_cerca_muerte = CanvasLayer.new()
+	capa_cerca_muerte.name = "CapaCercaMuerte"
+	capa_cerca_muerte.layer = 50
+
+	rect_cerca_muerte = ColorRect.new()
+	rect_cerca_muerte.name = "OverlayRojo"
+	rect_cerca_muerte.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	rect_cerca_muerte.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rect_cerca_muerte.visible = false
+
+	material_cerca_muerte = ShaderMaterial.new()
+	material_cerca_muerte.shader = SHADER_CERCA_MUERTE
+	rect_cerca_muerte.material = material_cerca_muerte
+
+	capa_cerca_muerte.add_child(rect_cerca_muerte)
+	add_child(capa_cerca_muerte)
+
+	reproductor_latido = _crear_reproductor_global(&"AudioLatidoCorazon", 5.0)
+	reproductor_latido.bus = &"Master"
+	_preparar_loop_audio(SONIDO_LATIDO_CORAZON)
+	reproductor_latido.stream = SONIDO_LATIDO_CORAZON
+	if not reproductor_latido.finished.is_connected(_on_latido_finished):
+		reproductor_latido.finished.connect(_on_latido_finished)
+
+
+func _on_latido_finished() -> void:
+	if _estado_cerca_muerte_activo and is_instance_valid(reproductor_latido):
+		reproductor_latido.play()
+
+
+func _activar_estado_cerca_muerte(porcentaje: float) -> void:
+	_inicializar_overlay_cerca_muerte()
+	_estado_cerca_muerte_activo = true
+	if rect_cerca_muerte != null:
+		rect_cerca_muerte.visible = true
+	var intensidad: float = clampf(remap(porcentaje, 0.50, 0.05, 0.30, 1.0), 0.30, 1.0)
+	if material_cerca_muerte != null:
+		material_cerca_muerte.set_shader_parameter("intensidad", intensidad)
+	if is_instance_valid(reproductor_latido):
+		reproductor_latido.volume_db = clampf(remap(porcentaje, 0.50, 0.05, 4.0, 8.5), 4.0, 8.5)
+		if not reproductor_latido.playing:
+			reproductor_latido.play()
+
+
+func _desactivar_estado_cerca_muerte() -> void:
+	_estado_cerca_muerte_activo = false
+	if rect_cerca_muerte != null:
+		rect_cerca_muerte.visible = false
+	if material_cerca_muerte != null:
+		material_cerca_muerte.set_shader_parameter("intensidad", 0.0)
+	if is_instance_valid(reproductor_latido) and reproductor_latido.playing:
+		reproductor_latido.stop()
+
+
+func _mostrar_pantalla_muerte() -> void:
+	if is_instance_valid(reproductor_musica) and reproductor_musica.playing:
+		reproductor_musica.stop()
+	if is_instance_valid(reproductor_fuego) and reproductor_fuego.playing:
+		reproductor_fuego.stop()
+	if is_instance_valid(reproductor_latido) and reproductor_latido.playing:
+		reproductor_latido.stop()
+	
+	if pantalla_muerte == null or not is_instance_valid(pantalla_muerte):
+		pantalla_muerte = ESCENA_PANTALLA_MUERTE.instantiate() as PantallaMuerte
+		add_child(pantalla_muerte)
+		pantalla_muerte.reiniciar_solicitado.connect(func():
+			get_tree().reload_current_scene()
+		)
+		pantalla_muerte.cargar_solicitado.connect(_ejecutar_carga_tras_muerte)
+	var se_puede_cargar: bool = (guardado_en_fogata_realizado or EstadoPartida.guardado_en_fogata_realizado) and FileAccess.file_exists(RUTA_GUARDADO)
+	pantalla_muerte.mostrar_muerte(se_puede_cargar)
+
+
+func _ejecutar_carga_tras_muerte() -> void:
+	var snapshot: Variant = persistencia_partida.archivos.cargar(RUTA_GUARDADO)
+	if snapshot is StringName or not snapshot is Dictionary:
+		push_error("Error al leer archivo de guardado tras muerte: %s" % str(snapshot))
+		return
+	
+	_desactivar_estado_cerca_muerte()
+	en_combate = false
+	_acciones_en_resolucion = 0
+	_turno_exploracion_en_curso = false
+	interaccion_modal_activa = false
+	_dialogos_camara.clear()
+	item_lanzamiento_pendiente = null
+	seleccionando_item_lanzamiento = false
+	opcion_uso_item_pendiente = null
+	
+	var escena_guardada: String = snapshot.get("escena_zona", "")
+	if not escena_guardada.is_empty() and escena_guardada != zona_actual.scene_file_path:
+		if is_instance_valid(pantalla_muerte):
+			pantalla_muerte.queue_free()
+			pantalla_muerte = null
+		if is_instance_valid(campamento):
+			campamento.queue_free()
+			campamento = null
+		get_tree().change_scene_to_file(escena_guardada)
+		return
+	
+	var motivo := cargar_partida(RUTA_GUARDADO)
+	if motivo == &"":
+		if is_instance_valid(pantalla_muerte):
+			pantalla_muerte.queue_free()
+			pantalla_muerte = null
+		if is_instance_valid(campamento):
+			salir_campamento()
+		_inicializar_musica()
+		centrar_camara_en_ficha()
+	else:
+		push_error("No se pudo cargar la partida tras muerte: %s" % motivo)
 
 
 func _on_panel_resultado_cerrado() -> void:

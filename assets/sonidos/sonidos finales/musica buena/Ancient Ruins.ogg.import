@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://b2tnhk3s44mgc"
+path="res://.godot/imported/Ancient Ruins.ogg-01c0216f23f4d7bf2dbbc325cabd4b85.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sonidos/sonidos finales/musica buena/Ancient Ruins.ogg"
+dest_files=["res://.godot/imported/Ancient Ruins.ogg-01c0216f23f4d7bf2dbbc325cabd4b85.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

@@ -29,11 +29,17 @@ extends Resource
 
 const SONIDO_RECOGER_DEFECTO: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ambiente/Collect.wav")
 const SONIDO_ROCK_DEFECTO: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ambiente/Rock 1.wav")
+const SONIDO_LLAVE_DEFECTO: AudioStream = preload("res://assets/sonidos/lleves y candados/788310__realsquink__key-pickup.wav")
+const SONIDO_POCION_DEFECTO: AudioStream = preload("res://assets/sonidos/posiones/Potion and Alchemy 01.wav")
 
 
 func obtener_sonido_recoger() -> AudioStream:
 	if sonido_recoger != null:
 		return sonido_recoger
+	if &"llave" in etiquetas or String(id_definicion).contains("llave"):
+		return SONIDO_LLAVE_DEFECTO
+	if &"pocion" in etiquetas or String(id_definicion).contains("pocion"):
+		return SONIDO_POCION_DEFECTO
 	return SONIDO_RECOGER_DEFECTO
 
 

@@ -26,7 +26,6 @@ var _motas_celda_visible := false
 
 
 func _ready() -> void:
-	print("Antorcha: ", name, " | Partículas asignadas: ", particulas)
 	set_process(Engine.is_editor_hint())
 	_actualizar_representacion()
 
@@ -196,6 +195,10 @@ func _actualizar_representacion() -> void:
 	if motas != null:
 		motas.visible = encendida and (_motas_celda_visible or Engine.is_editor_hint())
 		motas.emitting = motas.visible
+	var p := _obtener_particulas()
+	if is_instance_valid(p):
+		p.visible = encendida and (_motas_celda_visible or Engine.is_editor_hint())
+		p.emitting = p.visible
 	if not is_instance_valid(sprite):
 		return
 	var datos := obtener_definicion_luz()
@@ -212,6 +215,69 @@ func _actualizar_representacion() -> void:
 	)
 
 
+func _obtener_particulas() -> CPUParticles2D:
+	if particulas != null and is_instance_valid(particulas):
+		return particulas
+	var existente := get_node_or_null(^"CPUParticles2D2") as CPUParticles2D
+	if existente == null:
+		existente = get_node_or_null(^"ParticulasFuego") as CPUParticles2D
+	if existente != null:
+		particulas = existente
+		return particulas
+	if Engine.is_editor_hint():
+		return null
+	particulas = _crear_particulas_fuego_defecto()
+	return particulas
+
+
+func _obtener_offset_particulas() -> Vector2:
+	var datos := obtener_definicion_luz()
+	if datos != null:
+		var id_str := String(datos.id_definicion).to_lower()
+		if id_str.contains("pared_izq"):
+			return Vector2(-9, -56)
+		elif id_str.contains("pared_der"):
+			return Vector2(9, -56)
+		elif id_str.contains("fogata"):
+			return Vector2(0, -12)
+		elif id_str.contains("vela"):
+			return Vector2(0, -18)
+	return Vector2(1, -48)
+
+
+func _crear_particulas_fuego_defecto() -> CPUParticles2D:
+	var p := CPUParticles2D.new()
+	p.name = "ParticulasFuego"
+	p.amount = 90
+	p.lifetime = 0.55
+	p.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
+	p.emission_sphere_radius = 4.0
+	p.spread = 180.0
+	p.gravity = Vector2(0, -90)
+	p.initial_velocity_min = 10.0
+	p.initial_velocity_max = 22.0
+	p.radial_accel_min = -25.0
+	p.scale_amount_min = 0.8
+	p.scale_amount_max = 2.2
+	p.position = _obtener_offset_particulas()
+	
+	var curve := Curve.new()
+	curve.add_point(Vector2(0.0, 0.6))
+	curve.add_point(Vector2(0.3, 1.2))
+	curve.add_point(Vector2(1.0, 0.1))
+	p.scale_amount_curve = curve
+	
+	var grad := Gradient.new()
+	grad.set_color(0, Color(1.0, 0.9, 0.3, 1.0))
+	grad.add_point(0.35, Color(1.0, 0.45, 0.05, 0.9))
+	grad.add_point(0.7, Color(0.85, 0.1, 0.0, 0.6))
+	grad.set_color(1, Color(0.2, 0.05, 0.05, 0.0))
+	p.color_ramp = grad
+	
+	add_child(p)
+	return p
+
+
 func actualizar_presentacion_visibilidad(estado: int) -> void:
 	super.actualizar_presentacion_visibilidad(estado)
 	_motas_celda_visible = estado == Celda.EstadoVisibilidad.VISIBLE
@@ -219,3 +285,8 @@ func actualizar_presentacion_visibilidad(estado: int) -> void:
 	if motas != null:
 		motas.visible = encendida and _motas_celda_visible
 		motas.emitting = motas.visible
+	var p := _obtener_particulas()
+	if is_instance_valid(p):
+		p.visible = encendida and _motas_celda_visible
+		p.emitting = p.visible
+

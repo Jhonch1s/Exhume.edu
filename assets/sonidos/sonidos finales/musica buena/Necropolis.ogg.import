@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://brhumv12pv5cm"
+path="res://.godot/imported/Necropolis.ogg-b2e92e092b8edd4c63040c6255fda390.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sonidos/sonidos finales/musica buena/Necropolis.ogg"
+dest_files=["res://.godot/imported/Necropolis.ogg-b2e92e092b8edd4c63040c6255fda390.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

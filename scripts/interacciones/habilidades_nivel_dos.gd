@@ -381,6 +381,8 @@ func lanzar_al_suelo(destino: Vector2i) -> ResultadoAccion:
 		return ResultadoAccion.crear_bloqueo(&"superficie_no_configurada")
 	f.consumir_recurso_turno(RecursosTurnoActor.ACCION_PRINCIPAL, 1)
 	f.consumir_bola_fuego()
+	if e != null and e.has_method("reproducir_sonido_magia_fuego"):
+		e.reproducir_sonido_magia_fuego()
 	f.romper_ocultamiento()
 	registrar("Piromancia libre", "Enciendes una casilla durante tres turnos.")
 	return ResultadoAccion.crear_exito()

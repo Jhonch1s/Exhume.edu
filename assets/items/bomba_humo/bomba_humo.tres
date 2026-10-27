@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://cl0uxlkjhbodp" path="res://scenes/items/bomba_humo_suelo.tscn" id="2_mundo"]
 [ext_resource type="Script" uid="uid://dbu8xn81o5vnr" path="res://scripts/interacciones/items/reaccion_impacto_superficie.gd" id="3_reaccion"]
 [ext_resource type="PackedScene" path="res://scenes/efectos_superficie/Humo.tscn" id="4_humo"]
+[ext_resource type="AudioStream" uid="uid://b5v4lvfpp23ub" path="res://assets/sonidos/varios/editados/bomba humo.wav" id="5_sonido_impacto"]
 
 [sub_resource type="Resource" id="Resource_reaccion_impacto"]
 script = ExtResource("3_reaccion")
@@ -24,5 +25,6 @@ magnitudes = Dictionary[StringName, float]({
 &"peso": 1.0
 })
 reaccion_impacto = SubResource("Resource_reaccion_impacto")
+sonido_impacto = ExtResource("5_sonido_impacto")
 apilable = true
 cantidad_maxima = 10

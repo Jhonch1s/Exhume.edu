@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://gmoho5qxh8rc"
+path="res://.godot/imported/Whoosh 6_3.wav-fe660eb1b26b4e7b5889ade0fbc13bda.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/espada, daga y escudo/Whoosh 6_3.wav"
+dest_files=["res://.godot/imported/Whoosh 6_3.wav-fe660eb1b26b4e7b5889ade0fbc13bda.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

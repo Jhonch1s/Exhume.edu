@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://djm8lugjqnn64"
+path="res://.godot/imported/el abismo los espera.mp3-63955f8207002e2281c51b279bdcfe02.mp3str"
+
+[deps]
+
+source_file="res://assets/sonidos/narrador/el abismo los espera.mp3"
+dest_files=["res://.godot/imported/el abismo los espera.mp3-63955f8207002e2281c51b279bdcfe02.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
