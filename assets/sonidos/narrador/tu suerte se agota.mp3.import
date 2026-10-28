@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://gxquinqm4fgg"
+path="res://.godot/imported/tu suerte se agota.mp3-b5739a8bb2508a5e32a63be51db1ce1d.mp3str"
+
+[deps]
+
+source_file="res://assets/sonidos/narrador/tu suerte se agota.mp3"
+dest_files=["res://.godot/imported/tu suerte se agota.mp3-b5739a8bb2508a5e32a63be51db1ce1d.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

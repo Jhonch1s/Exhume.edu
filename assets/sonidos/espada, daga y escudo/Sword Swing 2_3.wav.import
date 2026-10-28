@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://d28uh7g0liwwt"
+path="res://.godot/imported/Sword Swing 2_3.wav-d83a23b7e77e1992cdc5bcc15905981b.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/espada, daga y escudo/Sword Swing 2_3.wav"
+dest_files=["res://.godot/imported/Sword Swing 2_3.wav-d83a23b7e77e1992cdc5bcc15905981b.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

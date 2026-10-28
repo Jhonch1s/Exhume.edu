@@ -133,6 +133,8 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 		return super.resolver_accion(contexto)
 	var motivo := validar_accion(contexto)
 	if motivo != &"":
+		if motivo == &"puerta_bloqueada":
+			_reproducir_audio(SONIDO_LOCKER_BLOQUEADO)
 		return ResultadoAccion.crear_bloqueo(motivo)
 	if contexto.tipo == TiposInteraccion.TipoAccion.USAR_ITEM:
 		return _resolver_uso_item(contexto)
@@ -157,12 +159,15 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 func _resolver_uso_item(contexto: ContextoAccion) -> ResultadoAccion:
 	var llave := contexto.item.definicion as DefinicionLlave
 	if &"llave" not in contexto.etiquetas or llave == null:
+		_reproducir_audio(SONIDO_LOCKER_BLOQUEADO)
 		return ResultadoAccion.crear_fallo(&"item_no_es_llave")
 	var datos := definicion as DefinicionPuerta
 	if llave.patron_cerradura != datos.patron_cerradura:
+		_reproducir_audio(SONIDO_LOCKER_BLOQUEADO)
 		return ResultadoAccion.crear_fallo(&"llave_incompatible")
 	var estado_anterior := bloqueada
 	bloqueada = false
+	_reproducir_audio(SONIDO_PUERTA_DESBLOQUEO)
 	return ResultadoAccion.crear_exito(
 		[&"puerta.desbloqueada"],
 		[],
@@ -227,6 +232,22 @@ func _es_controlada_por_mecanismo() -> bool:
 
 
 const SONIDO_PUERTA_DEFECTO: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ambiente/Dungeon Door - Metal Handle.wav")
+const SONIDO_PUERTA_DESBLOQUEO: AudioStream = preload("res://assets/sonidos/sonidos finales/sonidos mmo/MMO_Game_Magic_Source_Chest_02_Door_Unlock_Open_Close.wav")
+const SONIDO_LOCKER_BLOQUEADO: AudioStream = preload("res://assets/sonidos/lleves y candados/Locker 1.wav")
+
+
+func _reproducir_audio(sonido: AudioStream) -> void:
+	if Engine.is_editor_hint() or sonido == null:
+		return
+	if not is_instance_valid(reproductor_audio):
+		reproductor_audio = get_node_or_null(^"AudioStreamPlayer2D") as AudioStreamPlayer2D
+		if reproductor_audio == null:
+			reproductor_audio = AudioStreamPlayer2D.new()
+			reproductor_audio.name = "AudioStreamPlayer2D"
+			reproductor_audio.max_distance = 600.0
+			add_child(reproductor_audio)
+	reproductor_audio.stream = sonido
+	reproductor_audio.play()
 
 
 func _reproducir_sonido_apertura() -> void:

@@ -52,6 +52,8 @@ func _on_excursion_solicitada(datos: Dictionary) -> void:
 	if not EstadoPartida.establecer_aventurero(datos):
 		push_error("No se puede iniciar la excursión: datos de aventurero inválidos.")
 		return
+	if FileAccess.file_exists("user://partida.json"):
+		DirAccess.remove_absolute("user://partida.json")
 	get_tree().change_scene_to_file("res://scenes/escenario_base/escenario_base.tscn")
 
 

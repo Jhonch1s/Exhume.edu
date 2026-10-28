@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://cxiswf50j5615"
+path="res://.godot/imported/Ambient 30.wav-a830885bc1e8e9e8a478f636a5ad5a12.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/sonidos ambiente dungeon/Ambient 30.wav"
+dest_files=["res://.godot/imported/Ambient 30.wav-a830885bc1e8e9e8a478f636a5ad5a12.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

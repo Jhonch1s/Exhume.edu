@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://c10qkivny4ewf"
+path="res://.godot/imported/la fortuna te perdona.mp3-c414bc13cc32c8bf0caae47e9fcd4fa0.mp3str"
+
+[deps]
+
+source_file="res://assets/sonidos/narrador/la fortuna te perdona.mp3"
+dest_files=["res://.godot/imported/la fortuna te perdona.mp3-c414bc13cc32c8bf0caae47e9fcd4fa0.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

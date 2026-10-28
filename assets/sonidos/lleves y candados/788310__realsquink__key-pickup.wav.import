@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://yx4yrpkvifw8"
+path="res://.godot/imported/788310__realsquink__key-pickup.wav-7812f0917744e53151cc27d4f8a62757.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/lleves y candados/788310__realsquink__key-pickup.wav"
+dest_files=["res://.godot/imported/788310__realsquink__key-pickup.wav-7812f0917744e53151cc27d4f8a62757.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

@@ -4,6 +4,7 @@ const CLASES_VALIDAS := ["Guerrero", "Ladrón", "Mago"]
 
 var aventurero_pendiente: Dictionary = {}
 var trompo_conocido: bool = false
+var guardado_en_fogata_realizado: bool = false
 
 
 func establecer_aventurero(datos: Dictionary) -> bool:
@@ -11,6 +12,7 @@ func establecer_aventurero(datos: Dictionary) -> bool:
 		return false
 	aventurero_pendiente = datos.duplicate(true)
 	trompo_conocido = false
+	guardado_en_fogata_realizado = false
 	return true
 
 

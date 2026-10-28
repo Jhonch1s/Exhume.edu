@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://d1h2uhp7fag6u"
+path="res://.godot/imported/Whoosh tension.wav-65e5377ae80a2d1f600548c542a25b6f.sample"
+
+[deps]
+
+source_file="res://assets/sonidos/tension/Whoosh tension.wav"
+dest_files=["res://.godot/imported/Whoosh tension.wav-65e5377ae80a2d1f600548c542a25b6f.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

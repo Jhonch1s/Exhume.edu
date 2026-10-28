@@ -3,6 +3,7 @@ extends PanelContainer
 
 signal resultado_presentado(resultado: ResultadoAccion)
 signal tirada_presentada(resultado: Variant)
+signal veredicto_revelado(resultado: Variant)
 signal cerrado
 
 @export var texto_boton_cerrar: String = "Cerrar"
@@ -165,7 +166,9 @@ func _revelar_tirada() -> void:
 			vista_dado_2.modulate.a = 0.45
 		else:
 			vista_dado_1.modulate.a = 0.45
+	var res := _prueba_pendiente
 	_prueba_pendiente = null
+	veredicto_revelado.emit(res)
 	_ajustar_altura()
 
 

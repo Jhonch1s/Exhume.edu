@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://dxxxonsysoixr"
+path="res://.godot/imported/un respiro antes del fin.mp3-c22dcd0c4b7fbf5bb581898aa0a48eec.mp3str"
+
+[deps]
+
+source_file="res://assets/sonidos/narrador/un respiro antes del fin.mp3"
+dest_files=["res://.godot/imported/un respiro antes del fin.mp3-c22dcd0c4b7fbf5bb581898aa0a48eec.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

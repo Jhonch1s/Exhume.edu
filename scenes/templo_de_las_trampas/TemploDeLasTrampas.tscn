@@ -86,19 +86,16 @@ y_sort_enabled = true
 
 [node name="FuenteLuzInteractuable3" parent="Interactuables/FuentesLuz" unique_id=96188886 instance=ExtResource("3_4wk75")]
 position = Vector2(-352, -208)
-encendida = false
 id_instancia = &"antorcha_muro_03"
 definicion = ExtResource("4_gu6db")
 
 [node name="FuenteLuzInteractuable" parent="Interactuables/FuentesLuz" unique_id=1231565517 instance=ExtResource("3_4wk75")]
 position = Vector2(-96, -80)
-encendida = false
 id_instancia = &"antorcha_muro_01"
 definicion = ExtResource("4_gu6db")
 
 [node name="FuenteLuzInteractuable2" parent="Interactuables/FuentesLuz" unique_id=1039430559 instance=ExtResource("3_4wk75")]
 position = Vector2(-224, -144)
-encendida = false
 id_instancia = &"antorcha_muro_02"
 definicion = ExtResource("4_gu6db")
 
