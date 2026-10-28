@@ -3,6 +3,8 @@ extends Node2D
 
 const RUTA_ESCENARIO_BASE := "res://scenes/escenario_base/escenario_base.tscn"
 
+@export var nombre_zona: String = ""
+
 var _iniciando_prueba_individual := false
 
 

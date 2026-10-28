@@ -62,7 +62,6 @@ const modeloMago = preload("res://assets/characters/knight3d/magov2.glb")
 const modeloLadron = preload("res://assets/characters/knight3d/modeloladron2.glb")
 
 const ESCENA_FICHA = preload("res://scenes/ficha/ficha.tscn")
-const DEFINICION_PIEDRA = preload("res://assets/items/piedra/piedra.tres")
 const DEFINICION_ANTORCHA = preload("res://assets/items/antorcha/antorcha.tres")
 const DEFINICION_ESPADA_INICIAL = preload("res://assets/items/forja/espada_inicial/espada_inicial.tres")
 const DEFINICION_ESCUDO_INICIAL = preload("res://assets/items/forja/escudo_inicial/escudo_inicial.tres")
@@ -336,7 +335,6 @@ func _ready() -> void:
 			ficha_jugador.puntos_vida_cambiados.connect(_on_vida_jugador_cambiada)
 		_on_vida_jugador_cambiada(ficha_jugador.pv_actual, ficha_jugador.pv_max)
 		capa_vision_npc.configurar(tablero, validador_espacial, ficha_jugador, gestor_vision)
-		_colocar_piedra_prueba()
 		_actualizar_luz_jugador(ficha_jugador.coordenada_mapa)
 		_actualizar_audio_proximidad()
 		centrar_camara_en_ficha()
@@ -3997,7 +3995,11 @@ func _mostrar_pantalla_muerte() -> void:
 		pantalla_muerte = ESCENA_PANTALLA_MUERTE.instantiate() as PantallaMuerte
 		add_child(pantalla_muerte)
 		pantalla_muerte.reiniciar_solicitado.connect(func():
-			get_tree().reload_current_scene()
+			var ruta_zona := zona_actual.scene_file_path
+			if ruta_zona.is_empty():
+				get_tree().reload_current_scene()
+			else:
+				get_tree().change_scene_to_file(ruta_zona)
 		)
 		pantalla_muerte.cargar_solicitado.connect(_ejecutar_carga_tras_muerte)
 	var se_puede_cargar: bool = (guardado_en_fogata_realizado or EstadoPartida.guardado_en_fogata_realizado) and FileAccess.file_exists(RUTA_GUARDADO)
@@ -4059,18 +4061,6 @@ func _obtener_titulo_resultado_contextual(opcion: OpcionAccion) -> String:
 	):
 		return opcion.objetivo.call(&"obtener_nombre_interaccion")
 	return "Interacción"
-
-
-func _colocar_piedra_prueba() -> void:
-	var direcciones: Array[Vector2i] = [Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT, Vector2i.UP]
-	for direccion in direcciones:
-		var coord := ficha_jugador.coordenada_mapa + direccion
-		if tablero.validar_colocacion_item_suelo(coord, ficha_jugador) != &"":
-			continue
-		var piedra := ItemSuelo.new(ItemInstancia.new(&"zona1_piedra_prueba", DEFINICION_PIEDRA, 1))
-		piedra.configurar_transferidor_items(transferidor_items)
-		tablero.registrar_item_suelo(coord, piedra)
-		return
 
 
 func _on_item_suelo_registrado(coord: Vector2i, item_suelo: ItemSuelo) -> void:

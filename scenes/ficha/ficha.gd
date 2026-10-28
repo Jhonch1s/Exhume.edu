@@ -456,9 +456,8 @@ func iniciar_turno() -> void:
 	pasos_inercia = 0
 	romper_agarre()
 	if recursos_turno == null:
-		recursos_turno = _crear_recursos_turno(des)
-	else:
-		recursos_turno.reponer(movimiento_por_turno)
+		recursos_turno = _crear_recursos_turno(obtener_destreza())
+	recursos_turno.reponer(movimiento_por_turno)
 	recursos_turno_cambiados.emit(recursos_turno)
 
 
