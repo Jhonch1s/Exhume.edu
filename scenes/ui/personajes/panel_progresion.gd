@@ -1,62 +1,94 @@
-extends ConfirmationDialog
+extends Control
 
 signal recompensa_elegida(id: String)
 
-var selector := ItemList.new()
-var detalle := RichTextLabel.new()
-var instruccion := Label.new()
+const INICIALES := {"Guerrero": "Ataque doble", "Ladrón": "Ocultarse", "Mago": "Bola de fuego"}
+const ACENTOS := {"Guerrero": Color("#dca77e"), "Ladrón": Color("#93c7e0"), "Mago": Color("#d7a9dc")}
+
+@onready var selector: ItemList = $Marco/Contenido/Cuerpo/Lista/Selector
+@onready var detalle: RichTextLabel = $Marco/Contenido/Cuerpo/DetalleMarco/DetalleContenido/Detalle
+@onready var instruccion: Label = $Marco/Contenido/Instruccion
+@onready var titulo: Label = $Marco/Contenido/Titulo
+@onready var lista: VBoxContainer = $Marco/Contenido/Cuerpo/Lista
+@onready var icono: TextureRect = $Marco/Contenido/Cuerpo/DetalleMarco/DetalleContenido/Identidad/Icono
+@onready var tipo: Label = $Marco/Contenido/Cuerpo/DetalleMarco/DetalleContenido/Identidad/Textos/Tipo
+@onready var nombre_opcion: Label = $Marco/Contenido/Cuerpo/DetalleMarco/DetalleContenido/Identidad/Textos/Nombre
+@onready var error: Label = $Marco/Contenido/Error
+@onready var boton_cerrar: Button = $Marco/Contenido/Botones/Cerrar
+@onready var boton_aprender: Button = $Marco/Contenido/Botones/Aprender
+
 var opciones: Array[Dictionary] = []
+var procesando := false
 
 
 func _ready() -> void:
-	title = "Progresión"
-	min_size = Vector2i(660, 480)
-	exclusive = true
-	get_ok_button().text = "Aprender"
-	get_cancel_button().text = "Elegir después"
-	var contenido := VBoxContainer.new()
-	add_child(contenido)
-	contenido.add_theme_constant_override(&"separation", 12)
-	contenido.add_child(instruccion)
-	contenido.add_child(selector)
-	contenido.add_child(detalle)
-	selector.custom_minimum_size = Vector2(620, 150)
-	selector.add_theme_font_size_override(&"font_size", 20)
-	selector.add_theme_constant_override(&"v_separation", 10)
-	detalle.custom_minimum_size = Vector2(580, 180)
-	detalle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	selector.item_selected.connect(_seleccionar)
-	confirmed.connect(_confirmar)
+	boton_aprender.pressed.connect(_confirmar)
+	boton_cerrar.pressed.connect(hide)
 
 
-func mostrar(nivel: int, nuevas_opciones: Array[Dictionary], resumen: String) -> void:
+func mostrar(nivel: int, nuevas_opciones: Array[Dictionary], resumen: String, clase: String = "") -> void:
 	opciones = nuevas_opciones
-	title = "Nivel %d · Progresión" % nivel
+	procesando = false
+	error.hide()
+	titulo.text = (clase.to_upper() + " · " if not clase.is_empty() else "") + "NIVEL %d" % nivel
+	titulo.add_theme_color_override(&"font_color", ACENTOS.get(clase, Color("#eee3cc")))
 	selector.clear()
 	for opcion in opciones:
-		selector.add_item("%s · %s" % [opcion["tipo"], opcion["nombre"]])
-	instruccion.text = "Elige UNA de las cuatro. Conservas tu habilidad inicial." if not opciones.is_empty() else "Tus recompensas aprendidas"
-	selector.visible = not opciones.is_empty()
-	get_ok_button().visible = not opciones.is_empty()
-	get_cancel_button().text = "Elegir después" if not opciones.is_empty() else "Cerrar"
-	if opciones.is_empty():
-		detalle.text = resumen
-	else:
-		selector.select(0)
-		_seleccionar(0)
-	popup_centered(Vector2i(660, 520))
-	if selector.visible:
+		selector.add_item("%s · %s" % [opcion["tipo"], opcion["nombre"]], CatalogoHabilidades.icono(opcion["id"]))
+	var hay_opciones := not opciones.is_empty()
+	var inicial: String = INICIALES.get(clase, "tu habilidad inicial")
+	instruccion.text = "Elige una recompensa. Conservas %s." % inicial if hay_opciones else "Tus conocimientos y progreso"
+	lista.visible = hay_opciones
+	boton_aprender.visible = hay_opciones
+	boton_aprender.disabled = true
+	boton_aprender.text = "Selecciona una opción"
+	boton_cerrar.text = "Elegir después" if hay_opciones else "Cerrar"
+	icono.texture = null
+	icono.visible = false
+	tipo.text = "RECOMPENSA DE CLASE" if hay_opciones else "PROGRESIÓN"
+	nombre_opcion.text = "Selecciona una opción" if hay_opciones else "Tus conocimientos"
+	detalle.text = "Elige una habilidad o pasiva para conocer su efecto y su coste." if hay_opciones else resumen
+	show()
+	if hay_opciones:
 		selector.grab_focus()
+	else:
+		boton_cerrar.grab_focus()
 
 
 func _seleccionar(indice: int) -> void:
+	if indice < 0 or indice >= opciones.size() or procesando:
+		return
 	var opcion := opciones[indice]
-	detalle.text = "%s\n\n%s\n\nCoste: %s\nLa elección es permanente." % [
-		opcion["tipo"], opcion["descripcion"], opcion["coste"]
-	]
+	icono.texture = CatalogoHabilidades.icono(opcion["id"])
+	icono.visible = icono.texture != null
+	tipo.text = String(opcion["tipo"]).to_upper()
+	nombre_opcion.text = opcion["nombre"]
+	detalle.text = "%s\n\nCoste: %s\n\nLa elección es permanente." % [opcion["descripcion"], opcion["coste"]]
+	boton_aprender.text = "Aprender %s" % opcion["nombre"]
+	boton_aprender.disabled = false
+	error.hide()
 
 
 func _confirmar() -> void:
 	var indices := selector.get_selected_items()
-	if not indices.is_empty() and indices[0] < opciones.size():
-		recompensa_elegida.emit(opciones[indices[0]]["id"])
+	if procesando or indices.is_empty() or indices[0] >= opciones.size():
+		return
+	procesando = true
+	boton_aprender.disabled = true
+	recompensa_elegida.emit(opciones[indices[0]]["id"])
+
+
+func mostrar_error(mensaje: String) -> void:
+	procesando = false
+	error.text = mensaje
+	error.show()
+	boton_aprender.disabled = selector.get_selected_items().is_empty()
+	show()
+	selector.grab_focus()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if visible and event.is_action_pressed("ui_cancel"):
+		hide()
+		get_viewport().set_input_as_handled()

@@ -104,6 +104,14 @@ corner_radius_top_right = 2
 corner_radius_bottom_right = 2
 corner_radius_bottom_left = 2
 
+[sub_resource type="StyleBoxFlat" id="StyleProgresion"]
+bg_color = Color(0.075, 0.075, 0.07, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.78, 0.57, 0.27, 1)
+
 [node name="HUD" type="Control" unique_id=1068463453]
 layout_mode = 3
 anchors_preset = 15
@@ -173,6 +181,23 @@ mouse_filter = 2
 texture = ExtResource("2_portrait")
 expand_mode = 1
 stretch_mode = 5
+
+[node name="IndicadorProgresion" type="Button" parent="HUDRoot/SeccionesHUD/SeccionJugador/Retrato"]
+visible = false
+layout_mode = 0
+offset_left = 97.0
+offset_top = 8.0
+offset_right = 139.0
+offset_bottom = 50.0
+tooltip_text = "Recompensa de nivel pendiente. Pulsa para elegir [P]."
+theme_override_styles/normal = SubResource("StyleProgresion")
+theme_override_styles/hover = SubResource("StyleProgresion")
+theme_override_styles/pressed = SubResource("StyleProgresion")
+
+[node name="Flecha" type="Polygon2D" parent="HUDRoot/SeccionesHUD/SeccionJugador/Retrato/IndicadorProgresion"]
+position = Vector2(3, 3)
+color = Color(1, 0.81, 0.42, 1)
+polygon = PackedVector2Array(18, 3, 29, 14, 24, 14, 24, 30, 12, 30, 12, 14, 7, 14)
 
 [node name="Recursos" type="Panel" parent="HUDRoot/SeccionesHUD/SeccionJugador" unique_id=441990928]
 layout_mode = 0

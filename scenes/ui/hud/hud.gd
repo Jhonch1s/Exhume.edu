@@ -6,6 +6,7 @@ signal ataque_doble_solicitado
 signal ocultarse_solicitado
 signal bola_fuego_solicitada
 signal habilidad_aprendida_solicitada
+signal progresion_solicitada
 signal item_rapido_solicitado(indice: int)
 
 const RETRATOS_POR_CLASE := {
@@ -15,6 +16,7 @@ const RETRATOS_POR_CLASE := {
 }
 
 @onready var retrato: TextureRect = $HUDRoot/SeccionesHUD/SeccionJugador/Retrato/Imagen
+@onready var indicador_progresion: Button = $HUDRoot/SeccionesHUD/SeccionJugador/Retrato/IndicadorProgresion
 @onready var nombre: Label = $HUDRoot/SeccionesHUD/SeccionJugador/Recursos/Nombre
 @onready var vida_barra: ProgressBar = $HUDRoot/SeccionesHUD/SeccionJugador/Recursos/VidaBarra
 @onready var vida_texto: Label = $HUDRoot/SeccionesHUD/SeccionJugador/Recursos/VidaTexto
@@ -71,6 +73,10 @@ var items_rapidos_asignados: Array[ItemInstancia] = [null, null, null, null]
 
 func _ready() -> void:
 	pasar_turno.pressed.connect(func(): pasar_turno_solicitado.emit())
+	indicador_progresion.pressed.connect(func(): progresion_solicitada.emit())
+	var pulso := create_tween().set_loops()
+	pulso.tween_property(indicador_progresion.get_node("Flecha"), "modulate:a", 0.35, 0.65)
+	pulso.tween_property(indicador_progresion.get_node("Flecha"), "modulate:a", 1.0, 0.65)
 	for panel in estados:
 		panel.mouse_entered.connect(_mostrar_tooltip_estado.bind(panel))
 		panel.mouse_exited.connect(_ocultar_tooltip_estado)
@@ -81,6 +87,37 @@ func _ready() -> void:
 		var habilidad := habilidades[indice]
 		habilidad.disabled = true
 		habilidad.tooltip_text = "Atajo %d · Habilidad todavía no implementada." % (indice + 1)
+		var icono := TextureRect.new()
+		icono.name = "IconoHabilidad"
+		icono.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icono.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icono.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		icono.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icono.visible = false
+		habilidad.add_child(icono)
+		icono.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		var estado := Label.new()
+		estado.name = "EstadoHabilidad"
+		estado.position = Vector2(2, 59)
+		estado.size = Vector2(78, 21)
+		estado.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		estado.add_theme_font_size_override(&"font_size", 14)
+		estado.add_theme_color_override(&"font_color", Color.WHITE)
+		estado.add_theme_color_override(&"font_outline_color", Color.BLACK)
+		estado.add_theme_constant_override(&"outline_size", 4)
+		estado.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		estado.visible = false
+		habilidad.add_child(estado)
+		var tecla := Label.new()
+		tecla.name = "TeclaHabilidad"
+		tecla.position = Vector2(4, 1)
+		tecla.text = str(indice + 1)
+		tecla.add_theme_font_size_override(&"font_size", 14)
+		tecla.add_theme_color_override(&"font_outline_color", Color.BLACK)
+		tecla.add_theme_constant_override(&"outline_size", 3)
+		tecla.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		tecla.visible = false
+		habilidad.add_child(tecla)
 	habilidades[0].pressed.connect(func(): ataque_doble_solicitado.emit())
 	habilidades[0].pressed.connect(func(): ocultarse_solicitado.emit())
 	habilidades[0].pressed.connect(func(): bola_fuego_solicitada.emit())
@@ -162,6 +199,7 @@ func _process(_delta: float) -> void:
 
 
 func _actualizar_todo() -> void:
+	indicador_progresion.visible = ficha != null and ficha.nivel_recompensa_pendiente > 0
 	if ficha == null:
 		retrato.texture = null
 		nombre.text = "SIN FICHA"
@@ -204,9 +242,43 @@ func _actualizar_todo() -> void:
 	_actualizar_ataque_doble()
 
 
+func mostrar_icono_habilidad(indice: int, id: String, estado: String = "") -> void:
+	var boton := habilidades[indice]
+	var imagen := boton.get_node("IconoHabilidad") as TextureRect
+	var etiqueta := boton.get_node("EstadoHabilidad") as Label
+	var tecla := boton.get_node("TeclaHabilidad") as Label
+	var textura := CatalogoHabilidades.icono(id)
+	var visible := textura != null
+	if imagen.visible != visible:
+		for color in [&"font_color", &"font_hover_color", &"font_pressed_color", &"font_focus_color", &"font_disabled_color", &"font_hover_pressed_color"]:
+			if visible:
+				boton.add_theme_color_override(color, Color.TRANSPARENT)
+			else:
+				boton.remove_theme_color_override(color)
+	imagen.texture = textura
+	imagen.visible = visible
+	etiqueta.text = estado
+	etiqueta.visible = visible and not estado.is_empty()
+	tecla.visible = visible
+
+
 func _actualizar_ataque_doble() -> void:
 	_actualizar_aprendida()
 	var boton := habilidades[0]
+	var inicial := ""
+	var estado := ""
+	if ficha != null:
+		match ficha.clase:
+			"Guerrero":
+				inicial = "ataque_doble"
+				estado = "%d/1" % ficha.usos_ataque_doble
+			"Ladrón":
+				inicial = "ocultarse"
+				estado = "OCULTO %d" % ficha.turnos_oculto if ficha.turnos_oculto > 0 else "%d/1" % ficha.usos_ocultarse
+			"Mago":
+				inicial = "bola_de_fuego"
+				estado = "%d/1" % ficha.usos_bola_fuego
+	mostrar_icono_habilidad(0, inicial, estado)
 	if ficha != null and ficha.clase == "Mago":
 		boton.text = "FUEGO\n%d/1" % ficha.usos_bola_fuego
 		boton.add_theme_font_size_override(&"font_size", 14)
@@ -252,10 +324,12 @@ func _actualizar_aprendida() -> void:
 	boton.text = "II"
 	boton.tooltip_text = "La recompensa de nivel 2 aparecerá aquí."
 	if ficha == null:
+		mostrar_icono_habilidad(1, "")
 		boton.disabled = true
 		return
 	var ids := ficha.activas_aprendidas + ficha.pasivas_aprendidas
 	if ids.is_empty():
+		mostrar_icono_habilidad(1, "")
 		boton.disabled = true
 		return
 	var deshabilitada := true
@@ -285,6 +359,16 @@ func _actualizar_aprendida() -> void:
 		boton.text += "\nPASIVA"
 	if id in ficha.pasivas_usadas_turno:
 		boton.tooltip_text += "\nYa usaste esta oportunidad durante el turno."
+	var estado := "PASIVA"
+	if opcion["tipo"] == "Activa":
+		estado = "%d/1" % ficha.usos_activas.get(id, 0)
+		if id == "agarre" and ficha.agarre_pasos > 0:
+			estado = "%d PASOS" % ficha.agarre_pasos
+	elif id == "contagio_arcano":
+		estado = ficha.contagio_elegido.to_upper() if ficha.contagio_elegido != "" else "NO"
+	elif id == "inercia" and ficha.pasos_inercia > 0:
+		estado = "%d PASOS" % ficha.pasos_inercia
+	mostrar_icono_habilidad(1, id, estado)
 	# Cambiar disabled temporalmente cancela un clic que todavía está presionado.
 	boton.disabled = deshabilitada
 

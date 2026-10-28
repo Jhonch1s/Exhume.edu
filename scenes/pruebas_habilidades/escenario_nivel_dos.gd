@@ -63,7 +63,7 @@ func _ready() -> void:
 		escenario.tablero.registrar_interactuable(coord_trampa, trampa)
 	var capa := CanvasLayer.new()
 	capa_ayuda = capa
-	capa.layer = 3
+	capa.layer = 1
 	add_child(capa)
 	ayuda = Label.new()
 	ayuda.position = Vector2(24, 180)

@@ -59,8 +59,12 @@ func _actualizar_disponibilidad_turno() -> void:
 		boton_campamento.tooltip_text = "Laboratorio: reponer PV, energía, usos y oportunidades de turno."
 	var boton := hud.habilidades[2]
 	var deshabilitada := true
+	var id_icono := ""
+	var estado_icono := ""
 	if ficha_jugador.activas_aprendidas.size() == 2:
 		var id: String = ficha_jugador.activas_aprendidas[1]
+		id_icono = id
+		estado_icono = "%d/1" % ficha_jugador.usos_activas.get(id, 0)
 		var opcion := CatalogoHabilidades.obtener(id)
 		boton.add_theme_font_size_override(&"font_size", 12)
 		boton.text = "%s\n%d/1" % [opcion["nombre"].to_upper().replace(" ", "\n"), ficha_jugador.usos_activas.get(id, 0)]
@@ -69,6 +73,7 @@ func _actualizar_disponibilidad_turno() -> void:
 		if id == "paso_sombra" and ficha_jugador.turnos_oculto < 1:
 			deshabilitada = true
 			boton.tooltip_text += "\nFalta estar OCULTO. Se permite en combate con una acción adicional libre."
+	hud.mostrar_icono_habilidad(2, id_icono, estado_icono)
 	boton.disabled = deshabilitada
 	boton = hud.habilidades[3]
 	boton.add_theme_font_size_override(&"font_size", 12)
@@ -77,10 +82,13 @@ func _actualizar_disponibilidad_turno() -> void:
 	match ficha_jugador.clase:
 		"Guerrero":
 			boton.text = "EMPUJE\nAL ACERTAR"
+			hud.mostrar_icono_habilidad(3, "golpe_desplazante", "PASIVA")
 			deshabilitada = true
 		"Mago":
 			boton.text = "CONTAGIO\n" + (ficha_jugador.contagio_elegido.to_upper() if ficha_jugador.contagio_elegido != "" else "NO")
+			hud.mostrar_icono_habilidad(3, "contagio_arcano", ficha_jugador.contagio_elegido.to_upper() if ficha_jugador.contagio_elegido != "" else "NO")
 		"Ladrón":
+			hud.mostrar_icono_habilidad(3, "")
 			deshabilitada = true
 	boton.disabled = deshabilitada
 	var textos: Array[String] = []

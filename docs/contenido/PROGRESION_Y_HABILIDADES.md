@@ -35,11 +35,18 @@ Piromancia libre, Contagio arcano).
 
 **P** o el botón «Progresión» abre la elección fuera de combate, movimientos,
 acciones, diálogos y otros paneles. Se ven las cuatro opciones, sus efectos y
-costes. «Aprender» confirma exactamente una; cerrar o elegir después conserva
+costes. El panel muestra la clase, los iconos y el detalle de la opción; no
+preselecciona ninguna y «Aprender» nombra la elegida antes de confirmarla.
+«Aprender» confirma exactamente una; cerrar o elegir después conserva
 el premio pendiente. Aprender no cura ni recupera recursos gastados. La activa
 nueva nace con su propio uso `1/1` y aparece en la ranura **2**; la primera
 habilidad continúa en **1**. Las pasivas aparecen también en la ranura 2 y en
 el resumen de progresión.
+
+Una flecha intermitente junto al retrato señala que hay una elección pendiente.
+Al pulsarla se abre el panel cuando no hay combate ni otra interacción activa;
+el indicador permanece al posponer y desaparece al aprender. El panel recibe
+el mismo filtro CRT que el escenario y el HUD, también en las arenas de prueba.
 
 **Golpe desplazante:** después de causar daño se ofrece Empujar / No empujar;
 no se configura antes del ataque. Rechazar conserva la oportunidad del turno.

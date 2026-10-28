@@ -121,7 +121,7 @@ var _acciones_en_resolucion := 0
 var boton_campamento: Button
 var panel_empuje: ConfirmationDialog
 var habilidades_nivel_dos = preload("res://scripts/interacciones/habilidades_nivel_dos.gd").new(self)
-var panel_progresion: ConfirmationDialog
+var panel_progresion
 var boton_progresion: Button
 var habilidad_en_seleccion := ""
 var fuente_trasvase: Variant = null
@@ -273,6 +273,7 @@ func _ready() -> void:
 	hud.ocultarse_solicitado.connect(_on_ocultarse_hud)
 	hud.bola_fuego_solicitada.connect(_on_bola_fuego_hud)
 	hud.habilidad_aprendida_solicitada.connect(_on_habilidad_aprendida_hud)
+	hud.progresion_solicitada.connect(abrir_progresion)
 	hud.item_rapido_solicitado.connect(_on_item_rapido_hud_solicitado)
 	panel_orden_combate.retrato_pulsado.connect(_on_retrato_combate_pulsado)
 	menu_contextual.opcion_accion_elegida.connect(_on_opcion_contextual_elegida)
@@ -349,7 +350,12 @@ func _process(delta: float) -> void:
 		habilidades_nivel_dos.limpiar_agarre()
 	if is_instance_valid(boton_progresion):
 		boton_progresion.text = "Nivel 2 · Elegir recompensa [P]" if ficha_jugador != null and ficha_jugador.nivel_recompensa_pendiente == 2 else "Progresión [P]"
-		boton_progresion.disabled = motivo_bloqueo_campamento() != &""
+		var bloqueo_progresion := motivo_bloqueo_campamento()
+		boton_progresion.disabled = bloqueo_progresion != &""
+		hud.indicador_progresion.tooltip_text = (
+			"Recompensa de nivel pendiente. Pulsa para elegir [P]." if bloqueo_progresion == &"" else
+			"Recompensa de nivel pendiente. Podrás elegir cuando termine el combate o la interacción."
+		)
 	if is_instance_valid(boton_campamento):
 		var motivo_campamento := motivo_bloqueo_campamento()
 		boton_campamento.disabled = motivo_campamento != &""
@@ -991,8 +997,11 @@ func obtener_id_zona() -> StringName:
 
 
 func _crear_acceso_progresion() -> void:
-	panel_progresion = preload("res://scenes/ui/personajes/panel_progresion.gd").new()
-	add_child(panel_progresion)
+	panel_progresion = preload("res://scenes/ui/personajes/panel_progresion.tscn").instantiate()
+	var capa_progresion := CanvasLayer.new()
+	capa_progresion.layer = 2
+	add_child(capa_progresion)
+	capa_progresion.add_child(panel_progresion)
 	panel_progresion.visibility_changed.connect(_actualizar_estado_modal_interaccion)
 	panel_progresion.recompensa_elegida.connect(_aprender_recompensa)
 	boton_progresion = Button.new()
@@ -1022,8 +1031,8 @@ func abrir_progresion() -> StringName:
 		for id in ficha_jugador.activas_aprendidas + ficha_jugador.pasivas_aprendidas:
 			var opcion := CatalogoHabilidades.obtener(id)
 			resumen += "%s · %s\n%s\n%s\n" % [opcion["nombre"], opcion["tipo"], opcion["descripcion"], opcion["coste"]]
-		resumen += "\nConservas tu habilidad inicial. El corte actual llega al nivel 2; la XP sobrante se guarda."
-	panel_progresion.mostrar(ficha_jugador.nivel, opciones, resumen)
+		resumen += "\nConservas tu habilidad inicial y la experiencia acumulada."
+	panel_progresion.mostrar(ficha_jugador.nivel, opciones, resumen, ficha_jugador.clase)
 	_actualizar_estado_modal_interaccion()
 	return &""
 
@@ -1032,6 +1041,8 @@ func _aprender_recompensa(id: String) -> void:
 	panel_progresion.hide()
 	_actualizar_estado_modal_interaccion()
 	if motivo_bloqueo_campamento() != &"" or not ficha_jugador.aprender_recompensa(id):
+		panel_progresion.mostrar_error("No se pudo aprender esta recompensa. Espera a que termine la acción e inténtalo de nuevo.")
+		_actualizar_estado_modal_interaccion()
 		return
 	hud.actualizar_desde_ficha()
 	habilidades_nivel_dos.registrar("Recompensa aprendida", CatalogoHabilidades.obtener(id)["nombre"] + ". Conservas tu habilidad inicial. Consulta la ranura 2.")
@@ -4482,7 +4493,7 @@ func _cancelar_lanzamiento() -> void:
 
 
 func _actualizar_estado_modal_interaccion() -> void:
-	var siguiente := (
+	var siguiente: bool = (
 		lanzamiento_en_vuelo
 		or (habilidades_nivel_dos != null and habilidades_nivel_dos.empuje_pendiente != null)
 		or (is_instance_valid(panel_progresion) and panel_progresion.visible)

@@ -121,14 +121,20 @@ func _probar_elecciones() -> void:
 		comprobar(opciones.size() == 4 and opciones.filter(func(o): return o["tipo"] == "Activa").size() == 2, "Cada clase tiene dos activas y dos pasivas.")
 		for opcion in opciones:
 			preparar(clase)
+			var inicial: String = {"Guerrero": "ataque_doble", "Ladrón": "ocultarse", "Mago": "bola_de_fuego"}[clase]
+			comprobar((e.hud.habilidades[0].get_node("IconoHabilidad") as TextureRect).texture == CatalogoHabilidades.icono(inicial), "HUD muestra icono inicial de " + clase)
 			f.pv_actual -= 2
 			f.usos_ataque_doble = 0
 			comprobar(f.aprender_recompensa(opcion["id"]) and f.nivel_recompensa_pendiente == 0 and f.pv_actual == f.pv_max - 2 and f.usos_ataque_doble == 0, "Aprender una recompensa conserva vida y habilidad inicial gastada.")
+			e.hud.actualizar_desde_ficha()
+			comprobar((e.hud.habilidades[1].get_node("IconoHabilidad") as TextureRect).texture == CatalogoHabilidades.icono(opcion["id"]), "HUD muestra icono aprendido de " + opcion["id"])
 			comprobar(not f.aprender_recompensa(opciones[1]["id"]) and f.pasivas_aprendidas.size() + f.activas_aprendidas.size() == 1, "Solo se aprende una de las cuatro.")
 			var json: Dictionary = JSON.parse_string(JSON.stringify(f.obtener_estado_persistente()))
 			comprobar(f.restaurar_estado_persistente(json) == &"" and f.conoce_habilidad(opcion["id"]), "Aprendizaje sobrevive a JSON.")
 			if opcion["tipo"] == "Activa":
 				f.usos_activas[opcion["id"]] = 0
+				f.usos_habilidades_cambiados.emit()
+				comprobar((e.hud.habilidades[1].get_node("EstadoHabilidad") as Label).text == "0/1", "HUD muestra uso agotado de " + opcion["id"])
 				var gastado := f.obtener_estado_persistente()
 				comprobar(f.descansar_en_campamento() == &"" and f.usos_activas[opcion["id"]] == 1, "El descanso recupera el uso propio de " + opcion["id"])
 				comprobar(f.restaurar_estado_persistente(gastado) == &"" and f.usos_activas[opcion["id"]] == 0, "Cargar un uso agotado no lo repone.")
