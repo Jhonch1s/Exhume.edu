@@ -166,7 +166,7 @@ func generar_desde_zona(zona: Node2D) -> void:
 					datos[coord].bloquea_vision or celda_decoracion.bloquea_vision
 				)
 				# No degradamos una pared o columna si las capas se solapan.
-				if celda_decoracion.altura > datos[coord].altura:
+				if celda_decoracion.altura > datos[coord].altura or (celda_decoracion.familia_fog == &"jail" and datos[coord].familia_fog == &"terreno" and celda_decoracion.altura == datos[coord].altura):
 					datos[coord].altura = celda_decoracion.altura
 					datos[coord].zona = &"decoracion"
 					datos[coord].configurar_fog(
@@ -190,7 +190,7 @@ func generar_desde_zona(zona: Node2D) -> void:
 			datos[coord].bloquea_vision = (
 				datos[coord].bloquea_vision or celda_decoracion.bloquea_vision
 			)
-			if celda_decoracion.altura > datos[coord].altura:
+			if celda_decoracion.altura > datos[coord].altura or (celda_decoracion.familia_fog == &"jail" and datos[coord].familia_fog == &"terreno" and celda_decoracion.altura == datos[coord].altura):
 				datos[coord].altura = celda_decoracion.altura
 				datos[coord].zona = &"decoracion"
 				datos[coord].configurar_fog(
