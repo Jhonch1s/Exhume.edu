@@ -148,6 +148,7 @@ volume_db = -15.0
 script = ExtResource("7_t484h")
 
 [node name="KnightViewPort" type="SubViewportContainer" parent="." unique_id=2057824913]
+visible = false
 texture_filter = 1
 material = SubResource("ShaderMaterial_82ikr")
 offset_left = 586.0
@@ -160,7 +161,7 @@ transparent_bg = true
 handle_input_locally = false
 canvas_item_default_texture_filter = 0
 canvas_cull_mask = 4294966273
-render_target_update_mode = 4
+render_target_update_mode = 0
 
 [node name="caballeroModelov3" parent="KnightViewPort/KnightSubViewport" unique_id=1218895416 instance=ExtResource("25_r31vy")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0.017948031, 0.113290906, -0.04759127)
@@ -237,3 +238,6 @@ light_energy = 3.0
 
 [node name="ladronModelov3" parent="ThiefViewPort/ThiefSubViewport" unique_id=131273231 instance=ExtResource("30_s26ih")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 20, 0, 0)
+
+[node name="Timer1" type="Timer" parent="." unique_id=1770597026]
+wait_time = 2.0
