@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://cq6eyihgiwmey"]
 
 [ext_resource type="Script" uid="uid://csb3u3lb5s2oi" path="res://scenes/escenario_base/escenario_base.gd" id="1_3j2a0"]
-[ext_resource type="Script" path="res://scenes/escenario_base/capa_vision_npc.gd" id="1_vision_npc"]
-[ext_resource type="Script" path="res://scenes/escenario_base/camara_escenario.gd" id="1_camara"]
+[ext_resource type="Script" uid="uid://ca27pgns32dvx" path="res://scenes/escenario_base/camara_escenario.gd" id="1_camara"]
+[ext_resource type="Script" uid="uid://dm5s21vrbu8fi" path="res://scenes/escenario_base/capa_vision_npc.gd" id="1_vision_npc"]
 [ext_resource type="PackedScene" uid="uid://21yp2g6tjqu" path="res://scenes/Zona1/zona_1.tscn" id="2_3j2a0"]
 [ext_resource type="Texture2D" uid="uid://bj6drlln1vbvq" path="res://assets/tiles/indicators/path/path_isometric.png" id="2_85xdd"]
 [ext_resource type="TileSet" uid="uid://b514khvcqn1oi" path="res://assets/tile_sets/basics.tres" id="3_elvtm"]
@@ -18,15 +18,18 @@
 [ext_resource type="PackedScene" uid="uid://c87w474pswjrx" path="res://assets/characters/knight3d/ladronmodelo.glb" id="16_0resi"]
 [ext_resource type="PackedScene" uid="uid://cj6cokkjw74c" path="res://scenes/ui/hud/hud.tscn" id="17_hud"]
 [ext_resource type="PackedScene" path="res://scenes/ui/combate/panel_orden_combate.tscn" id="17_orden_combate"]
-[ext_resource type="PackedScene" path="res://scenes/ui/personajes/panel_info_npc.tscn" id="18_info_npc"]
-[ext_resource type="PackedScene" path="res://scenes/ui/personajes/panel_ficha_npc.tscn" id="18_ficha_npc"]
 [ext_resource type="Shader" uid="uid://b3gl1mjueaex2" path="res://assets/ui/shaders/quemado.gdshader" id="18_0q2qq"]
+[ext_resource type="PackedScene" path="res://scenes/ui/personajes/panel_ficha_npc.tscn" id="18_ficha_npc"]
+[ext_resource type="PackedScene" path="res://scenes/ui/personajes/panel_info_npc.tscn" id="18_info_npc"]
 [ext_resource type="PackedScene" uid="uid://demg1ffyhyixn" path="res://assets/characters/knight3d/cavallerov2.glb" id="19_82ikr"]
 [ext_resource type="Texture2D" uid="uid://e66ncuwpvtq4" path="res://assets/characters/player/dialogue/guerrero.png" id="19_dialogo_guerrero"]
 [ext_resource type="Texture2D" uid="uid://gequfsg3lbdd" path="res://assets/characters/player/dialogue/ladron.png" id="20_dialogo_ladron"]
 [ext_resource type="PackedScene" uid="uid://bppw0hq36w7qs" path="res://assets/characters/knight3d/magov2.glb" id="20_y446p"]
 [ext_resource type="Texture2D" uid="uid://fqjiksle3nk6" path="res://assets/characters/player/dialogue/mago.png" id="21_dialogo_mago"]
 [ext_resource type="PackedScene" uid="uid://c53k1y66e4vup" path="res://scenes/ui/inventario/panel_inventario_equipo.tscn" id="22_inventario_equipo"]
+[ext_resource type="PackedScene" uid="uid://cu305cglwgfw1" path="res://assets/characters/knight3d/caballeroModelov3.glb" id="25_r31vy"]
+[ext_resource type="PackedScene" uid="uid://bh6uoe00i64w2" path="res://assets/characters/knight3d/magoModelov3.glb" id="28_n44nr"]
+[ext_resource type="PackedScene" uid="uid://doxcfbamtycml" path="res://assets/characters/knight3d/ladronModelov3.glb" id="30_s26ih"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_m8dhx"]
 texture = ExtResource("2_85xdd")
@@ -79,7 +82,7 @@ tile_set = SubResource("TileSet_7kgjf")
 [node name="CapaSelector" type="TileMapLayer" parent="." unique_id=1500853187]
 tile_set = ExtResource("3_elvtm")
 
-[node name="CapaVisionNPC" type="Node2D" parent="."]
+[node name="CapaVisionNPC" type="Node2D" parent="." unique_id=991246797]
 visible = false
 z_index = 20
 script = ExtResource("1_vision_npc")
@@ -123,13 +126,13 @@ anchors_preset = 5
 
 [node name="PanelExamenIlustrado" parent="CanvasLayer" unique_id=1214408067 instance=ExtResource("13_panel_examen")]
 
-[node name="PanelFichaNPC" parent="CanvasLayer" instance=ExtResource("18_ficha_npc")]
+[node name="PanelFichaNPC" parent="CanvasLayer" unique_id=1473577920 instance=ExtResource("18_ficha_npc")]
 
 [node name="MenuContextualInteracciones" parent="CanvasLayer" unique_id=1288888575 instance=ExtResource("11_menu_contextual")]
 
 [node name="PanelInventarioCofre" parent="CanvasLayer" unique_id=131137301 instance=ExtResource("11_e1m65")]
 
-[node name="PanelInventarioEquipo" parent="CanvasLayer" instance=ExtResource("22_inventario_equipo")]
+[node name="PanelInventarioEquipo" parent="CanvasLayer" unique_id=1639755425 instance=ExtResource("22_inventario_equipo")]
 visible = false
 
 [node name="CanvasLayerModalDados" type="CanvasLayer" parent="." unique_id=246906314]
@@ -145,7 +148,6 @@ volume_db = -15.0
 script = ExtResource("7_t484h")
 
 [node name="KnightViewPort" type="SubViewportContainer" parent="." unique_id=2057824913]
-visible = false
 texture_filter = 1
 material = SubResource("ShaderMaterial_82ikr")
 offset_left = 586.0
@@ -156,25 +158,28 @@ offset_bottom = 348.0
 [node name="KnightSubViewport" type="SubViewport" parent="KnightViewPort" unique_id=1890890032]
 transparent_bg = true
 handle_input_locally = false
-own_world_3d = true
 canvas_item_default_texture_filter = 0
 canvas_cull_mask = 4294966273
-render_target_update_mode = 0
+render_target_update_mode = 4
+
+[node name="caballeroModelov3" parent="KnightViewPort/KnightSubViewport" unique_id=1218895416 instance=ExtResource("25_r31vy")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0.017948031, 0.113290906, -0.04759127)
 
 [node name="caballero20" parent="KnightViewPort/KnightSubViewport" unique_id=1421085748 instance=ExtResource("12_jpvkn")]
 visible = false
 
 [node name="Camera3D" type="Camera3D" parent="KnightViewPort/KnightSubViewport" unique_id=2136811322]
-transform = Transform3D(0.70710677, 0.49999997, -0.49999997, 0, 0.70710677, 0.70710677, 0.70710677, -0.49999997, 0.49999997, -10, 13.9, 10)
+transform = Transform3D(0.7071067, 0.49999997, -0.4999999, 0, 0.70710665, 0.70710677, 0.7071067, -0.49999997, 0.4999999, -10, 13.88, 10)
 projection = 1
-size = 1.4
+size = 1.6
 
 [node name="SpotLight3D" type="SpotLight3D" parent="KnightViewPort/KnightSubViewport" unique_id=449324514]
-transform = Transform3D(0.70710677, 0, -0.70710677, 0, 1, 0, 0.70710677, 0, 0.70710677, -3, 0, 3)
+transform = Transform3D(0.7071068, 0, -0.7071068, 0, 1, 0, 0.7071068, 0, 0.7071068, -3, 0, 3)
 light_energy = 3.0
 
 [node name="cavallerov2" parent="KnightViewPort/KnightSubViewport" unique_id=1960188895 instance=ExtResource("19_82ikr")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.017948031, 0.09725517, -0.04759127)
+visible = false
 
 [node name="WizardViewPort" type="SubViewportContainer" parent="." unique_id=709266984]
 visible = false
@@ -184,7 +189,6 @@ offset_bottom = 40.0
 [node name="WizardSubViewport" type="SubViewport" parent="WizardViewPort" unique_id=1179709218]
 transparent_bg = true
 handle_input_locally = false
-own_world_3d = true
 canvas_item_default_texture_filter = 0
 render_target_update_mode = 0
 
@@ -193,9 +197,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 0)
 visible = false
 
 [node name="Camera3D" type="Camera3D" parent="WizardViewPort/WizardSubViewport" unique_id=485581630]
-transform = Transform3D(0.70710677, 0.49999997, -0.49999997, 0, 0.70710677, 0.70710677, 0.70710677, -0.49999997, 0.49999997, 0, 14, 10)
+transform = Transform3D(0.70710677, 0.49999997, -0.49999997, 0, 0.70710677, 0.70710677, 0.70710677, -0.49999997, 0.49999997, 0, 13.94, 10)
 projection = 1
-size = 1.4
+size = 1.6
 
 [node name="SpotLight3D" type="SpotLight3D" parent="WizardViewPort/WizardSubViewport" unique_id=1805722019]
 transform = Transform3D(0.70710677, 0, -0.70710677, 0, 1, 0, 0.70710677, 0, 0.70710677, 7, 0, 3)
@@ -203,6 +207,10 @@ light_energy = 3.0
 
 [node name="magov2" parent="WizardViewPort/WizardSubViewport" unique_id=1969290634 instance=ExtResource("20_y446p")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.982945, 0.18243569, 0)
+visible = false
+
+[node name="magoModelov3" parent="WizardViewPort/WizardSubViewport" unique_id=749179992 instance=ExtResource("28_n44nr")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.981719, 0.18354726, 0)
 
 [node name="ThiefViewPort" type="SubViewportContainer" parent="." unique_id=2036329913]
 visible = false
@@ -212,16 +220,20 @@ offset_bottom = 40.0
 [node name="ThiefSubViewport" type="SubViewport" parent="ThiefViewPort" unique_id=1584483443]
 transparent_bg = true
 handle_input_locally = false
-own_world_3d = true
 render_target_update_mode = 0
 
 [node name="ladronmodelo" parent="ThiefViewPort/ThiefSubViewport" unique_id=1135471360 instance=ExtResource("16_0resi")]
 transform = Transform3D(1.1924881e-08, 0, -1, 0, 1, 0, 1, 0, 1.1924881e-08, 20, 0, 0)
+visible = false
 
 [node name="Camera3D" type="Camera3D" parent="ThiefViewPort/ThiefSubViewport" unique_id=1948029702]
 transform = Transform3D(0.70710677, 0.5, -0.49999994, 0, 0.7071067, 0.7071068, 0.70710677, -0.5, 0.49999994, 10, 13.9, 10)
 projection = 1
+size = 1.2
 
 [node name="SpotLight3D" type="SpotLight3D" parent="ThiefViewPort/ThiefSubViewport" unique_id=623331364]
 transform = Transform3D(0.70710677, 0, -0.70710677, 0, 1, 0, 0.70710677, 0, 0.70710677, 17, 0, 3)
 light_energy = 3.0
+
+[node name="ladronModelov3" parent="ThiefViewPort/ThiefSubViewport" unique_id=131273231 instance=ExtResource("30_s26ih")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 20, 0, 0)

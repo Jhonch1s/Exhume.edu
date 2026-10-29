@@ -39,17 +39,17 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 @onready var viewportKnight: SubViewportContainer = $KnightViewPort
 @onready var subviewportKnight: SubViewport = $KnightViewPort/KnightSubViewport
 @onready var camaraCaballero: Camera3D = $KnightViewPort/KnightSubViewport/Camera3D
-@onready var caballeroModelo: Node3D = $KnightViewPort/KnightSubViewport/cavallerov2
+@onready var caballeroModelo: Node3D = $KnightViewPort/KnightSubViewport/caballeroModelov3
 
 @onready var viewportWizar: SubViewportContainer = $WizardViewPort
 @onready var subviewportWizard: SubViewport = $WizardViewPort/WizardSubViewport
 @onready var camaraMago: Camera3D = $WizardViewPort/WizardSubViewport/Camera3D
-@onready var magoModelo:Node3D = $WizardViewPort/WizardSubViewport/magov2
+@onready var magoModelo:Node3D = $WizardViewPort/WizardSubViewport/magoModelov3
 
 @onready var viewportThief: SubViewportContainer = $ThiefViewPort
 @onready var subviewportThief: SubViewport = $ThiefViewPort/ThiefSubViewport
 @onready var camaraThief: Camera3D = $ThiefViewPort/ThiefSubViewport/Camera3D
-@onready var ladronModelo: Node3D = $ThiefViewPort/ThiefSubViewport/ladronmodelo
+@onready var ladronModelo: Node3D = $ThiefViewPort/ThiefSubViewport/ladronModelov3
 @onready var panel_inventario_cofre: PanelInventarioCofre = (
 	$CanvasLayer/PanelInventarioCofre
 )
@@ -1500,11 +1500,11 @@ func capturar_textura(angulo:float,jugador: String) -> ImageTexture:
 	var textura: ImageTexture
 	
 	if jugador == "Guerrero":
-		ficha_jugador.sprite_render.position = Vector2(0,-24)
+		ficha_jugador.sprite_render.position = Vector2(0,-20)
 		camaraCaballero.position = Vector3(-10,13.9,10) 
 		camaraCaballero.rotation.x = deg_to_rad(-45)
 		camaraCaballero.rotation.y = deg_to_rad(-45)
-		camaraCaballero.size = 1.5
+		camaraCaballero.size = 1.6
 		caballeroModelo.rotation.y = deg_to_rad(angulo)
 		await get_tree().process_frame
 		await get_tree().process_frame
@@ -1513,10 +1513,11 @@ func capturar_textura(angulo:float,jugador: String) -> ImageTexture:
 		
 	
 	if jugador == "Mago":
-		ficha_jugador.sprite_render.position = Vector2(0,-24)
-		camaraMago.position = Vector3(0,14,10)
+		ficha_jugador.sprite_render.position = Vector2(0,-20)
+		camaraMago.position = Vector3(0,13.9,10)
 		camaraMago.rotation.x = deg_to_rad(-45)
 		camaraMago.rotation.y = deg_to_rad(-45)
+		camaraMago.size = 1.6
 		magoModelo.rotation.y = deg_to_rad(angulo)
 		await get_tree().process_frame
 		await get_tree().process_frame
@@ -1525,13 +1526,14 @@ func capturar_textura(angulo:float,jugador: String) -> ImageTexture:
 		
 	
 	if jugador == "Ladrón":
-		ficha_jugador.sprite_render.position = Vector2(0,-16)
+		ficha_jugador.sprite_render.position = Vector2(0,-12)
+		camaraThief.size = 1.6
 		if angulo == 0:
 			camaraThief.position = Vector3(10,13.8,10)
 		if angulo == 90:
-			camaraThief.position = Vector3(10,14,10)
+			camaraThief.position = Vector3(10,13.9,10)
 		if angulo == 180:
-			camaraThief.position = Vector3(10,14,10)
+			camaraThief.position = Vector3(10,13.9,10)
 		if angulo == 270:
 			camaraThief.position = Vector3(10,13.9,10)
 		#camaraThief.position = Vector3(10,14,10)
