@@ -31,7 +31,7 @@ func _init() -> void:
 	assert(punto.obtener_coordenada(capa_suelo) == Vector2i(3, 2))
 	var decoracion_solida := zona.get_node("CapaDecoracionNoCaminable") as TileMapLayer
 	var decoracion_caminable := zona.get_node("CapaDecoracion") as TileMapLayer
-	assert(decoracion_solida.tile_set.get_source_count() == 3)
+	assert(decoracion_solida.tile_set.get_source_count() == 4)
 	assert(decoracion_caminable.tile_set.get_source_count() == 5)
 	var coord := Vector2i(3, 2)
 	capa_suelo.set_cell(coord, 0, Vector2i.ZERO)
@@ -54,7 +54,32 @@ func _init() -> void:
 	assert(descanso.has_node("Interactuables/FuentesLuz/FogataDescanso"))
 	assert((descanso.get_node("CapaDecoracion") as TileMapLayer).tile_set.resource_path == decoracion_caminable.tile_set.resource_path)
 	assert((descanso.get_node("CapaDecoracionNoCaminable") as TileMapLayer).tile_set.resource_path == decoracion_solida.tile_set.resource_path)
+	_comprobar_orden_superficies(zona)
+	_comprobar_orden_superficies(descanso)
+	for ruta in [
+		"res://scenes/Prision/prision.tscn",
+		"res://scenes/Zona1/zona_1.tscn",
+		"res://scenes/templo_de_las_trampas/TemploDeLasTrampas.tscn",
+		"res://scenes/pruebas_habilidades/zona_prueba_habilidades.tscn",
+	]:
+		var otra_zona := (load(ruta) as PackedScene).instantiate()
+		_comprobar_orden_superficies(otra_zona)
+		otra_zona.free()
 	descanso.queue_free()
 	zona.queue_free()
 	print("PlantillaZona: prueba correcta.")
 	quit()
+
+
+func _comprobar_orden_superficies(zona: Node) -> void:
+	var suelo := zona.get_node("CapaSuelo") as TileMapLayer
+	assert((zona.get_node("CapaAgua") as TileMapLayer).z_index < (zona.get_node("CapaLava") as TileMapLayer).z_index)
+	assert((zona.get_node("CapaLava") as TileMapLayer).z_index < suelo.z_index)
+	var pinchos := zona.get_node("CapaPinchos") as TileMapLayer
+	var paredes := zona.get_node("CapaParedes") as TileMapLayer
+	assert(pinchos.z_index == paredes.z_index and pinchos.y_sort_enabled and paredes.y_sort_enabled)
+	for nombre in ["CapaLodo", "CapaHielo", "CapaFuego", "CapaTelaraña"]:
+		var superficie := zona.get_node(nombre) as TileMapLayer
+		assert(superficie.z_index > suelo.z_index)
+		for obstaculo in ["CapaParedes", "CapaColumnas", "CapaDecoracionNoCaminable", "CapaOscuridad"]:
+			assert(superficie.z_index < (zona.get_node(obstaculo) as TileMapLayer).z_index)

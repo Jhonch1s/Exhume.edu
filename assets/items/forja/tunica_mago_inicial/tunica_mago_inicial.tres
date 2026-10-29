@@ -1,24 +1,25 @@
-[gd_resource type="Resource" script_class="DefinicionItem" format=3]
+[gd_resource type="Resource" script_class="DefinicionItem" format=3 uid="uid://dxokbjcab726q"]
 
-[ext_resource type="Script" path="res://scripts/interacciones/items/definicion_item.gd" id="definicion"]
-[ext_resource type="Texture2D" path="res://assets/items/forja/tunica_mago_inicial/icono.png" id="icono"]
+[ext_resource type="Script" uid="uid://brbgghxl8rc0q" path="res://scripts/interacciones/items/definicion_item.gd" id="definicion"]
+[ext_resource type="Texture2D" uid="uid://c0fkjh3cpwy0g" path="res://assets/items/forja/tunica_mago_inicial/icono.png" id="icono"]
+[ext_resource type="Texture2D" uid="uid://ca2n02mqa4oif" path="res://assets/items/forja/tunica_mago_inicial/ilustracion.png" id="ilustracion"]
 [ext_resource type="PackedScene" path="res://assets/items/forja/tunica_mago_inicial/suelo.tscn" id="mundo"]
-[ext_resource type="Texture2D" path="res://assets/items/forja/tunica_mago_inicial/ilustracion.png" id="ilustracion"]
-
 
 [resource]
 script = ExtResource("definicion")
 id_definicion = &"tunica_mago_inicial"
 nombre = "Túnica de tela"
-descripcion_base = "Capas de tela ceniza cosidas con símbolos tenues que sobreviven al desgaste."
 icono = ExtResource("icono")
 escena_mundo = ExtResource("mundo")
+descripcion_base = "Capas de tela ceniza cosidas con símbolos tenues que sobreviven al desgaste."
 ilustracion_examen = ExtResource("ilustracion")
 etiquetas = Array[StringName]([&"armadura"])
-clases_permitidas = Array[StringName]([&"Mago"])
-efectos_equipo = Array[Dictionary]([{"tipo": "atributo", "atributo": "voluntad", "valor": 1}])
 magnitudes = Dictionary[StringName, float]({
 &"peso": 0.5
 })
-apilable = false
-cantidad_maxima = 1
+efectos_equipo = Array[Dictionary]([{
+"atributo": "voluntad",
+"tipo": "atributo",
+"valor": 1
+}])
+clases_permitidas = Array[StringName]([&"Mago"])

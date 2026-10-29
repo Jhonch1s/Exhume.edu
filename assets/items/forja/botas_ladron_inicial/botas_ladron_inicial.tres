@@ -1,24 +1,25 @@
-[gd_resource type="Resource" script_class="DefinicionItem" format=3]
+[gd_resource type="Resource" script_class="DefinicionItem" format=3 uid="uid://dd6tqo4esthad"]
 
-[ext_resource type="Script" path="res://scripts/interacciones/items/definicion_item.gd" id="definicion"]
-[ext_resource type="Texture2D" path="res://assets/items/forja/botas_ladron_inicial/icono.png" id="icono"]
+[ext_resource type="Script" uid="uid://brbgghxl8rc0q" path="res://scripts/interacciones/items/definicion_item.gd" id="definicion"]
+[ext_resource type="Texture2D" uid="uid://ctw32b6rpofpd" path="res://assets/items/forja/botas_ladron_inicial/icono.png" id="icono"]
+[ext_resource type="Texture2D" uid="uid://d3nu88gd538au" path="res://assets/items/forja/botas_ladron_inicial/ilustracion.png" id="ilustracion"]
 [ext_resource type="PackedScene" path="res://assets/items/forja/botas_ladron_inicial/suelo.tscn" id="mundo"]
-[ext_resource type="Texture2D" path="res://assets/items/forja/botas_ladron_inicial/ilustracion.png" id="ilustracion"]
-
 
 [resource]
 script = ExtResource("definicion")
 id_definicion = &"botas_ladron_inicial"
 nombre = "Botas de cuero"
-descripcion_base = "Cuero flexible de suela gastada, cómodo para avanzar sin anunciar cada paso."
 icono = ExtResource("icono")
 escena_mundo = ExtResource("mundo")
+descripcion_base = "Cuero flexible de suela gastada, cómodo para avanzar sin anunciar cada paso."
 ilustracion_examen = ExtResource("ilustracion")
 etiquetas = Array[StringName]([&"botas"])
-clases_permitidas = Array[StringName]([&"Ladrón"])
-efectos_equipo = Array[Dictionary]([{"tipo": "atributo", "atributo": "destreza", "valor": 1}])
 magnitudes = Dictionary[StringName, float]({
 &"peso": 0.5
 })
-apilable = false
-cantidad_maxima = 1
+efectos_equipo = Array[Dictionary]([{
+"atributo": "destreza",
+"tipo": "atributo",
+"valor": 1
+}])
+clases_permitidas = Array[StringName]([&"Ladrón"])

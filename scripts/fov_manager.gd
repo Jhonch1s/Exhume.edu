@@ -4,6 +4,7 @@ class_name FOVManager
 const ALCANCE_PERCEPCION_ILUMINADA := 7
 
 var capa_oscuridad: TileMapLayer
+var _capa_rejas: TileMapLayer
 var datos_tablero: Dictionary
 var celdas_visibles_actuales: Array[Vector2i] = []
 var tablero: TableroGrid
@@ -26,6 +27,7 @@ const FUENTES_FOG_EXPLORADO := {
 	&"estalagmita": 6,
 	&"roca": 14,
 	&"ruina": 16,
+	&"reja": 18,
 	&"luz": 8,
 }
 
@@ -38,10 +40,18 @@ const FUENTES_FOG_OCULTO := {
 	&"estalagmita": 7,
 	&"roca": 15,
 	&"ruina": 17,
+	&"reja": 19,
 	&"luz": 9,
 }
 
 func inicializar(_capa: TileMapLayer, origen_datos: Variant) -> void:
+	if is_instance_valid(_capa_rejas):
+		if _capa_rejas.get_parent() == _capa:
+			_capa_rejas.clear()
+			_capa_rejas.tile_set = _capa.tile_set
+		else:
+			_capa_rejas.queue_free()
+			_capa_rejas = null
 	capa_oscuridad = _capa
 	celdas_visibles_actuales.clear()
 	iluminacion_actual.clear()
@@ -262,6 +272,8 @@ func _tiene_linea_visual_jugador(destino: Vector2i) -> bool:
 
 func _revelar_celda(coord: Vector2i) -> void:
 	capa_oscuridad.erase_cell(coord)
+	if is_instance_valid(_capa_rejas):
+		_capa_rejas.erase_cell(coord)
 	if not coord in celdas_visibles_actuales:
 		celdas_visibles_actuales.append(coord)
 	if datos_tablero.has(coord):
@@ -279,8 +291,26 @@ func _oscurecer_celda(coord: Vector2i, estado: int) -> void:
 
 	var familia := celda.familia_fog
 	var coordenada_fog := celda.coordenada_fog
+	if familia == &"reja":
+		_asegurar_capa_rejas()
+		_capa_rejas.set_cell(coord, fuentes[&"reja"], coordenada_fog)
+		capa_oscuridad.set_cell(coord, fuentes[&"terreno"], Vector2i.ZERO)
+		return
+	elif is_instance_valid(_capa_rejas):
+		_capa_rejas.erase_cell(coord)
 	var source_id: int = fuentes.get(familia, fuentes[&"terreno"])
 	capa_oscuridad.set_cell(coord, source_id, coordenada_fog)
+
+
+func _asegurar_capa_rejas() -> void:
+	if is_instance_valid(_capa_rejas):
+		return
+	# Las máscaras cubren solo los barrotes; el suelo conserva su niebla normal.
+	_capa_rejas = TileMapLayer.new()
+	_capa_rejas.name = "NieblaRejas"
+	_capa_rejas.tile_set = capa_oscuridad.tile_set
+	_capa_rejas.z_index = 1
+	capa_oscuridad.add_child(_capa_rejas)
 
 func _actualizar_presentacion_interactuables() -> void:
 	if tablero == null:
