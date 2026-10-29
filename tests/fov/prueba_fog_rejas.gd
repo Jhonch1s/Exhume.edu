@@ -34,7 +34,7 @@ func _ejecutar() -> void:
 	var fov := FOVManager.new()
 	fov.inicializar(oscuridad, tablero)
 	var niebla_rejas := oscuridad.get_node_or_null("NieblaRejas") as TileMapLayer
-	_comprobar(niebla_rejas != null and niebla_rejas.z_index == 1, "La máscara de los barrotes se dibuja encima de la niebla del suelo.")
+	_comprobar(niebla_rejas != null and niebla_rejas.z_index == 0 and niebla_rejas.y_sort_enabled, "La máscara de los barrotes respeta el orden de profundidad de las paredes.")
 	for y in range(4):
 		for x in range(2):
 			var coord := Vector2i(x, y)

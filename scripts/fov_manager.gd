@@ -28,6 +28,7 @@ const FUENTES_FOG_EXPLORADO := {
 	&"roca": 14,
 	&"ruina": 16,
 	&"reja": 18,
+	&"jail": 20,
 	&"luz": 8,
 }
 
@@ -41,6 +42,7 @@ const FUENTES_FOG_OCULTO := {
 	&"roca": 15,
 	&"ruina": 17,
 	&"reja": 19,
+	&"jail": 21,
 	&"luz": 9,
 }
 
@@ -291,9 +293,9 @@ func _oscurecer_celda(coord: Vector2i, estado: int) -> void:
 
 	var familia := celda.familia_fog
 	var coordenada_fog := celda.coordenada_fog
-	if familia == &"reja":
+	if familia == &"reja" or familia == &"jail":
 		_asegurar_capa_rejas()
-		_capa_rejas.set_cell(coord, fuentes[&"reja"], coordenada_fog)
+		_capa_rejas.set_cell(coord, fuentes[familia], coordenada_fog)
 		capa_oscuridad.set_cell(coord, fuentes[&"terreno"], Vector2i.ZERO)
 		return
 	elif is_instance_valid(_capa_rejas):
@@ -309,7 +311,7 @@ func _asegurar_capa_rejas() -> void:
 	_capa_rejas = TileMapLayer.new()
 	_capa_rejas.name = "NieblaRejas"
 	_capa_rejas.tile_set = capa_oscuridad.tile_set
-	_capa_rejas.z_index = 1
+	_capa_rejas.y_sort_enabled = true
 	capa_oscuridad.add_child(_capa_rejas)
 
 func _actualizar_presentacion_interactuables() -> void:
