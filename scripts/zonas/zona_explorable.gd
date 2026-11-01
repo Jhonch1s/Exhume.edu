@@ -28,11 +28,15 @@ func _al_agregar_nodo_en_editor(nodo: Node) -> void:
 
 
 func _asignar_id_en_editor(nodo: Interactuable) -> void:
-	if not is_instance_valid(nodo) or nodo.owner != self or EditorInterface.get_edited_scene_root() != self:
+	if not Engine.is_editor_hint() or not is_instance_valid(nodo) or nodo.owner != self:
+		return
+	# EditorInterface no existe en las plantillas de exportación.
+	var editor = Engine.get_singleton(&"EditorInterface")
+	if editor.get_edited_scene_root() != self:
 		return
 	if _asignar_id_nuevo(nodo):
 		nodo.notify_property_list_changed()
-		EditorInterface.mark_scene_as_unsaved()
+		editor.mark_scene_as_unsaved()
 
 
 func _asignar_id_nuevo(nodo: Interactuable) -> bool:

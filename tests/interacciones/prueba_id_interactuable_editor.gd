@@ -23,6 +23,9 @@ func _init() -> void:
 	assert(nuevo.id_instancia == &"interactuable_001")
 	for nodo in [primero, segundo, duplicado, nuevo]:
 		nodo.owner = zona
+	# Fuera del editor, este callback no debe consultar EditorInterface ni cambiar IDs.
+	zona._asignar_id_en_editor(duplicado)
+	assert(duplicado.id_instancia == &"antorcha_013")
 	var escena := PackedScene.new()
 	assert(escena.pack(zona) == OK)
 	var restaurada := escena.instantiate()
