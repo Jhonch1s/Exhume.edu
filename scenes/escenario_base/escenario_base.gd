@@ -1564,8 +1564,8 @@ func spawnear_ficha_inicial(id_spawn: StringName = &"entrada") -> void:
 	subviewportWizard.set_update_mode(SubViewport.UPDATE_ALWAYS)
 	subviewportThief.set_update_mode(SubViewport.UPDATE_ALWAYS)
 
-	ficha_jugador.texturas_por_direccion[0]   = await capturar_textura(90,nombreClase)   # Mirando al frente (o derecha)
-	ficha_jugador.texturas_por_direccion[90]  = await capturar_textura(0,nombreClase)  # Mirando hacia abajo (si usas Y como eje vertical)
+	ficha_jugador.texturas_por_direccion[0]   = await capturar_textura(90,nombreClase)   # Mirando al frente 
+	ficha_jugador.texturas_por_direccion[90]  = await capturar_textura(0,nombreClase)  # Mirando hacia abajo 
 	ficha_jugador.texturas_por_direccion[180] = await capturar_textura(270,nombreClase) # Mirando hacia atrás
 	ficha_jugador.texturas_por_direccion[270] = await capturar_textura(180,nombreClase) # Mirando hacia arriba
 	ficha_jugador.sprite_render.texture = ficha_jugador.texturas_por_direccion[0]

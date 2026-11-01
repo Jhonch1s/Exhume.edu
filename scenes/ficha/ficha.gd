@@ -7,7 +7,7 @@ var sprite_render: Sprite2D = null
 var particulasDanio: CPUParticles2D = CPUParticles2D.new()
 var particulasVeneno: CPUParticles2D = CPUParticles2D.new()
 
-
+@onready var timer: Timer
 
 const TEXTURA_FICHAS_CLASE = preload(
 	"res://assets/characters/player/class_tokens/sprites/player_class_tokens_isometric.png"
@@ -152,6 +152,7 @@ func _init() -> void:
 	estados_temporales.estado_cambiado.connect(_on_estado_temporal_cambiado)
 	equipo.propietario = self
 	equipo.cambiado.connect(_on_equipo_cambiado)
+	
 
 
 func obtener_equipo() -> EquipoActor:
@@ -180,6 +181,7 @@ func _actualizar_visual_sigilo() -> void:
 func _actualizar_efectos_estado() -> void:
 	if not is_instance_valid(sprite_render):
 		return
+	
 	var envenenado := obtener_estado(&"veneno") != null
 	var quemado := obtener_estado(&"quemado") != null
 	particulasVeneno.emitting = envenenado
@@ -192,6 +194,17 @@ func _actualizar_efectos_estado() -> void:
 	elif not quemado and is_instance_valid(particulaFuegoInstancia):
 		particulaFuegoInstancia.queue_free()
 		particulaFuegoInstancia = null
+	
+func on_timer_timeout() -> void:
+	var envenenado := obtener_estado(&"veneno") != null
+	var quemado := obtener_estado(&"quemado") != null
+	if (envenenado && quemado):
+		print("Cambio de shader")
+		if (sprite_render.material == shaderMatQ):
+			sprite_render.material = shaderMat
+		else:
+			sprite_render.material = shaderMatQ
+	
 
 
 func obtener_id_observador() -> StringName:
@@ -812,11 +825,19 @@ func _ready() -> void:
 	_setear_atributos_particula_veneno()
 	shaderMat.shader = shaderVeneno;
 	shaderMatQ.shader = shaderQuemado;
-
-
+	
+	timer = Timer.new()
+	timer.wait_time = 2.0
+	
+	get_tree().current_scene.add_child(timer)
+	
+	timer.timeout.connect(on_timer_timeout)
+	#await timer.ready
+	timer.start()
 
 	#_aplicar_visual_clase()
 	iniciar_turno()
+
 
 
 func configurar_creacion(datos: Dictionary) -> bool:
