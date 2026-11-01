@@ -1,0 +1,42 @@
+[gd_resource type="Resource" script_class="DefinicionFuenteLuz" format=3 uid="uid://b3v8ajusmade3"]
+
+[ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="1_74xni"]
+[ext_resource type="Script" uid="uid://bccqt6gfe8843" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="2_e4xbm"]
+[ext_resource type="Script" uid="uid://cyergln3tfhfs" path="res://scripts/interacciones/interactuables/fuentes_luz/definicion_fuente_luz.gd" id="3_p3am2"]
+[ext_resource type="AudioStream" uid="uid://bgigaywlt6td4" path="res://assets/sonidos/fuego/SmallFire1.wav" id="4_8vqd7"]
+[ext_resource type="AudioStream" uid="uid://du3pwabgs4h5" path="res://assets/sonidos/fuego/apagar fuego.wav" id="5_dx161"]
+[ext_resource type="AudioStream" uid="uid://bkujengynsmy1" path="res://assets/sonidos/fuego/encender fuego fosforo.wav" id="6_ifmao"]
+[ext_resource type="Texture2D" uid="uid://boa23or7m4sb" path="res://assets/tiles/lighting/sources/canldes.png" id="7_nbdqk"]
+
+[sub_resource type="Resource" id="Resource_d6r6n"]
+script = ExtResource("1_74xni")
+id_fragmento = &"identidad"
+nivel = 1
+id_mensaje = &"examen.prision.velas.encendidas"
+
+[sub_resource type="Resource" id="Resource_kpfnd"]
+script = ExtResource("2_e4xbm")
+alcance_secreto = 0.0
+
+[resource]
+script = ExtResource("3_p3am2")
+radio_luz = 1
+radio_penumbra = 2
+altura = 1
+permite_caminar = false
+textura = ExtResource("7_nbdqk")
+region_encendida = Rect2(64, 32, 64, 42)
+region_apagada = Rect2(64, 0, 64, 32)
+desplazamiento_sprite = Vector2(0, 0)
+mensaje_basico_encendida = &"examen.prision.velas.encendidas"
+mensaje_basico_apagada = &"examen.prision.velas.apagadas"
+sonido_ambiente = ExtResource("4_8vqd7")
+sonido_encender = ExtResource("6_ifmao")
+sonido_apagar = ExtResource("5_dx161")
+id_definicion = &"prision_vela_02"
+nombre = "Velas"
+descripcion_base = "Velas consumidas por el uso, entre restos de cera endurecida."
+etiquetas = Array[StringName]([&"fuego", &"calor", &"fuente_luz"])
+fragmentos_informacion = Array[ExtResource("1_74xni")]([SubResource("Resource_d6r6n")])
+perfil_observacion = SubResource("Resource_kpfnd")
+metadata/_custom_type_script = "uid://cyergln3tfhfs"

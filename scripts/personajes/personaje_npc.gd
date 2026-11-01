@@ -97,6 +97,7 @@ var material_quemado: ShaderMaterial
 
 
 func _ready() -> void:
+	set_process(Engine.is_editor_hint())
 	if definicion is DefinicionPersonaje:
 		var perfil := definicion as DefinicionPersonaje
 		_actualizar_representacion(true)
@@ -109,6 +110,11 @@ func _ready() -> void:
 		_inicializar_audio_npc()
 		if not coordenada_cambiada.is_connected(_on_coordenada_cambiada):
 			coordenada_cambiada.connect(_on_coordenada_cambiada)
+
+
+func _process(_delta: float) -> void:
+	if Engine.is_editor_hint() and ajustar_a_celda_en_editor:
+		_ajustar_al_centro_celda()
 
 
 func _actualizar_representacion(inicializar: bool = false) -> void:
