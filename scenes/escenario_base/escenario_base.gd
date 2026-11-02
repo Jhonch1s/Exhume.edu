@@ -441,7 +441,7 @@ func _process(delta: float) -> void:
 		)
 		if en_combate:
 			camino_actual_tentativo = _limitar_camino_jugador(camino_actual_tentativo)
-		pathfinding.dibujar_trayectoria(camino_actual_tentativo, capa_camino)
+		pathfinding.dibujar_trayectoria(camino_actual_tentativo, capa_camino, coord_actual)
 	else:
 		camino_actual_tentativo.clear()
 		capa_camino.clear()

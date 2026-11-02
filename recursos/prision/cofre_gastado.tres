@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="DefinicionCofre" format=3 uid="uid://bilwkw1yllj3b"]
+
+[ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="1_b35ss"]
+[ext_resource type="Texture2D" uid="uid://bxy6yas5mdp7p" path="res://assets/ui/inventario/cofre_pequeno.png" id="2_isops"]
+[ext_resource type="Script" uid="uid://bccqt6gfe8843" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="3_gujtq"]
+[ext_resource type="Script" uid="uid://dwci6j0s5rkmx" path="res://scripts/interacciones/interactuables/cofres/definicion_cofre.gd" id="4_ho0fc"]
+
+[sub_resource type="Resource" id="Resource_qeo0i"]
+script = ExtResource("1_b35ss")
+id_fragmento = &"descripcion"
+nivel = 1
+id_mensaje = &"examen.prision.cofre.basico"
+
+[sub_resource type="Resource" id="Resource_dx250"]
+script = ExtResource("1_b35ss")
+id_fragmento = &"desgaste"
+nivel = 2
+id_mensaje = &"examen.prision.cofre.detalle"
+
+[sub_resource type="Resource" id="Resource_ip00n"]
+script = ExtResource("3_gujtq")
+alcance_basico = 2.0
+alcance_secreto = 0.0
+
+[resource]
+script = ExtResource("4_ho0fc")
+imagen_interfaz = ExtResource("2_isops")
+id_definicion = &"prision_cofre_gastado"
+nombre = "Cofre gastado"
+descripcion_base = "Un cofre bajo, de tablas oscuras y herrajes oxidados. La tapa conserva manchas que el tiempo ha vuelto indistinguibles."
+fragmentos_informacion = Array[ExtResource("1_b35ss")]([SubResource("Resource_qeo0i"), SubResource("Resource_dx250")])
+perfil_observacion = SubResource("Resource_ip00n")
+metadata/_custom_type_script = "uid://dwci6j0s5rkmx"

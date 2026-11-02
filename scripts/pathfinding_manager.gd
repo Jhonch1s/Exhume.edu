@@ -96,7 +96,7 @@ func _calcular_camino(
 	
 	return camino
 
-func dibujar_trayectoria (camino: Array[Vector2i], capa_camino:TileMapLayer)-> void:
+func dibujar_trayectoria (camino: Array[Vector2i], capa_camino:TileMapLayer, objetivo: Vector2i)-> void:
 	capa_camino.clear()
 	
 	if camino.size() < 2:
@@ -114,8 +114,10 @@ func dibujar_trayectoria (camino: Array[Vector2i], capa_camino:TileMapLayer)-> v
 		
 		##es la unica celda: dibujamos la flecha de destino
 		if i == camino.size() -1:
-			var tile_flecha = _obtener_tile_flecha(direccion_entrada)
-			capa_camino.set_cell(actual, 0, tile_flecha)
+			if actual == objetivo:
+				capa_camino.set_cell(actual, 0, Vector2i(2, 3))
+			else:
+				capa_camino.set_cell(actual, 0, _obtener_tile_flecha(direccion_entrada))
 		else: ##celdas intermedias, se dibua o una linea o una esquina
 			var siguiente=camino[i+1]
 			var direccion_salida = siguiente - actual

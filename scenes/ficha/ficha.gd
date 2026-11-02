@@ -829,7 +829,7 @@ func _ready() -> void:
 	timer = Timer.new()
 	timer.wait_time = 2.0
 	
-	get_tree().current_scene.add_child(timer)
+	add_child(timer)
 	
 	timer.timeout.connect(on_timer_timeout)
 	#await timer.ready

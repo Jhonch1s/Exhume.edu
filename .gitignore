@@ -9,6 +9,7 @@ docs/.obsidian/
 
 # Salidas temporales de herramientas y pruebas
 /tmp/
+/build/
 *.log
 
 # Copias de recarga de GDExtension; se conserva la biblioteca original
