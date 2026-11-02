@@ -1,0 +1,246 @@
+[gd_scene format=3 uid="uid://ilbmvlwd0kvc"]
+
+[ext_resource type="Script" uid="uid://bxfqregrm8j2d" path="res://scenes/menu/menu_pausa.gd" id="1_aloda"]
+[ext_resource type="Texture2D" uid="uid://cnw2bfdtqtu4t" path="res://assets/ui/panels/main_menu/hanging_menu/chains/chain_vertical.png" id="2_ymfi8"]
+[ext_resource type="Texture2D" uid="uid://bpwo8atgtsc2u" path="res://assets/ui/panels/main_menu/hanging_menu/logo_sign/logo_sign_exhume.png" id="3_h54ym"]
+[ext_resource type="PackedScene" uid="uid://ys4chspcvcg0" path="res://scenes/menu/componentes/tabla_menu_opcion.tscn" id="4_gwi2u"]
+[ext_resource type="PackedScene" uid="uid://7ayd71c8ghrr" path="res://scenes/menu/opciones_partida.tscn" id="5_u41pk"]
+
+[node name="MenuPausaCore" type="Control" unique_id=1646389350]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_aloda")
+
+[node name="MenuPausa" type="Control" parent="." unique_id=2020986684]
+layout_mode = 1
+anchor_right = 0.99600005
+anchor_bottom = 0.99300003
+offset_right = 7.6799316
+offset_bottom = 7.5599365
+
+[node name="RigColgante" type="Control" parent="MenuPausa" unique_id=1743446052]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 640.0
+offset_top = 128.0
+offset_right = -704.0
+offset_bottom = -248.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Cadenas" type="Control" parent="MenuPausa/RigColgante" unique_id=384815961]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 95.99999
+offset_top = -112.0
+offset_right = 96.0
+offset_bottom = -112.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.75999755, 0.8400003)
+mouse_filter = 2
+
+[node name="CadenaSuperiorIzquierda" type="TextureRect" parent="MenuPausa/RigColgante/Cadenas" unique_id=2057813099]
+layout_mode = 0
+offset_left = 155.0
+offset_top = -30.0
+offset_right = 185.0
+offset_bottom = 90.0
+mouse_filter = 2
+texture = ExtResource("2_ymfi8")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CadenaLogoNuevaIzquierda" type="TextureRect" parent="MenuPausa/RigColgante/Cadenas" unique_id=782571183]
+layout_mode = 0
+offset_left = 155.0
+offset_top = 210.0
+offset_right = 185.0
+offset_bottom = 330.0
+mouse_filter = 2
+texture = ExtResource("2_ymfi8")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CadenaNuevaContinuarIzquierda" type="TextureRect" parent="MenuPausa/RigColgante/Cadenas" unique_id=355065694]
+layout_mode = 0
+offset_left = 155.0
+offset_top = 360.0
+offset_right = 185.0
+offset_bottom = 480.0
+mouse_filter = 2
+texture = ExtResource("2_ymfi8")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CadenaContinuarOpcionesIzquierda" type="TextureRect" parent="MenuPausa/RigColgante/Cadenas" unique_id=510341931]
+layout_mode = 0
+offset_left = 155.0
+offset_top = 510.0
+offset_right = 185.0
+offset_bottom = 630.0
+mouse_filter = 2
+texture = ExtResource("2_ymfi8")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CadenaSuperiorDerecha" type="TextureRect" parent="MenuPausa/RigColgante/Cadenas" unique_id=1680001878]
+layout_mode = 0
+offset_left = 435.0
+offset_top = -30.0
+offset_right = 465.0
+offset_bottom = 90.0
+mouse_filter = 2
+texture = ExtResource("2_ymfi8")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CadenaLogoNuevaDerecha" type="TextureRect" parent="MenuPausa/RigColgante/Cadenas" unique_id=1765236085]
+layout_mode = 0
+offset_left = 435.0
+offset_top = 210.0
+offset_right = 465.0
+offset_bottom = 330.0
+mouse_filter = 2
+texture = ExtResource("2_ymfi8")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CadenaNuevaContinuarDerecha" type="TextureRect" parent="MenuPausa/RigColgante/Cadenas" unique_id=2001617273]
+layout_mode = 0
+offset_left = 435.0
+offset_top = 360.0
+offset_right = 465.0
+offset_bottom = 480.0
+mouse_filter = 2
+texture = ExtResource("2_ymfi8")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CadenaContinuarOpcionesDerecha" type="TextureRect" parent="MenuPausa/RigColgante/Cadenas" unique_id=668061565]
+layout_mode = 0
+offset_left = 435.0
+offset_top = 510.0
+offset_right = 465.0
+offset_bottom = 630.0
+mouse_filter = 2
+texture = ExtResource("2_ymfi8")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ColaIzquierdaRig" type="Control" parent="MenuPausa/RigColgante/Cadenas" unique_id=1376140835]
+anchors_preset = 0
+offset_left = 155.0
+offset_top = 810.0
+offset_right = 185.0
+offset_bottom = 930.0
+pivot_offset = Vector2(15, 0)
+mouse_filter = 2
+
+[node name="Tramo" type="TextureRect" parent="MenuPausa/RigColgante/Cadenas/ColaIzquierdaRig" unique_id=1244139245]
+layout_mode = 0
+offset_left = -3.0
+offset_top = -146.0
+offset_right = 27.0
+offset_bottom = -26.0
+mouse_filter = 2
+texture = ExtResource("2_ymfi8")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ColaDerechaRig" type="Control" parent="MenuPausa/RigColgante/Cadenas" unique_id=1054890898]
+anchors_preset = 0
+offset_left = 435.0
+offset_top = 810.0
+offset_right = 465.0
+offset_bottom = 1020.0
+pivot_offset = Vector2(15, 0)
+mouse_filter = 2
+
+[node name="TramoSuperior" type="TextureRect" parent="MenuPausa/RigColgante/Cadenas/ColaDerechaRig" unique_id=1639477435]
+layout_mode = 0
+offset_left = -3.0
+offset_top = -138.0
+offset_right = 27.0
+offset_bottom = -18.0
+mouse_filter = 2
+texture = ExtResource("2_ymfi8")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TramoInferior" type="TextureRect" parent="MenuPausa/RigColgante/Cadenas/ColaDerechaRig" unique_id=1577651299]
+layout_mode = 0
+offset_left = -3.0
+offset_top = -34.0
+offset_right = 27.0
+offset_bottom = 86.0
+mouse_filter = 2
+texture = ExtResource("2_ymfi8")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Carteles" type="Control" parent="MenuPausa/RigColgante" unique_id=999644348]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 95.99999
+offset_top = -136.0
+offset_right = 96.0
+offset_bottom = -272.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.75999755, 0.8400003)
+mouse_filter = 2
+
+[node name="CartelLogo" type="TextureRect" parent="MenuPausa/RigColgante/Carteles" unique_id=921541941]
+layout_mode = 0
+offset_left = 50.0
+offset_top = 70.0
+offset_right = 570.0
+offset_bottom = 245.0
+mouse_filter = 2
+texture = ExtResource("3_h54ym")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Resumir" parent="MenuPausa/RigColgante/Carteles" unique_id=252711353 instance=ExtResource("4_gwi2u")]
+layout_mode = 0
+offset_left = 70.0
+offset_top = 280.0
+offset_right = 550.0
+offset_bottom = 400.0
+rotation = 0.036651913
+texto = "RESUMIR"
+
+[node name="Opciones" parent="MenuPausa/RigColgante/Carteles" unique_id=431927581 instance=ExtResource("4_gwi2u")]
+layout_mode = 0
+offset_left = 70.0
+offset_top = 430.0
+offset_right = 550.0
+offset_bottom = 550.0
+rotation = -0.017453292
+texto = "OPCIONES"
+
+[node name="Salir" parent="MenuPausa/RigColgante/Carteles" unique_id=766665068 instance=ExtResource("4_gwi2u")]
+layout_mode = 0
+offset_left = 72.0
+offset_top = 600.00006
+offset_right = 552.0
+offset_bottom = 720.00006
+rotation = 0.02617994
+texto = "SALIR"
+
+[node name="OpcionesPartida" parent="." unique_id=460865988 instance=ExtResource("5_u41pk")]
+visible = false
+layout_mode = 1
