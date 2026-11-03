@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=18
+type="Resource"
+uid="uid://6ekjet1jvw3i"
+path="res://.godot/imported/prueba_trigger.dialogue-2069e3c54f7788f0cb4c3db3ae103ca7.tres"
+
+[deps]
+
+source_file="res://dialogues/triggers/prueba_trigger.dialogue"
+dest_files=["res://.godot/imported/prueba_trigger.dialogue-2069e3c54f7788f0cb4c3db3ae103ca7.tres"]
+
+[params]
+
+defaults=true

@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=18
+type="Resource"
+uid="uid://cpykgpaxx2atp"
+path="res://.godot/imported/derrumbe.dialogue-acacf2d38ba14c8995be56e691d6fb36.tres"
+
+[deps]
+
+source_file="res://dialogues/prision/derrumbe.dialogue"
+dest_files=["res://.godot/imported/derrumbe.dialogue-acacf2d38ba14c8995be56e691d6fb36.tres"]
+
+[params]
+
+defaults=true

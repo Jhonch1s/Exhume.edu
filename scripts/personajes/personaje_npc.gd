@@ -845,15 +845,19 @@ func obtener_opciones_accion(actor: Object = null) -> Array[OpcionAccion]:
 			texto_opcion,
 			self,
 			{},
-			10
+			10,
+			false,
+			{},
+			TiposInteraccion.TipoLineaEfecto.VISUAL
 		))
 	return opciones
 
 
 func obtener_alcance_maximo_opcion(opcion: OpcionAccion) -> float:
-	if opcion != null and (
-		String(opcion.id).begins_with("hablar:") or opcion.id in [&"ataque_basico", &"recoger_botin"]
-	):
+	if opcion != null and String(opcion.id).begins_with("hablar:"):
+		var perfil := obtener_definicion_personaje()
+		return float(perfil.alcance_dialogo) if perfil != null else 1.0
+	if opcion != null and opcion.id in [&"ataque_basico", &"recoger_botin"]:
 		return 1.0
 	return super.obtener_alcance_maximo_opcion(opcion)
 

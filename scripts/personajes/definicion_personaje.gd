@@ -59,6 +59,7 @@ enum OrientacionMapa {
 @export var offset_sprite_mapa: Vector2 = Vector2(0.0, -32.0)
 @export_category("Dialogos")
 @export var ilustracion_dialogo: Texture2D
+@export_range(1, 20, 1) var alcance_dialogo: int = 1
 @export var dialogos: Array[DialogoNPC] = []
 
 func calcular_movimiento(destreza_actual: int) -> int:

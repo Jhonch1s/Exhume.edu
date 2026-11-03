@@ -243,15 +243,21 @@ var _actor_turno_camara: Object
 var _centrado_camara_pendiente := false
 var _dialogos_camara: Array[DialogueResource] = []
 var _puntero_en_ventana := true
+var gestor_triggers := GestorTriggersMapa.new()
+var viajes := ViajeEntreZonas.new()
+var id_spawn_inicial: StringName = &"entrada"
+var datos_ficha_viaje: Dictionary = {}
+var preparando_viaje := false
+var escenario_preparado := false
 
 func _ready() -> void:
 	# Las capas se guardan ocultas para poder editar el mapa sin la interfaz encima.
-	$FiltroCRT.visible = true
-	$CanvasLayer.visible = true
-	$CanvasLayerModalDados.visible = true
+	$FiltroCRT.visible = not preparando_viaje
+	$CanvasLayer.visible = not preparando_viaje
+	$CanvasLayerModalDados.visible = not preparando_viaje
 	CursorJuego.establecer_cursor(CursorJuego.Tipo.DEFAULT)
 	guardado_en_fogata_realizado = EstadoPartida.guardado_en_fogata_realizado
-	if not guardado_en_fogata_realizado and FileAccess.file_exists(RUTA_GUARDADO):
+	if not preparando_viaje and not guardado_en_fogata_realizado and FileAccess.file_exists(RUTA_GUARDADO):
 		DirAccess.remove_absolute(RUTA_GUARDADO)
 	nombreClase = EstadoPartida.aventurero_pendiente.get("clase", nombreClase)
 	var limite_hud := hud.get_node("HUDRoot/SeccionesHUD/SeccionJugador/Retrato") as Control
@@ -297,6 +303,8 @@ func _ready() -> void:
 	servicio_turnos = ServicioTurnos.new(gestor_acciones)
 	procesador_superficies = ProcesadorSuperficies.new(tablero)
 	tablero.generar_desde_zona(zona_actual)
+	for error_trigger in gestor_triggers.configurar(zona_actual, tablero, obtener_id_zona()):
+		push_warning("Trigger de mapa inválido: %s" % error_trigger)
 	camera_2d.configurar_limites(zona_actual)
 	validador_espacial = ValidadorEspacialTablero.new(tablero)
 	servicio_percepcion_trampas = ServicioPercepcionTrampas.new(
@@ -324,22 +332,31 @@ func _ready() -> void:
 				push_error("Contenido de zona invalido: %s" % error)
 	pathfinding.inicializar(tablero.datos)
 	gestor_vision.inicializar(capa_oscuridad, tablero)
-	_inicializar_audio_ambiente()
-	if not es_escenario_de_descanso:
-		_inicializar_musica()
-		_presentar_entrada_nueva_zona()
-	await spawnear_ficha_inicial()
+	if not preparando_viaje:
+		_inicializar_audio_ambiente()
+		if not es_escenario_de_descanso:
+			_inicializar_musica()
+			_presentar_entrada_nueva_zona()
+	await spawnear_ficha_inicial(id_spawn_inicial)
 	if ficha_jugador:
 		hud.configurar_ficha(ficha_jugador)
 		if not ficha_jugador.puntos_vida_cambiados.is_connected(_on_vida_jugador_cambiada):
 			ficha_jugador.puntos_vida_cambiados.connect(_on_vida_jugador_cambiada)
-		_on_vida_jugador_cambiada(ficha_jugador.pv_actual, ficha_jugador.pv_max)
+		if not preparando_viaje:
+			_on_vida_jugador_cambiada(ficha_jugador.pv_actual, ficha_jugador.pv_max)
 		capa_vision_npc.configurar(tablero, validador_espacial, ficha_jugador, gestor_vision)
 		_actualizar_luz_jugador(ficha_jugador.coordenada_mapa)
 		_actualizar_audio_proximidad()
 		centrar_camara_en_ficha()
+	escenario_preparado = true
+
+func _exit_tree() -> void:
+	gestor_triggers.limpiar()
+
 
 func _process(delta: float) -> void:
+	gestor_triggers.procesar(self)
+	_actualizar_estado_modal_interaccion()
 	_actualizar_decision_empuje()
 	if is_instance_valid(campamento):
 		CursorJuego.ocultar_probabilidad_ataque()
@@ -363,7 +380,7 @@ func _process(delta: float) -> void:
 	if ficha_jugador and capa_paredes_oclusivas:
 		capa_paredes_oclusivas.actualizar_occlusion(ficha_jugador.global_position)
 	_actualizar_audio_proximidad()
-	if en_combate and not _restaurando_partida and _acciones_en_resolucion == 0 and habilidades_nivel_dos.empuje_pendiente == null and not _esperar_escapista():
+	if en_combate and not gestor_triggers.tiene_actividad() and not _restaurando_partida and _acciones_en_resolucion == 0 and habilidades_nivel_dos.empuje_pendiente == null and not _esperar_escapista():
 		_resolver_perdida_agro()
 		_actualizar_ui_combate()
 	_actualizar_disponibilidad_turno()
@@ -711,7 +728,7 @@ func _actualizar_reloj_exploracion_npc(delta: float) -> void:
 
 
 func _programar_exploracion_npc() -> void:
-	if _turno_exploracion_en_curso or _turnos_exploracion_pendientes == 0 or en_combate:
+	if gestor_triggers.tiene_actividad() or _turno_exploracion_en_curso or _turnos_exploracion_pendientes == 0 or en_combate:
 		return
 	_turno_exploracion_en_curso = true
 	call_deferred("_procesar_cola_exploracion_npc", _secuencia_exploracion_npc)
@@ -913,6 +930,7 @@ func guardar_partida(ruta: String = RUTA_GUARDADO) -> StringName:
 	snapshot["escena_zona"] = zona_actual.scene_file_path
 	snapshot["guardado_en_fogata"] = true
 	snapshot["en_campamento"] = false
+	snapshot["zonas_visitadas"] = viajes.obtener_estado_persistente()
 	var resultado: StringName = persistencia_partida.archivos.guardar(ruta, snapshot)
 	if resultado == &"":
 		guardado_en_fogata_realizado = true
@@ -929,6 +947,9 @@ func cargar_partida(ruta: String = RUTA_GUARDADO) -> StringName:
 	var snapshot: Variant = persistencia_partida.archivos.cargar(ruta)
 	if snapshot is StringName:
 		return snapshot
+	var motivo_zonas := viajes.validar_estado_persistente(snapshot.get("zonas_visitadas", {}))
+	if motivo_zonas != &"":
+		return motivo_zonas
 	if snapshot.has("escena_zona") and snapshot["escena_zona"] != zona_actual.scene_file_path:
 		return &"zona_guardado_no_coincide"
 	# Antes se llamaba zona1 a todos los mapas; aún se valida su contenido completo.
@@ -948,6 +969,9 @@ func cargar_partida(ruta: String = RUTA_GUARDADO) -> StringName:
 		snapshot, tablero, obtener_id_zona(), ficha_jugador, registro_conocimiento,
 		gestor_guardado
 	)
+	if motivo == &"":
+		gestor_triggers.limpiar()
+		viajes.restaurar_estado_persistente(snapshot.get("zonas_visitadas", {}))
 	_restaurando_partida = false
 	gestor_vision.tiene_vision_calculada = tenia_vision
 	if motivo != &"":
@@ -1296,6 +1320,8 @@ func _preparar_gestor_guardado(estado_rondas: Variant) -> Variant:
 
 
 func _preparar_paso_actor(_origen: Vector2i, destino: Vector2i, actor: Node2D) -> bool:
+	if gestor_triggers.tiene_actividad():
+		return false
 	return tablero.reservar_celda(destino, actor)
 
 func _confirmar_paso_actor(origen: Vector2i, destino: Vector2i, actor: Node2D) -> bool:
@@ -1336,6 +1362,19 @@ func _procesar_entrada_paso_actor(
 		actor
 	)
 	habilidades_nivel_dos.al_paso(origen, destino, actor)
+	if not _restaurando_partida and gestor_triggers.registrar_paso(origen, destino, actor):
+		_cancelar_exploracion_npc()
+		_actualizar_estado_modal_interaccion()
+
+
+func puede_ejecutar_trigger_mapa() -> bool:
+	return (
+		not viajes.en_curso and not _restaurando_partida and _acciones_en_resolucion == 0
+		and not _hay_actor_moviendose() and not _turno_exploracion_en_curso
+		and not habilidades_nivel_dos.desplazando
+		and not _hay_modal_ajeno_a_triggers() and _dialogos_camara.is_empty()
+		and not is_instance_valid(campamento)
+	)
 
 func _resolver_reacciones_movimiento(
 	tipo: TiposInteraccion.TipoAccion,
@@ -1580,13 +1619,24 @@ func spawnear_ficha_inicial(id_spawn: StringName = &"entrada") -> void:
 	var datos_aventurero := EstadoPartida.consumir_aventurero()
 	if not datos_aventurero.is_empty() and not ficha_jugador.configurar_creacion(datos_aventurero):
 		push_error("La ficha se creó con valores por defecto: datos de aventurero inválidos.")
-	_equipar_carga_inicial(ficha_jugador)
-	ficha_jugador.inventario.agregar(ItemInstancia.new(
-		&"jugador_antorchas_iniciales", DEFINICION_ANTORCHA, 3
-	))
-	ficha_jugador.activar_antorcha_si_necesario()
+	if datos_ficha_viaje.is_empty():
+		_equipar_carga_inicial(ficha_jugador)
+		ficha_jugador.inventario.agregar(ItemInstancia.new(
+			&"jugador_antorchas_iniciales", DEFINICION_ANTORCHA, 3
+		))
+		ficha_jugador.activar_antorcha_si_necesario()
 	zona_actual.add_child(ficha_jugador)
 	ficha_jugador.inicializar(coord_inicio, capa_suelo)
+	if not datos_ficha_viaje.is_empty():
+		var datos := datos_ficha_viaje.duplicate(true)
+		datos["coordenada"] = [coord_inicio.x, coord_inicio.y]
+		var motivo := ficha_jugador.restaurar_estado_persistente(datos)
+		if motivo != &"":
+			push_error("No se pudo trasladar al jugador: %s" % motivo)
+			ficha_jugador.queue_free()
+			ficha_jugador = null
+			return
+		datos_ficha_viaje.clear()
 	ficha_jugador.paso_dado.connect(_on_ficha_paso_dado)
 	ficha_jugador.golpe_conectado.connect(habilidades_nivel_dos.al_golpe)
 	ficha_jugador.movimiento_terminado.connect(func(_interrumpido):
@@ -1720,7 +1770,7 @@ func _actualizar_memoria_combate() -> bool:
 
 
 func _resolver_perdida_agro() -> bool:
-	if not en_combate or gestor_rondas == null or not ficha_jugador.puede_actuar():
+	if gestor_triggers.tiene_actividad() or not en_combate or gestor_rondas == null or not ficha_jugador.puede_actuar():
 		return false
 	if _resolver_fin_combate():
 		return true
@@ -2336,6 +2386,8 @@ func _programar_turno_npc() -> void:
 		return
 	var secuencia := _secuencia_turno_npc
 	await get_tree().create_timer(0.6).timeout
+	while gestor_triggers.tiene_actividad() and _turno_npc_vigente(secuencia):
+		await get_tree().process_frame
 	if not _turno_npc_vigente(secuencia) or _resolver_fin_combate():
 		return
 	if ficha_jugador.esta_moviendose:
@@ -2352,6 +2404,10 @@ func _programar_turno_npc() -> void:
 		_finalizar_turno_combate()
 		return
 	while _turno_npc_vigente(secuencia) and npc.puede_actuar():
+		while gestor_triggers.tiene_actividad() and _turno_npc_vigente(secuencia):
+			await get_tree().process_frame
+		if not _turno_npc_vigente(secuencia):
+			return
 		if _resolver_perdida_agro():
 			return
 		if npc.obtener_estado(&"caido") != null:
@@ -2417,6 +2473,8 @@ func _programar_turno_npc() -> void:
 				break
 		else:
 			break
+	while gestor_triggers.tiene_actividad() and _turno_npc_vigente(secuencia):
+		await get_tree().process_frame
 	if _turno_npc_vigente(secuencia):
 		_finalizar_turno_combate()
 
@@ -4484,8 +4542,8 @@ func _cancelar_lanzamiento() -> void:
 	_actualizar_estado_modal_interaccion()
 
 
-func _actualizar_estado_modal_interaccion() -> void:
-	var siguiente: bool = (
+func _hay_modal_ajeno_a_triggers() -> bool:
+	return (
 		lanzamiento_en_vuelo
 		or (habilidades_nivel_dos != null and habilidades_nivel_dos.empuje_pendiente != null)
 		or (is_instance_valid(panel_progresion) and panel_progresion.visible)
@@ -4514,6 +4572,10 @@ func _actualizar_estado_modal_interaccion() -> void:
 			and panel_inventario_equipo.visible
 		)
 	)
+
+
+func _actualizar_estado_modal_interaccion() -> void:
+	var siguiente := viajes.en_curso or _hay_modal_ajeno_a_triggers() or gestor_triggers.tiene_actividad()
 	if interaccion_modal_activa == siguiente:
 		return
 	interaccion_modal_activa = siguiente

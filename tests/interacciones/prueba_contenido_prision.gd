@@ -26,6 +26,16 @@ func _ejecutar() -> void:
 			break
 	_comprobar(escenario.ficha_jugador != null, "La prisión crea la ficha.")
 	var tablero: TableroGrid = escenario.tablero
+	var tablero_validacion := TableroGrid.new()
+	tablero_validacion.generar_desde_zona(zona)
+	var errores := ValidadorContenidoZona.new().validar(zona, tablero_validacion, zona.get_node("CapaSuelo"))
+	tablero_validacion.free()
+	_comprobar(errores.is_empty(), "La prisión permite registrar su contenido: %s." % [errores])
+	if not errores.is_empty() or escenario.ficha_jugador == null:
+		for fallo in fallos:
+			push_error(fallo)
+		quit(1)
+		return
 	var luces := 0
 	var catalogo := load("res://assets/interactuables/mensajes_interacciones.tres") as CatalogoMensajesInteraccion
 	_comprobar(catalogo.es_valido(), "El catálogo de mensajes es válido.")
@@ -55,9 +65,10 @@ func _ejecutar() -> void:
 	_comprobar(escenario.panel_examen_ilustrado.visible and escenario.panel_examen_ilustrado.etiqueta_texto.text.contains("Oinc oinc... OINCC!!!") and escenario.panel_examen_ilustrado.etiqueta_texto.text.contains("subrayados"), "El panel del juego muestra el texto original y el nuevo fragmento.")
 	escenario.panel_examen_ilustrado.ocultar()
 	var a := tablero.obtener_interactuable(&"banga_peeble") as PersonajeNPC
-	var b := tablero.obtener_interactuable(&"banga_roffa") as PersonajeNPC
+	var b := tablero.obtener_interactuable(&"banga_peeble_001") as PersonajeNPC
 	for npc in [a, b]:
 		_comprobar(npc != null and npc.se_opone_al_jugador(), "El guardia es hostil.")
+		_comprobar(not npc.obtener_definicion_personaje().puede_dialogar and not npc.obtener_opciones_accion(escenario.ficha_jugador).any(func(o): return o.id == &"hablar"), "El guardia no ofrece diálogo antes del combate.")
 		_comprobar(npc.obtener_definicion_personaje().puede_combatir and npc.nivel_actual == 3 and npc.vida_actual == 22, "El guardia tiene nivel y vida completos.")
 		_comprobar(npc.obtener_patrulla().esta_configurada(), "La patrulla del guardia está configurada.")
 		_comprobar(npc.obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO) >= 0, "El guardia tiene movimiento.")
@@ -100,8 +111,11 @@ func _ejecutar() -> void:
 		tablero.ocupar_celda(vecino, escenario.ficha_jugador)
 		escenario._actualizar_luz_jugador(vecino)
 		_comprobar(npc.puede_detectar_jugador(escenario.ficha_jugador, escenario.validador_espacial), "El guardia detecta al PJ por proximidad y visión.")
-		escenario._evaluar_agro_npc()
-		_comprobar(escenario.en_combate, "La detección inicia combate automáticamente.")
+		escenario.set_process(true)
+		await process_frame
+		await process_frame
+		escenario.set_process(false)
+		_comprobar(escenario.en_combate and npc.en_oposicion_encuentro, "La detección inicia combate automáticamente, sin hablar ni agredir al guardia.")
 		npc.iniciar_turno()
 		var plan := decisor.elegir(npc, tablero, escenario.pathfinding, [escenario.ficha_jugador], true)
 		_comprobar(plan["decision"] == &"atacar", "El árbol decide atacar al PJ adyacente.")

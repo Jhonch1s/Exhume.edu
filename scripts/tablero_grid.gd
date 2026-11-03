@@ -1,6 +1,8 @@
 extends Node
 class_name TableroGrid
 
+const DECORACION_NO_CAMINABLE := preload("res://scripts/decoraciones/decoracion_no_caminable.gd")
+
 var datos: Dictionary[Vector2i, Celda] = {}
 var interactuables_por_id: Dictionary[StringName, Object] = {}
 var efectos_superficie_por_id: Dictionary[StringName, Object] = {}
@@ -155,6 +157,10 @@ func generar_desde_zona(zona: Node2D) -> void:
 	if _capa_deco_nocaminable:
 		var _celdas_decoracion = _capa_deco_nocaminable.get_used_cells()
 		for coord in _celdas_decoracion:
+			var fuente := _capa_deco_nocaminable.tile_set.get_source(_capa_deco_nocaminable.get_cell_source_id(coord))
+			if fuente is TileSetScenesCollectionSource:
+				_aplicar_decoracion_escena(_capa_deco_nocaminable, coord, fuente)
+				continue
 			var celda_decoracion := _crear_celda_desde_tile(
 				_capa_deco_nocaminable,
 				coord,
@@ -199,6 +205,18 @@ func generar_desde_zona(zona: Node2D) -> void:
 				)
 
 # --- UTILIDADES ---
+
+func _aplicar_decoracion_escena(capa: TileMapLayer, origen: Vector2i, fuente: TileSetScenesCollectionSource) -> void:
+	# Leer la huella también funciona al generar un tablero sin entrar al árbol.
+	var decoracion := fuente.get_scene_tile_scene(capa.get_cell_alternative_tile(origen)).instantiate()
+	if decoracion is DECORACION_NO_CAMINABLE:
+		for desplazamiento: Vector2i in decoracion.huella_celdas:
+			var coord := origen + desplazamiento
+			if not datos.has(coord):
+				datos[coord] = Celda.new(&"decoracion", false, 2)
+			datos[coord].caminable = false
+			datos[coord].altura = maxi(datos[coord].altura, 2)
+	decoracion.free()
 
 func _crear_celda_desde_tile(
 	capa: TileMapLayer,

@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://tests/zonas/zona_triggers.tscn" id="1_zona"]
+[ext_resource type="PackedScene" path="res://scenes/zonas/PuntoSpawnZona.tscn" id="2_spawn"]
+
+[node name="DestinoViajes" instance=ExtResource("1_zona")]
+nombre_zona = "Destino de prueba de viajes"
+
+[node name="DesdePrueba" parent="PuntosSpawn" instance=ExtResource("2_spawn")]
+position = Vector2(128, -32)
+id_spawn = &"desde_prueba"
+
+[node name="EntradaDialogo" parent="Triggers"]
+habilitado = false

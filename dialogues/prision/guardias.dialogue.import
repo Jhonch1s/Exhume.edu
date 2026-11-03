@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=18
+type="Resource"
+uid="uid://b3d807810g6ni"
+path="res://.godot/imported/guardias.dialogue-39388e8350af1262f1706d61af2b7bd1.tres"
+
+[deps]
+
+source_file="res://dialogues/prision/guardias.dialogue"
+dest_files=["res://.godot/imported/guardias.dialogue-39388e8350af1262f1706d61af2b7bd1.tres"]
+
+[params]
+
+defaults=true

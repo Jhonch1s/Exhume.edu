@@ -8,6 +8,8 @@ definición de tamaño e imagen, contenido por instancia y máscaras de niebla.
 Para la representación del jugador, ver [Personajes](contenido/PERSONAJES.md).
 Para crear diálogos de NPC con tiradas y consecuencias, seguir la
 [guía permanente de autoría](contenido/CONSECUENCIAS_DIALOGO_NPC.md).
+Para eventos al entrar en una zona o cruzar un umbral, seguir
+[Triggers del mapa](contenido/TRIGGERS_MAPA.md).
 
 ## Crear una zona
 
@@ -46,6 +48,9 @@ movimiento, diccionarios, UI ni servicios del escenario.
 1. Duplica la escena y el recurso del caso más cercano:
    - Puerta: `scenes/interactuables/puertas/puerta_interactuable.tscn` y
      `assets/interactuables/puertas/puerta/puerta.tres`.
+     Para rejas, usar las variantes listas descritas en
+     [Puertas de reja metálica](contenido/PUERTAS_REJA_METAL.md), con región abierta
+     de ancho libre y ajuste de posición para conservar la bisagra.
    - Palanca: `scenes/interactuables/mecanismos/palanca_interactuable.tscn` y
      `assets/interactuables/mecanismos/palanca/palanca.tres`.
    - Trampa: `scenes/interactuables/trampas/TrampaSuperficie.tscn`.
@@ -87,6 +92,9 @@ al grupo `efectos_superficie` e implementar `obtener_id_reaccion()` y
    Habilitar `puede_dialogar` y añadir sus temas `DialogoNPC` con el recurso de
    Dialogue Manager y su punto de inicio. Para una variante, crear otra definición
    o hacer único el recurso antes de editarlo.
+   `alcance_dialogo` fija la distancia para hablar: una casilla por defecto;
+   Roffa usa cuatro para conversar desde fuera de su celda. Hablar requiere línea
+   visual y no aumenta el alcance de ataques ni de recogida de botín.
 3. Seguir [Configurar pruebas y consecuencias de diálogo](contenido/CONSECUENCIAS_DIALOGO_NPC.md)
    para añadir pruebas por ID, atributo, listas de éxito/fallo y la opción de
    intento único. Incluye el catálogo de actitud e información y ejemplos de texto.

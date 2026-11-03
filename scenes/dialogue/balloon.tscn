@@ -275,6 +275,7 @@ grow_vertical = 2
 theme_override_constants/separation = 8
 alignment = 1
 script = ExtResource("3_72ixx")
+hide_failed_responses = true
 response_template = NodePath("ResponseExample")
 
 [node name="ResponseExample" type="Button" parent="Balloon/ResponsesArea/ResponsesMenu" unique_id=1446810977]

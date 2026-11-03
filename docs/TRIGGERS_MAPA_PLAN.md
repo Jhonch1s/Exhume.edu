@@ -1,6 +1,7 @@
 # Plan de triggers del mapa
 
-Propuesta para revisar antes de implementar. Fecha: 2026-10-30.
+Propuesta del 2026-10-30, aprobada e implementada el 2026-11-03.
+La configuración vigente se documenta en [Triggers del mapa](contenido/TRIGGERS_MAPA.md).
 
 ## Objetivo
 

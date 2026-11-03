@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="DefinicionPuerta" format=3 uid="uid://dg7ral0pjq3bv"]
+
+[ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="1_02fkv"]
+[ext_resource type="Script" uid="uid://b0cf7dox0rmm6" path="res://scripts/interacciones/interactuables/puertas/definicion_puerta.gd" id="1_definicion"]
+[ext_resource type="Texture2D" uid="uid://bxg6f5xw0sqla" path="res://assets/interactuables/puertas/puerta_reja_metal/puerta_reja_metal.png" id="2_textura"]
+
+[resource]
+script = ExtResource("1_definicion")
+patron_cerradura = &"reja_metal"
+bloquea_vision_cerrada = false
+textura = ExtResource("2_textura")
+region_cerrada = Rect2(0, 96, 64, 96)
+region_abierta = Rect2(64, 96, 108, 96)
+desplazamiento_apertura = Vector2(-49, 7)
+id_definicion = &"puerta_reja_metal_derecha"
+nombre = "Puerta de reja"
+descripcion_base = "Una puerta de barrotes metálicos."
+etiquetas = Array[StringName]([&"puerta", &"reja"])
