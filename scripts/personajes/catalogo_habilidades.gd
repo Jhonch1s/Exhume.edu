@@ -1,6 +1,24 @@
 class_name CatalogoHabilidades
 extends RefCounted
 
+const ICONOS := {
+	"ataque_doble": preload("res://assets/ui/icons/habilidades/ataque_doble.png"),
+	"ocultarse": preload("res://assets/ui/icons/habilidades/ocultarse.png"),
+	"bola_de_fuego": preload("res://assets/ui/icons/habilidades/bola_de_fuego.png"),
+	"ariete": preload("res://assets/ui/icons/habilidades/ariete.png"),
+	"agarre": preload("res://assets/ui/icons/habilidades/agarre.png"),
+	"golpe_desplazante": preload("res://assets/ui/icons/habilidades/golpe_desplazante.png"),
+	"inercia": preload("res://assets/ui/icons/habilidades/inercia.png"),
+	"senuelo": preload("res://assets/ui/icons/habilidades/senuelo.png"),
+	"paso_sombra": preload("res://assets/ui/icons/habilidades/paso_sombra.png"),
+	"escapista": preload("res://assets/ui/icons/habilidades/escapista.png"),
+	"trampero": preload("res://assets/ui/icons/habilidades/trampero.png"),
+	"transposicion": preload("res://assets/ui/icons/habilidades/transposicion.png"),
+	"trasvase": preload("res://assets/ui/icons/habilidades/trasvase.png"),
+	"piromancia_libre": preload("res://assets/ui/icons/habilidades/piromancia_libre.png"),
+	"contagio_arcano": preload("res://assets/ui/icons/habilidades/contagio_arcano.png"),
+}
+
 const DATOS := {
 	"ariete": ["Guerrero", "Ariete", "Activa", "Desplaza visiblemente a un enemigo adyacente hasta 2 casillas, una a una. Se detiene en la casilla donde activa una trampa o un peligro que interrumpe, y ante obstáculos.", &"accion_principal"],
 	"agarre": ["Guerrero", "Agarre", "Activa", "Sujeta a un enemigo adyacente: tus próximos 2 pasos lo arrastran a la casilla que abandonas. Ambos sufren el terreno. Termina al comenzar tu siguiente turno.", &"accion_principal"],
@@ -15,6 +33,10 @@ const DATOS := {
 	"piromancia_libre": ["Mago", "Piromancia libre", "Pasiva", "Bola de fuego también apunta al suelo vacío: crea fuego durante 3 turnos con el mismo uso y coste de la habilidad inicial.", &""],
 	"contagio_arcano": ["Mago", "Contagio arcano", "Pasiva", "Una vez por turno, al causar daño directo puedes transferir tu Quemado o Veneno al blanco superviviente, conservando ticks. Con 2 eliges el estado o desactivas la transferencia.", &""],
 }
+
+
+static func icono(id: String) -> Texture2D:
+	return ICONOS.get(id) as Texture2D
 
 
 static func obtener(id: String) -> Dictionary:

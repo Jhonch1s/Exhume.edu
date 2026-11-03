@@ -39,17 +39,17 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 @onready var viewportKnight: SubViewportContainer = $KnightViewPort
 @onready var subviewportKnight: SubViewport = $KnightViewPort/KnightSubViewport
 @onready var camaraCaballero: Camera3D = $KnightViewPort/KnightSubViewport/Camera3D
-@onready var caballeroModelo: Node3D = $KnightViewPort/KnightSubViewport/cavallerov2
+@onready var caballeroModelo: Node3D = $KnightViewPort/KnightSubViewport/caballeroModelov3
 
 @onready var viewportWizar: SubViewportContainer = $WizardViewPort
 @onready var subviewportWizard: SubViewport = $WizardViewPort/WizardSubViewport
 @onready var camaraMago: Camera3D = $WizardViewPort/WizardSubViewport/Camera3D
-@onready var magoModelo:Node3D = $WizardViewPort/WizardSubViewport/magov2
+@onready var magoModelo:Node3D = $WizardViewPort/WizardSubViewport/magoModelov3
 
 @onready var viewportThief: SubViewportContainer = $ThiefViewPort
 @onready var subviewportThief: SubViewport = $ThiefViewPort/ThiefSubViewport
 @onready var camaraThief: Camera3D = $ThiefViewPort/ThiefSubViewport/Camera3D
-@onready var ladronModelo: Node3D = $ThiefViewPort/ThiefSubViewport/ladronmodelo
+@onready var ladronModelo: Node3D = $ThiefViewPort/ThiefSubViewport/ladronModelov3
 @onready var panel_inventario_cofre: PanelInventarioCofre = (
 	$CanvasLayer/PanelInventarioCofre
 )
@@ -62,7 +62,6 @@ const modeloMago = preload("res://assets/characters/knight3d/magov2.glb")
 const modeloLadron = preload("res://assets/characters/knight3d/modeloladron2.glb")
 
 const ESCENA_FICHA = preload("res://scenes/ficha/ficha.tscn")
-const DEFINICION_PIEDRA = preload("res://assets/items/piedra/piedra.tres")
 const DEFINICION_ANTORCHA = preload("res://assets/items/antorcha/antorcha.tres")
 const DEFINICION_ESPADA_INICIAL = preload("res://assets/items/forja/espada_inicial/espada_inicial.tres")
 const DEFINICION_ESCUDO_INICIAL = preload("res://assets/items/forja/escudo_inicial/escudo_inicial.tres")
@@ -121,7 +120,7 @@ var _acciones_en_resolucion := 0
 var boton_campamento: Button
 var panel_empuje: ConfirmationDialog
 var habilidades_nivel_dos = preload("res://scripts/interacciones/habilidades_nivel_dos.gd").new(self)
-var panel_progresion: ConfirmationDialog
+var panel_progresion
 var boton_progresion: Button
 var habilidad_en_seleccion := ""
 var fuente_trasvase: Variant = null
@@ -273,6 +272,7 @@ func _ready() -> void:
 	hud.ocultarse_solicitado.connect(_on_ocultarse_hud)
 	hud.bola_fuego_solicitada.connect(_on_bola_fuego_hud)
 	hud.habilidad_aprendida_solicitada.connect(_on_habilidad_aprendida_hud)
+	hud.progresion_solicitada.connect(abrir_progresion)
 	hud.item_rapido_solicitado.connect(_on_item_rapido_hud_solicitado)
 	panel_orden_combate.retrato_pulsado.connect(_on_retrato_combate_pulsado)
 	menu_contextual.opcion_accion_elegida.connect(_on_opcion_contextual_elegida)
@@ -335,7 +335,6 @@ func _ready() -> void:
 			ficha_jugador.puntos_vida_cambiados.connect(_on_vida_jugador_cambiada)
 		_on_vida_jugador_cambiada(ficha_jugador.pv_actual, ficha_jugador.pv_max)
 		capa_vision_npc.configurar(tablero, validador_espacial, ficha_jugador, gestor_vision)
-		_colocar_piedra_prueba()
 		_actualizar_luz_jugador(ficha_jugador.coordenada_mapa)
 		_actualizar_audio_proximidad()
 		centrar_camara_en_ficha()
@@ -349,7 +348,12 @@ func _process(delta: float) -> void:
 		habilidades_nivel_dos.limpiar_agarre()
 	if is_instance_valid(boton_progresion):
 		boton_progresion.text = "Nivel 2 · Elegir recompensa [P]" if ficha_jugador != null and ficha_jugador.nivel_recompensa_pendiente == 2 else "Progresión [P]"
-		boton_progresion.disabled = motivo_bloqueo_campamento() != &""
+		var bloqueo_progresion := motivo_bloqueo_campamento()
+		boton_progresion.disabled = bloqueo_progresion != &""
+		hud.indicador_progresion.tooltip_text = (
+			"Recompensa de nivel pendiente. Pulsa para elegir [P]." if bloqueo_progresion == &"" else
+			"Recompensa de nivel pendiente. Podrás elegir cuando termine el combate o la interacción."
+		)
 	if is_instance_valid(boton_campamento):
 		var motivo_campamento := motivo_bloqueo_campamento()
 		boton_campamento.disabled = motivo_campamento != &""
@@ -437,7 +441,7 @@ func _process(delta: float) -> void:
 		)
 		if en_combate:
 			camino_actual_tentativo = _limitar_camino_jugador(camino_actual_tentativo)
-		pathfinding.dibujar_trayectoria(camino_actual_tentativo, capa_camino)
+		pathfinding.dibujar_trayectoria(camino_actual_tentativo, capa_camino, coord_actual)
 	else:
 		camino_actual_tentativo.clear()
 		capa_camino.clear()
@@ -991,8 +995,11 @@ func obtener_id_zona() -> StringName:
 
 
 func _crear_acceso_progresion() -> void:
-	panel_progresion = preload("res://scenes/ui/personajes/panel_progresion.gd").new()
-	add_child(panel_progresion)
+	panel_progresion = preload("res://scenes/ui/personajes/panel_progresion.tscn").instantiate()
+	var capa_progresion := CanvasLayer.new()
+	capa_progresion.layer = 2
+	add_child(capa_progresion)
+	capa_progresion.add_child(panel_progresion)
 	panel_progresion.visibility_changed.connect(_actualizar_estado_modal_interaccion)
 	panel_progresion.recompensa_elegida.connect(_aprender_recompensa)
 	boton_progresion = Button.new()
@@ -1022,8 +1029,8 @@ func abrir_progresion() -> StringName:
 		for id in ficha_jugador.activas_aprendidas + ficha_jugador.pasivas_aprendidas:
 			var opcion := CatalogoHabilidades.obtener(id)
 			resumen += "%s · %s\n%s\n%s\n" % [opcion["nombre"], opcion["tipo"], opcion["descripcion"], opcion["coste"]]
-		resumen += "\nConservas tu habilidad inicial. El corte actual llega al nivel 2; la XP sobrante se guarda."
-	panel_progresion.mostrar(ficha_jugador.nivel, opciones, resumen)
+		resumen += "\nConservas tu habilidad inicial y la experiencia acumulada."
+	panel_progresion.mostrar(ficha_jugador.nivel, opciones, resumen, ficha_jugador.clase)
 	_actualizar_estado_modal_interaccion()
 	return &""
 
@@ -1032,6 +1039,8 @@ func _aprender_recompensa(id: String) -> void:
 	panel_progresion.hide()
 	_actualizar_estado_modal_interaccion()
 	if motivo_bloqueo_campamento() != &"" or not ficha_jugador.aprender_recompensa(id):
+		panel_progresion.mostrar_error("No se pudo aprender esta recompensa. Espera a que termine la acción e inténtalo de nuevo.")
+		_actualizar_estado_modal_interaccion()
 		return
 	hud.actualizar_desde_ficha()
 	habilidades_nivel_dos.registrar("Recompensa aprendida", CatalogoHabilidades.obtener(id)["nombre"] + ". Conservas tu habilidad inicial. Consulta la ranura 2.")
@@ -1442,6 +1451,13 @@ func _registrar_resultado_narrativo(
 			EfectosEquipo.bono_fuerza_dano(atacante),
 			EfectosEquipo.bono_dano(atacante, true),
 		])
+		for efecto_dano in resultado.efectos_aplicados:
+			if efecto_dano.tipo == &"dano":
+				var dano_bruto := resultado.tirada_dano.total_efectivo + EfectosEquipo.bono_fuerza_dano(atacante) + EfectosEquipo.bono_dano(atacante, true)
+				var reducido := mini(EfectosEquipo.bono_armadura(efecto_dano.objetivo), maxi(0, dano_bruto - 1))
+				if reducido > 0:
+					detalles.append("Protección: −%d de daño físico" % reducido)
+				break
 	var mensajes: Array[String] = []
 	for id_mensaje in resultado.mensajes:
 		if actor is PersonajeNPC and String(id_mensaje).begins_with("estado."):
@@ -1484,11 +1500,11 @@ func capturar_textura(angulo:float,jugador: String) -> ImageTexture:
 	var textura: ImageTexture
 	
 	if jugador == "Guerrero":
-		ficha_jugador.sprite_render.position = Vector2(0,-24)
+		ficha_jugador.sprite_render.position = Vector2(0,-20)
 		camaraCaballero.position = Vector3(-10,13.9,10) 
 		camaraCaballero.rotation.x = deg_to_rad(-45)
 		camaraCaballero.rotation.y = deg_to_rad(-45)
-		camaraCaballero.size = 1.5
+		camaraCaballero.size = 1.6
 		caballeroModelo.rotation.y = deg_to_rad(angulo)
 		await get_tree().process_frame
 		await get_tree().process_frame
@@ -1497,10 +1513,11 @@ func capturar_textura(angulo:float,jugador: String) -> ImageTexture:
 		
 	
 	if jugador == "Mago":
-		ficha_jugador.sprite_render.position = Vector2(0,-24)
-		camaraMago.position = Vector3(0,14,10)
+		ficha_jugador.sprite_render.position = Vector2(0,-20)
+		camaraMago.position = Vector3(0,13.9,10)
 		camaraMago.rotation.x = deg_to_rad(-45)
 		camaraMago.rotation.y = deg_to_rad(-45)
+		camaraMago.size = 1.6
 		magoModelo.rotation.y = deg_to_rad(angulo)
 		await get_tree().process_frame
 		await get_tree().process_frame
@@ -1509,13 +1526,14 @@ func capturar_textura(angulo:float,jugador: String) -> ImageTexture:
 		
 	
 	if jugador == "Ladrón":
-		ficha_jugador.sprite_render.position = Vector2(0,-16)
+		ficha_jugador.sprite_render.position = Vector2(0,-12)
+		camaraThief.size = 1.6
 		if angulo == 0:
 			camaraThief.position = Vector3(10,13.8,10)
 		if angulo == 90:
-			camaraThief.position = Vector3(10,14,10)
+			camaraThief.position = Vector3(10,13.9,10)
 		if angulo == 180:
-			camaraThief.position = Vector3(10,14,10)
+			camaraThief.position = Vector3(10,13.9,10)
 		if angulo == 270:
 			camaraThief.position = Vector3(10,13.9,10)
 		#camaraThief.position = Vector3(10,14,10)
@@ -1546,8 +1564,8 @@ func spawnear_ficha_inicial(id_spawn: StringName = &"entrada") -> void:
 	subviewportWizard.set_update_mode(SubViewport.UPDATE_ALWAYS)
 	subviewportThief.set_update_mode(SubViewport.UPDATE_ALWAYS)
 
-	ficha_jugador.texturas_por_direccion[0]   = await capturar_textura(90,nombreClase)   # Mirando al frente (o derecha)
-	ficha_jugador.texturas_por_direccion[90]  = await capturar_textura(0,nombreClase)  # Mirando hacia abajo (si usas Y como eje vertical)
+	ficha_jugador.texturas_por_direccion[0]   = await capturar_textura(90,nombreClase)   # Mirando al frente 
+	ficha_jugador.texturas_por_direccion[90]  = await capturar_textura(0,nombreClase)  # Mirando hacia abajo 
 	ficha_jugador.texturas_por_direccion[180] = await capturar_textura(270,nombreClase) # Mirando hacia atrás
 	ficha_jugador.texturas_por_direccion[270] = await capturar_textura(180,nombreClase) # Mirando hacia arriba
 	ficha_jugador.sprite_render.texture = ficha_jugador.texturas_por_direccion[0]
@@ -3979,7 +3997,11 @@ func _mostrar_pantalla_muerte() -> void:
 		pantalla_muerte = ESCENA_PANTALLA_MUERTE.instantiate() as PantallaMuerte
 		add_child(pantalla_muerte)
 		pantalla_muerte.reiniciar_solicitado.connect(func():
-			get_tree().reload_current_scene()
+			var ruta_zona := zona_actual.scene_file_path
+			if ruta_zona.is_empty():
+				get_tree().reload_current_scene()
+			else:
+				get_tree().change_scene_to_file(ruta_zona)
 		)
 		pantalla_muerte.cargar_solicitado.connect(_ejecutar_carga_tras_muerte)
 	var se_puede_cargar: bool = (guardado_en_fogata_realizado or EstadoPartida.guardado_en_fogata_realizado) and FileAccess.file_exists(RUTA_GUARDADO)
@@ -4041,18 +4063,6 @@ func _obtener_titulo_resultado_contextual(opcion: OpcionAccion) -> String:
 	):
 		return opcion.objetivo.call(&"obtener_nombre_interaccion")
 	return "Interacción"
-
-
-func _colocar_piedra_prueba() -> void:
-	var direcciones: Array[Vector2i] = [Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT, Vector2i.UP]
-	for direccion in direcciones:
-		var coord := ficha_jugador.coordenada_mapa + direccion
-		if tablero.validar_colocacion_item_suelo(coord, ficha_jugador) != &"":
-			continue
-		var piedra := ItemSuelo.new(ItemInstancia.new(&"zona1_piedra_prueba", DEFINICION_PIEDRA, 1))
-		piedra.configurar_transferidor_items(transferidor_items)
-		tablero.registrar_item_suelo(coord, piedra)
-		return
 
 
 func _on_item_suelo_registrado(coord: Vector2i, item_suelo: ItemSuelo) -> void:
@@ -4475,7 +4485,7 @@ func _cancelar_lanzamiento() -> void:
 
 
 func _actualizar_estado_modal_interaccion() -> void:
-	var siguiente := (
+	var siguiente: bool = (
 		lanzamiento_en_vuelo
 		or (habilidades_nivel_dos != null and habilidades_nivel_dos.empuje_pendiente != null)
 		or (is_instance_valid(panel_progresion) and panel_progresion.visible)

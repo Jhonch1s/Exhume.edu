@@ -9,6 +9,7 @@ Implementados en el editor y en el juego. Consulta `tools/forja_items/README.md`
 | tipo | Parámetros | Activación |
 | --- | --- | --- |
 | atributo | atributo: fuerza/destreza/voluntad; valor entero −5..5, distinto de cero | Mientras esté equipado, sobre el portador. |
+| armadura | valor entero 1..5 | Resta daño de ataques físicos acertados; el golpe causa al menos 1 punto. Varias piezas se suman. |
 | dano | valor entero 1..99; alcance: arma/directo | Suma daño al ataque que lo causa. |
 | tirada | prueba: ataque/esquiva/fuerza/destreza/voluntad; modo: ventaja/desventaja | Tiradas correspondientes del portador. |
 | estado | estado: veneno/quemado; valor 1..99 por turno; duracion 1..99; alcance; salvacion | Al causar daño, sobre el objetivo vivo. |

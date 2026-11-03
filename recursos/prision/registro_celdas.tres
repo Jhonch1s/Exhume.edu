@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="DefinicionInteractuable" format=3 uid="uid://daqnmo2rtdn8t"]
+
+[ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="1_ab07v"]
+[ext_resource type="Texture2D" uid="uid://kd7v6cneax1w" path="res://assets/ilustraciones/examen/libro.png" id="2_y6mt7"]
+[ext_resource type="Script" uid="uid://bccqt6gfe8843" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="3_bf24a"]
+[ext_resource type="Script" uid="uid://c5sxr7hy2ff83" path="res://scripts/interacciones/interactuables/definicion_interactuable.gd" id="4_sspcf"]
+[ext_resource type="AudioStream" uid="uid://1h83qa72xxrh" path="res://assets/sonidos/sonidos finales/sonidos extras/Page 01.wav" id="5_r8d8p"]
+
+[sub_resource type="Resource" id="Resource_brwr7"]
+script = ExtResource("1_ab07v")
+id_fragmento = &"identidad"
+nivel = 1
+id_mensaje = &"examen.prision.registro_celdas.basico"
+
+[sub_resource type="Resource" id="Resource_4vk0i"]
+script = ExtResource("1_ab07v")
+id_fragmento = &"detalle"
+nivel = 2
+id_mensaje = &"examen.prision.registro_celdas.detalle"
+
+[sub_resource type="Resource" id="Resource_2rdbr"]
+script = ExtResource("3_bf24a")
+alcance_secreto = 0.0
+
+[resource]
+script = ExtResource("4_sspcf")
+id_definicion = &"prision_registro_celdas"
+nombre = "Registro de celdas"
+descripcion_base = "Un libro abierto, de páginas gruesas y esquinas grasientas. Sus columnas de signos se interrumpen con dibujos de puertas y barrotes."
+ilustracion_examen = ExtResource("2_y6mt7")
+fragmentos_informacion = Array[ExtResource("1_ab07v")]([SubResource("Resource_brwr7"), SubResource("Resource_4vk0i")])
+perfil_observacion = SubResource("Resource_2rdbr")
+sonido_examen = ExtResource("5_r8d8p")

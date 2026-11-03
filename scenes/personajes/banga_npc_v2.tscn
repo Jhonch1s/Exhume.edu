@@ -1,0 +1,7 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/personajes/banga_npc.tscn" id="1_banga"]
+[ext_resource type="Resource" path="res://recursos/personajes/banga_v2.tres" id="2_definicion"]
+
+[node name="BangaNPCv2" instance=ExtResource("1_banga")]
+definicion = ExtResource("2_definicion")

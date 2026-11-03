@@ -241,11 +241,9 @@ cada CofreInteractuable. Al iniciar, el cofre valida todas las entradas antes de
 asignar el inventario y crea IDs `<id_cofre>:contenido:<indice>`.
 La cantidad de una entrada debe caber en una pila; no se desborda a otras.
 
-La piedra de prueba del suelo se crea expresamente en EscenarioBase con
-`_colocar_piedra_prueba`. La llave y la bomba de humo de prueba sólo se crean
-durante las pruebas de integración.
-No existe todavía un nodo genérico de autoría de ItemSuelo con definición,
-cantidad e ID exportados para colocarlo desde el Inspector.
+Los objetos del suelo se colocan en cada zona mediante `ItemSueloZona`, con
+definición, cantidad e ID configurables desde el Inspector. Las piedras
+colocadas en una zona se registran al iniciarla.
 
 Ficha guarda sus pilas como `id`, `definicion_id`, `definicion_path`, `cantidad`.
 PersistenciaContenidoDinamico guarda además `coordenada` para ítems en suelo.

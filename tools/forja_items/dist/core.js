@@ -38,9 +38,10 @@
   }
   const ATTRIBUTES = { fuerza: 'FUE', destreza: 'DES', voluntad: 'VOL' };
   const TESTS = { ataque: 'ataque cuerpo a cuerpo', esquiva: 'esquiva', fuerza: 'pruebas de FUE', destreza: 'pruebas de DES', voluntad: 'pruebas de VOL' };
-  const EFFECT_TYPES = { atributo: 'Bono de atributo', dano: 'Daño adicional', tirada: 'Ventaja / desventaja', estado: 'Estado al acertar', penalizacion: 'Reducir atributo al acertar' };
+  const EFFECT_TYPES = { atributo: 'Bono de atributo', armadura: 'Protección física', dano: 'Daño adicional', tirada: 'Ventaja / desventaja', estado: 'Estado al acertar', penalizacion: 'Reducir atributo al acertar' };
   function effectDefault(tipo = 'atributo') {
     if (tipo === 'atributo') return { tipo, atributo: 'fuerza', valor: 1 };
+    if (tipo === 'armadura') return { tipo, valor: 1 };
     if (tipo === 'tirada') return { tipo, prueba: 'ataque', modo: 'ventaja' };
     if (tipo === 'dano') return { tipo, valor: 1, alcance: 'arma' };
     return { tipo, ...(tipo === 'estado' ? { estado: 'veneno' } : { atributo: 'fuerza' }), valor: 1, duracion: 2, alcance: 'arma', salvacion: 'voluntad' };
@@ -49,6 +50,7 @@
     const integer = (n, min, max) => Number.isInteger(n) && n >= min && n <= max;
     return Array.isArray(effects) && effects.length <= 16 && effects.every(e => {
       if (!e || typeof e !== 'object' || Array.isArray(e)) return false;
+      if (e.tipo === 'armadura') return integer(e.valor, 1, 5);
       if (e.tipo === 'atributo') return Object.hasOwn(ATTRIBUTES, e.atributo) && integer(e.valor, -5, 5) && e.valor !== 0;
       if (e.tipo === 'tirada') return Object.hasOwn(TESTS, e.prueba) && ['ventaja', 'desventaja'].includes(e.modo);
       if (!['dano', 'estado', 'penalizacion'].includes(e.tipo) || !['arma', 'directo'].includes(e.alcance) || !integer(e.valor, 1, 99)) return false;
@@ -57,6 +59,7 @@
     });
   }
   function effectDescription(e) {
+    if (e.tipo === 'armadura') return 'Equipado: reduce ' + e.valor + ' de daño de ataques físicos (mínimo 1).';
     if (e.tipo === 'atributo') return 'Equipado: ' + (e.valor >= 0 ? '+' : '') + e.valor + ' ' + (ATTRIBUTES[e.atributo] || '?') + '.';
     if (e.tipo === 'tirada') return 'Equipado: ' + e.modo + ' en ' + (TESTS[e.prueba] || '?') + '.';
     const scope = e.alcance === 'arma' ? 'arma de la mano principal' : 'ataques y Bola de fuego';

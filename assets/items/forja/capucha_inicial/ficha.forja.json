@@ -63,7 +63,7 @@
       },
       "source": null,
       "updateExisting": false,
-      "equipmentEffects": []
+      "equipmentEffects": [{ "tipo": "tirada", "prueba": "esquiva", "modo": "ventaja" }]
     }
   ]
 }

@@ -3,9 +3,13 @@ extends Control
 @onready var musica_menu: AudioStreamPlayer = $MusicaMenu
 @onready var menu_colgante: Control = $MenuColgante
 @onready var nueva_partida: Control = $NuevaPartida
+@onready var opciones_partida: Control = $OpcionesPartida
+
 
 var transicion_activa := false
 var mostrando_nueva_partida := false
+var transicion_activa_opciones := false
+var mostrando_opciones := false
 
 
 func _ready() -> void:
@@ -54,7 +58,7 @@ func _on_excursion_solicitada(datos: Dictionary) -> void:
 		return
 	if FileAccess.file_exists("user://partida.json"):
 		DirAccess.remove_absolute("user://partida.json")
-	get_tree().change_scene_to_file("res://scenes/escenario_base/escenario_base.tscn")
+	get_tree().change_scene_to_file("res://scenes/Prision/prision.tscn")
 
 
 func _on_continuar_pressed() -> void:
@@ -62,8 +66,44 @@ func _on_continuar_pressed() -> void:
 
 
 func _on_opciones_pressed() -> void:
-	get_tree().change_scene_to_file("res://scenes/menu/opciones.tscn")
+	if transicion_activa_opciones:
+		return
+	transicion_activa_opciones = true
+	
+	menu_colgante.process_mode = Node.PROCESS_MODE_DISABLED
+
+	var tween := create_tween()
+	tween.tween_property(
+		menu_colgante,
+		"position:y",
+		menu_colgante.position.y - menu_colgante.size.y - 80.0,
+		0.55
+	).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	await tween.finished
+	menu_colgante.hide()
+	
+	await opciones_partida.reproducir_entrada()
+	
+	mostrando_opciones = true
+	transicion_activa_opciones = false
+	
+	
 
 
 func _on_salir_pressed() -> void:
 	get_tree().quit()
+	
+	
+func _on_volver_opciones() -> void:
+	if transicion_activa_opciones or not mostrando_opciones:
+		return
+
+	transicion_activa_opciones = true
+	await opciones_partida.reproducir_salida()
+	opciones_partida.hide()
+	menu_colgante.position.y = 0.0
+	menu_colgante.show()
+	menu_colgante.process_mode = Node.PROCESS_MODE_INHERIT
+	await menu_colgante.reproducir_entrada()
+	mostrando_opciones = false
+	transicion_activa_opciones = false

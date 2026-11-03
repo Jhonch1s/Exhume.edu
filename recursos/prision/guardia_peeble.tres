@@ -1,0 +1,46 @@
+[gd_resource type="Resource" script_class="DefinicionPersonaje" format=3 uid="uid://bowig5riaalt6"]
+
+[ext_resource type="Script" uid="uid://bmsmwb5764q7n" path="res://scripts/personajes/dialogo_npc.gd" id="1_igj4c"]
+[ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="2_ye37t"]
+[ext_resource type="Script" uid="uid://bccqt6gfe8843" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="3_36l4i"]
+[ext_resource type="Script" uid="uid://cosqwlc2jnmwe" path="res://scripts/personajes/definicion_personaje.gd" id="4_xtqx6"]
+[ext_resource type="Texture2D" uid="uid://tb3xwiig6ul6" path="res://assets/characters/npcs/banga/sprites/banga_4_direcciones.png" id="5_d7esg"]
+[ext_resource type="Texture2D" uid="uid://bfm8tic4ctmev" path="res://assets/characters/npcs/banga/portraits/peeble_portrait.png" id="6_retrato"]
+
+[sub_resource type="Resource" id="Resource_gcvuq"]
+script = ExtResource("2_ye37t")
+id_fragmento = &"identidad"
+nivel = 1
+id_mensaje = &"examen.prision.peeble.basico"
+
+[sub_resource type="Resource" id="Resource_hx41n"]
+script = ExtResource("2_ye37t")
+id_fragmento = &"vigilancia"
+nivel = 2
+id_mensaje = &"examen.prision.peeble.detalle"
+
+[sub_resource type="Resource" id="Resource_rwkuo"]
+script = ExtResource("3_36l4i")
+alcance_basico = 7.0
+alcance_secreto = 0.0
+
+[resource]
+script = ExtResource("4_xtqx6")
+fuerza = 4
+destreza = 4
+voluntad = 4
+vida_maxima = 22
+nivel = 3
+faccion_id = &"bangas"
+actitud_inicial_jugador = 2
+puede_combatir = true
+puede_tener_inventario = true
+movimiento_fijo = 7
+textura_mapa = ExtResource("5_d7esg")
+retrato_turno = ExtResource("6_retrato")
+offset_sprite_mapa = Vector2(0, -184)
+id_definicion = &"prision_guardia_peeble"
+nombre = "Peeble"
+descripcion_base = "Un banga de cuerpo ancho y hocico prominente. Su presencia impone más que las rejas que lo rodean."
+fragmentos_informacion = Array[ExtResource("2_ye37t")]([SubResource("Resource_gcvuq"), SubResource("Resource_hx41n")])
+perfil_observacion = SubResource("Resource_rwkuo")

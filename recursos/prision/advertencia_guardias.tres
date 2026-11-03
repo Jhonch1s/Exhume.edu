@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="DefinicionInteractuable" format=3 uid="uid://c7hfwxa67j008"]
+
+[ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="1_e21fe"]
+[ext_resource type="Texture2D" uid="uid://b8nuoqi25606s" path="res://assets/ilustraciones/examen/pergamino.png" id="2_012j1"]
+[ext_resource type="Script" uid="uid://bccqt6gfe8843" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="3_km3in"]
+[ext_resource type="Script" uid="uid://c5sxr7hy2ff83" path="res://scripts/interacciones/interactuables/definicion_interactuable.gd" id="4_vuq13"]
+[ext_resource type="AudioStream" uid="uid://13neah6m3tb8" path="res://assets/sonidos/sonidos finales/sonidos extras/Page 03.wav" id="5_n0vic"]
+
+[sub_resource type="Resource" id="Resource_1tfei"]
+script = ExtResource("1_e21fe")
+id_fragmento = &"identidad"
+nivel = 1
+id_mensaje = &"examen.prision.advertencia_guardias.basico"
+
+[sub_resource type="Resource" id="Resource_kd65o"]
+script = ExtResource("1_e21fe")
+id_fragmento = &"detalle"
+nivel = 2
+id_mensaje = &"examen.prision.advertencia_guardias.detalle"
+
+[sub_resource type="Resource" id="Resource_oaqfu"]
+script = ExtResource("3_km3in")
+alcance_secreto = 0.0
+
+[resource]
+script = ExtResource("4_vuq13")
+id_definicion = &"prision_advertencia_guardias"
+nombre = "Advertencia arrugada"
+descripcion_base = "Una hoja arrugada yace junto al paso hacia la zona vigilada. La escritura resulta familiar entre tantos signos incomprensibles."
+ilustracion_examen = ExtResource("2_012j1")
+fragmentos_informacion = Array[ExtResource("1_e21fe")]([SubResource("Resource_1tfei"), SubResource("Resource_kd65o")])
+perfil_observacion = SubResource("Resource_oaqfu")
+sonido_examen = ExtResource("5_n0vic")

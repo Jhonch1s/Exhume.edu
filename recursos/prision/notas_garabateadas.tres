@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="DefinicionInteractuable" format=3 uid="uid://dfh2bwfhubeo1"]
+
+[ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="1_b8y06"]
+[ext_resource type="Texture2D" uid="uid://b8nuoqi25606s" path="res://assets/ilustraciones/examen/pergamino.png" id="2_wrx6g"]
+[ext_resource type="Script" uid="uid://bccqt6gfe8843" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="3_vmod2"]
+[ext_resource type="Script" uid="uid://c5sxr7hy2ff83" path="res://scripts/interacciones/interactuables/definicion_interactuable.gd" id="4_srxln"]
+[ext_resource type="AudioStream" uid="uid://13neah6m3tb8" path="res://assets/sonidos/sonidos finales/sonidos extras/Page 03.wav" id="5_xf3qe"]
+
+[sub_resource type="Resource" id="Resource_hsqkg"]
+script = ExtResource("1_b8y06")
+id_fragmento = &"identidad"
+nivel = 1
+id_mensaje = &"examen.prision.hojas.basico"
+
+[sub_resource type="Resource" id="Resource_d8xcq"]
+script = ExtResource("1_b8y06")
+id_fragmento = &"transcripcion"
+nivel = 2
+id_mensaje = &"examen.prision.hojas.transcripcion"
+
+[sub_resource type="Resource" id="Resource_dley8"]
+script = ExtResource("1_b8y06")
+id_fragmento = &"trazos"
+nivel = 2
+id_mensaje = &"examen.prision.hojas.trazos"
+
+[sub_resource type="Resource" id="Resource_hsf52"]
+script = ExtResource("3_vmod2")
+alcance_secreto = 0.0
+
+[resource]
+script = ExtResource("4_srxln")
+id_definicion = &"prision_notas_garabateadas"
+nombre = "Notas garabateadas"
+descripcion_base = "Unas hojas arrugadas, cubiertas de trazos y exclamaciones. La escritura no se parece a ninguna lengua que conozcas."
+ilustracion_examen = ExtResource("2_wrx6g")
+fragmentos_informacion = Array[ExtResource("1_b8y06")]([SubResource("Resource_hsqkg"), SubResource("Resource_d8xcq"), SubResource("Resource_dley8")])
+perfil_observacion = SubResource("Resource_hsf52")
+sonido_examen = ExtResource("5_xf3qe")

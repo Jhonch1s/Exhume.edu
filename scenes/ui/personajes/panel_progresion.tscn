@@ -1,0 +1,230 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/personajes/panel_progresion.gd" id="1_script"]
+[ext_resource type="Theme" path="res://assets/ui/themes/tema_tirada_dados.tres" id="2_theme"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_list"]
+bg_color = Color(0.055, 0.067, 0.078, 0.94)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.35, 0.36, 0.34, 1)
+content_margin_left = 10.0
+content_margin_top = 8.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_selected"]
+bg_color = Color(0.31, 0.24, 0.16, 0.92)
+border_width_left = 3
+border_color = Color(0.83, 0.64, 0.36, 1)
+content_margin_left = 9.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_detail"]
+bg_color = Color(0.055, 0.067, 0.078, 0.86)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.35, 0.36, 0.34, 1)
+content_margin_left = 22.0
+content_margin_top = 18.0
+content_margin_right = 22.0
+content_margin_bottom = 18.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+bg_color = Color(0.24, 0.19, 0.13, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.68, 0.51, 0.29, 1)
+content_margin_left = 18.0
+content_margin_top = 8.0
+content_margin_right = 18.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_disabled"]
+bg_color = Color(0.12, 0.13, 0.13, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.31, 0.31, 0.29, 1)
+content_margin_left = 18.0
+content_margin_top = 8.0
+content_margin_right = 18.0
+content_margin_bottom = 8.0
+
+[node name="PanelProgresion" type="Control"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+script = ExtResource("1_script")
+
+[node name="Velo" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0.015, 0.02, 0.025, 0.78)
+
+[node name="Marco" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(1040, 640)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -520.0
+offset_top = -320.0
+offset_right = 520.0
+offset_bottom = 320.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_theme")
+
+[node name="Contenido" type="VBoxContainer" parent="Marco"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Antetitulo" type="Label" parent="Marco/Contenido"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.64, 0.46, 1)
+theme_override_font_sizes/font_size = 16
+text = "P R O G R E S I Ó N   D E L   A V E N T U R E R O"
+horizontal_alignment = 1
+
+[node name="Titulo" type="Label" parent="Marco/Contenido"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 34
+text = "NIVEL 2"
+horizontal_alignment = 1
+
+[node name="Instruccion" type="Label" parent="Marco/Contenido"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.71, 0.75, 0.75, 1)
+theme_override_font_sizes/font_size = 18
+text = "Elige una recompensa. Conservas tu habilidad inicial."
+horizontal_alignment = 1
+
+[node name="Separador" type="HSeparator" parent="Marco/Contenido"]
+layout_mode = 2
+
+[node name="Cuerpo" type="HBoxContainer" parent="Marco/Contenido"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="Lista" type="VBoxContainer" parent="Marco/Contenido/Cuerpo"]
+custom_minimum_size = Vector2(390, 0)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Cabecera" type="Label" parent="Marco/Contenido/Cuerpo/Lista"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.64, 0.46, 1)
+theme_override_font_sizes/font_size = 16
+text = "CONOCIMIENTOS DISPONIBLES"
+
+[node name="Selector" type="ItemList" parent="Marco/Contenido/Cuerpo/Lista"]
+custom_minimum_size = Vector2(390, 300)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.85, 0.87, 0.85, 1)
+theme_override_colors/font_selected_color = Color(1, 0.94, 0.79, 1)
+theme_override_constants/v_separation = 10
+theme_override_font_sizes/font_size = 19
+theme_override_styles/panel = SubResource("StyleBoxFlat_list")
+theme_override_styles/selected = SubResource("StyleBoxFlat_selected")
+theme_override_styles/selected_focus = SubResource("StyleBoxFlat_selected")
+fixed_icon_size = Vector2i(56, 56)
+texture_filter = 1
+
+[node name="DetalleMarco" type="PanelContainer" parent="Marco/Contenido/Cuerpo"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_detail")
+
+[node name="DetalleContenido" type="VBoxContainer" parent="Marco/Contenido/Cuerpo/DetalleMarco"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Identidad" type="HBoxContainer" parent="Marco/Contenido/Cuerpo/DetalleMarco/DetalleContenido"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Icono" type="TextureRect" parent="Marco/Contenido/Cuerpo/DetalleMarco/DetalleContenido/Identidad"]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+texture_filter = 1
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Textos" type="VBoxContainer" parent="Marco/Contenido/Cuerpo/DetalleMarco/DetalleContenido/Identidad"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Tipo" type="Label" parent="Marco/Contenido/Cuerpo/DetalleMarco/DetalleContenido/Identidad/Textos"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.64, 0.46, 1)
+theme_override_font_sizes/font_size = 16
+text = "RECOMPENSA DE CLASE"
+
+[node name="Nombre" type="Label" parent="Marco/Contenido/Cuerpo/DetalleMarco/DetalleContenido/Identidad/Textos"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 27
+text = "Selecciona una opción"
+autowrap_mode = 2
+
+[node name="Linea" type="HSeparator" parent="Marco/Contenido/Cuerpo/DetalleMarco/DetalleContenido"]
+layout_mode = 2
+
+[node name="Detalle" type="RichTextLabel" parent="Marco/Contenido/Cuerpo/DetalleMarco/DetalleContenido"]
+custom_minimum_size = Vector2(0, 170)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/default_color = Color(0.85, 0.87, 0.85, 1)
+theme_override_font_sizes/normal_font_size = 19
+scroll_following = false
+
+[node name="Error" type="Label" parent="Marco/Contenido"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.55, 0.45, 1)
+theme_override_font_sizes/font_size = 17
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Botones" type="HBoxContainer" parent="Marco/Contenido"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 24
+
+[node name="Cerrar" type="Button" parent="Marco/Contenido/Botones"]
+custom_minimum_size = Vector2(190, 48)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+text = "Elegir después"
+
+[node name="Aprender" type="Button" parent="Marco/Contenido/Botones"]
+custom_minimum_size = Vector2(230, 48)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_disabled")
+text = "Selecciona una opción"
+disabled = true

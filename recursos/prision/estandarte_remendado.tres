@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="DefinicionInteractuable" format=3 uid="uid://d3ca87vcoumcl"]
+
+[ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="1_44phv"]
+[ext_resource type="Texture2D" uid="uid://ci6u0vfcxc0kg" path="res://assets/ilustraciones/examen/estandarte.png" id="2_siy5e"]
+[ext_resource type="Script" uid="uid://bccqt6gfe8843" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="3_t2jat"]
+[ext_resource type="Script" uid="uid://c5sxr7hy2ff83" path="res://scripts/interacciones/interactuables/definicion_interactuable.gd" id="4_wdsis"]
+[ext_resource type="AudioStream" uid="uid://dlvrql5jwsu0s" path="res://assets/sonidos/sonidos finales/sonidos extras/Special Click 02.wav" id="5_ped0f"]
+
+[sub_resource type="Resource" id="Resource_h62ix"]
+script = ExtResource("1_44phv")
+id_fragmento = &"identidad"
+nivel = 1
+id_mensaje = &"examen.prision.estandarte_remendado.basico"
+
+[sub_resource type="Resource" id="Resource_yr8is"]
+script = ExtResource("1_44phv")
+id_fragmento = &"detalle"
+nivel = 2
+id_mensaje = &"examen.prision.estandarte_remendado.detalle"
+
+[sub_resource type="Resource" id="Resource_ekxe5"]
+script = ExtResource("3_t2jat")
+alcance_secreto = 0.0
+
+[resource]
+script = ExtResource("4_wdsis")
+id_definicion = &"prision_estandarte_remendado"
+nombre = "Estandarte remendado"
+descripcion_base = "Un estandarte gastado marca el acceso al pasadizo vigilado. Entre manchas y roturas apenas se conserva el dibujo central."
+ilustracion_examen = ExtResource("2_siy5e")
+fragmentos_informacion = Array[ExtResource("1_44phv")]([SubResource("Resource_h62ix"), SubResource("Resource_yr8is")])
+perfil_observacion = SubResource("Resource_ekxe5")
+sonido_examen = ExtResource("5_ped0f")

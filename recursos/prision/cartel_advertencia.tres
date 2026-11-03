@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="DefinicionInteractuable" format=3 uid="uid://ctdxy7a2l563w"]
+
+[ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="1_bg74d"]
+[ext_resource type="Texture2D" uid="uid://dyttu1qn1vkmw" path="res://assets/ilustraciones/examen/cartel.png" id="2_6s4mw"]
+[ext_resource type="Script" uid="uid://bccqt6gfe8843" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="3_w3etk"]
+[ext_resource type="Script" uid="uid://c5sxr7hy2ff83" path="res://scripts/interacciones/interactuables/definicion_interactuable.gd" id="4_ecvft"]
+[ext_resource type="AudioStream" uid="uid://dlvrql5jwsu0s" path="res://assets/sonidos/sonidos finales/sonidos extras/Special Click 02.wav" id="5_x5gag"]
+
+[sub_resource type="Resource" id="Resource_i4b1y"]
+script = ExtResource("1_bg74d")
+id_fragmento = &"identidad"
+nivel = 1
+id_mensaje = &"examen.prision.cartel_advertencia.basico"
+
+[sub_resource type="Resource" id="Resource_wqk2m"]
+script = ExtResource("1_bg74d")
+id_fragmento = &"detalle"
+nivel = 2
+id_mensaje = &"examen.prision.cartel_advertencia.detalle"
+
+[sub_resource type="Resource" id="Resource_pcsvi"]
+script = ExtResource("3_w3etk")
+alcance_secreto = 0.0
+
+[resource]
+script = ExtResource("4_ecvft")
+id_definicion = &"prision_cartel_advertencia"
+nombre = "Señal de advertencia"
+descripcion_base = "Una tablilla clavada a la pared muestra una hilera de celdas y una figura alejándose de ellas. El último dibujo está cruzado por dos surcos profundos."
+ilustracion_examen = ExtResource("2_6s4mw")
+fragmentos_informacion = Array[ExtResource("1_bg74d")]([SubResource("Resource_i4b1y"), SubResource("Resource_wqk2m")])
+perfil_observacion = SubResource("Resource_pcsvi")
+sonido_examen = ExtResource("5_x5gag")

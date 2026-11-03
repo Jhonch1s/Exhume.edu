@@ -65,6 +65,7 @@ Ejemplo para importar: [Anillo del pulso](ejemplos/anillo_del_pulso.forja.json),
 
 - **Bono de atributo:** FUE, DES o VOL, de −5 a +5 (sin cero). Solo mientras esté equipado. Puedes combinar un beneficio y una contrapartida.
 - **Daño adicional:** cantidad fija añadida a un golpe que causa daño. El alcance **Arma de mano principal** solo activa el efecto de la pieza colocada en esa ranura; **Ataques y Bola de fuego** también permite que un anillo, armadura o amuleto aporte daño global a esas acciones. No aumenta daño de superficies ni de veneno/quemado por turno.
+- **Protección física:** reduce el daño de cada ataque físico acertado. Las piezas equipadas se suman y un golpe acertado siempre causa al menos 1 punto. No reduce hechizos ni daño periódico.
 - **Ventaja / desventaja:** ataque cuerpo a cuerpo, esquiva o pruebas de un atributo. Las fuentes opuestas se compensan conforme a las reglas del motor. Varias filas coincidentes de una misma pieza cuentan como una sola fuente de ventaja.
 - **Estado al acertar:** veneno o quemado, con daño fijo por turno y duración en turnos del objetivo.
 - **Reducir atributo al acertar:** resta temporalmente FUE, DES o VOL al objetivo, con intensidad y duración. No causa daño por sí solo.

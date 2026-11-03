@@ -25,6 +25,6 @@ magnitudes = Dictionary[StringName, float]({
 &"peso": 1.0
 })
 reaccion_impacto = SubResource("Resource_reaccion_impacto")
-sonido_impacto = ExtResource("5_sonido_impacto")
 apilable = true
 cantidad_maxima = 10
+sonido_impacto = ExtResource("5_sonido_impacto")

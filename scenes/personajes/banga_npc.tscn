@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/personajes/npc.tscn" id="1_npc"]
+[ext_resource type="Resource" path="res://recursos/personajes/banga.tres" id="2_banga"]
+
+[node name="BangaNPC" instance=ExtResource("1_npc")]
+definicion = ExtResource("2_banga")
+ajustar_a_celda_en_editor = true
+
+[node name="Sprite2D" parent="." index="0"]
+scale = Vector2(0.12, 0.12)

@@ -1,0 +1,49 @@
+extends SceneTree
+
+
+func _initialize() -> void:
+	call_deferred(&"_ejecutar")
+
+
+func _ejecutar() -> void:
+	_probar_banga("res://scenes/personajes/banga_npc.tscn", "banga_4_direcciones.png")
+	_probar_banga("res://scenes/personajes/banga_npc_v2.tscn", "banga_ia_4_direcciones.png")
+	print("BangaNPC: ambas escenas, nombre, sprite, registro y examen correctos.")
+	quit()
+
+
+func _probar_banga(ruta: String, textura: String) -> void:
+	var zona := (load("res://scenes/ZonaPlantilla/zona_plantilla.tscn") as PackedScene).instantiate()
+	root.add_child(zona)
+	var suelo := zona.get_node("CapaSuelo") as TileMapLayer
+	suelo.set_cell(Vector2i.ZERO, 0, Vector2i.ZERO)
+	zona.get_node("PuntosSpawn/PuntoSpawnEntrada").position = suelo.map_to_local(Vector2i.ZERO)
+	var banga := (load(ruta) as PackedScene).instantiate() as PersonajeNPC
+	banga.id_instancia = &"banga_prueba_001"
+	banga.nombre_unico = "Prueba"
+	zona.get_node("Interactuables/Personajes").add_child(banga)
+	assert(banga.ajustar_a_celda_en_editor)
+	var centro := suelo.map_to_local(Vector2i.ZERO)
+	banga.position = centro + Vector2(3, 2)
+	banga._ajustar_al_centro_celda()
+	assert(banga.position.is_equal_approx(centro))
+	var tablero := TableroGrid.new()
+	tablero.generar_desde_zona(zona)
+	var errores := ValidadorContenidoZona.new().validar(zona, tablero, suelo)
+	if not errores.is_empty():
+		push_error("Contenido inválido: %s" % [errores])
+		quit(1)
+		return
+	tablero.registrar_interactuables_desde_zona(zona, suelo)
+	assert(tablero.obtener_interactuable(&"banga_prueba_001") == banga)
+	assert(banga.obtener_nombre_interaccion() == "Prueba")
+	assert(banga.obtener_definicion_personaje().es_valida())
+	assert(banga.sprite_personaje.texture != null)
+	assert(banga.sprite_personaje.texture.resource_path.ends_with(textura))
+	assert(banga.sprite_personaje.hframes == 2 and banga.sprite_personaje.vframes == 2)
+	assert(banga.sprite_personaje.texture.get_size() == Vector2(1024, 1024))
+	assert(banga.sprite_personaje.scale.is_equal_approx(Vector2(0.12, 0.12)))
+	assert(banga.obtener_opciones_accion().any(func(opcion): return opcion.id == &"examinar"))
+	assert(banga.vida_actual == 10)
+	zona.free()
+	tablero.free()
