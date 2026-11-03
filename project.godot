@@ -12,9 +12,9 @@ config_version=5
 
 config/name="exhume"
 run/main_scene="uid://cq6eyihgiwmey"
-run/main_scene.web="res://scenes/menu/menu_principal.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
+run/main_scene.web="res://scenes/menu/menu_principal.tscn"
 
 [autoload]
 
