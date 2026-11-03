@@ -32,15 +32,18 @@ var _texto_probabilidad: Label
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	_canvas_cursor = CanvasLayer.new()
 	_canvas_cursor.name = "CapaCursorCRT"
 	_canvas_cursor.layer = 127
+	_canvas_cursor.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(_canvas_cursor)
 
 	_sprite_cursor = Sprite2D.new()
 	_sprite_cursor.name = "Puntero"
 	_sprite_cursor.centered = false
 	_sprite_cursor.scale = Vector2.ONE * ESCALA_CURSOR
+	_sprite_cursor.process_mode = Node.PROCESS_MODE_ALWAYS
 	var material := ShaderMaterial.new()
 	material.shader = SOMBREADOR_CRT
 	_sprite_cursor.material = material

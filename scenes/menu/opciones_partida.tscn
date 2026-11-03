@@ -1,0 +1,148 @@
+[gd_scene format=3 uid="uid://7ayd71c8ghrr"]
+
+[ext_resource type="Texture2D" uid="uid://cnw2bfdtqtu4t" path="res://assets/ui/panels/main_menu/hanging_menu/chains/chain_vertical.png" id="1_fctvl"]
+[ext_resource type="Script" uid="uid://by3yx1pf8fy0y" path="res://scenes/menu/opciones_partida.gd" id="1_yx7kv"]
+[ext_resource type="Texture2D" uid="uid://cvwiolisfhm77" path="res://assets/ui/panels/new_game/attributes/attributes_board.png" id="2_yx7kv"]
+[ext_resource type="FontFile" uid="uid://c0l0sby5jy2p4" path="res://assets/ui/fonts/Amarante-Regular.ttf" id="3_bldc7"]
+[ext_resource type="Texture2D" uid="uid://fchmjxxiw3lx" path="res://assets/ui/panels/new_game/buttons/back_board.png" id="5_bldc7"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_f8nm7"]
+
+[node name="OpcionesPartida" type="Control" unique_id=460865988]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 320.0
+offset_right = -320.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_yx7kv")
+
+[node name="RigUnico" type="Control" parent="." unique_id=837099466]
+layout_mode = 1
+anchor_right = 1.0
+anchor_bottom = 1.0070001
+offset_left = 241.0
+offset_right = -236.0
+offset_bottom = -7.5600586
+
+[node name="Cadenas" type="Control" parent="RigUnico" unique_id=1962329676]
+anchors_preset = 0
+offset_left = 31.0
+offset_top = 36.0
+offset_right = 1248.0
+offset_bottom = 1036.0
+
+[node name="SuperiorIzquierda" type="TextureRect" parent="RigUnico/Cadenas" unique_id=1555542964]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -76.0
+offset_right = 112.0
+offset_bottom = 82.0
+mouse_filter = 2
+texture = ExtResource("1_fctvl")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SuperiorIzquierda2" type="TextureRect" parent="RigUnico/Cadenas" unique_id=778058546]
+layout_mode = 0
+offset_left = 624.0
+offset_top = -76.0
+offset_right = 672.0
+offset_bottom = 82.0
+mouse_filter = 2
+texture = ExtResource("1_fctvl")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Opciones" type="PanelContainer" parent="RigUnico" unique_id=2022855192]
+layout_mode = 0
+offset_left = 23.0
+offset_top = 80.0
+offset_right = 775.0
+offset_bottom = 1072.0
+
+[node name="Fondo" type="TextureRect" parent="RigUnico/Opciones" unique_id=1505167355]
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("2_yx7kv")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Margen" type="MarginContainer" parent="RigUnico/Opciones" unique_id=2056655597]
+layout_mode = 2
+theme_override_constants/margin_left = 50
+theme_override_constants/margin_top = 50
+theme_override_constants/margin_right = 50
+theme_override_constants/margin_bottom = 50
+
+[node name="ContenidOpciones" type="VBoxContainer" parent="RigUnico/Opciones/Margen" unique_id=624921186]
+layout_mode = 2
+
+[node name="Titulo" type="Label" parent="RigUnico/Opciones/Margen/ContenidOpciones" unique_id=1900675893]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
+theme_override_fonts/font = ExtResource("3_bldc7")
+theme_override_font_sizes/font_size = 50
+text = "OPCIONES"
+horizontal_alignment = 1
+
+[node name="VolumenSeccion" type="VBoxContainer" parent="RigUnico/Opciones/Margen/ContenidOpciones" unique_id=49021169]
+layout_mode = 2
+theme_override_constants/separation = 33
+
+[node name="VolumenTitulo" type="Label" parent="RigUnico/Opciones/Margen/ContenidOpciones/VolumenSeccion" unique_id=373737590]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
+theme_override_fonts/font = ExtResource("3_bldc7")
+theme_override_font_sizes/font_size = 39
+text = "Volumen"
+horizontal_alignment = 1
+
+[node name="SliderVolume" type="HSlider" parent="RigUnico/Opciones/Margen/ContenidOpciones/VolumenSeccion" unique_id=1219769649]
+process_mode = 3
+layout_mode = 2
+value = 100.0
+tick_count = 100
+ticks_position = 3
+
+[node name="valorVolumen" type="Label" parent="RigUnico/Opciones/Margen/ContenidOpciones/VolumenSeccion" unique_id=2139783048]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
+theme_override_fonts/font = ExtResource("3_bldc7")
+theme_override_font_sizes/font_size = 20
+text = "100"
+horizontal_alignment = 1
+
+[node name="Volver" type="PanelContainer" parent="RigUnico" unique_id=484345406]
+process_mode = 3
+layout_mode = 0
+offset_left = 76.0
+offset_top = 981.00006
+offset_right = 356.0
+offset_bottom = 1076.0
+rotation = -0.05235988
+theme_override_styles/panel = SubResource("StyleBoxEmpty_f8nm7")
+
+[node name="Fondo" type="TextureRect" parent="RigUnico/Volver" unique_id=2062053835]
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("5_bldc7")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="BotonVolver" type="Button" parent="RigUnico/Volver" unique_id=1902739064]
+process_mode = 3
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
+theme_override_colors/font_hover_color = Color(0.22, 0.04, 0.035, 1)
+theme_override_fonts/font = ExtResource("3_bldc7")
+theme_override_font_sizes/font_size = 27
+text = "VOLVER"
+flat = true
+
+[connection signal="pressed" from="RigUnico/Volver/BotonVolver" to="." method="_on_boton_pressed"]

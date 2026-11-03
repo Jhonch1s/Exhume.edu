@@ -30,6 +30,7 @@
 [ext_resource type="PackedScene" uid="uid://cu305cglwgfw1" path="res://assets/characters/knight3d/caballeroModelov3.glb" id="25_r31vy"]
 [ext_resource type="PackedScene" uid="uid://bh6uoe00i64w2" path="res://assets/characters/knight3d/magoModelov3.glb" id="28_n44nr"]
 [ext_resource type="PackedScene" uid="uid://doxcfbamtycml" path="res://assets/characters/knight3d/ladronModelov3.glb" id="30_s26ih"]
+[ext_resource type="PackedScene" uid="uid://ilbmvlwd0kvc" path="res://scenes/menu/menu_pausa_core.tscn" id="31_aw0yf"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_m8dhx"]
 texture = ExtResource("2_85xdd")
@@ -144,6 +145,7 @@ visible = false
 [node name="PanelResultadoAccion" parent="CanvasLayerModalDados" unique_id=1054421084 instance=ExtResource("9_panel_resultado")]
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1734531678]
+process_mode = 3
 volume_db = -15.0
 
 [node name="GestorVision" type="Node" parent="." unique_id=1841790396]
@@ -243,3 +245,9 @@ transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 20, 
 
 [node name="Timer1" type="Timer" parent="." unique_id=1770597026]
 wait_time = 2.0
+
+[node name="CanvasLayer2" type="CanvasLayer" parent="." unique_id=240013313]
+layer = 10
+
+[node name="MenuPausaCore" parent="CanvasLayer2" unique_id=1646389350 instance=ExtResource("31_aw0yf")]
+visible = false

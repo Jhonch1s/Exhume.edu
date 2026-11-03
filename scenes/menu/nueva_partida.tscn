@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://d3bitxgpqtdlr" path="res://assets/ui/panels/new_game/character/character_sheet_board.png" id="6_character_board"]
 [ext_resource type="Texture2D" uid="uid://borr7k28m603b" path="res://assets/ui/panels/new_game/ritual/ritual_board.png" id="7_ritual_board"]
 [ext_resource type="Texture2D" uid="uid://bp72p2luyqlgn" path="res://assets/ui/panels/new_game/dice/dice_area_frame.png" id="8_dice_frame"]
+[ext_resource type="Shader" uid="uid://bula1wphmyr07" path="res://scenes/ui/interacciones/contorno_dado.gdshader" id="9_0ocjo"]
 [ext_resource type="Texture2D" uid="uid://fchmjxxiw3lx" path="res://assets/ui/panels/new_game/buttons/back_board.png" id="9_back_board"]
 [ext_resource type="Texture2D" uid="uid://drdgi42lejtuk" path="res://assets/ui/panels/new_game/buttons/small_button.png" id="10_small_button"]
 [ext_resource type="Texture2D" uid="uid://f4wev484h5gw" path="res://assets/ui/panels/new_game/fields/name_field.png" id="11_name_field"]
@@ -26,6 +27,12 @@ texture_margin_left = 18.0
 texture_margin_top = 12.0
 texture_margin_right = 18.0
 texture_margin_bottom = 12.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_nm8gf"]
+resource_local_to_scene = true
+shader = ExtResource("9_0ocjo")
+shader_parameter/color_contorno = Color(0.035, 0.055, 0.085, 1)
+shader_parameter/grosor_contorno = 1.0
 
 [sub_resource type="StyleBoxTexture" id="StyleBox_campo_nombre"]
 content_margin_left = 24.0
@@ -362,6 +369,7 @@ expand_mode = 1
 stretch_mode = 6
 
 [node name="VistaDado3D" parent="RigIzquierdo/Atributos/Margen/Contenido/ZonaTirada/MarginContainer" unique_id=1849182042 instance=ExtResource("14_vista_dado")]
+material = SubResource("ShaderMaterial_nm8gf")
 custom_minimum_size = Vector2(420, 200)
 layout_mode = 2
 size_flags_horizontal = 4
