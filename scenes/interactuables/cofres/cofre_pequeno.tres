@@ -22,6 +22,7 @@ script = ExtResource("2_vd8rr")
 imagen_interfaz = ExtResource("2_q4rmm")
 id_definicion = &"cofre_pequeno"
 nombre = "Cofre Pequeño"
+descripcion_base = "Un cofre bajo, de tablas oscuras y herrajes oxidados. La tapa conserva manchas que el tiempo ha vuelto indistinguibles."
 fragmentos_informacion = Array[ExtResource("1_su48f")]([SubResource("Resource_q4rmm")])
 perfil_observacion = SubResource("Resource_vd8rr")
 metadata/_custom_type_script = "uid://dwci6j0s5rkmx"

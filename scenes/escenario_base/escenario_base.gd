@@ -634,7 +634,7 @@ func _manejar_clic_derecho(coord: Vector2i) -> void:
 		return
 	if interaccion_modal_activa:
 		return
-	if ficha_jugador.obtener_estado(&"enredado") != null:
+	if ficha_jugador.obtener_estado(&"enredado") != null or ficha_jugador.obtener_estado(&"inmovilizado") != null:
 		_intentar_destrabarse()
 		return
 	if ficha_jugador.esta_moviendose:
@@ -859,17 +859,6 @@ func _procesar_turno_npc_exploracion(npc: PersonajeNPC, secuencia: int) -> bool:
 			)
 			if not _exploracion_npc_vigente(secuencia):
 				return false
-			if npc.movimiento.pasos_completados > 0:
-				var titulo := "Patrulla de %s"
-				if decision == &"buscar":
-					titulo = "Búsqueda de %s"
-				elif decision == &"regresar":
-					titulo = "Regreso de %s"
-				registro_narrativo.registrar(
-					EntradaRegistroNarrativo.Categoria.MOVIMIENTO,
-					titulo % npc.obtener_nombre_interaccion(),
-					"Avanza %d casillas." % npc.movimiento.pasos_completados
-				)
 			if not completo and npc.obtener_estado(&"enredado") == null:
 				break
 		else:
@@ -1458,7 +1447,7 @@ func _registrar_resultado_narrativo(
 	etiqueta_atributo: String = "DES",
 	actor: Node2D = null
 ) -> void:
-	if resultado == null:
+	if resultado == null or (actor is PersonajeNPC and not en_combate):
 		return
 	var detalles: Array[String] = []
 	if resultado.tirada is ResultadoPrueba:
@@ -1484,19 +1473,12 @@ func _registrar_resultado_narrativo(
 			"éxito" if defensa.exitosa else "fallo",
 		])
 	if resultado.tirada_dano != null:
-		var atacante: Node2D = actor if actor != null else ficha_jugador
-		detalles.append("Daño: %s + %d FUE + %d equipo" % [
-			_formatear_pista_tirada(resultado.tirada_dano),
-			EfectosEquipo.bono_fuerza_dano(atacante),
-			EfectosEquipo.bono_dano(atacante, true),
-		])
-		for efecto_dano in resultado.efectos_aplicados:
-			if efecto_dano.tipo == &"dano":
-				var dano_bruto := resultado.tirada_dano.total_efectivo + EfectosEquipo.bono_fuerza_dano(atacante) + EfectosEquipo.bono_dano(atacante, true)
-				var reducido := mini(EfectosEquipo.bono_armadura(efecto_dano.objetivo), maxi(0, dano_bruto - 1))
-				if reducido > 0:
-					detalles.append("Protección: −%d de daño físico" % reducido)
-				break
+		if &"eek.mordida" in resultado.mensajes:
+			detalles.append("Daño: %s + 3 de mordida venenosa" % _formatear_pista_tirada(resultado.tirada_dano))
+		else:
+			_agregar_detalle_dano_fisico(detalles, resultado, actor)
+	if resultado.tirada_duracion != null:
+		detalles.append("Duración: %s → %d turnos del afectado" % [_formatear_pista_tirada(resultado.tirada_duracion), resultado.tirada_duracion.total_efectivo])
 	var mensajes: Array[String] = []
 	for id_mensaje in resultado.mensajes:
 		if actor is PersonajeNPC and String(id_mensaje).begins_with("estado."):
@@ -1508,7 +1490,7 @@ func _registrar_resultado_narrativo(
 	for efecto in resultado.efectos_aplicados:
 		if efecto.tipo == &"dano":
 			var sujeto := "Recibes" if efecto.objetivo == ficha_jugador else "Infliges"
-			if categoria in [EntradaRegistroNarrativo.Categoria.MOVIMIENTO, EntradaRegistroNarrativo.Categoria.ESTADO] and efecto.objetivo is PersonajeNPC:
+			if efecto.objetivo is PersonajeNPC and (actor is PersonajeNPC or categoria in [EntradaRegistroNarrativo.Categoria.MOVIMIENTO, EntradaRegistroNarrativo.Categoria.ESTADO]):
 				sujeto = "%s recibe" % efecto.objetivo.obtener_nombre_interaccion()
 			mensajes.append("%s [hint=\"%s\"]%d de daño[/hint]." % [
 				sujeto,
@@ -1522,6 +1504,23 @@ func _registrar_resultado_narrativo(
 	if actor is PersonajeNPC:
 		titulo = "%s — %s" % [actor.obtener_nombre_interaccion(), titulo]
 	registro_narrativo.registrar(categoria, titulo, "\n".join(mensajes), detalles)
+
+
+func _agregar_detalle_dano_fisico(detalles: Array[String], resultado: ResultadoAccion, actor: Node2D) -> void:
+	if resultado.tirada_dano != null:
+		var atacante: Node2D = actor if actor != null else ficha_jugador
+		detalles.append("Daño: %s + %d FUE + %d equipo" % [
+			_formatear_pista_tirada(resultado.tirada_dano),
+			EfectosEquipo.bono_fuerza_dano(atacante),
+			EfectosEquipo.bono_dano(atacante, true),
+		])
+		for efecto_dano in resultado.efectos_aplicados:
+			if efecto_dano.tipo == &"dano":
+				var dano_bruto := resultado.tirada_dano.total_efectivo + EfectosEquipo.bono_fuerza_dano(atacante) + EfectosEquipo.bono_dano(atacante, true)
+				var reducido := mini(EfectosEquipo.bono_armadura(efecto_dano.objetivo), maxi(0, dano_bruto - 1))
+				if reducido > 0:
+					detalles.append("Protección: −%d de daño físico" % reducido)
+				break
 
 
 func _formatear_pista_tirada(tirada: Variant) -> String:
@@ -2382,6 +2381,9 @@ func _plan_combate_npc(npc: PersonajeNPC) -> Dictionary:
 
 func _programar_turno_npc() -> void:
 	_secuencia_turno_npc += 1
+	if en_combate and gestor_rondas != null and _es_turno_jugador() and ficha_jugador.obtener_estado(&"aturdido") != null:
+		call_deferred(&"_finalizar_turno_jugador_aturdido", _secuencia_turno_npc)
+		return
 	if not en_combate or _es_turno_jugador() or gestor_rondas.actor_activo == null:
 		return
 	var secuencia := _secuencia_turno_npc
@@ -2410,7 +2412,7 @@ func _programar_turno_npc() -> void:
 			return
 		if _resolver_perdida_agro():
 			return
-		if npc.obtener_estado(&"caido") != null:
+		if npc.obtener_estado(&"caido") != null or npc.obtener_estado(&"aturdido") != null:
 			npc.agotar_recursos_turno()
 			break
 		var plan := _plan_combate_npc(npc)
@@ -2420,25 +2422,29 @@ func _programar_turno_npc() -> void:
 			if not _liberar_npc(npc):
 				break
 			await get_tree().create_timer(0.6).timeout
-		elif decision == &"atacar":
-			var ataque := AccionAtaqueNPC.new(objetivo, gestor_rondas)
-			var resultado := gestor_acciones.procesar_accion(ataque.construir_contexto(npc))
+		elif decision in [&"atacar", &"chillido_terror", AccionSirvienteEek.MORDIDA, AccionSirvienteEek.TELARANA]:
+			var ataque: Variant = AccionAtaqueNPC.new(objetivo, gestor_rondas) if decision == &"atacar" else (preload("res://scripts/interacciones/combate/accion_chillido_terror.gd").new(objetivo, gestor_rondas) if decision == &"chillido_terror" else AccionSirvienteEek.new(objetivo, gestor_rondas))
+			var contexto: ContextoAccion = ataque.construir_contexto(npc) if decision in [&"atacar", &"chillido_terror"] else ataque.construir_contexto(npc, decision)
+			var resultado := gestor_acciones.procesar_accion(contexto)
 			if resultado.tirada != null:
 				historial_tiradas.registrar(resultado.tirada)
 			if resultado.tirada_defensa != null:
 				historial_tiradas.registrar(resultado.tirada_defensa)
 			if resultado.tirada_dano != null:
 				historial_tiradas.registrar(resultado.tirada_dano)
+			if resultado.tirada_duracion != null:
+				historial_tiradas.registrar(resultado.tirada_duracion)
+			var titulo := "Chillido perforante" if decision == &"chillido_terror" else ("Ataque" if decision == &"atacar" else ("Mordida venenosa" if decision == AccionSirvienteEek.MORDIDA else "Lanzar telaraña"))
 			_registrar_resultado_narrativo(
-				"Ataque de %s" % npc.obtener_nombre_interaccion(),
-				resultado, EntradaRegistroNarrativo.Categoria.DANO, "FUE", npc
+				titulo, resultado, EntradaRegistroNarrativo.Categoria.DANO,
+				"VOL del objetivo" if decision == &"chillido_terror" else ("DES del objetivo" if decision == AccionSirvienteEek.TELARANA else "FUE"), npc
 			)
 			if _resolver_fin_combate():
 				return
 			if not resultado.exitosa:
 				break
 			await get_tree().create_timer(0.6).timeout
-		elif decision == &"acercarse":
+		elif decision in [&"acercarse", &"retirarse"]:
 			var origen := npc.coordenada_mapa
 			var camino: Array[Vector2i] = plan["camino"]
 			var procesar_entrada := func(desde: Vector2i, hasta: Vector2i, actor: Node2D) -> void:
@@ -2454,7 +2460,7 @@ func _programar_turno_npc() -> void:
 				registro_narrativo.registrar(
 					EntradaRegistroNarrativo.Categoria.MOVIMIENTO,
 					"Movimiento de %s" % npc.obtener_nombre_interaccion(),
-					"Avanza %d casillas. Le quedan %d puntos de movimiento." % [
+					"Se desplaza %d casillas. Le quedan %d puntos de movimiento." % [
 						camino.find(npc.coordenada_mapa),
 						npc.obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO)
 					]
@@ -2476,6 +2482,11 @@ func _programar_turno_npc() -> void:
 	while gestor_triggers.tiene_actividad() and _turno_npc_vigente(secuencia):
 		await get_tree().process_frame
 	if _turno_npc_vigente(secuencia):
+		_finalizar_turno_combate()
+
+
+func _finalizar_turno_jugador_aturdido(secuencia: int) -> void:
+	if secuencia == _secuencia_turno_npc and en_combate and _es_turno_jugador() and ficha_jugador.obtener_estado(&"aturdido") != null:
 		_finalizar_turno_combate()
 
 

@@ -25,6 +25,14 @@ signal estado_cambiado(clave: StringName, estado: EstadoActor)
 var _inventario: Inventario
 
 var estado_personaje: EstadoPersonajeNPC
+var liberacion_telarana_intentada: bool:
+	get:
+		var estado := _asegurar_estado()
+		return estado != null and estado.liberacion_telarana_intentada
+	set(valor):
+		var estado := _asegurar_estado()
+		if estado != null:
+			estado.liberacion_telarana_intentada = valor
 ## Se reconstruye desde rondas al cargar; no es la relación persistente.
 var bando_encuentro: int = GestorRondas.Bando.NEUTRAL
 var en_oposicion_encuentro: bool:
@@ -304,6 +312,8 @@ func puede_actuar() -> bool:
 func puede_moverse() -> bool:
 	return (
 		puede_actuar() and obtener_estado(&"enredado") == null
+		and obtener_estado(&"inmovilizado") == null
+		and obtener_estado(&"aturdido") == null
 		and obtener_estado(&"caido") == null
 		and obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO) >= 0
 	)
@@ -322,7 +332,7 @@ func consumir_paso_movimiento(coste: int) -> void:
 
 
 func orientar_paso_movimiento(origen: Vector2i, destino: Vector2i) -> void:
-	if sprite_personaje == null:
+	if sprite_personaje == null or sprite_personaje.hframes * sprite_personaje.vframes < 4:
 		return
 	match destino - origen:
 		Vector2i.RIGHT:
@@ -467,6 +477,10 @@ func agotar_recursos_turno() -> void:
 		var restante := obtener_recurso_turno(clave)
 		if restante > 0:
 			consumir_recurso_turno(clave, restante)
+
+
+func restablecer_liberacion_telarana() -> void:
+	liberacion_telarana_intentada = false
 
 
 func iniciar_turno() -> void:

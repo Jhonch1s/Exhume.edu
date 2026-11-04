@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=18
+type="Resource"
+uid="uid://dkayq8pftby7c"
+path="res://.godot/imported/salaprincipal.dialogue-58103f13dc6a86459bbbc3fe9861b6f7.tres"
+
+[deps]
+
+source_file="res://dialogues/prision/salaprincipal.dialogue"
+dest_files=["res://.godot/imported/salaprincipal.dialogue-58103f13dc6a86459bbbc3fe9861b6f7.tres"]
+
+[params]
+
+defaults=true

@@ -21,8 +21,10 @@ func validar(solicitud: SolicitudEfecto) -> StringName:
 
 
 func _validar_estado(solicitud: SolicitudEfecto) -> StringName:
-	if solicitud.clave not in [&"veneno", &"quemado", &"enredado", &"caido"] + EfectosEquipo.PENALIZACIONES:
+	if solicitud.clave not in [&"veneno", &"quemado", &"enredado", &"inmovilizado", &"caido"] + EfectosEquipo.PENALIZACIONES:
 		return &"estado_no_admitido"
+	if solicitud.clave == &"inmovilizado" and (solicitud.magnitud != 1.0 or solicitud.duracion > 3 or not solicitud.terminos_dano.is_empty()):
+		return &"configuracion_estado_invalida"
 	if solicitud.clave in EfectosEquipo.PENALIZACIONES and (solicitud.magnitud < 1 or solicitud.magnitud > 5 or not solicitud.terminos_dano.is_empty()):
 		return &"configuracion_estado_invalida"
 	if (
@@ -89,7 +91,10 @@ func _aplicar_estado(solicitud: SolicitudEfecto) -> Variant:
 	var creado: bool = cambio[&"creado"]
 	var mensaje_nuevo := &"estado.enredado"
 	var mensaje_renovado := &"estado.enredado_renovado"
-	if solicitud.clave == &"veneno":
+	if solicitud.clave == &"inmovilizado":
+		mensaje_nuevo = &"estado.inmovilizado"
+		mensaje_renovado = &"estado.inmovilizado_renovado"
+	elif solicitud.clave == &"veneno":
 		mensaje_nuevo = &"estado.envenenado"
 		mensaje_renovado = &"estado.veneno_renovado"
 	elif solicitud.clave == &"quemado":

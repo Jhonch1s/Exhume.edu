@@ -41,16 +41,18 @@ static func resolver(
 		return ResultadoAccion.crear_exito(
 			[StringName(prefijo + "ataque_fallido")]
 		).con_tirada(ataque)
-	var esquiva := EfectosEquipo.resolver_prueba(
-		motor_dados, defensor, "destreza",
-		TiposTirada.Origen.AUTOMATICA, TiposTirada.Presentacion.SOLO_LOG, "esquiva"
-	)
-	if not esquiva.valida:
-		return ResultadoAccion.crear_fallo(esquiva.motivo).con_tirada(ataque)
-	if esquiva.exitosa:
-		return ResultadoAccion.crear_exito(
-			[StringName(prefijo + "ataque_esquivado")]
-		).con_tirada(ataque).con_tirada_defensa(esquiva)
+	var esquiva: ResultadoPrueba = null
+	if not defensor.has_method(&"obtener_estado") or defensor.obtener_estado(&"aturdido") == null:
+		esquiva = EfectosEquipo.resolver_prueba(
+			motor_dados, defensor, "destreza",
+			TiposTirada.Origen.AUTOMATICA, TiposTirada.Presentacion.SOLO_LOG, "esquiva"
+		)
+		if not esquiva.valida:
+			return ResultadoAccion.crear_fallo(esquiva.motivo).con_tirada(ataque)
+		if esquiva.exitosa:
+			return ResultadoAccion.crear_exito(
+				[StringName(prefijo + "ataque_esquivado")]
+			).con_tirada(ataque).con_tirada_defensa(esquiva)
 	var tirada_dano := motor_dados.resolver(
 		EfectosEquipo.terminos_dano_armas(contexto.actor), 1,
 		TiposTirada.Origen.SOLICITADA if es_jugador else TiposTirada.Origen.AUTOMATICA,

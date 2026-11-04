@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=18
+type="Resource"
+uid="uid://c31j7ypx36s2r"
+path="res://.godot/imported/peligro1.dialogue-8a5b462acf28df3504a9a27584aa044b.tres"
+
+[deps]
+
+source_file="res://dialogues/prision/peligro1.dialogue"
+dest_files=["res://.godot/imported/peligro1.dialogue-8a5b462acf28df3504a9a27584aa044b.tres"]
+
+[params]
+
+defaults=true

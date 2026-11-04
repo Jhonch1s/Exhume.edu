@@ -10,6 +10,8 @@ enum ActitudInicialJugador {
 	HOSTIL,
 }
 
+enum EstiloCombate { BASICO, SIRVIENTE_EEK, TERROR_NOCTURNO }
+
 ## Orden de frames para hojas de sprites 2x2:
 ## fila 0: abajo derecha, abajo izquierda;
 ## fila 1: arriba izquierda, arriba derecha.
@@ -38,6 +40,7 @@ enum OrientacionMapa {
 @export_category("Capacidades")
 @export var puede_dialogar: bool = false
 @export var puede_combatir: bool = false
+@export var estilo_combate: EstiloCombate = EstiloCombate.BASICO
 @export var puede_tener_inventario: bool = false
 
 @export_category("Detección del jugador")

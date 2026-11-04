@@ -53,6 +53,10 @@ var tirada_dano: ResultadoTirada:
 	get:
 		return _tirada_dano
 
+var tirada_duracion: ResultadoTirada:
+	get:
+		return _tirada_duracion
+
 var exitosa: bool:
 	get:
 		return _estado == TiposInteraccion.EstadoResolucion.EXITO
@@ -70,6 +74,7 @@ var _destino_item: Variant
 var _tirada: Variant
 var _tirada_defensa: ResultadoPrueba
 var _tirada_dano: ResultadoTirada
+var _tirada_duracion: ResultadoTirada
 
 
 func _init(
@@ -85,7 +90,8 @@ func _init(
 	destino_item_inicial: Variant = null,
 	tirada_inicial: Variant = null,
 	tirada_defensa_inicial: ResultadoPrueba = null,
-	tirada_dano_inicial: ResultadoTirada = null
+	tirada_dano_inicial: ResultadoTirada = null,
+	tirada_duracion_inicial: ResultadoTirada = null
 ) -> void:
 	_estado = estado_inicial
 	if _estado == TiposInteraccion.EstadoResolucion.EXITO:
@@ -116,6 +122,7 @@ func _init(
 	_tirada = tirada_inicial
 	_tirada_defensa = tirada_defensa_inicial
 	_tirada_dano = tirada_dano_inicial
+	_tirada_duracion = tirada_duracion_inicial
 
 
 static func crear_exito(
@@ -202,7 +209,8 @@ func con_costes_consumidos(
 		_destino_item,
 		_tirada,
 		_tirada_defensa,
-		_tirada_dano
+		_tirada_dano,
+		_tirada_duracion
 	)
 
 
@@ -225,7 +233,8 @@ func con_tirada(nueva_tirada: Variant) -> ResultadoAccion:
 		_destino_item,
 		nueva_tirada,
 		_tirada_defensa,
-		_tirada_dano
+		_tirada_dano,
+		_tirada_duracion
 	)
 
 
@@ -235,7 +244,7 @@ func con_tirada_defensa(nueva_defensa: ResultadoPrueba) -> ResultadoAccion:
 	return ResultadoAccion.new(
 		_estado, _motivo, _mensajes, _efectos_aplicados, _cambios_estado,
 		_costes_consumidos, _interrumpe_movimiento, _terminal,
-		_solicitudes_efecto, _destino_item, _tirada, nueva_defensa, _tirada_dano
+		_solicitudes_efecto, _destino_item, _tirada, nueva_defensa, _tirada_dano, _tirada_duracion
 	)
 
 
@@ -245,5 +254,15 @@ func con_tirada_dano(nueva_tirada: ResultadoTirada) -> ResultadoAccion:
 	return ResultadoAccion.new(
 		_estado, _motivo, _mensajes, _efectos_aplicados, _cambios_estado,
 		_costes_consumidos, _interrumpe_movimiento, _terminal,
-		_solicitudes_efecto, _destino_item, _tirada, _tirada_defensa, nueva_tirada
+		_solicitudes_efecto, _destino_item, _tirada, _tirada_defensa, nueva_tirada, _tirada_duracion
+	)
+
+
+func con_tirada_duracion(nueva_tirada: ResultadoTirada) -> ResultadoAccion:
+	if nueva_tirada == null or not nueva_tirada.valida:
+		return self
+	return ResultadoAccion.new(
+		_estado, _motivo, _mensajes, _efectos_aplicados, _cambios_estado,
+		_costes_consumidos, _interrumpe_movimiento, _terminal,
+		_solicitudes_efecto, _destino_item, _tirada, _tirada_defensa, _tirada_dano, nueva_tirada
 	)

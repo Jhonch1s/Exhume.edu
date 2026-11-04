@@ -95,6 +95,7 @@ var recursos_turno: RecursosTurnoActor
 var pv_max: int
 var pv_actual: int
 var estados_temporales := EstadosTemporalesActor.new()
+var liberacion_telarana_intentada: bool = false
 var clase: String = "Guerrero"
 var origen: String = ""
 
@@ -435,7 +436,7 @@ func retirar_estado(clave: StringName) -> bool:
 
 
 func puede_moverse() -> bool:
-	return obtener_estado(&"enredado") == null
+	return obtener_estado(&"enredado") == null and obtener_estado(&"inmovilizado") == null and obtener_estado(&"aturdido") == null
 
 func aplicar_o_renovar_estado(
 	clave: StringName,
@@ -463,6 +464,10 @@ func consumir_tick_estado(clave: StringName) -> Dictionary:
 		elif clave == &"quemado":
 			reproducir_sonido_quemadura()
 	return resultado
+
+func restablecer_liberacion_telarana() -> void:
+	liberacion_telarana_intentada = false
+
 
 func iniciar_turno() -> void:
 	pasivas_usadas_turno.clear()
@@ -543,6 +548,7 @@ func obtener_estado_persistente() -> Dictionary:
 		"recursos_turno": recursos_turno.obtener_restantes(),
 		"movimiento_maximo": recursos_turno.obtener_maximo(RecursosTurnoActor.MOVIMIENTO),
 		"estados": estados_temporales.obtener_estado_persistente(),
+		"liberacion_telarana_intentada": liberacion_telarana_intentada,
 		"inventario": inventario.obtener_estado_persistente(),
 		"equipo": equipo.obtener_estado_persistente(),
 	}
@@ -551,6 +557,8 @@ func obtener_estado_persistente() -> Dictionary:
 func validar_estado_persistente(estado: Variant) -> StringName:
 	if not estado is Dictionary:
 		return &"estado_ficha_invalido"
+	if not estado.get("liberacion_telarana_intentada", false) is bool:
+		return &"liberacion_telarana_guardada_invalida"
 	if not _es_numero_entero(estado.get("raciones", 3)) or estado.get("raciones", 3) < 0:
 		return &"raciones_guardadas_invalidas"
 	if (
@@ -733,6 +741,7 @@ func restaurar_estado_persistente(estado: Variant) -> StringName:
 	equipo.restaurar_estado_persistente(estado.get("equipo", []), clase)
 	activar_antorcha_si_necesario()
 	estados_temporales.restaurar_estado_persistente(estado["estados"])
+	liberacion_telarana_intentada = estado.get("liberacion_telarana_intentada", false)
 	# Restaurar el presupuesto efectivo sin reponer acciones ni pasos gastados.
 	recursos_turno = _crear_recursos_turno(obtener_destreza())
 	recursos_turno.ajustar_movimiento(movimiento_por_turno)

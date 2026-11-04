@@ -48,7 +48,7 @@ func _ejecutar() -> void:
 		if n is FuenteLuzInteractuable:
 			luces += 1
 			_comprobar(n.obtener_opciones_accion().any(func(o): return o.id == &"examinar"), "La luz %s se puede examinar." % n.id_instancia)
-	_comprobar(luces == 31, "Se conservan las 31 luces colocadas.")
+	_comprobar(luces == 31, "Se conservan las 31 luces colocadas; se encontraron %d." % luces)
 	_probar_hallazgos(escenario)
 	var notas := tablero.obtener_interactuable(&"pista_inicial") as Interactuable
 	_comprobar(notas.texto_examen.is_empty(), "El texto de notas no tapa los fragmentos.")
@@ -121,6 +121,46 @@ func _ejecutar() -> void:
 		_comprobar(plan["decision"] == &"atacar", "El árbol decide atacar al PJ adyacente.")
 		var ataque := AccionAtaqueNPC.new(escenario.ficha_jugador)
 		_comprobar(ataque.validar_accion(ataque.construir_contexto(npc)) == &"", "El ataque del guardia está configurado.")
+	for id in [&"sirviente_eek_001", &"sirviente_eek_002"]:
+		if escenario.en_combate:
+			escenario._terminar_combate(false)
+		escenario.ficha_jugador.retirar_estado(&"inmovilizado")
+		var arana := tablero.obtener_interactuable(id) as PersonajeNPC
+		_comprobar(arana != null, "La araña %s está registrada." % id)
+		if arana == null:
+			continue
+		var perfil := arana.obtener_definicion_personaje()
+		_comprobar(perfil != null and perfil.puede_combatir and perfil.estilo_combate == DefinicionPersonaje.EstiloCombate.SIRVIENTE_EEK and arana.se_opone_al_jugador(), "%s hereda IA hostil de Eek." % id)
+		_comprobar(arana.vida_actual == 8 and arana.obtener_fuerza() == 2 and arana.obtener_destreza() == 3 and arana.obtener_voluntad() == 1, "%s conserva los atributos de Eek." % id)
+		_comprobar(arana.get_node_or_null(arana.ruta_visual_resaltable) == arana.get_node_or_null("Sprite2D"), "%s resalta su propio sprite." % id)
+		var vecino: Variant = null
+		for dir in [Vector2i.UP, Vector2i.LEFT, Vector2i.RIGHT, Vector2i.DOWN]:
+			var c: Vector2i = arana.coordenada_mapa + dir
+			if tablero.puede_entrar(c, escenario.ficha_jugador) and escenario.validador_espacial.validar_linea_visual(arana.coordenada_mapa, c) == &"":
+				vecino = c
+				break
+		_comprobar(vecino != null, "%s tiene acceso para detectar al aventurero." % id)
+		if vecino == null:
+			continue
+		tablero.liberar_celda(escenario.ficha_jugador.coordenada_mapa, escenario.ficha_jugador)
+		escenario.ficha_jugador.inicializar(vecino, tablero.capa_referencia)
+		tablero.ocupar_celda(vecino, escenario.ficha_jugador)
+		_comprobar(arana.puede_detectar_jugador(escenario.ficha_jugador, escenario.validador_espacial), "%s detecta al aventurero." % id)
+		escenario._evaluar_agro_npc()
+		_comprobar(escenario.en_combate and arana.en_oposicion_encuentro, "%s inicia o se incorpora al combate." % id)
+		arana.iniciar_turno()
+		var plan: Dictionary = escenario._plan_combate_npc(arana)
+		_comprobar(plan["decision"] == AccionSirvienteEek.TELARANA and plan["objetivo"] == escenario.ficha_jugador, "%s elige lanzar telaraña." % id)
+		var habilidad := AccionSirvienteEek.new(escenario.ficha_jugador, escenario.gestor_rondas)
+		var resultado: ResultadoAccion = escenario.gestor_acciones.procesar_accion(habilidad.construir_contexto(arana, AccionSirvienteEek.TELARANA))
+		_comprobar(resultado.exitosa and resultado.tirada is ResultadoPrueba and arana.obtener_recurso_turno(RecursosTurnoActor.ACCION_PRINCIPAL) == 0, "%s ejecuta telaraña y gasta su acción." % id)
+	var terror := tablero.obtener_interactuable(&"terror_nocturno_001") as PersonajeNPC
+	_comprobar(terror != null, "El terror nocturno está registrado.")
+	if terror != null:
+		var perfil := terror.obtener_definicion_personaje()
+		_comprobar(perfil.puede_combatir and perfil.estilo_combate == DefinicionPersonaje.EstiloCombate.TERROR_NOCTURNO and terror.se_opone_al_jugador(), "El terror nocturno tiene IA hostil.")
+		_comprobar(terror.vida_actual == 10 and terror.obtener_fuerza() == 2 and terror.obtener_destreza() == 4 and terror.obtener_voluntad() == 2, "El terror nocturno conserva sus atributos.")
+		_comprobar(terror.get_node_or_null(terror.ruta_visual_resaltable) == terror.get_node_or_null("Sprite2D"), "El terror nocturno resalta su propio sprite.")
 	if escenario.en_combate:
 		escenario._terminar_combate(false)
 	escenario._cancelar_exploracion_npc()

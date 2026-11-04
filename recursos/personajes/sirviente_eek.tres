@@ -1,0 +1,42 @@
+[gd_resource type="Resource" script_class="DefinicionPersonaje" format=3 uid="uid://sdi7wpq1rlj8"]
+
+[ext_resource type="Script" uid="uid://cosqwlc2jnmwe" path="res://scripts/personajes/definicion_personaje.gd" id="1_def"]
+[ext_resource type="Script" uid="uid://bmsmwb5764q7n" path="res://scripts/personajes/dialogo_npc.gd" id="1_hrigu"]
+[ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="2_fragmento"]
+[ext_resource type="Script" uid="uid://bccqt6gfe8843" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="3_perfil"]
+[ext_resource type="AudioStream" uid="uid://d3xf2dnivrv0v" path="res://assets/sonidos/animales/pasos araña.wav" id="4_pasos"]
+[ext_resource type="AudioStream" uid="uid://b3wlq1v8ffd6r" path="res://assets/sonidos/animales/araña.wav" id="5_arana"]
+[ext_resource type="Texture2D" uid="uid://dprfudrhbdl7a" path="res://assets/characters/npcs/sirviente_eek/sprites/arana_pixel_4_direcciones.png" id="6_sprite"]
+
+[sub_resource type="Resource" id="Fragmento_aspecto"]
+script = ExtResource("2_fragmento")
+id_fragmento = &"aspecto"
+nivel = 1
+id_mensaje = &"examen.sirviente_eek.basico"
+
+[sub_resource type="Resource" id="Perfil_observacion"]
+script = ExtResource("3_perfil")
+
+[resource]
+script = ExtResource("1_def")
+fuerza = 2
+destreza = 3
+voluntad = 1
+vida_maxima = 8
+experiencia_recompensa_derrota = 10
+faccion_id = &"sirvientes_eek"
+actitud_inicial_jugador = 2
+actitud_hacia_jugador_fija = true
+puede_combatir = true
+estilo_combate = 1
+radio_agro = 6
+movimiento_fijo = 5
+acciones_adicionales_por_turno = 0
+textura_mapa = ExtResource("6_sprite")
+sonidos_pasos = Array[AudioStream]([ExtResource("4_pasos")])
+sonidos_dolor = Array[AudioStream]([ExtResource("5_arana")])
+sonidos_proximidad = Array[AudioStream]([ExtResource("5_arana")])
+id_definicion = &"sirviente_eek"
+nombre = "Sirviente de Eek"
+fragmentos_informacion = Array[ExtResource("2_fragmento")]([SubResource("Fragmento_aspecto")])
+perfil_observacion = SubResource("Perfil_observacion")

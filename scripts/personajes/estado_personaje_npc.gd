@@ -22,6 +22,7 @@ var atributos_actuales: Dictionary[StringName, int] = {}
 var nivel_actual: int
 var recursos_turno: RecursosTurnoActor
 var estados_temporales := EstadosTemporalesActor.new()
+var liberacion_telarana_intentada: bool = false
 var ultima_posicion_conocida: Variant = null
 ## Vacío conserva el significado anterior: la posición recordada es del jugador.
 var objetivo_recordado_id: StringName = &""
@@ -129,6 +130,8 @@ func obtener_estado_persistente() -> Dictionary:
 		"nivel_actual": nivel_actual,
 		"estados": estados_temporales.obtener_estado_persistente(),
 	}
+	if liberacion_telarana_intentada:
+		estado["liberacion_telarana_intentada"] = true
 	if not definicion.actitud_hacia_jugador_fija:
 		estado["actitud_hacia_jugador"] = obtener_actitud_hacia_jugador()
 		estado["puntos_actitud"] = _puntos_actitud
@@ -180,6 +183,9 @@ func validar_estado_persistente(estado: Dictionary) -> StringName:
 	var tiene_puntos := estado.has("puntos_actitud")
 	var tiene_objetivo := estado.has("objetivo_recordado_id")
 	var tiene_pruebas := estado.has("pruebas_dialogo")
+	var tiene_liberacion := estado.has("liberacion_telarana_intentada")
+	if not estado.get("liberacion_telarana_intentada", false) is bool:
+		return &"liberacion_telarana_guardada_invalida"
 	if tiene_pruebas:
 		if not estado["pruebas_dialogo"] is Dictionary:
 			return &"pruebas_dialogo_guardadas_invalidas"
@@ -207,7 +213,7 @@ func validar_estado_persistente(estado: Dictionary) -> StringName:
 	):
 		return &"actitud_npc_guardada_invalida"
 	if (
-		estado.size() != campos_base + int(tiene_recursos) + int(tiene_estados) + int(tiene_movimiento_maximo) + int(tiene_memoria) + int(tiene_origen) + int(tiene_puntos) + int(tiene_objetivo) + int(tiene_pruebas)
+		estado.size() != campos_base + int(tiene_recursos) + int(tiene_estados) + int(tiene_movimiento_maximo) + int(tiene_memoria) + int(tiene_origen) + int(tiene_puntos) + int(tiene_objetivo) + int(tiene_pruebas) + int(tiene_liberacion)
 		or ((tiene_movimiento_maximo or tiene_memoria or tiene_origen or tiene_objetivo) and not tiene_recursos)
 	):
 		return &"estado_npc_guardado_invalido"
@@ -255,6 +261,7 @@ func restaurar_estado_persistente(estado: Dictionary) -> StringName:
 		return motivo
 	# Cargar restaura el momento guardado, incluso si el NPC entonces estaba vivo.
 	_vida_actual = int(estado["vida_actual"])
+	liberacion_telarana_intentada = estado.get("liberacion_telarana_intentada", false)
 	nivel_actual = int(estado["nivel_actual"])
 	for clave in ATRIBUTOS:
 		atributos_actuales[clave] = int(estado["atributos"][String(clave)])

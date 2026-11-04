@@ -7,8 +7,8 @@
 [ext_resource type="Script" uid="uid://cosqwlc2jnmwe" path="res://scripts/personajes/definicion_personaje.gd" id="4_ab88t"]
 [ext_resource type="Texture2D" uid="uid://tb3xwiig6ul6" path="res://assets/characters/npcs/banga/sprites/banga_4_direcciones.png" id="5_krqa0"]
 [ext_resource type="Texture2D" uid="uid://df6ktser3lacd" path="res://assets/characters/npcs/banga/portraits/roffa_portrait.png" id="6_retrato"]
-[ext_resource type="Texture2D" path="res://assets/characters/npcs/banga/portraits/roffa_dialogo.png" id="8_ilustracion"]
 [ext_resource type="Resource" uid="uid://b6a3auymlp2op" path="res://dialogues/prision/roffa.dialogue" id="7_dialogo"]
+[ext_resource type="Texture2D" uid="uid://offnnsgnt1hb" path="res://assets/characters/npcs/banga/portraits/roffa_dialogo.png" id="8_ilustracion"]
 
 [sub_resource type="Resource" id="Dialogo_roffa"]
 script = ExtResource("1_knh1t")

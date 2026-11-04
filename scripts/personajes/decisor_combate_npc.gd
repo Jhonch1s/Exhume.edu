@@ -16,7 +16,7 @@ func elegir(
 	visibles: Array[Object] = [],
 	perseguir_recuerdo: bool = false
 ) -> Dictionary:
-	var enredado := npc.obtener_estado(&"enredado") != null
+	var enredado := npc.obtener_estado(&"enredado") != null or npc.obtener_estado(&"inmovilizado") != null
 	var caido := npc.obtener_estado(&"caido") != null
 	var seleccion := {"objetivo": null, "camino": []}
 	if not enredado and not caido:
@@ -32,6 +32,16 @@ func elegir(
 		adyacente = absi(distancia.x) + absi(distancia.y) == 1
 	var camino: Array[Vector2i] = []
 	camino.assign(seleccion["camino"])
+	if objetivo_visible and npc.obtener_definicion_personaje().estilo_combate == DefinicionPersonaje.EstiloCombate.SIRVIENTE_EEK:
+		return _plan_sirviente_eek(npc, objetivo, camino, tablero, buscador)
+	if objetivo_visible and npc.obtener_definicion_personaje().estilo_combate == DefinicionPersonaje.EstiloCombate.TERROR_NOCTURNO:
+		var delta: Vector2i = objetivo.coordenada_mapa - npc.coordenada_mapa
+		var decision: StringName = &"terminar_turno"
+		if npc.obtener_recurso_turno(RecursosTurnoActor.ACCION_PRINCIPAL) > 0 and npc.obtener_estado(&"recarga_chillido") == null and objetivo.obtener_estado(&"aturdido") == null and maxi(absi(delta.x), absi(delta.y)) <= 3:
+			decision = &"chillido_terror"
+		elif maxi(absi(delta.x), absi(delta.y)) > 3 and camino.size() > 1:
+			decision = &"acercarse"
+		return {"decision": decision, "objetivo": objetivo, "camino": camino, "objetivo_visible": true, "destino": null}
 	if not objetivo_visible and objetivo_conocido and not adyacente and npc.puede_moverse() and npc.obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO) > 0:
 		camino = _camino_acercamiento(npc, posicion_objetivo, tablero, buscador)
 	var busqueda_terminada := false
@@ -124,6 +134,43 @@ func _elegir_objetivo(
 			camino_elegido = camino
 			mejor = rango
 	return {"objetivo": elegido, "camino": camino_elegido}
+
+
+func _plan_sirviente_eek(
+	npc: PersonajeNPC, objetivo: Object, camino: Array[Vector2i],
+	tablero: TableroGrid, buscador: PathFindingManager
+) -> Dictionary:
+	var plan := {"decision": &"terminar_turno", "objetivo": objetivo, "camino": [], "objetivo_visible": true, "destino": null}
+	var delta: Vector2i = objetivo.coordenada_mapa - npc.coordenada_mapa
+	var distancia := absi(delta.x) + absi(delta.y)
+	if npc.obtener_recurso_turno(RecursosTurnoActor.ACCION_PRINCIPAL) > 0:
+		var ataque := AccionSirvienteEek.new(objetivo)
+		var contexto := ataque.construir_contexto(npc, AccionSirvienteEek.TELARANA)
+		if (
+			maxi(absi(delta.x), absi(delta.y)) <= AccionSirvienteEek.ALCANCE_TELARANA
+			and objetivo.obtener_estado(&"inmovilizado") == null and objetivo.obtener_estado(&"enredado") == null
+			and ValidadorEspacialTablero.new(tablero).validar_linea_efecto(contexto) == &""
+		):
+			plan["decision"] = AccionSirvienteEek.TELARANA
+		elif distancia == 1:
+			plan["decision"] = AccionSirvienteEek.MORDIDA
+		elif camino.size() > 1:
+			plan["decision"] = &"acercarse"
+			plan["camino"] = camino
+	elif distancia == 1 and npc.puede_moverse():
+		# Un paso de separación evita perseguir/retirarse indefinidamente en el mismo turno.
+		for direccion in DIRECCIONES:
+			var destino: Vector2i = npc.coordenada_mapa + direccion
+			var celda := tablero.obtener_celda(destino)
+			if celda == null or celda.penalizacion_peligro_ruta > 0.0 or not celda.efectos_superficie.is_empty():
+				continue
+			var ruta := buscador.calcular_camino(npc.coordenada_mapa, destino, tablero.datos, npc)
+			ruta = buscador.limitar_camino_por_movimiento(ruta, tablero.datos, npc, npc.obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO))
+			if ruta.size() == 2:
+				plan["decision"] = &"retirarse"
+				plan["camino"] = ruta
+				break
+	return plan
 
 
 func _camino_acercamiento(

@@ -21,7 +21,7 @@ func avanzar_turno(actor: Object) -> ResultadoAccion:
 	if gestor_acciones == null or not is_instance_valid(gestor_acciones):
 		return ResultadoAccion.crear_bloqueo(&"gestor_acciones_no_configurado")
 	_secuencia_turno += 1
-	return gestor_acciones.procesar_accion(ContextoAccion.new(
+	var resultado := gestor_acciones.procesar_accion(ContextoAccion.new(
 		TiposInteraccion.TipoAccion.FIN_TURNO,
 		actor,
 		null,
@@ -39,6 +39,9 @@ func avanzar_turno(actor: Object) -> ResultadoAccion:
 		null,
 		StringName("fin_turno_%d" % _secuencia_turno)
 	))
+	if resultado.exitosa and actor.has_method(&"restablecer_liberacion_telarana"):
+		actor.call(&"restablecer_liberacion_telarana")
+	return resultado
 
 
 func validar_accion(contexto: ContextoAccion) -> StringName:
@@ -57,9 +60,21 @@ func validar_accion(contexto: ContextoAccion) -> StringName:
 	if not claves is Array:
 		return &"resultado_estados_actor_invalido"
 	for clave in claves:
-		if not clave is StringName or clave not in [&"quemado", &"veneno", &"enredado", &"caido"] + EfectosEquipo.PENALIZACIONES:
+		if not clave is StringName or clave not in [&"quemado", &"veneno", &"enredado", &"inmovilizado", &"aturdido", &"recarga_chillido", &"caido"] + EfectosEquipo.PENALIZACIONES:
 			return &"estado_persistente_no_admitido"
 		var estado: Variant = contexto.actor.call(&"obtener_estado", clave)
+		if clave == &"recarga_chillido":
+			if not estado is EstadoActor or estado.magnitud != 1.0 or estado.duracion_total != 3 or estado.ticks_pendientes < 1 or estado.ticks_pendientes > 3 or not estado.terminos_dano_tick.is_empty():
+				return &"estado_persistente_invalido"
+			continue
+		if clave == &"aturdido":
+			if not estado is EstadoActor or estado.magnitud != 1.0 or estado.duracion_total != 1 or estado.ticks_pendientes != 1 or not estado.terminos_dano_tick.is_empty():
+				return &"estado_persistente_invalido"
+			continue
+		if clave == &"inmovilizado":
+			if not estado is EstadoActor or estado.magnitud != 1.0 or estado.ticks_pendientes < 1 or estado.ticks_pendientes > estado.duracion_total or estado.duracion_total > 3 or not estado.terminos_dano_tick.is_empty():
+				return &"estado_persistente_invalido"
+			continue
 		if clave in EfectosEquipo.PENALIZACIONES:
 			if not estado is EstadoActor or not EfectosEquipo.entero(estado.magnitud, 1, 5) or estado.ticks_pendientes < 1 or not estado.terminos_dano_tick.is_empty():
 				return &"estado_persistente_invalido"
@@ -110,7 +125,7 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 	var rangos: Dictionary[StringName, Vector2i] = {}
 	for clave in claves:
 		var estado: EstadoActor = contexto.actor.call(&"obtener_estado", clave)
-		if clave in [&"enredado", &"caido"] + EfectosEquipo.PENALIZACIONES:
+		if clave in [&"enredado", &"inmovilizado", &"aturdido", &"recarga_chillido", &"caido"] + EfectosEquipo.PENALIZACIONES:
 			continue
 		if estado.terminos_dano_tick.is_empty():
 			continue
@@ -130,6 +145,19 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 	for clave in claves:
 		var estado: EstadoActor = contexto.actor.call(&"obtener_estado", clave)
 		if clave == &"enredado":
+			continue
+		if clave == &"recarga_chillido":
+			cambios.append(contexto.actor.call(&"consumir_tick_estado", clave))
+			continue
+		if clave == &"aturdido":
+			cambios.append(contexto.actor.call(&"consumir_tick_estado", clave))
+			mensajes.append(&"estado.aturdido_expirado")
+			continue
+		if clave == &"inmovilizado":
+			var cambio_inmovilizado: Dictionary = contexto.actor.call(&"consumir_tick_estado", clave)
+			cambios.append(cambio_inmovilizado)
+			if cambio_inmovilizado[&"expirado"]:
+				mensajes.append(&"estado.inmovilizado_expirado")
 			continue
 		if clave in EfectosEquipo.PENALIZACIONES:
 			cambios.append(contexto.actor.call(&"consumir_tick_estado", clave))

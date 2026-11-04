@@ -27,6 +27,17 @@ No revelan la broma del prisionero, el instrumento ni la ubicación del paso al 
 
 ## Triggers
 
+- `dialogoentrada`: el protagonista recuerda la caída por el agujero, reconoce
+  que sigue vivo de milagro y reafirma que debe llegar a la tribu de los bangas.
+  Usa `dialogues/prision/entrada.dialogue`.
+- `salaprincipal`: comenta que observa la sala principal desde arriba y que
+  conviene mirar antes de continuar. Usa `dialogues/prision/salaprincipal.dialogue`.
+- `peligro1`: presentimiento de que algo espera más adelante y consejo de
+  prepararse para defenderse o escapar. Usa `dialogues/prision/peligro1.dialogue`.
+
+Estos tres diálogos usan el nombre del protagonista y la frecuencia única por
+partida configurada en sus triggers. Conservan la colocación y geometría del mapa.
+
 - `zona3bloqueo`: umbral X desde `(-9, 11)`, longitud 20. Usa
   `dialogues/prision/derrumbe.dialogue`; el protagonista habla con su nombre:
   «Parece que el derrumbe bloquea el paso. No puedo continuar por aquí.»
@@ -38,6 +49,13 @@ Ambos conservan la frecuencia `CADA_ENTRADA` configurada en la escena. La acció
 de viaje admite el UID que Godot guarda al seleccionar el archivo desde el
 Inspector. Se comprobaron ambos cruces en ejecución con OpenGL, incluida la
 presentación del diálogo y la llegada al templo.
+
+## Cofres de provisiones
+
+Los cofres `CofreInteractuable2` (`cofre_pequeno_001`) y `CofreInteractuable3`
+(`cofre_pequeno_002`) contienen cada uno una poción curativa, una bomba de humo y
+dos antorchas. Se configura `contenido_inicial` por instancia. Los guardados que
+ya contienen el inventario de esos cofres conservan su contenido guardado.
 
 ## Guardias
 

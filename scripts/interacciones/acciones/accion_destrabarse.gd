@@ -26,9 +26,11 @@ func validar_accion(contexto: ContextoAccion) -> StringName:
 		or not contexto.actor.has_method(&"obtener_destreza")
 		or not contexto.actor.has_method(&"puede_actuar")
 		or not contexto.actor.puede_actuar()
-		or contexto.actor.obtener_estado(&"enredado") == null
+		or (contexto.actor.obtener_estado(&"enredado") == null and contexto.actor.obtener_estado(&"inmovilizado") == null)
 	):
 		return &"actor_no_enredado"
+	if contexto.actor.obtener_estado(&"inmovilizado") != null and contexto.actor.liberacion_telarana_intentada:
+		return &"liberacion_telarana_ya_intentada"
 	var destreza: Variant = EfectosEquipo.base(contexto.actor, "destreza")
 	if not destreza is int or destreza < 1 or destreza > 5:
 		return &"destreza_actor_invalida"
@@ -53,7 +55,10 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 	)
 	if not tirada.valida:
 		return ResultadoAccion.crear_fallo(tirada.motivo)
+	if contexto.actor.obtener_estado(&"inmovilizado") != null:
+		contexto.actor.liberacion_telarana_intentada = true
 	if tirada.exitosa:
 		contexto.actor.retirar_estado(&"enredado")
+		contexto.actor.retirar_estado(&"inmovilizado")
 		return ResultadoAccion.crear_exito([&"estado.destrabado"]).con_tirada(tirada)
 	return ResultadoAccion.crear_exito([&"estado.sigue_enredado"]).con_tirada(tirada)

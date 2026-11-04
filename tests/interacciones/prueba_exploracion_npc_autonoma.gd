@@ -39,6 +39,7 @@ func _comprobar() -> void:
 	var origen_npc := npc.coordenada_mapa
 	var origen_jugador := ficha.coordenada_mapa
 	var movimiento_jugador := ficha.obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO)
+	var entradas_iniciales: int = escenario.registro_narrativo.obtener_entradas_visibles().size()
 	npc.movimiento.paso_dado.connect(_registrar_paso)
 	var movimiento_por_ciclo := npc.obtener_definicion_personaje().calcular_movimiento(npc.obtener_destreza())
 	var avanzo := false
@@ -53,6 +54,10 @@ func _comprobar() -> void:
 		return
 	if int(escenario.get("_turnos_exploracion_pendientes")) > 1:
 		push_error("Se acumularon avances de exploración atrasados.")
+		get_tree().quit(1)
+		return
+	if escenario.registro_narrativo.obtener_entradas_visibles().size() != entradas_iniciales:
+		push_error("Las patrullas autónomas no deben añadir acontecimientos fuera de combate.")
 		get_tree().quit(1)
 		return
 	escenario.set("en_combate", true)
@@ -78,11 +83,33 @@ func _comprobar() -> void:
 	escenario.set_process(false)
 	escenario.call("_cancelar_exploracion_npc")
 	await get_tree().create_timer(0.7).timeout
+	if not _comprobar_registro_npc(escenario, npc, ficha):
+		get_tree().quit(1)
+		return
 	escena.queue_free()
 	await get_tree().process_frame
-	print("ExploracionNPCAutonoma: ruta conservada, varios ciclos con jugador quieto, cola limitada y pausa/reanudación por combate correctos.")
+	print("ExploracionNPCAutonoma: patrullas autónomas silenciosas, pausa/reanudación y registro de NPC solo en combate correctos.")
 	get_tree().quit(0)
 
 
 func _registrar_paso(_coordenada: Vector2i) -> void:
 	_pasos_dados += 1
+
+
+func _comprobar_registro_npc(escenario: Node, npc: PersonajeNPC, ficha: Ficha) -> bool:
+	var registro: RegistroNarrativoSesion = escenario.registro_narrativo
+	registro.limpiar()
+	var resultado := ResultadoAccion.crear_exito([&"estado.fin_enredado"])
+	for combate in [false, true, false]:
+		escenario.en_combate = combate
+		var antes := registro.obtener_entradas_visibles().size()
+		for categoria in [EntradaRegistroNarrativo.Categoria.MOVIMIENTO, EntradaRegistroNarrativo.Categoria.ESTADO, EntradaRegistroNarrativo.Categoria.DANO]:
+			escenario._registrar_resultado_narrativo("Acción NPC", resultado, categoria, "DES", npc)
+		if registro.obtener_entradas_visibles().size() != antes + (3 if combate else 0):
+			push_error("Movimiento, estados y daño del NPC solo deben registrarse durante el combate.")
+			return false
+	escenario._registrar_resultado_narrativo("Paso del jugador", resultado, EntradaRegistroNarrativo.Categoria.MOVIMIENTO, "DES", ficha)
+	if registro.obtener_entradas_visibles().size() != 4 or registro.obtener_entradas_visibles().back().titulo != "Paso del jugador":
+		push_error("Las acciones del jugador deben seguir registrándose durante la exploración.")
+		return false
+	return true
