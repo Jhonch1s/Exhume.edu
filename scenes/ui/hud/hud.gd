@@ -581,6 +581,8 @@ func _descripcion_estado(clave: StringName, estado: EstadoActor) -> String:
 		descripcion = "%d de daño al terminar cada turno." % int(estado.magnitud)
 	elif clave == &"enredado":
 		descripcion = "No puedes moverte. Debes destrabarte."
+	elif clave == &"inmovilizado":
+		descripcion = "No puedes moverte. Clic derecho: liberarte con DES y 1 acción principal, una vez por turno. Expira al final de tus turnos."
 	elif clave == &"caido":
 		titulo = "Caído"
 		descripcion = "Te levantarás al terminar este turno."

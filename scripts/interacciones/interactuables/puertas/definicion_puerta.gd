@@ -12,11 +12,16 @@ enum ModoControl {
 @export_category("Cerradura")
 @export var patron_cerradura: StringName = &""
 
+@export_category("Visión e iluminación")
+@export var bloquea_vision_cerrada: bool = true
+
 @export_category("Representacion")
 @export var textura: Texture2D
 @export var region_cerrada: Rect2 = Rect2(0, 0, 64, 96)
 @export var region_abierta: Rect2 = Rect2(64, 0, 64, 96)
 @export var desplazamiento_sprite: Vector2 = Vector2(0, -32)
+## Ajuste adicional al abrir para conservar la bisagra aunque cambie el tamaño de región.
+@export var desplazamiento_apertura: Vector2 = Vector2.ZERO
 
 @export_category("Sonido")
 @export var sonido_abrir: AudioStream

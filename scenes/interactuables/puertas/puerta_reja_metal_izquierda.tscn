@@ -1,0 +1,9 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/interactuables/puertas/puerta_interactuable.tscn" id="1_base"]
+[ext_resource type="Resource" path="res://assets/interactuables/puertas/puerta_reja_metal/puerta_reja_metal_izquierda.tres" id="2_definicion"]
+
+[node name="PuertaRejaMetalIzquierda" instance=ExtResource("1_base")]
+definicion = ExtResource("2_definicion")
+ajustar_a_celda_en_editor = true
+bloqueada = false

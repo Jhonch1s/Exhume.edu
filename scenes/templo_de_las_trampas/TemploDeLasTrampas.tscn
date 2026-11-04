@@ -292,6 +292,14 @@ position = Vector2(-32, 16)
 [node name="EfectosSuperficie" type="Node2D" parent="." unique_id=78048463]
 y_sort_enabled = true
 
+[node name="Triggers" type="Node2D" parent="."]
+
+[node name="Dialogos" type="Node2D" parent="Triggers"]
+
+[node name="Mecanismos" type="Node2D" parent="Triggers"]
+
+[node name="Viajes" type="Node2D" parent="Triggers"]
+
 [node name="CapaColumnas" type="TileMapLayer" parent="." unique_id=1397874605]
 y_sort_enabled = true
 texture_filter = 1

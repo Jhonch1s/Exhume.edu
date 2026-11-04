@@ -325,3 +325,18 @@ func _actualizar_presentacion_interactuables() -> void:
 			if datos_tablero.has(coord):
 				estado = maxi(estado, datos_tablero[coord].visibilidad)
 		interactuable.actualizar_presentacion_visibilidad(estado)
+	if not is_instance_valid(tablero.zona_referencia):
+		return
+	var capa := tablero.zona_referencia.get_node_or_null("CapaDecoracionNoCaminable") as TileMapLayer
+	if capa == null:
+		return
+	# Los tiles de escenas se crean al final del frame; la niebla inicial los necesita ya.
+	capa.update_internals()
+	for decoracion in capa.get_children():
+		if not decoracion is TableroGrid.DECORACION_NO_CAMINABLE:
+			continue
+		var estado := Celda.EstadoVisibilidad.OCULTO
+		for coord in decoracion.obtener_coordenadas_ocupadas(capa):
+			if datos_tablero.has(coord):
+				estado = maxi(estado, datos_tablero[coord].visibilidad)
+		decoracion.actualizar_presentacion_visibilidad(estado)

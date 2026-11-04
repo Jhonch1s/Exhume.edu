@@ -12,10 +12,17 @@ extends Interactuable
 
 
 func _ready() -> void:
+	set_process(Engine.is_editor_hint())
 	if abierta or _es_controlada_por_mecanismo():
 		bloqueada = false
 	_actualizar_representacion()
 
+
+func _process(_delta: float) -> void:
+	if Engine.is_editor_hint():
+		_actualizar_representacion()
+		if ajustar_a_celda_en_editor:
+			_ajustar_al_centro_celda()
 
 
 func obtener_opciones_accion(actor: Object = null) -> Array[OpcionAccion]:
@@ -64,7 +71,8 @@ func permite_caminar_estado_guardado(estado: Dictionary) -> bool:
 
 
 func bloquea_vision_interactuable() -> bool:
-	return not abierta
+	var datos := definicion as DefinicionPuerta
+	return not abierta and (datos == null or datos.bloquea_vision_cerrada)
 
 
 func bloquea_proyectiles_interactuable() -> bool:
@@ -283,3 +291,5 @@ func _actualizar_representacion() -> void:
 	sprite.region_enabled = true
 	sprite.region_rect = datos.region_abierta if abierta else datos.region_cerrada
 	sprite.position = datos.desplazamiento_sprite
+	if abierta:
+		sprite.position += datos.desplazamiento_apertura

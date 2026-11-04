@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="DefinicionPuerta" format=3]
+
+[ext_resource type="Script" path="res://scripts/interacciones/interactuables/puertas/definicion_puerta.gd" id="1_definicion"]
+[ext_resource type="Texture2D" path="res://assets/interactuables/puertas/puerta_reja_metal/puerta_reja_metal.png" id="2_textura"]
+
+[resource]
+script = ExtResource("1_definicion")
+id_definicion = &"puerta_reja_metal_izquierda"
+nombre = "Puerta de reja"
+descripcion_base = "Una puerta de barrotes metálicos."
+etiquetas = Array[StringName]([&"puerta", &"reja"])
+patron_cerradura = &"reja_metal"
+bloquea_vision_cerrada = false
+textura = ExtResource("2_textura")
+region_cerrada = Rect2(0, 0, 64, 96)
+region_abierta = Rect2(64, 0, 64, 96)
+desplazamiento_sprite = Vector2(0, -32)
+desplazamiento_apertura = Vector2(41, 0)

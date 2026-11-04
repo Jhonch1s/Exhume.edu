@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=18
+type="Resource"
+uid="uid://b6a3auymlp2op"
+path="res://.godot/imported/roffa.dialogue-dbe8d374311a1ab67b36903516423b9c.tres"
+
+[deps]
+
+source_file="res://dialogues/prision/roffa.dialogue"
+dest_files=["res://.godot/imported/roffa.dialogue-dbe8d374311a1ab67b36903516423b9c.tres"]
+
+[params]
+
+defaults=true

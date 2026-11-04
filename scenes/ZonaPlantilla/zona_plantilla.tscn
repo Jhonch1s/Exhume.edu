@@ -75,6 +75,14 @@ y_sort_enabled = true
 
 [node name="PuntoSpawnEntrada" parent="PuntosSpawn" instance=ExtResource("14_spawn")]
 
+[node name="Triggers" type="Node2D" parent="."]
+
+[node name="Dialogos" type="Node2D" parent="Triggers"]
+
+[node name="Mecanismos" type="Node2D" parent="Triggers"]
+
+[node name="Viajes" type="Node2D" parent="Triggers"]
+
 [node name="EfectosSuperficie" type="Node2D" parent="."]
 y_sort_enabled = true
 

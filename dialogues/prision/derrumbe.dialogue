@@ -1,0 +1,4 @@
+~ start
+do EstadoPartida.prision_derrumbe_visto = true
+{{nombre}}: Parece que el derrumbe bloquea el paso. No puedo continuar por aquí.
+=> END

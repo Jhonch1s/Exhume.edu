@@ -9,8 +9,10 @@
 - [Cofres e inventarios de almacenamiento](contenido/COFRES.md).
 - [Personajes y modelos 3D](contenido/PERSONAJES.md).
 - [NPC y diálogos](contenido/NPC_Y_DIALOGOS.md) — estado de Trompo y próximos incrementos.
+- [Criaturas de nivel 1](contenido/CRIATURAS_NIVEL_1.md) — Sirvientes de Eek y propuesta para Terrores Nocturnos y Escupe Infierno.
 - [Construir diálogos de NPC con pruebas y consecuencias](contenido/CONSECUENCIAS_DIALOGO_NPC.md) — guía permanente de autoría en el Inspector, actitud, información e intentos por NPC.
 - [Patrullas de NPC](contenido/PATRULLAS_NPC.md) — rutas visuales, esperas, retorno y persistencia.
+- [Triggers del mapa](contenido/TRIGGERS_MAPA.md) — zonas y umbrales, diálogos, mecanismos y memoria por partida.
 - [Comprobación de actitud de NPC](pruebas/ACTITUD_NPC.md) — escena manual, transiciones, defensa y guardado compatible.
 - [Facciones y bandos de NPC](pruebas/FACCIONES_NPC.md) — auxilio por visión, aliados, encuentros y migración del guardado.
 - [XP por derrota de NPC](pruebas/XP_NPC.md) — bajas directas/indirectas por bando, guardado y escena manual.

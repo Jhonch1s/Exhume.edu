@@ -1,11 +1,20 @@
 [gd_resource type="Resource" script_class="DefinicionPersonaje" format=3 uid="uid://c1ya2yc6nt73s"]
 
 [ext_resource type="Script" uid="uid://bmsmwb5764q7n" path="res://scripts/personajes/dialogo_npc.gd" id="1_knh1t"]
+[ext_resource type="Script" uid="uid://d4ne1sburscjj" path="res://scripts/personajes/prueba_dialogo_npc.gd" id="2_ab88t"]
 [ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="2_fg3s0"]
 [ext_resource type="Script" uid="uid://bccqt6gfe8843" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="3_vw212"]
 [ext_resource type="Script" uid="uid://cosqwlc2jnmwe" path="res://scripts/personajes/definicion_personaje.gd" id="4_ab88t"]
 [ext_resource type="Texture2D" uid="uid://tb3xwiig6ul6" path="res://assets/characters/npcs/banga/sprites/banga_4_direcciones.png" id="5_krqa0"]
 [ext_resource type="Texture2D" uid="uid://df6ktser3lacd" path="res://assets/characters/npcs/banga/portraits/roffa_portrait.png" id="6_retrato"]
+[ext_resource type="Resource" uid="uid://b6a3auymlp2op" path="res://dialogues/prision/roffa.dialogue" id="7_dialogo"]
+[ext_resource type="Texture2D" uid="uid://offnnsgnt1hb" path="res://assets/characters/npcs/banga/portraits/roffa_dialogo.png" id="8_ilustracion"]
+
+[sub_resource type="Resource" id="Dialogo_roffa"]
+script = ExtResource("1_knh1t")
+id_dialogo = &"prision"
+titulo = "Hablar con Roffa"
+recurso = ExtResource("7_dialogo")
 
 [sub_resource type="Resource" id="Resource_oqsak"]
 script = ExtResource("2_fg3s0")
@@ -31,16 +40,19 @@ destreza = 4
 voluntad = 4
 vida_maxima = 22
 nivel = 3
-faccion_id = &"bangas"
-actitud_inicial_jugador = 2
+faccion_id = &"roffa"
+puede_dialogar = true
 puede_combatir = true
 puede_tener_inventario = true
 movimiento_fijo = 7
 textura_mapa = ExtResource("5_krqa0")
 retrato_turno = ExtResource("6_retrato")
 offset_sprite_mapa = Vector2(0, -184)
+ilustracion_dialogo = ExtResource("8_ilustracion")
+alcance_dialogo = 4
+dialogos = Array[ExtResource("1_knh1t")]([SubResource("Dialogo_roffa")])
 id_definicion = &"prision_guardia_roffa"
 nombre = "Roffa"
-descripcion_base = "Un banga corpulento vigila el pasadizo. Su silueta ocupa buena parte del espacio entre las celdas."
+descripcion_base = "Un banga corpulento permanece tras los barrotes. Al verte, se acerca al frente de la celda y procura mantener una expresión seria."
 fragmentos_informacion = Array[ExtResource("2_fg3s0")]([SubResource("Resource_oqsak"), SubResource("Resource_oaqfm")])
 perfil_observacion = SubResource("Resource_fn1lj")

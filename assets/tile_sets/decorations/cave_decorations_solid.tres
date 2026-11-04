@@ -5,6 +5,8 @@
 [ext_resource type="Texture2D" uid="uid://b6v2vqa47v52d" path="res://assets/tiles/decorations/medium/cave_formations/sources/stalagmites_medium.png" id="3_yr7ln"]
 [ext_resource type="Texture2D" uid="uid://behwcgk2y84vp" path="res://assets/tiles/structures/fences/source/fence_isometric.png" id="4_f4agx"]
 [ext_resource type="Texture2D" uid="uid://d02klyphvfhrl" path="res://assets/tiles/decorations/medium/jail/source/jail_decorations.png" id="5_yr7ln"]
+[ext_resource type="PackedScene" path="res://scenes/decoraciones/rocas_derrumbadas_4x8.tscn" id="6_rocas_4x8"]
+[ext_resource type="PackedScene" path="res://scenes/decoraciones/rocas_derrumbadas_5x8.tscn" id="7_rocas_5x8"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_wnbvt"]
 texture = ExtResource("1_abq7p")
@@ -876,6 +878,11 @@ texture_region_size = Vector2i(64, 64)
 0:1/0/custom_data_3 = "jail"
 0:1/0/custom_data_5 = 1
 
+[sub_resource type="TileSetScenesCollectionSource" id="TileSetScenesCollectionSource_rocas"]
+resource_name = "Rocas derrumbadas"
+scenes/0/scene = ExtResource("6_rocas_4x8")
+scenes/1/scene = ExtResource("7_rocas_5x8")
+
 [resource]
 tile_shape = 1
 tile_layout = 4
@@ -897,3 +904,4 @@ sources/0 = SubResource("TileSetAtlasSource_wnbvt")
 sources/1 = SubResource("TileSetAtlasSource_2r2vt")
 sources/3 = SubResource("TileSetAtlasSource_yr7ln")
 sources/4 = SubResource("TileSetAtlasSource_kodnw")
+sources/5 = SubResource("TileSetScenesCollectionSource_rocas")

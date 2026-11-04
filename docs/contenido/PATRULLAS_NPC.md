@@ -76,6 +76,12 @@ Los NPC sin ruta ni destino permanecen quietos. Devuelve el radio a doce
 para continuar el combate de esta escena. Cuatro puntos de movimiento y aspecto
 de goblin siguen siendo excepciones de este contenido manual, no reglas generales.
 
+Las acciones autónomas de los NPC fuera de combate no se publican en el registro
+de acontecimientos: patrulla, búsqueda, regreso, liberación y resultados de terreno
+o estados siguen resolviéndose sin mensajes de esos actores. Durante el combate
+se conservan sus movimientos, ataques y estados. Las acciones del jugador siguen
+registrándose también durante la exploración.
+
 El corte inicial del 09-10-2026 se importó y abrió en el editor sin errores de
 scripts, sin ejecutar el juego ni pruebas. El cambio de activación automática del
 11-10-2026 se comprobó con autorización del usuario en

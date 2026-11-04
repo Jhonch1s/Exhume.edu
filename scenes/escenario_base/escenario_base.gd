@@ -243,15 +243,21 @@ var _actor_turno_camara: Object
 var _centrado_camara_pendiente := false
 var _dialogos_camara: Array[DialogueResource] = []
 var _puntero_en_ventana := true
+var gestor_triggers := GestorTriggersMapa.new()
+var viajes := ViajeEntreZonas.new()
+var id_spawn_inicial: StringName = &"entrada"
+var datos_ficha_viaje: Dictionary = {}
+var preparando_viaje := false
+var escenario_preparado := false
 
 func _ready() -> void:
 	# Las capas se guardan ocultas para poder editar el mapa sin la interfaz encima.
-	$FiltroCRT.visible = true
-	$CanvasLayer.visible = true
-	$CanvasLayerModalDados.visible = true
+	$FiltroCRT.visible = not preparando_viaje
+	$CanvasLayer.visible = not preparando_viaje
+	$CanvasLayerModalDados.visible = not preparando_viaje
 	CursorJuego.establecer_cursor(CursorJuego.Tipo.DEFAULT)
 	guardado_en_fogata_realizado = EstadoPartida.guardado_en_fogata_realizado
-	if not guardado_en_fogata_realizado and FileAccess.file_exists(RUTA_GUARDADO):
+	if not preparando_viaje and not guardado_en_fogata_realizado and FileAccess.file_exists(RUTA_GUARDADO):
 		DirAccess.remove_absolute(RUTA_GUARDADO)
 	nombreClase = EstadoPartida.aventurero_pendiente.get("clase", nombreClase)
 	var limite_hud := hud.get_node("HUDRoot/SeccionesHUD/SeccionJugador/Retrato") as Control
@@ -297,6 +303,8 @@ func _ready() -> void:
 	servicio_turnos = ServicioTurnos.new(gestor_acciones)
 	procesador_superficies = ProcesadorSuperficies.new(tablero)
 	tablero.generar_desde_zona(zona_actual)
+	for error_trigger in gestor_triggers.configurar(zona_actual, tablero, obtener_id_zona()):
+		push_warning("Trigger de mapa inválido: %s" % error_trigger)
 	camera_2d.configurar_limites(zona_actual)
 	validador_espacial = ValidadorEspacialTablero.new(tablero)
 	servicio_percepcion_trampas = ServicioPercepcionTrampas.new(
@@ -324,22 +332,31 @@ func _ready() -> void:
 				push_error("Contenido de zona invalido: %s" % error)
 	pathfinding.inicializar(tablero.datos)
 	gestor_vision.inicializar(capa_oscuridad, tablero)
-	_inicializar_audio_ambiente()
-	if not es_escenario_de_descanso:
-		_inicializar_musica()
-		_presentar_entrada_nueva_zona()
-	await spawnear_ficha_inicial()
+	if not preparando_viaje:
+		_inicializar_audio_ambiente()
+		if not es_escenario_de_descanso:
+			_inicializar_musica()
+			_presentar_entrada_nueva_zona()
+	await spawnear_ficha_inicial(id_spawn_inicial)
 	if ficha_jugador:
 		hud.configurar_ficha(ficha_jugador)
 		if not ficha_jugador.puntos_vida_cambiados.is_connected(_on_vida_jugador_cambiada):
 			ficha_jugador.puntos_vida_cambiados.connect(_on_vida_jugador_cambiada)
-		_on_vida_jugador_cambiada(ficha_jugador.pv_actual, ficha_jugador.pv_max)
+		if not preparando_viaje:
+			_on_vida_jugador_cambiada(ficha_jugador.pv_actual, ficha_jugador.pv_max)
 		capa_vision_npc.configurar(tablero, validador_espacial, ficha_jugador, gestor_vision)
 		_actualizar_luz_jugador(ficha_jugador.coordenada_mapa)
 		_actualizar_audio_proximidad()
 		centrar_camara_en_ficha()
+	escenario_preparado = true
+
+func _exit_tree() -> void:
+	gestor_triggers.limpiar()
+
 
 func _process(delta: float) -> void:
+	gestor_triggers.procesar(self)
+	_actualizar_estado_modal_interaccion()
 	_actualizar_decision_empuje()
 	if is_instance_valid(campamento):
 		CursorJuego.ocultar_probabilidad_ataque()
@@ -363,7 +380,7 @@ func _process(delta: float) -> void:
 	if ficha_jugador and capa_paredes_oclusivas:
 		capa_paredes_oclusivas.actualizar_occlusion(ficha_jugador.global_position)
 	_actualizar_audio_proximidad()
-	if en_combate and not _restaurando_partida and _acciones_en_resolucion == 0 and habilidades_nivel_dos.empuje_pendiente == null and not _esperar_escapista():
+	if en_combate and not gestor_triggers.tiene_actividad() and not _restaurando_partida and _acciones_en_resolucion == 0 and habilidades_nivel_dos.empuje_pendiente == null and not _esperar_escapista():
 		_resolver_perdida_agro()
 		_actualizar_ui_combate()
 	_actualizar_disponibilidad_turno()
@@ -617,7 +634,7 @@ func _manejar_clic_derecho(coord: Vector2i) -> void:
 		return
 	if interaccion_modal_activa:
 		return
-	if ficha_jugador.obtener_estado(&"enredado") != null:
+	if ficha_jugador.obtener_estado(&"enredado") != null or ficha_jugador.obtener_estado(&"inmovilizado") != null:
 		_intentar_destrabarse()
 		return
 	if ficha_jugador.esta_moviendose:
@@ -711,7 +728,7 @@ func _actualizar_reloj_exploracion_npc(delta: float) -> void:
 
 
 func _programar_exploracion_npc() -> void:
-	if _turno_exploracion_en_curso or _turnos_exploracion_pendientes == 0 or en_combate:
+	if gestor_triggers.tiene_actividad() or _turno_exploracion_en_curso or _turnos_exploracion_pendientes == 0 or en_combate:
 		return
 	_turno_exploracion_en_curso = true
 	call_deferred("_procesar_cola_exploracion_npc", _secuencia_exploracion_npc)
@@ -842,17 +859,6 @@ func _procesar_turno_npc_exploracion(npc: PersonajeNPC, secuencia: int) -> bool:
 			)
 			if not _exploracion_npc_vigente(secuencia):
 				return false
-			if npc.movimiento.pasos_completados > 0:
-				var titulo := "Patrulla de %s"
-				if decision == &"buscar":
-					titulo = "Búsqueda de %s"
-				elif decision == &"regresar":
-					titulo = "Regreso de %s"
-				registro_narrativo.registrar(
-					EntradaRegistroNarrativo.Categoria.MOVIMIENTO,
-					titulo % npc.obtener_nombre_interaccion(),
-					"Avanza %d casillas." % npc.movimiento.pasos_completados
-				)
 			if not completo and npc.obtener_estado(&"enredado") == null:
 				break
 		else:
@@ -913,6 +919,7 @@ func guardar_partida(ruta: String = RUTA_GUARDADO) -> StringName:
 	snapshot["escena_zona"] = zona_actual.scene_file_path
 	snapshot["guardado_en_fogata"] = true
 	snapshot["en_campamento"] = false
+	snapshot["zonas_visitadas"] = viajes.obtener_estado_persistente()
 	var resultado: StringName = persistencia_partida.archivos.guardar(ruta, snapshot)
 	if resultado == &"":
 		guardado_en_fogata_realizado = true
@@ -929,6 +936,9 @@ func cargar_partida(ruta: String = RUTA_GUARDADO) -> StringName:
 	var snapshot: Variant = persistencia_partida.archivos.cargar(ruta)
 	if snapshot is StringName:
 		return snapshot
+	var motivo_zonas := viajes.validar_estado_persistente(snapshot.get("zonas_visitadas", {}))
+	if motivo_zonas != &"":
+		return motivo_zonas
 	if snapshot.has("escena_zona") and snapshot["escena_zona"] != zona_actual.scene_file_path:
 		return &"zona_guardado_no_coincide"
 	# Antes se llamaba zona1 a todos los mapas; aún se valida su contenido completo.
@@ -948,6 +958,9 @@ func cargar_partida(ruta: String = RUTA_GUARDADO) -> StringName:
 		snapshot, tablero, obtener_id_zona(), ficha_jugador, registro_conocimiento,
 		gestor_guardado
 	)
+	if motivo == &"":
+		gestor_triggers.limpiar()
+		viajes.restaurar_estado_persistente(snapshot.get("zonas_visitadas", {}))
 	_restaurando_partida = false
 	gestor_vision.tiene_vision_calculada = tenia_vision
 	if motivo != &"":
@@ -1296,6 +1309,8 @@ func _preparar_gestor_guardado(estado_rondas: Variant) -> Variant:
 
 
 func _preparar_paso_actor(_origen: Vector2i, destino: Vector2i, actor: Node2D) -> bool:
+	if gestor_triggers.tiene_actividad():
+		return false
 	return tablero.reservar_celda(destino, actor)
 
 func _confirmar_paso_actor(origen: Vector2i, destino: Vector2i, actor: Node2D) -> bool:
@@ -1336,6 +1351,19 @@ func _procesar_entrada_paso_actor(
 		actor
 	)
 	habilidades_nivel_dos.al_paso(origen, destino, actor)
+	if not _restaurando_partida and gestor_triggers.registrar_paso(origen, destino, actor):
+		_cancelar_exploracion_npc()
+		_actualizar_estado_modal_interaccion()
+
+
+func puede_ejecutar_trigger_mapa() -> bool:
+	return (
+		not viajes.en_curso and not _restaurando_partida and _acciones_en_resolucion == 0
+		and not _hay_actor_moviendose() and not _turno_exploracion_en_curso
+		and not habilidades_nivel_dos.desplazando
+		and not _hay_modal_ajeno_a_triggers() and _dialogos_camara.is_empty()
+		and not is_instance_valid(campamento)
+	)
 
 func _resolver_reacciones_movimiento(
 	tipo: TiposInteraccion.TipoAccion,
@@ -1419,7 +1447,7 @@ func _registrar_resultado_narrativo(
 	etiqueta_atributo: String = "DES",
 	actor: Node2D = null
 ) -> void:
-	if resultado == null:
+	if resultado == null or (actor is PersonajeNPC and not en_combate):
 		return
 	var detalles: Array[String] = []
 	if resultado.tirada is ResultadoPrueba:
@@ -1445,19 +1473,12 @@ func _registrar_resultado_narrativo(
 			"éxito" if defensa.exitosa else "fallo",
 		])
 	if resultado.tirada_dano != null:
-		var atacante: Node2D = actor if actor != null else ficha_jugador
-		detalles.append("Daño: %s + %d FUE + %d equipo" % [
-			_formatear_pista_tirada(resultado.tirada_dano),
-			EfectosEquipo.bono_fuerza_dano(atacante),
-			EfectosEquipo.bono_dano(atacante, true),
-		])
-		for efecto_dano in resultado.efectos_aplicados:
-			if efecto_dano.tipo == &"dano":
-				var dano_bruto := resultado.tirada_dano.total_efectivo + EfectosEquipo.bono_fuerza_dano(atacante) + EfectosEquipo.bono_dano(atacante, true)
-				var reducido := mini(EfectosEquipo.bono_armadura(efecto_dano.objetivo), maxi(0, dano_bruto - 1))
-				if reducido > 0:
-					detalles.append("Protección: −%d de daño físico" % reducido)
-				break
+		if &"eek.mordida" in resultado.mensajes:
+			detalles.append("Daño: %s + 3 de mordida venenosa" % _formatear_pista_tirada(resultado.tirada_dano))
+		else:
+			_agregar_detalle_dano_fisico(detalles, resultado, actor)
+	if resultado.tirada_duracion != null:
+		detalles.append("Duración: %s → %d turnos del afectado" % [_formatear_pista_tirada(resultado.tirada_duracion), resultado.tirada_duracion.total_efectivo])
 	var mensajes: Array[String] = []
 	for id_mensaje in resultado.mensajes:
 		if actor is PersonajeNPC and String(id_mensaje).begins_with("estado."):
@@ -1469,7 +1490,7 @@ func _registrar_resultado_narrativo(
 	for efecto in resultado.efectos_aplicados:
 		if efecto.tipo == &"dano":
 			var sujeto := "Recibes" if efecto.objetivo == ficha_jugador else "Infliges"
-			if categoria in [EntradaRegistroNarrativo.Categoria.MOVIMIENTO, EntradaRegistroNarrativo.Categoria.ESTADO] and efecto.objetivo is PersonajeNPC:
+			if efecto.objetivo is PersonajeNPC and (actor is PersonajeNPC or categoria in [EntradaRegistroNarrativo.Categoria.MOVIMIENTO, EntradaRegistroNarrativo.Categoria.ESTADO]):
 				sujeto = "%s recibe" % efecto.objetivo.obtener_nombre_interaccion()
 			mensajes.append("%s [hint=\"%s\"]%d de daño[/hint]." % [
 				sujeto,
@@ -1483,6 +1504,23 @@ func _registrar_resultado_narrativo(
 	if actor is PersonajeNPC:
 		titulo = "%s — %s" % [actor.obtener_nombre_interaccion(), titulo]
 	registro_narrativo.registrar(categoria, titulo, "\n".join(mensajes), detalles)
+
+
+func _agregar_detalle_dano_fisico(detalles: Array[String], resultado: ResultadoAccion, actor: Node2D) -> void:
+	if resultado.tirada_dano != null:
+		var atacante: Node2D = actor if actor != null else ficha_jugador
+		detalles.append("Daño: %s + %d FUE + %d equipo" % [
+			_formatear_pista_tirada(resultado.tirada_dano),
+			EfectosEquipo.bono_fuerza_dano(atacante),
+			EfectosEquipo.bono_dano(atacante, true),
+		])
+		for efecto_dano in resultado.efectos_aplicados:
+			if efecto_dano.tipo == &"dano":
+				var dano_bruto := resultado.tirada_dano.total_efectivo + EfectosEquipo.bono_fuerza_dano(atacante) + EfectosEquipo.bono_dano(atacante, true)
+				var reducido := mini(EfectosEquipo.bono_armadura(efecto_dano.objetivo), maxi(0, dano_bruto - 1))
+				if reducido > 0:
+					detalles.append("Protección: −%d de daño físico" % reducido)
+				break
 
 
 func _formatear_pista_tirada(tirada: Variant) -> String:
@@ -1580,13 +1618,24 @@ func spawnear_ficha_inicial(id_spawn: StringName = &"entrada") -> void:
 	var datos_aventurero := EstadoPartida.consumir_aventurero()
 	if not datos_aventurero.is_empty() and not ficha_jugador.configurar_creacion(datos_aventurero):
 		push_error("La ficha se creó con valores por defecto: datos de aventurero inválidos.")
-	_equipar_carga_inicial(ficha_jugador)
-	ficha_jugador.inventario.agregar(ItemInstancia.new(
-		&"jugador_antorchas_iniciales", DEFINICION_ANTORCHA, 3
-	))
-	ficha_jugador.activar_antorcha_si_necesario()
+	if datos_ficha_viaje.is_empty():
+		_equipar_carga_inicial(ficha_jugador)
+		ficha_jugador.inventario.agregar(ItemInstancia.new(
+			&"jugador_antorchas_iniciales", DEFINICION_ANTORCHA, 3
+		))
+		ficha_jugador.activar_antorcha_si_necesario()
 	zona_actual.add_child(ficha_jugador)
 	ficha_jugador.inicializar(coord_inicio, capa_suelo)
+	if not datos_ficha_viaje.is_empty():
+		var datos := datos_ficha_viaje.duplicate(true)
+		datos["coordenada"] = [coord_inicio.x, coord_inicio.y]
+		var motivo := ficha_jugador.restaurar_estado_persistente(datos)
+		if motivo != &"":
+			push_error("No se pudo trasladar al jugador: %s" % motivo)
+			ficha_jugador.queue_free()
+			ficha_jugador = null
+			return
+		datos_ficha_viaje.clear()
 	ficha_jugador.paso_dado.connect(_on_ficha_paso_dado)
 	ficha_jugador.golpe_conectado.connect(habilidades_nivel_dos.al_golpe)
 	ficha_jugador.movimiento_terminado.connect(func(_interrumpido):
@@ -1720,7 +1769,7 @@ func _actualizar_memoria_combate() -> bool:
 
 
 func _resolver_perdida_agro() -> bool:
-	if not en_combate or gestor_rondas == null or not ficha_jugador.puede_actuar():
+	if gestor_triggers.tiene_actividad() or not en_combate or gestor_rondas == null or not ficha_jugador.puede_actuar():
 		return false
 	if _resolver_fin_combate():
 		return true
@@ -2332,10 +2381,15 @@ func _plan_combate_npc(npc: PersonajeNPC) -> Dictionary:
 
 func _programar_turno_npc() -> void:
 	_secuencia_turno_npc += 1
+	if en_combate and gestor_rondas != null and _es_turno_jugador() and ficha_jugador.obtener_estado(&"aturdido") != null:
+		call_deferred(&"_finalizar_turno_jugador_aturdido", _secuencia_turno_npc)
+		return
 	if not en_combate or _es_turno_jugador() or gestor_rondas.actor_activo == null:
 		return
 	var secuencia := _secuencia_turno_npc
 	await get_tree().create_timer(0.6).timeout
+	while gestor_triggers.tiene_actividad() and _turno_npc_vigente(secuencia):
+		await get_tree().process_frame
 	if not _turno_npc_vigente(secuencia) or _resolver_fin_combate():
 		return
 	if ficha_jugador.esta_moviendose:
@@ -2352,9 +2406,13 @@ func _programar_turno_npc() -> void:
 		_finalizar_turno_combate()
 		return
 	while _turno_npc_vigente(secuencia) and npc.puede_actuar():
+		while gestor_triggers.tiene_actividad() and _turno_npc_vigente(secuencia):
+			await get_tree().process_frame
+		if not _turno_npc_vigente(secuencia):
+			return
 		if _resolver_perdida_agro():
 			return
-		if npc.obtener_estado(&"caido") != null:
+		if npc.obtener_estado(&"caido") != null or npc.obtener_estado(&"aturdido") != null:
 			npc.agotar_recursos_turno()
 			break
 		var plan := _plan_combate_npc(npc)
@@ -2364,25 +2422,29 @@ func _programar_turno_npc() -> void:
 			if not _liberar_npc(npc):
 				break
 			await get_tree().create_timer(0.6).timeout
-		elif decision == &"atacar":
-			var ataque := AccionAtaqueNPC.new(objetivo, gestor_rondas)
-			var resultado := gestor_acciones.procesar_accion(ataque.construir_contexto(npc))
+		elif decision in [&"atacar", &"chillido_terror", AccionSirvienteEek.MORDIDA, AccionSirvienteEek.TELARANA]:
+			var ataque: Variant = AccionAtaqueNPC.new(objetivo, gestor_rondas) if decision == &"atacar" else (preload("res://scripts/interacciones/combate/accion_chillido_terror.gd").new(objetivo, gestor_rondas) if decision == &"chillido_terror" else AccionSirvienteEek.new(objetivo, gestor_rondas))
+			var contexto: ContextoAccion = ataque.construir_contexto(npc) if decision in [&"atacar", &"chillido_terror"] else ataque.construir_contexto(npc, decision)
+			var resultado := gestor_acciones.procesar_accion(contexto)
 			if resultado.tirada != null:
 				historial_tiradas.registrar(resultado.tirada)
 			if resultado.tirada_defensa != null:
 				historial_tiradas.registrar(resultado.tirada_defensa)
 			if resultado.tirada_dano != null:
 				historial_tiradas.registrar(resultado.tirada_dano)
+			if resultado.tirada_duracion != null:
+				historial_tiradas.registrar(resultado.tirada_duracion)
+			var titulo := "Chillido perforante" if decision == &"chillido_terror" else ("Ataque" if decision == &"atacar" else ("Mordida venenosa" if decision == AccionSirvienteEek.MORDIDA else "Lanzar telaraña"))
 			_registrar_resultado_narrativo(
-				"Ataque de %s" % npc.obtener_nombre_interaccion(),
-				resultado, EntradaRegistroNarrativo.Categoria.DANO, "FUE", npc
+				titulo, resultado, EntradaRegistroNarrativo.Categoria.DANO,
+				"VOL del objetivo" if decision == &"chillido_terror" else ("DES del objetivo" if decision == AccionSirvienteEek.TELARANA else "FUE"), npc
 			)
 			if _resolver_fin_combate():
 				return
 			if not resultado.exitosa:
 				break
 			await get_tree().create_timer(0.6).timeout
-		elif decision == &"acercarse":
+		elif decision in [&"acercarse", &"retirarse"]:
 			var origen := npc.coordenada_mapa
 			var camino: Array[Vector2i] = plan["camino"]
 			var procesar_entrada := func(desde: Vector2i, hasta: Vector2i, actor: Node2D) -> void:
@@ -2398,7 +2460,7 @@ func _programar_turno_npc() -> void:
 				registro_narrativo.registrar(
 					EntradaRegistroNarrativo.Categoria.MOVIMIENTO,
 					"Movimiento de %s" % npc.obtener_nombre_interaccion(),
-					"Avanza %d casillas. Le quedan %d puntos de movimiento." % [
+					"Se desplaza %d casillas. Le quedan %d puntos de movimiento." % [
 						camino.find(npc.coordenada_mapa),
 						npc.obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO)
 					]
@@ -2417,7 +2479,14 @@ func _programar_turno_npc() -> void:
 				break
 		else:
 			break
+	while gestor_triggers.tiene_actividad() and _turno_npc_vigente(secuencia):
+		await get_tree().process_frame
 	if _turno_npc_vigente(secuencia):
+		_finalizar_turno_combate()
+
+
+func _finalizar_turno_jugador_aturdido(secuencia: int) -> void:
+	if secuencia == _secuencia_turno_npc and en_combate and _es_turno_jugador() and ficha_jugador.obtener_estado(&"aturdido") != null:
 		_finalizar_turno_combate()
 
 
@@ -4484,8 +4553,8 @@ func _cancelar_lanzamiento() -> void:
 	_actualizar_estado_modal_interaccion()
 
 
-func _actualizar_estado_modal_interaccion() -> void:
-	var siguiente: bool = (
+func _hay_modal_ajeno_a_triggers() -> bool:
+	return (
 		lanzamiento_en_vuelo
 		or (habilidades_nivel_dos != null and habilidades_nivel_dos.empuje_pendiente != null)
 		or (is_instance_valid(panel_progresion) and panel_progresion.visible)
@@ -4514,6 +4583,10 @@ func _actualizar_estado_modal_interaccion() -> void:
 			and panel_inventario_equipo.visible
 		)
 	)
+
+
+func _actualizar_estado_modal_interaccion() -> void:
+	var siguiente := viajes.en_curso or _hay_modal_ajeno_a_triggers() or gestor_triggers.tiene_actividad()
 	if interaccion_modal_activa == siguiente:
 		return
 	interaccion_modal_activa = siguiente

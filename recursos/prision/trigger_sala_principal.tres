@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="AccionTriggerDialogo" format=3]
+
+[ext_resource type="Script" path="res://scripts/zonas/triggers/accion_trigger_dialogo.gd" id="1_accion"]
+[ext_resource type="Resource" path="res://dialogues/prision/salaprincipal.dialogue" id="2_dialogo"]
+
+[resource]
+script = ExtResource("1_accion")
+recurso_dialogo = ExtResource("2_dialogo")

@@ -31,8 +31,12 @@ func _init() -> void:
 	assert(punto.obtener_coordenada(capa_suelo) == Vector2i(3, 2))
 	var decoracion_solida := zona.get_node("CapaDecoracionNoCaminable") as TileMapLayer
 	var decoracion_caminable := zona.get_node("CapaDecoracion") as TileMapLayer
-	assert(decoracion_solida.tile_set.get_source_count() == 4)
-	assert(decoracion_caminable.tile_set.get_source_count() == 5)
+	for id_fuente in range(5):
+		assert(decoracion_solida.tile_set.get_source(id_fuente) is TileSetAtlasSource)
+	for id_fuente in range(6):
+		assert(decoracion_caminable.tile_set.get_source(id_fuente) is TileSetAtlasSource)
+	var rocas := decoracion_solida.tile_set.get_source(5) as TileSetScenesCollectionSource
+	assert(rocas != null and rocas.get_scene_tiles_count() == 2)
 	var coord := Vector2i(3, 2)
 	capa_suelo.set_cell(coord, 0, Vector2i.ZERO)
 	decoracion_solida.set_cell(coord, 0, Vector2i.ZERO)

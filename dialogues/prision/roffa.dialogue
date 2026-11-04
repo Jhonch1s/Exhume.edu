@@ -1,0 +1,83 @@
+~ start
+if EstadoPartida.roffa_conocido
+	=> charlar_de_nuevo
+Roffa: Pssst. Tú, el del pasillo. ¿Puedes oírme?
+- ¿Me estás hablando a mí?
+	=> presentacion
+- No puedo detenerme ahora.
+	=> despedida
+
+~ presentacion
+{{nombre}}: ¿Hablas mi lengua?
+Roffa: Lo suficiente. Y te agradecería que no lo anunciaras a gritos.
+{{nombre}}: Creí que no iba a encontrar a nadie con quien hablar aquí abajo.
+Roffa: Pues has tenido suerte. Aunque mi hospitalidad tiene sus limitaciones.
+Roffa: Me llamo Roffa. Como ves, ahora mismo no puedo salir a saludarte.
+do EstadoPartida.roffa_conocido = true
+=> preguntas
+
+~ charlar_de_nuevo
+Roffa: Ah, eres tú. ¿Qué necesitas?
+=> preguntas
+
+~ preguntas
+Roffa: Dime. Te escucho.
+- ¿Por qué estás encerrado?
+	=> encierro
+- ¿Quieres que te ayude a salir?
+	=> celda
+- ¿Puedes ayudarme con los guardias? [if EstadoPartida.trigger_consumido("res://scenes/Prision/prision.tscn", "guardias") /]
+	=> interprete
+- El derrumbe no me deja continuar. [if EstadoPartida.prision_derrumbe_visto /]
+	=> derrumbe
+- Tengo que seguir explorando.
+	=> despedida
+
+~ interprete
+if not EstadoPartida.trigger_consumido("res://scenes/Prision/prision.tscn", "guardias")
+	=> preguntas
+{{nombre}}: He visto a dos guardias en el pasadizo. Pensé en pedirles ayuda, pero no sé si me entenderán.
+Roffa: No hablan tu lengua. Y si te ven suelto por aquí, no esperes que se detengan a escucharte.
+Roffa: Si me sacas de esta celda, puedo hablar con ellos y explicarles tu situación. Así tendrías alguna posibilidad de llegar al campamento sin pelear.
+Roffa: Pero desde aquí dentro no voy a convencerlos de nada.
+=> preguntas
+
+~ encierro
+Roffa: Eso... es un asunto entre ellos y yo.
+Roffa: No merece la pena entrar en detalles. Ahora lo importante es abrir esta puerta.
+=> preguntas
+
+~ celda
+Roffa: Agradecería un poco más de espacio para estirar las piernas, sí.
+Roffa: Los guardias tienen una llave que abre todas las celdas de la prisión. Esta también.
+if EstadoPartida.trigger_consumido("res://scenes/Prision/prision.tscn", "guardias")
+	Roffa: Quitársela no será fácil. Si te acercas, no creo que te dejen explicar qué necesitas.
+else
+	Roffa: Pero no suelen prestarla. Y no te aconsejo ir a pedírsela.
+- ¿No habrá otra forma de abrirla?
+	=> rumores
+- Voy a ver qué encuentro.
+	=> despedida
+- Quería preguntarte otra cosa.
+	=> preguntas
+
+~ rumores
+Roffa: Oí a unos guardias hablar de un sitio al que llegaron después de perderse entre las celdas.
+Roffa: Dijeron que estaba lleno de trampas. Un lugar donde hasta dar un paso podía matarte.
+Roffa: No sé qué hay allí, pero quizá encuentres alguna herramienta que sirva para abrir este cierre.
+Roffa: Es un rumor, nada más. No puedo decirte qué buscar ni prometerte que exista.
+=> preguntas
+
+~ derrumbe
+if not EstadoPartida.prision_derrumbe_visto
+	=> preguntas
+Roffa: Entonces no vas a pasar por ahí a fuerza de empujar piedras.
+if EstadoPartida.trigger_consumido("res://scenes/Prision/prision.tscn", "guardias")
+	Roffa: Si consigo hablar con los guardias, podremos aclarar qué haces aquí y buscar la forma de seguir hacia el campamento.
+else
+	Roffa: Tendrás que encontrar otro camino. Yo no he podido ir muy lejos últimamente.
+=> preguntas
+
+~ despedida
+Roffa: Aquí estaré. Por el momento.
+=> END

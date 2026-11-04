@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=18
+type="Resource"
+uid="uid://psv8dqv6ybg"
+path="res://.godot/imported/entrada.dialogue-8f8f310087dbfc7dc5e6919f01712eaa.tres"
+
+[deps]
+
+source_file="res://dialogues/prision/entrada.dialogue"
+dest_files=["res://.godot/imported/entrada.dialogue-8f8f310087dbfc7dc5e6919f01712eaa.tres"]
+
+[params]
+
+defaults=true

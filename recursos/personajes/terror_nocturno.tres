@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="DefinicionPersonaje" format=3 uid="uid://bb6rls325jjah"]
+
+[ext_resource type="Script" uid="uid://cosqwlc2jnmwe" path="res://scripts/personajes/definicion_personaje.gd" id="1_def"]
+[ext_resource type="Script" uid="uid://bmsmwb5764q7n" path="res://scripts/personajes/dialogo_npc.gd" id="1_e8fcf"]
+[ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="2_1b3fe"]
+[ext_resource type="Texture2D" uid="uid://neqa4xdwdlhv" path="res://assets/characters/npcs/terror_nocturno/sprites/terror_nocturno_4_direcciones.png" id="2_sprite"]
+
+[resource]
+script = ExtResource("1_def")
+fuerza = 2
+destreza = 4
+voluntad = 2
+vida_maxima = 10
+experiencia_recompensa_derrota = 15
+faccion_id = &"terrores_nocturnos"
+actitud_inicial_jugador = 2
+actitud_hacia_jugador_fija = true
+puede_combatir = true
+estilo_combate = 2
+radio_agro = 6
+movimiento_fijo = 6
+acciones_adicionales_por_turno = 0
+textura_mapa = ExtResource("2_sprite")
+id_definicion = &"terror_nocturno"
+nombre = "Terror Nocturno"

@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/zonas/triggers/trigger_mapa.gd" id="1_trigger"]
+
+[node name="TriggerMapa" type="Node2D"]
+script = ExtResource("1_trigger")
