@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://csb3u3lb5s2oi" path="res://scenes/escenario_base/escenario_base.gd" id="1_3j2a0"]
 [ext_resource type="Script" uid="uid://ca27pgns32dvx" path="res://scenes/escenario_base/camara_escenario.gd" id="1_camara"]
-[ext_resource type="Script" path="res://scripts/render/gestor_vfx.gd" id="1_vfx"]
+[ext_resource type="Script" uid="uid://djoohpkud8eew" path="res://scripts/render/gestor_vfx.gd" id="1_vfx"]
 [ext_resource type="Script" uid="uid://dm5s21vrbu8fi" path="res://scenes/escenario_base/capa_vision_npc.gd" id="1_vision_npc"]
 [ext_resource type="PackedScene" uid="uid://21yp2g6tjqu" path="res://scenes/Zona1/zona_1.tscn" id="2_3j2a0"]
 [ext_resource type="Texture2D" uid="uid://bj6drlln1vbvq" path="res://assets/tiles/indicators/path/path_isometric.png" id="2_85xdd"]
@@ -76,7 +76,7 @@ ilustracion_dialogo_guerrero = ExtResource("19_dialogo_guerrero")
 ilustracion_dialogo_ladron = ExtResource("20_dialogo_ladron")
 ilustracion_dialogo_mago = ExtResource("21_dialogo_mago")
 
-[node name="GestorVFX" type="Node" parent="."]
+[node name="GestorVFX" type="Node" parent="." unique_id=1639814413]
 script = ExtResource("1_vfx")
 
 [node name="Zona" parent="." unique_id=1662731053 instance=ExtResource("2_3j2a0")]
@@ -165,7 +165,6 @@ offset_right = 1098.0
 offset_bottom = 348.0
 
 [node name="KnightSubViewport" type="SubViewport" parent="KnightViewPort" unique_id=1890890032]
-own_world_3d = true
 transparent_bg = true
 handle_input_locally = false
 canvas_item_default_texture_filter = 0
@@ -197,7 +196,6 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="WizardSubViewport" type="SubViewport" parent="WizardViewPort" unique_id=1179709218]
-own_world_3d = true
 transparent_bg = true
 handle_input_locally = false
 canvas_item_default_texture_filter = 0
@@ -229,7 +227,6 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="ThiefSubViewport" type="SubViewport" parent="ThiefViewPort" unique_id=1584483443]
-own_world_3d = true
 transparent_bg = true
 handle_input_locally = false
 render_target_update_mode = 0
