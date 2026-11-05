@@ -33,7 +33,7 @@ mensaje y cambio se registran únicamente después de aplicar el estado deduplic
 
 `Fuego` sigue el mismo contrato de superficie sin depender de una trampa concreta.
 Al `ENTRAR` solicita `quemado`, añade uno al coste bajo la familia `&"fuego"` y
-declara siete turnos de duración. Fuego y humo pueden coexistir y aplicar sus dos
+declara cuatro turnos de duración. Fuego y humo pueden coexistir y aplicar sus dos
 estados; varias instancias de una misma familia producen una sola solicitud lógica
 por objetivo y evento.
 
@@ -102,7 +102,7 @@ el declarado por cada superficie activa mediante `bloquea_vision_superficie()`.
 recalcula al registrar o retirar una superficie; por ello, dos bloqueos
 superpuestos permanecen activos hasta retirar el último.
 
-`Humo` bloquea visión y declara una duración de superficie de diez turnos. El valor
+`Humo` bloquea visión y declara una duración de superficie de cinco turnos. El valor
 configurado permanece disponible desde `obtener_duracion_superficie()` y cada
 instancia conserva por separado sus rondas restantes. `HumoVeneno` aplica veneno y
 coste de movimiento, pero no bloquea visión: toxicidad y opacidad son propiedades

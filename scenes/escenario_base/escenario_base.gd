@@ -24,6 +24,7 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 	zona_actual.get_node("CapaParedes") as CapaParedesOclusivas
 )
 @onready var camera_2d: CamaraEscenario = $Camera2D
+@onready var gestor_vfx: Node = $GestorVFX
 @onready var capa_camino: TileMapLayer = $CapaCamino
 @onready var trayectoria_lanzamiento: Line2D = $TrayectoriaLanzamiento
 @onready var gestor_vision: FOVManager = $GestorVision
@@ -330,6 +331,7 @@ func _ready() -> void:
 		else:
 			for error in errores_contenido:
 				push_error("Contenido de zona invalido: %s" % error)
+	gestor_vfx.configurar(camera_2d, tablero, gestor_acciones)
 	pathfinding.inicializar(tablero.datos)
 	gestor_vision.inicializar(capa_oscuridad, tablero)
 	if not preparando_viaje:
@@ -951,6 +953,7 @@ func cargar_partida(ruta: String = RUTA_GUARDADO) -> StringName:
 			return preparacion
 		gestor_guardado = preparacion as GestorRondas
 	_restaurando_partida = true
+	gestor_vfx.limpiar()
 	var tenia_vision := gestor_vision.tiene_vision_calculada
 	# Las señales de restauración no deben explorar desde la posición anterior.
 	gestor_vision.tiene_vision_calculada = false
@@ -1241,6 +1244,7 @@ func entrar_campamento() -> StringName:
 func _mostrar_campamento() -> void:
 	if is_instance_valid(campamento):
 		return
+	gestor_vfx.limpiar()
 	CursorJuego.ocultar_probabilidad_ataque()
 	if is_instance_valid(presentacion_zona):
 		presentacion_zona.queue_free()
@@ -4055,6 +4059,7 @@ func _desactivar_estado_cerca_muerte() -> void:
 
 
 func _mostrar_pantalla_muerte() -> void:
+	gestor_vfx.limpiar()
 	if is_instance_valid(reproductor_musica) and reproductor_musica.playing:
 		reproductor_musica.stop()
 	if is_instance_valid(reproductor_fuego) and reproductor_fuego.playing:

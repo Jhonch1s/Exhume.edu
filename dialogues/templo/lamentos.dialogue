@@ -1,0 +1,14 @@
+~ entrada
+{{nombre}}: ¿Un lamento? Parece venir de dentro de la piedra.
+{{nombre}}: El aire pasa por esas grietas... pero no estoy seguro de que sea solo el viento.
+=> END
+
+~ taller
+{{nombre}}: Estas marcas en el suelo son más recientes que la piedra del templo.
+{{nombre}}: Alguien instaló sus mecanismos aquí mucho después de que se construyera este lugar.
+=> END
+
+~ tunel
+{{nombre}}: Esto no pinta nada bien...
+{{nombre}}: No alcanzo a ver qué hay al fondo. Mejor avanzar con cuidado.
+=> END

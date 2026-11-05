@@ -24,7 +24,7 @@ async function image(relative, width) {
       icon: await image(iconPath, 192), world: worldPath ? await image(worldPath, id === 'piedra' ? 768 : 256) : null,
       hframes: id === 'piedra' ? 3 : 1,
       heal: id === 'racion' ? 50 : 0, lockPattern: id === 'llave_prueba' ? 'cripta_simple' : '',
-      impact: { type: id === 'bomba_humo' ? 'humo' : 'none', radius: id === 'bomba_humo' ? 2 : 0, duration: 10, ticks: 2, dice: 1, sides: 2 },
+      impact: { type: id === 'bomba_humo' ? 'humo' : 'none', radius: id === 'bomba_humo' ? 2 : 0, duration: 5, ticks: 2, dice: 1, sides: 2 },
       source: { id, path: resourcePath, uid: text.match(/uid="([^"]+)"/)?.[1] || '' }
     });
   }

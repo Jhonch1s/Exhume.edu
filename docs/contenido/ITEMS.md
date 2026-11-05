@@ -220,7 +220,7 @@ la escena de representación en el editor no crea una pila lógica registrada.
 
 Humo usa `scenes/efectos_superficie/Humo.tscn` y
 `assets/tiles/surface_effects/smoke/source/smoke_isometric.png`: cuatro frames
-64×64, animación a 4 fps y duración lógica predeterminada de diez turnos;
+64×64, animación a 4 fps y duración lógica predeterminada de cinco turnos;
 bloquea visión. Existe `assets/sonidos/varios/editados/bomba humo.wav`, pero no
 está conectado en la definición, representación o escena de humo examinadas.
 No hay campos generales de sonido en DefinicionItem.

@@ -396,7 +396,7 @@ misma ronda no reduce duraciones.
 
 Al llegar a cero la superficie se retira mediante `TableroGrid` y su nodo queda bajo
 control del procesador. `Humo` y `HumoVeneno` desaparecen. `Fuego` instancia `Humo`
-en la misma celda y posición con ID derivado estable, y el humo comienza con sus diez
+en la misma celda y posición con ID derivado estable, y el humo comienza con sus cinco
 rondas completas. Las señales existentes de registro y retiro actualizan visión sin
 acoplar el procesador a `FOVManager`.
 

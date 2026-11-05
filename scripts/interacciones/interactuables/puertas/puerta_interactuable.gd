@@ -173,6 +173,10 @@ func _resolver_uso_item(contexto: ContextoAccion) -> ResultadoAccion:
 	if llave.patron_cerradura != datos.patron_cerradura:
 		_reproducir_audio(SONIDO_LOCKER_BLOQUEADO)
 		return ResultadoAccion.crear_fallo(&"llave_incompatible")
+	if llave.consumir_al_usar:
+		var inventario := _obtener_inventario_actor(contexto.actor)
+		if inventario == null or not inventario.consumir_unidad(contexto.item.id_instancia):
+			return ResultadoAccion.crear_bloqueo(&"item_no_pertenece_inventario")
 	var estado_anterior := bloqueada
 	bloqueada = false
 	_reproducir_audio(SONIDO_PUERTA_DESBLOQUEO)
@@ -184,7 +188,9 @@ func _resolver_uso_item(contexto: ContextoAccion) -> ResultadoAccion:
 			&"propiedad": &"bloqueada",
 			&"anterior": estado_anterior,
 			&"nueva": bloqueada,
-		}]
+		}],
+		{}, false, false, [],
+		TiposInteraccion.DestinoItem.CONSUMIR if llave.consumir_al_usar else TiposInteraccion.DestinoItem.CONSERVAR_EN_INVENTARIO
 	)
 
 

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="DefinicionLlave" format=3]
+
+[ext_resource type="Script" path="res://scripts/interacciones/items/definicion_llave.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/items/ganzua_mecanica/icono.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/items/ganzua_mecanica/ilustracion.png" id="3"]
+[ext_resource type="PackedScene" path="res://assets/items/ganzua_mecanica/suelo.tscn" id="4"]
+
+[resource]
+script = ExtResource("1")
+id_definicion = &"ganzua_mecanica"
+nombre = "Ganzúa mecánica de Klink"
+descripcion_base = "Un delicado mecanismo de hierro y bronce, con una aguja escalonada y un resorte que permanece tenso desde hace años. Klink ideó este aparato para abrir las cerraduras de las rejas sin buscar sus llaves. Al liberar el resorte, la aguja acomoda los pasadores y se quiebra dentro del cierre. Desbloquea una reja compatible y se consume tras un único uso exitoso."
+icono = ExtResource("2")
+ilustracion_examen = ExtResource("3")
+escena_mundo = ExtResource("4")
+etiquetas = Array[StringName]([&"llave", &"solido"])
+magnitudes = Dictionary[StringName, float]({&"peso": 0.3})
+patron_cerradura = &"reja_metal"
+consumir_al_usar = true
+

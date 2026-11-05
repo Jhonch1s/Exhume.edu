@@ -56,5 +56,5 @@ general de 9.1: un destino explícito anterior prevalece.
 La definición `bomba_humo` configura esta reacción con radio cero y la escena neutral
 `Humo`. Por tanto, una unidad se rompe y despliega una nube en su celda de caída; no
 queda `ItemSuelo`. La nube pertenece a la familia `&"humo"`, bloquea visión, declara
-diez turnos de duración y no bloquea trayectoria de proyectiles. Su atlas visual tiene
+cinco turnos de duración y no bloquea trayectoria de proyectiles. Su atlas visual tiene
 cuatro cuadros de `64×64`; la definición todavía no requiere icono de inventario.

@@ -18,6 +18,7 @@ enum Estado {
 
 @export_category("Relacion de mecanismo")
 @export var ids_receptores_mecanismo: Array[StringName] = []
+@export var placa_senuelo: bool = false
 
 @export_category("Percepcion")
 @export var estado: Estado = Estado.OCULTA
@@ -135,7 +136,7 @@ func obtener_reacciones_encadenadas(
 	if tipo not in [
 		TiposInteraccion.TipoAccion.ENTRAR,
 		TiposInteraccion.TipoAccion.IMPACTAR,
-	] or tablero == null or not ids_receptores_mecanismo.is_empty():
+	] or tablero == null or placa_senuelo or not ids_receptores_mecanismo.is_empty():
 		return trampas
 	for direccion in [Vector2i.UP, Vector2i.LEFT, Vector2i.RIGHT, Vector2i.DOWN]:
 		var celda := tablero.obtener_celda(coordenada_mapa + direccion)
@@ -145,6 +146,7 @@ func obtener_reacciones_encadenadas(
 			if (
 				interactuable is TrampaSuperficie
 				and interactuable != self
+				and not interactuable.placa_senuelo
 				and interactuable.ids_receptores_mecanismo.is_empty()
 			):
 				trampas.append(interactuable)
@@ -165,7 +167,7 @@ func validar_accion(contexto: ContextoAccion) -> StringName:
 		if contexto.celda_objetivo != coordenada_mapa:
 			return &"celda_objetivo_invalida"
 		if tablero == null or (
-			escena_superficie == null and ids_receptores_mecanismo.is_empty()
+			escena_superficie == null and ids_receptores_mecanismo.is_empty() and not placa_senuelo
 		):
 			return &"trampa_no_configurada"
 		var receptores: Variant = _resolver_receptores_mecanismo(
@@ -185,7 +187,7 @@ func validar_accion(contexto: ContextoAccion) -> StringName:
 	if contexto.celda_objetivo != coordenada_mapa:
 		return &"celda_objetivo_invalida"
 	if tablero == null or (
-		escena_superficie == null and ids_receptores_mecanismo.is_empty()
+		escena_superficie == null and ids_receptores_mecanismo.is_empty() and not placa_senuelo
 	):
 		return &"trampa_no_configurada"
 	var receptores: Variant = _resolver_receptores_mecanismo(
@@ -210,7 +212,7 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 
 
 func _activar() -> ResultadoAccion:
-	if not ids_receptores_mecanismo.is_empty():
+	if placa_senuelo or not ids_receptores_mecanismo.is_empty():
 		return _activar_mecanismos()
 	var afectadas := tablero.desplegar_efecto_superficie(
 		escena_superficie,
@@ -274,7 +276,9 @@ func _activar_mecanismos() -> ResultadoAccion:
 	)
 	if receptores is StringName:
 		return ResultadoAccion.crear_bloqueo(receptores)
-	var mensajes: Array[StringName] = [&"trampa.mecanismo_activado"]
+	var mensajes: Array[StringName] = []
+	if not placa_senuelo:
+		mensajes.append(&"trampa.mecanismo_activado")
 	var efectos: Array = []
 	var cambios: Array[Dictionary] = []
 	var solicitudes: Array[SolicitudEfecto] = []

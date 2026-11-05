@@ -58,7 +58,9 @@ func _probar_memoria() -> void:
 
 func _probar_integracion() -> void:
 	var escenario := (load("res://scenes/escenario_base/escenario_base.tscn") as PackedScene).instantiate()
+	var ilustracion_guerrero: Texture2D = escenario.ilustracion_dialogo_guerrero
 	escenario.set_script(ESCENARIO_SIN_RENDER)
+	escenario.ilustracion_dialogo_guerrero = ilustracion_guerrero
 	escenario.get_node("Zona").free()
 	var zona := (load("res://tests/zonas/zona_triggers.tscn") as PackedScene).instantiate()
 	zona.name = "Zona"
@@ -110,6 +112,8 @@ func _probar_integracion() -> void:
 	_comprobar(activaciones == [trigger.id_trigger] and EstadoPartida.trigger_consumido(escenario.obtener_id_zona(), trigger.id_trigger), "Abrir correctamente el diálogo confirma el consumo.")
 	_comprobar(gestor.tiene_actividad(), "El diálogo mantiene el bloqueo hasta cerrar el globo.")
 	var globo: Node = gestor._globo_activo
+	_comprobar(globo.ilustracion_jugador.visible and globo.ilustracion_jugador.texture == escenario._obtener_ilustracion_dialogo_jugador() and globo.ilustracion_jugador.texture != null, "Los diálogos de triggers muestran la ilustración de la clase del protagonista.")
+	_comprobar(globo.nombre_jugador == ficha.nombre and not globo.ilustracion_npc.visible, "El diálogo interno configura solo al protagonista como participante.")
 	globo.dialogue_line = await recurso.get_next_dialogue_line(globo.dialogue_line.next_id)
 	await process_frame
 	_comprobar(not gestor.tiene_actividad() and escenario._dialogos_camara.is_empty(), "Terminar el diálogo libera la cola y el bloqueo de cámara.")

@@ -102,6 +102,7 @@ func _agregar_entrada(entrada: EntradaMenuContextual) -> void:
 	if entrada == null:
 		return
 	var boton := Button.new()
+	boton.add_theme_color_override(&"font_disabled_color", Color(0.61, 0.65, 0.67, 1.0))
 	boton.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	boton.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	boton.disabled = not entrada.habilitada

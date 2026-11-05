@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=18
+type="Resource"
+uid="uid://dwsslx7mfry1v"
+path="res://.godot/imported/lamentos.dialogue-78cdadb37c0d718f8533d077250a31ea.tres"
+
+[deps]
+
+source_file="res://dialogues/templo/lamentos.dialogue"
+dest_files=["res://.godot/imported/lamentos.dialogue-78cdadb37c0d718f8533d077250a31ea.tres"]
+
+[params]
+
+defaults=true
