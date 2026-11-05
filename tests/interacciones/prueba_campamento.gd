@@ -140,7 +140,8 @@ func _probar_visita(escenario: Node) -> void:
 		_comprobar(escenario.process_mode == Node.PROCESS_MODE_DISABLED and escenario.campamento.can_process(), "Mundo suspendido y campamento activo.")
 		await create_timer(0.1).timeout
 		_comprobar(_snapshot(escenario) == antes and _niebla(escenario) == niebla and escenario._tiempo_exploracion_npc == reloj, "Visitar no consume ni avanza estados, superficies, NPC o conocimiento.")
-		_comprobar(escenario.salir_campamento() == &"", "Regresar sin descansar.")
+		escenario.campamento.escenario_descanso.hud.boton_campamento.pressed.emit()
+		_comprobar(not is_instance_valid(escenario.campamento), "El botón de descanso regresa sin descansar.")
 		await process_frame
 		_comprobar(escenario.zona_actual == mundo and escenario.ficha_jugador == ficha and ficha.global_position == posicion and ficha.visible == ficha_visible and escenario.process_mode == modo and escenario.gestor_vision.revision_vision == revision, "Regresar conserva nodos, posición, visibilidad, proceso y percepción.")
 

@@ -8,6 +8,7 @@ signal bola_fuego_solicitada
 signal habilidad_aprendida_solicitada
 signal progresion_solicitada
 signal item_rapido_solicitado(indice: int)
+signal campamento_solicitado
 
 const RETRATOS_POR_CLASE := {
 	"Guerrero": preload("res://assets/ui/panels/hud/retratos/guerrero.png"),
@@ -68,6 +69,8 @@ var vida_objetivo := -1.0
 var energia_objetivo := -1.0
 var estado_hover: Control
 var tooltip_estado: PanelContainer
+@onready var boton_progresion: Button = $HUDRoot/AccesoProgresion
+@onready var boton_campamento: Button = $HUDRoot/AccesoDescanso
 var items_rapidos_asignados: Array[ItemInstancia] = [null, null, null, null]
 
 
@@ -77,9 +80,17 @@ func _ready() -> void:
 	var pulso := create_tween().set_loops()
 	pulso.tween_property(indicador_progresion.get_node("Flecha"), "modulate:a", 0.35, 0.65)
 	pulso.tween_property(indicador_progresion.get_node("Flecha"), "modulate:a", 1.0, 0.65)
-	for panel in estados:
+	for panel in estados + antorcha_engarces + [boton_progresion, boton_campamento]:
 		panel.mouse_entered.connect(_mostrar_tooltip_estado.bind(panel))
 		panel.mouse_exited.connect(_ocultar_tooltip_estado)
+	boton_progresion.set_meta("descripcion", "Progresión\nConsulta tu nivel y las recompensas de tu clase.")
+	boton_campamento.set_meta("descripcion", "Descanso\nVisita el campamento para descansar.")
+	boton_progresion.pressed.connect(func(): progresion_solicitada.emit())
+	boton_campamento.pressed.connect(func(): campamento_solicitado.emit())
+	_conectar_feedback_boton(boton_progresion)
+	_conectar_feedback_boton(boton_campamento)
+	for indice in antorcha_luces.size():
+		antorcha_luces[indice].set_instance_shader_parameter("fase", float(indice) * 2.1)
 	antorcha.visible = true
 	for boton in habilidades + items_rapidos + [pasar_turno]:
 		_conectar_feedback_boton(boton)
@@ -216,10 +227,10 @@ func _actualizar_todo() -> void:
 		energia_barra.tooltip_text = "Energía no disponible sin personaje."
 		energia_texto.tooltip_text = energia_barra.tooltip_text
 		antorcha.text = "ANTORCHAS --"
-		antorcha.tooltip_text = "Antorchas no disponibles sin personaje."
+		antorcha.set_meta("descripcion", "Antorchas\nNo disponibles sin personaje.")
 		for indice in antorcha_engarces.size():
 			antorcha_luces[indice].color = Color("#28231b")
-			antorcha_engarces[indice].tooltip_text = antorcha.tooltip_text
+			antorcha_engarces[indice].set_meta("descripcion", antorcha.get_meta("descripcion"))
 		experiencia_barra.value = 0.0
 		experiencia_barra.tooltip_text = "Experiencia acumulada: 0 XP"
 		_actualizar_estados()
@@ -407,11 +418,11 @@ func _actualizar_recursos_persistentes() -> void:
 			)
 			color_luz = Color("#7c3f20").lerp(color_luz, progreso)
 		antorcha_luces[indice].color = color_luz
-		antorcha_engarces[indice].tooltip_text = (
-			"Antorchas disponibles: %d\nPasos restantes de la antorcha actual: %d/%d."
+		antorcha_engarces[indice].set_meta("descripcion", (
+			"Antorchas\nDisponibles: %d. Pasos restantes de la antorcha actual: %d/%d."
 			% [cantidad_antorchas, ficha.pasos_antorcha_actual, Ficha.PASOS_MAX_ANTORCHA]
-		)
-	antorcha.tooltip_text = antorcha_engarces[0].tooltip_text
+		))
+	antorcha.set_meta("descripcion", antorcha_engarces[0].get_meta("descripcion"))
 
 
 func _actualizar_experiencia() -> void:
@@ -527,7 +538,7 @@ func _actualizar_estados(_clave: StringName = &"", _estado: EstadoActor = null) 
 		var clave := claves[indice]
 		var estado := ficha.obtener_estado(clave)
 		panel.visible = true
-		panel.tooltip_text = _descripcion_estado(clave, estado)
+		panel.set_meta("descripcion", _descripcion_estado(clave, estado))
 		var icono := panel.get_node("Icono") as Label
 		icono.text = String(clave).left(1).to_upper()
 		icono.modulate = _color_estado(clave)
@@ -537,10 +548,12 @@ func _actualizar_estados(_clave: StringName = &"", _estado: EstadoActor = null) 
 
 func _mostrar_tooltip_estado(panel: Control) -> void:
 	_ocultar_tooltip_estado()
-	if not panel.visible or panel.tooltip_text.is_empty():
+	var descripcion: String = panel.get_meta("descripcion", "")
+	if not panel.visible or descripcion.is_empty():
 		return
 	estado_hover = panel
-	tooltip_estado = panel.call(&"_make_custom_tooltip", panel.tooltip_text) as PanelContainer
+	var plantilla := panel if panel.has_method("_make_custom_tooltip") and panel in estados + antorcha_engarces else estados[0]
+	tooltip_estado = plantilla.call(&"_make_custom_tooltip", descripcion) as PanelContainer
 	tooltip_estado.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	for hijo in tooltip_estado.get_children():
 		(hijo as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE

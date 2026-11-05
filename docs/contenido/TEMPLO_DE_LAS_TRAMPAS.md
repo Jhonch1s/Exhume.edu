@@ -21,7 +21,7 @@ explicación confirmada.
   `dialogues/templo/lamentos.dialogue`. Tras editarla, regenerar el recurso usado
   por la escena ejecutando `tests/zonas/compilar_dialogo_templo.gd` con Godot.
 - Dos Sirvientes de Eek reutilizan el prefab existente en la sala oriental.
-  Cada uno otorga 10 XP según su definición compartida; su balance debe probarse.
+  Cada uno otorga 25 XP según su definición compartida; su balance debe probarse.
 - `zona_aranas` sugiere buscar una pista entre las telarañas una vez por partida.
   `cadaver` comenta el derrumbe y se repite al volver a entrar. Ambos muestran
   la ilustración del protagonista.

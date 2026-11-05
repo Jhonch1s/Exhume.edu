@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://7ayd71c8ghrr" path="res://scenes/menu/opciones_partida.tscn" id="5_u41pk"]
 
 [node name="MenuPausaCore" type="Control" unique_id=1646389350]
+process_mode = 3
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -15,6 +16,15 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_aloda")
+
+[node name="Oscurecer" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.01, 0.015, 0.02, 0.68)
 
 [node name="MenuPausa" type="Control" parent="." unique_id=2020986684]
 layout_mode = 1
@@ -29,9 +39,10 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 640.0
-offset_top = 128.0
+offset_top = 75.0
 offset_right = -704.0
-offset_bottom = -248.0
+offset_bottom = -301.0
+scale = Vector2(1.2, 1.2)
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
