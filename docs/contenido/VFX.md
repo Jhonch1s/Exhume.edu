@@ -11,19 +11,21 @@ presentaciones locales desde el mismo punto.
 |---|---|
 | Comienza el deslizamiento de paredes | `piedra_moviendo`, durante su animación |
 | Encajan los bloques | `piedra_encajada`, golpe breve |
+| Cruce de `casi_trampa_fatal` en el templo | `derrumbe`, desde el personaje en el umbral |
 | Se activa una trampa de superficie o una estatua lanza fuego | `trampa` |
 | Daño confirmado de un ataque | `impacto`, con dirección del golpe |
 | Chillido del Terror Nocturno, resistido o no | `chillido` |
 | Resultado/solicitud con clave `explosion` | `explosion` |
 
-`derrumbe` queda disponible para conectar cuando se implemente el derrumbe del
-templo. Una bomba de humo no provoca una sacudida de explosión. El daño periódico
+Una bomba de humo no provoca una sacudida de explosión. El daño periódico
 de quemado/veneno y las acciones fallidas tampoco provocan sacudidas.
 
 El gestor observa `GestorAcciones.accion_finalizada` y las señales de las paredes;
 no cambia sus resultados, costes, tiradas ni estados. No usa el generador aleatorio
 del juego. Las cuatro paredes se agrupan en un temblor y un encaje por frame.
-Solo atiende sucesos en celdas actualmente visibles y dentro de la pantalla.
+Solo atiende sucesos con un punto de referencia visible y en pantalla. Para
+paredes móviles, usa el mecanismo emisor si está a la vista. Así se siente el
+temblor al pisar la placa aunque los bloques estén detrás de la niebla.
 
 ## Cámara e intensidad
 
@@ -59,6 +61,8 @@ migración masiva del VFX de combate o de superficies.
   periódico y ausencia de consumo del RNG global.
 - `tests/zonas/prueba_paredes_moviles.gd`: conexión real de cuatro bloques con
   un único temblor y golpe final, manteniendo movimiento y guardado.
+- `tests/zonas/prueba_tramo_final_templo.gd` abre el templo como F6 y verifica
+  las sacudidas de la placa y del derrumbe después de pasos confirmados.
 
 Las pruebas headless verifican comportamiento; el ajuste de sensación requiere
 revisión visual. La suite `prueba_camara_libre.gd` conserva dos fallos de

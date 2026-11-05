@@ -201,6 +201,11 @@ func obtener_estado_persistente() -> Dictionary:
 	return {}
 
 
+## Los mecanismos añadidos a mapas existentes pueden admitir su estado inicial.
+func admite_ausencia_en_guardado() -> bool:
+	return false
+
+
 func validar_estado_persistente(estado: Dictionary) -> StringName:
 	return &"" if estado.is_empty() else &"estado_persistente_no_admitido"
 

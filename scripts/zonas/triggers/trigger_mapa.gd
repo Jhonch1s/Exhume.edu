@@ -4,6 +4,7 @@ extends Node2D
 
 enum Forma { ZONA, UMBRAL_X, UMBRAL_Y }
 enum Frecuencia { UNA_VEZ_POR_PARTIDA, CADA_ENTRADA }
+enum SentidoUmbral { AMBOS, POSITIVO, NEGATIVO }
 
 @export var id_trigger: StringName
 @export var habilitado: bool = true
@@ -13,6 +14,8 @@ enum Frecuencia { UNA_VEZ_POR_PARTIDA, CADA_ENTRADA }
 @export var tamano: Vector2i = Vector2i(2, 2)
 ## Umbral X: entre esta casilla y +X, extendido hacia +Y. Umbral Y: al revés.
 @export_range(1, 64, 1) var longitud_umbral: int = 1
+## Sentido del cruce en el eje del umbral.
+@export var sentido_umbral: SentidoUmbral = SentidoUmbral.AMBOS
 @export var accion: AccionTrigger
 @export var mostrar_en_juego: bool = false
 
@@ -68,6 +71,10 @@ func detecta_paso(origen: Vector2i, destino: Vector2i, ancla: Vector2i) -> bool:
 		hasta = Vector2(hasta.y, hasta.x)
 	if (desde.x <= 0.5) == (hasta.x <= 0.5):
 		return false
+	if sentido_umbral == SentidoUmbral.POSITIVO and hasta.x < desde.x:
+		return false
+	if sentido_umbral == SentidoUmbral.NEGATIVO and hasta.x > desde.x:
+		return false
 	var avance := (0.5 - desde.x) / (hasta.x - desde.x)
 	var lateral := lerpf(desde.y, hasta.y, avance)
 	return lateral >= -0.5 and lateral < float(longitud_umbral) - 0.5
@@ -77,8 +84,8 @@ func validar_configuracion(capa: TileMapLayer, tablero: TableroGrid = null) -> P
 	var errores := PackedStringArray()
 	if id_trigger == &"":
 		errores.append("Asigna un ID estable al trigger.")
-	if forma not in Forma.values() or frecuencia not in Frecuencia.values():
-		errores.append("Forma o frecuencia de trigger inválida.")
+	if forma not in Forma.values() or frecuencia not in Frecuencia.values() or sentido_umbral not in SentidoUmbral.values():
+		errores.append("Forma, frecuencia o sentido de trigger inválido.")
 	if tamano.x < 1 or tamano.y < 1 or tamano.x > 64 or tamano.y > 64 or longitud_umbral < 1 or longitud_umbral > 64:
 		errores.append("El tamaño y la longitud deben estar entre 1 y 64 casillas.")
 	if accion == null:

@@ -1,8 +1,8 @@
 @tool
 extends "res://scripts/interacciones/interactuables/puertas/puerta_interactuable.gd"
 
-signal deslizamiento_iniciado(duracion: float)
-signal deslizamiento_terminado
+signal deslizamiento_iniciado(duracion: float, id_emisor: StringName)
+signal deslizamiento_terminado(id_emisor: StringName)
 
 @export_range(0.1, 5.0, 0.1) var duracion_deslizamiento: float = 1.2
 var _deslizamiento: Tween
@@ -62,15 +62,15 @@ func aplicar_cambio_mecanismo(id_emisor: StringName, activa: bool) -> ResultadoA
 	_deslizamiento = create_tween()
 	_deslizamiento.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	_deslizamiento.tween_method(_mover_visual, origen, destino, duracion_deslizamiento)
-	_deslizamiento.tween_callback(_terminar_deslizamiento)
-	deslizamiento_iniciado.emit(duracion_deslizamiento)
+	_deslizamiento.tween_callback(_terminar_deslizamiento.bind(id_emisor))
+	deslizamiento_iniciado.emit(duracion_deslizamiento, id_emisor)
 	return resultado
 
 
-func _terminar_deslizamiento() -> void:
+func _terminar_deslizamiento(id_emisor: StringName) -> void:
 	_animando = false
 	presencia_cambiada.emit()
-	deslizamiento_terminado.emit()
+	deslizamiento_terminado.emit(id_emisor)
 
 
 func restaurar_estado_persistente(estado: Dictionary) -> StringName:

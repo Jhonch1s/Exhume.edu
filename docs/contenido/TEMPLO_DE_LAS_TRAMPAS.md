@@ -22,7 +22,24 @@ explicación confirmada.
   por la escena ejecutando `tests/zonas/compilar_dialogo_templo.gd` con Godot.
 - Dos Sirvientes de Eek reutilizan el prefab existente en la sala oriental.
   Cada uno otorga 10 XP según su definición compartida; su balance debe probarse.
+- `zona_aranas` sugiere buscar una pista entre las telarañas una vez por partida.
+  `cadaver` comenta el derrumbe y se repite al volver a entrar. Ambos muestran
+  la ilustración del protagonista.
 - Se conservan el trazado, las trampas, las estatuas y Trompo existentes.
+
+## Derrumbe y vuelta a Prisión
+
+El umbral `casi_trampa_fatal` se activa una vez al pasar de `(2,-51)` a
+`(2,-52)`. La pieza de roca 4×8 cae con vibración en ambos ejes y se asienta
+en la posición del tile original `(-1,-46)`. Las cinco casillas transitables
+de su huella quedan bloqueadas detrás del personaje. Al cargar, se restaura
+el estado de las rocas sin repetir el efecto. Los guardados anteriores a
+este mecanismo conservan la niebla explorada y empiezan con el paso abierto.
+
+`vuelta_prision` está junto a la entrada del templo y lleva a
+`entrada_prision`, en `(79,-26)`. El spawn queda fuera del umbral de ida.
+Una vez caídas las rocas, la ruta hacia la entrada queda cortada y el tramo
+posterior todavía necesita su propia salida.
 
 ## Placas y provisiones
 
@@ -66,6 +83,8 @@ La prueba automática `tests/zonas/prueba_contenido_templo.gd` carga la escena,
 valida interactuables y triggers, comprueba el registro por ID y los visuales
 propios, activa las placas 002/004 contra sus estatuas y comprueba suelo y
 obstáculos de las casillas de las arañas.
+`tests/zonas/prueba_tramo_final_templo.gd` verifica placa, derrumbe,
+persistencia y vuelta a Prisión desde el arranque de F6.
 Ejecutarla con `tests/ejecutar_con_autoloads.gd` y la ruta de la prueba como
 argumento. No sustituye una prueba visual ni de combate.
 
@@ -95,9 +114,8 @@ en una partida que todavía no haya guardado el estado del templo.
 
 ## Pendiente
 
-La expansión física, el derrumbe
-al recoger la ganzúa, la segunda área con élite y el viaje de vuelta a Prisión todavía
-no están implementados. Hay que calcular la XP alcanzable desde Prisión antes
+Quedan pendientes la expansión física, la salida después del derrumbe y el
+encuentro con el élite. Hay que calcular la XP alcanzable desde Prisión antes
 de fijar encuentros y garantizar la progresión a nivel 2 antes del élite.
 
 ## Cierre de sesión del 05-11-2026

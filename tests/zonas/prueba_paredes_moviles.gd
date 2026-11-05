@@ -41,10 +41,9 @@ func _probar() -> void:
 	var gestor := GestorAcciones.new()
 	var camara := Camera2D.new()
 	root.add_child(camara)
-	camara.position = Vector2(-864, -448)
+	camara.position = placa.global_position
 	camara.force_update_scroll()
-	for posicion in posiciones:
-		tablero.obtener_celda(posicion).visibilidad = Celda.EstadoVisibilidad.VISIBLE
+	tablero.obtener_celda(placa.coordenada_mapa).visibilidad = Celda.EstadoVisibilidad.VISIBLE
 	var vfx := load("res://scripts/render/gestor_vfx.gd").new() as Node
 	root.add_child(vfx)
 	vfx.configurar(camara, tablero, gestor)
@@ -59,7 +58,7 @@ func _probar() -> void:
 	datos.desplazamiento_apertura = Vector2(64, -32)
 	var resultado := gestor.procesar_accion(contexto)
 	comprobar(resultado.exitosa and placa.estado == TrampaSuperficie.Estado.ACTIVADA, "Pisar la placa activa los cuatro receptores.")
-	comprobar(efectos.count(&"piedra_moviendo") == 1 and &"trampa" not in efectos, "Cuatro bloques producen un único temblor de piedra.")
+	comprobar(efectos.count(&"piedra_moviendo") == 1 and &"trampa" not in efectos, "La placa visible produce un temblor aunque sus cuatro bloques estén en la niebla.")
 	for pared in paredes:
 		var animacion: Tween = pared.get("_deslizamiento")
 		animacion.pause()

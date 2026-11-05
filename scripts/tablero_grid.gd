@@ -204,6 +204,13 @@ func generar_desde_zona(zona: Node2D) -> void:
 					celda_decoracion.coordenada_fog
 				)
 
+	# Una decoración dinámica puede conservar su borde previo de niebla en el vacío.
+	for decoracion in zona.find_children("*", "Node2D", true, false):
+		if decoracion is DECORACION_NO_CAMINABLE and decoracion.is_in_group(&"decoracion_conserva_borde"):
+			for coord in decoracion.obtener_coordenadas_ocupadas(_capa_suelo):
+				if not datos.has(coord):
+					datos[coord] = Celda.new(&"decoracion", false, 2)
+
 # --- UTILIDADES ---
 
 func _aplicar_decoracion_escena(capa: TileMapLayer, origen: Vector2i, fuente: TileSetScenesCollectionSource) -> void:

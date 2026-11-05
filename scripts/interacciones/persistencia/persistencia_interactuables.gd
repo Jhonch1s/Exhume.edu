@@ -51,7 +51,9 @@ func validar_restauracion(
 		if motivo != &"":
 			return motivo
 	if vistos.size() != tablero.interactuables_por_id.size():
-		return &"interactuables_guardado_incompletos"
+		for id: StringName in tablero.interactuables_por_id:
+			if not vistos.has(id) and not tablero.obtener_interactuable(id).admite_ausencia_en_guardado():
+				return &"interactuables_guardado_incompletos"
 	return validar_posiciones(snapshot, tablero)
 
 
@@ -63,11 +65,18 @@ func restaurar(
 	var motivo := validar_restauracion(snapshot, tablero, id_zona)
 	if motivo != &"":
 		return motivo
+	var restaurados: Dictionary[StringName, bool] = {}
 	for datos: Dictionary in snapshot["interactuables"]:
 		var entidad := tablero.obtener_interactuable(StringName(datos["id"]))
 		motivo = entidad.restaurar_estado_persistente(datos["estado"])
 		if motivo != &"":
 			return motivo
+		restaurados[entidad.id_instancia] = true
+	for id: StringName in tablero.interactuables_por_id:
+		if not restaurados.has(id):
+			motivo = tablero.obtener_interactuable(id).restaurar_estado_persistente({})
+			if motivo != &"":
+				return motivo
 	for datos: Dictionary in snapshot["interactuables"]:
 		var entidad := tablero.obtener_interactuable(StringName(datos["id"]))
 		if entidad.admite_restaurar_posicion():

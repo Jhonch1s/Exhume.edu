@@ -6,8 +6,8 @@ signal efecto_emitido(tipo: StringName, posicion: Vector2)
 
 # Amplitud en píxeles de pantalla, frecuencia y duración en segundos.
 const PERFILES := {
-	&"piedra_moviendo": Vector3(3.0, 9.0, 1.2),
-	&"piedra_encajada": Vector3(4.0, 15.0, 0.18),
+	&"piedra_moviendo": Vector3(5.0, 9.0, 1.2),
+	&"piedra_encajada": Vector3(5.0, 15.0, 0.22),
 	&"trampa": Vector3(2.5, 22.0, 0.16),
 	&"impacto": Vector3(4.0, 14.0, 0.22),
 	&"explosion": Vector3(8.0, 18.0, 0.5),
@@ -43,12 +43,19 @@ func _on_interactuable(_coordenada: Vector2i, entidad: Interactuable) -> void:
 	entidad.connect(&"deslizamiento_terminado", _on_pared_terminada.bind(entidad))
 
 
-func _on_pared_iniciada(duracion: float, pared: Node2D) -> void:
-	solicitar(&"piedra_moviendo", pared.global_position, duracion)
+func _on_pared_iniciada(duracion: float, id_emisor: StringName, pared: Node2D) -> void:
+	solicitar(&"piedra_moviendo", _posicion_vfx_pared(id_emisor, pared), duracion)
 
 
-func _on_pared_terminada(pared: Node2D) -> void:
-	solicitar(&"piedra_encajada", pared.global_position)
+func _on_pared_terminada(id_emisor: StringName, pared: Node2D) -> void:
+	solicitar(&"piedra_encajada", _posicion_vfx_pared(id_emisor, pared))
+
+
+func _posicion_vfx_pared(id_emisor: StringName, pared: Node2D) -> Vector2:
+	var emisor := _tablero.obtener_interactuable(id_emisor)
+	if emisor != null and _es_visible(emisor.global_position):
+		return emisor.global_position
+	return pared.global_position
 
 
 func solicitar(tipo: StringName, posicion: Vector2, duracion: float = -1.0, direccion: Vector2 = Vector2.ZERO) -> bool:

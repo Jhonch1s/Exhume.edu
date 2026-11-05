@@ -1,14 +1,16 @@
-[gd_resource type="Resource" script_class="DialogueResource" format=3 uid="uid://p7crtd35h8gq"]
+[gd_resource type="Resource" script_class="DialogueResource" format=3]
 
-[ext_resource type="Script" uid="uid://dbs4435dsf3ry" path="res://addons/dialogue_manager/dialogue_resource.gd" id="1_etdhp"]
+[ext_resource type="Script" path="res://addons/dialogue_manager/dialogue_resource.gd" id="1_etdhp"]
 
 [resource]
 script = ExtResource("1_etdhp")
 using_states = PackedStringArray()
 cues = {
+"cadaver": "20",
 "entrada": "1",
 "taller": "6",
-"tunel": "11"
+"tunel": "11",
+"zona_aranas": "16"
 }
 character_names = PackedStringArray("{{nombre}}")
 first_cue = "0"
@@ -85,10 +87,41 @@ lines = {
 },
 "15": {
 &"id": "15",
+&"next_id": "16",
+&"type": "cue"
+},
+"16": {
+&"character": "{{nombre}}",
+&"character_replacements": Array[Dictionary]([{
+&"expression": Array[Dictionary]([{
+&"i": 2,
+&"type": "variable",
+&"value": "nombre"
+}]),
+&"value_in_text": "{{nombre}}"
+}]),
+&"id": "16",
+&"next_id": "17",
+&"static_id": "",
+&"text": "Hay telarañas por todas partes. Tal vez entre todo esto haya alguna pista de cómo seguir.",
+&"type": "dialogue"
+},
+"17": {
+&"id": "17",
 &"is_snippet": false,
 &"next_id": "end",
 &"next_id_after": "",
 &"type": "goto"
+},
+"18": {
+&"id": "18",
+&"next_id": "19",
+&"type": ""
+},
+"19": {
+&"id": "19",
+&"next_id": "20",
+&"type": "cue"
 },
 "2": {
 &"character": "{{nombre}}",
@@ -105,6 +138,57 @@ lines = {
 &"static_id": "",
 &"text": "El aire pasa por esas grietas... pero no estoy seguro de que sea solo el viento.",
 &"type": "dialogue"
+},
+"20": {
+&"character": "{{nombre}}",
+&"character_replacements": Array[Dictionary]([{
+&"expression": Array[Dictionary]([{
+&"i": 2,
+&"type": "variable",
+&"value": "nombre"
+}]),
+&"value_in_text": "{{nombre}}"
+}]),
+&"id": "20",
+&"next_id": "21",
+&"static_id": "",
+&"text": "Parece que este no tuvo mucha suerte. Ese derrumbe tuvo que ser una trampa enorme...",
+&"type": "dialogue"
+},
+"21": {
+&"character": "{{nombre}}",
+&"character_replacements": Array[Dictionary]([{
+&"expression": Array[Dictionary]([{
+&"i": 2,
+&"type": "variable",
+&"value": "nombre"
+}]),
+&"value_in_text": "{{nombre}}"
+}]),
+&"id": "21",
+&"next_id": "22",
+&"static_id": "",
+&"text": "Espero no encontrarme con una de esas.",
+&"type": "dialogue"
+},
+"22": {
+&"id": "22",
+&"is_snippet": false,
+&"next_id": "end",
+&"next_id_after": "",
+&"type": "goto"
+},
+"23": {
+&"id": "23",
+&"next_id": "24",
+&"type": ""
+},
+"24": {
+&"id": "24",
+&"is_snippet": false,
+&"next_id": "end",
+&"next_id_after": "",
+&"type": "goto"
 },
 "3": {
 &"id": "3",

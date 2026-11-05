@@ -12,3 +12,12 @@
 {{nombre}}: Esto no pinta nada bien...
 {{nombre}}: No alcanzo a ver qué hay al fondo. Mejor avanzar con cuidado.
 => END
+
+~ zona_aranas
+{{nombre}}: Hay telarañas por todas partes. Tal vez entre todo esto haya alguna pista de cómo seguir.
+=> END
+
+~ cadaver
+{{nombre}}: Parece que este no tuvo mucha suerte. Ese derrumbe tuvo que ser una trampa enorme...
+{{nombre}}: Espero no encontrarme con una de esas.
+=> END

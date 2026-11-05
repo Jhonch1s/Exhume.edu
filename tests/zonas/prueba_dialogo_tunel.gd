@@ -28,24 +28,36 @@ func _probar() -> void:
 		return
 	escenario.set_process(false)
 	escenario._cancelar_exploracion_npc()
-	var trigger: TriggerMapa = zona.get_node("Triggers/Dialogos/TriggerMapa")
 	var fallos := 0
-	if not trigger.validar_configuracion(zona.get_node("CapaSuelo"), escenario.tablero).is_empty():
-		fallos += 1
 	var clases := ["Guerrero", "Ladrón", "Mago"]
-	for indice in range(clases.size()):
-		escenario.ficha_jugador.clase = clases[indice]
-		if trigger.accion.ejecutar(escenario, trigger) != &"":
+	var textos := {
+		&"tunel_dialogo": "Esto no pinta nada bien",
+		&"zona_aranas": "alguna pista",
+		&"cadaver": "no tuvo mucha suerte",
+	}
+	var comprobados := 0
+	for trigger: TriggerMapa in zona.find_children("*", "TriggerMapa", true, false):
+		if not textos.has(trigger.id_trigger):
+			continue
+		comprobados += 1
+		if not trigger.validar_configuracion(zona.get_node("CapaSuelo"), escenario.tablero).is_empty():
 			fallos += 1
 			continue
-		await create_timer(0.1).timeout
-		var globo: Node = escenario.gestor_triggers._globo_activo
-		if not is_instance_valid(globo) or globo.dialogue_line == null or not globo.dialogue_line.text.contains("Esto no pinta nada bien") or not globo.ilustracion_jugador.visible or globo.ilustracion_jugador.texture != retratos[indice] or retratos[indice] == null or globo.ilustracion_npc.visible:
-			push_error("Texto o ilustración incorrectos para " + clases[indice])
-			fallos += 1
-		escenario.gestor_triggers.limpiar()
-		await process_frame
+		for indice in range(clases.size()):
+			escenario.ficha_jugador.clase = clases[indice]
+			if trigger.accion.ejecutar(escenario, trigger) != &"":
+				fallos += 1
+				continue
+			await create_timer(0.1).timeout
+			var globo: Node = escenario.gestor_triggers._globo_activo
+			if not is_instance_valid(globo) or globo.dialogue_line == null or not globo.dialogue_line.text.contains(textos[trigger.id_trigger]) or not globo.ilustracion_jugador.visible or globo.ilustracion_jugador.texture != retratos[indice] or retratos[indice] == null or globo.ilustracion_npc.visible:
+				push_error("Texto o ilustración incorrectos en %s para %s" % [trigger.id_trigger, clases[indice]])
+				fallos += 1
+			escenario.gestor_triggers.limpiar()
+			await process_frame
+	if comprobados != textos.size():
+		fallos += 1
 	escenario.queue_free()
 	await process_frame
-	print("DialogoTunel: %d fallos, tres clases verificadas." % fallos)
+	print("Diálogos del templo: %d fallos, %d triggers probados con tres clases." % [fallos, comprobados])
 	quit(0 if fallos == 0 else 1)
