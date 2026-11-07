@@ -18,6 +18,10 @@ var _shake_tween: Tween
 func sacudir(intensidad: float = 6.0, duracion: float = 0.22) -> void:
 	if _shake_tween != null and _shake_tween.is_valid():
 		_shake_tween.kill()
+	intensidad *= Preferencias.sacudida
+	if intensidad <= 0.0:
+		offset = Vector2.ZERO
+		return
 	var tween := create_tween()
 	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	var pasos := 6

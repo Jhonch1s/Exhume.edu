@@ -21,12 +21,15 @@ extends Control
 	$MenuPausa/RigColgante/Carteles/CartelLogo,
 	$MenuPausa/RigColgante/Carteles/Resumir,
 	$MenuPausa/RigColgante/Carteles/Opciones,
+	$MenuPausa/RigColgante/Carteles/Guardar,
 	$MenuPausa/RigColgante/Carteles/Salir,
 ]
 @onready var cola_izquierda: Control = $MenuPausa/RigColgante/Cadenas/ColaIzquierdaRig
 @onready var cola_derecha: Control = $MenuPausa/RigColgante/Cadenas/ColaDerechaRig
 @onready var resumir: TablaMenuOpcion = $MenuPausa/RigColgante/Carteles/Resumir
 @onready var opciones: TablaMenuOpcion = $MenuPausa/RigColgante/Carteles/Opciones
+@onready var guardar: TablaMenuOpcion = $MenuPausa/RigColgante/Carteles/Guardar
+@onready var estado_guardado: Label = $MenuPausa/EstadoGuardado
 @onready var salir: TablaMenuOpcion = $MenuPausa/RigColgante/Carteles/Salir
 
 const CURSOR_PERSONALIZADO = preload("res://assets/ui/cursors/cursor_default.png")
@@ -60,6 +63,7 @@ func _ready() -> void:
 
 	resumir.presionado.connect(_on_resumir_pressed)
 	opciones.presionado.connect(_on_opciones_pressed)
+	guardar.presionado.connect(_on_guardar_pressed)
 	salir.presionado.connect(_on_salir_pressed)
 	
 	if opciones_partida.has_signal("volver_solicitado_opciones"):
@@ -107,6 +111,7 @@ func _conectar_boton(nodo: Node, metodo: Callable) -> void:
 		nodo.connect("pressed", metodo)
 		
 func pausar_juego() -> void:
+	estado_guardado.text = ""
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
 	#Input.set_custom_mouse_cursor(CURSOR_PERSONALIZADO, Input.CURSOR_ARROW, Vector2(0, 0))
@@ -133,6 +138,25 @@ func resumir_juego() -> void:
 
 func _on_resumir_pressed() -> void:
 	resumir_juego()
+
+
+func _on_guardar_pressed() -> void:
+	if transicion_activa_opciones:
+		return
+	var escenario := get_parent().get_parent()
+	if escenario.get("es_escenario_de_descanso"):
+		var campamento: Variant = escenario.get("control_descanso")
+		if is_instance_valid(campamento):
+			escenario = campamento.escenario
+	if not is_instance_valid(escenario) or not escenario.has_method(&"guardar_partida"):
+		estado_guardado.text = "No se pudo guardar la partida."
+		return
+	var motivo: StringName = escenario._motivo_bloqueo_persistencia(true, false)
+	if motivo != &"":
+		estado_guardado.text = "No se pudo guardar. Termina la acción en curso."
+		return
+	motivo = escenario.guardar_partida()
+	estado_guardado.text = "Partida guardada." if motivo == &"" else "No se pudo guardar la partida: %s" % motivo
 
 func _reproducir_sonido_cadenas() -> void:
 	if not is_inside_tree():

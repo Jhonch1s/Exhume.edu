@@ -28,8 +28,8 @@ func procesar_accion(contexto: ContextoAccion) -> ResultadoAccion:
 			contexto,
 			ResultadoAccion.crear_bloqueo(&"actor_invalido")
 		)
-	if contexto.tipo in [TiposInteraccion.TipoAccion.EXAMINAR, TiposInteraccion.TipoAccion.INTERACTUAR, TiposInteraccion.TipoAccion.USAR_ITEM, TiposInteraccion.TipoAccion.LANZAR_ITEM, TiposInteraccion.TipoAccion.RECOGER, TiposInteraccion.TipoAccion.SOLTAR] and contexto.actor.has_method(&"obtener_estado") and contexto.actor.obtener_estado(&"aturdido") != null:
-		return _finalizar(contexto, ResultadoAccion.crear_bloqueo(&"actor_aturdido"))
+	if contexto.tipo in [TiposInteraccion.TipoAccion.EXAMINAR, TiposInteraccion.TipoAccion.INTERACTUAR, TiposInteraccion.TipoAccion.USAR_ITEM, TiposInteraccion.TipoAccion.LANZAR_ITEM, TiposInteraccion.TipoAccion.RECOGER, TiposInteraccion.TipoAccion.SOLTAR] and contexto.actor.has_method(&"obtener_estado") and (contexto.actor.obtener_estado(&"aturdido") != null or contexto.actor.obtener_estado(&"petrificado") != null):
+		return _finalizar(contexto, ResultadoAccion.crear_bloqueo(&"actor_petrificado" if contexto.actor.obtener_estado(&"petrificado") != null else &"actor_aturdido"))
 
 	if contexto.objetivo == null or not is_instance_valid(contexto.objetivo):
 		return _finalizar(

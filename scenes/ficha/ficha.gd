@@ -65,8 +65,8 @@ var agarre_objetivo := ""
 var agarre_pasos := 0
 var senuelos: Dictionary = {}
 var suprimir_senales_recursos: bool = false
-var energia_maxima: int = 200
-var energia_actual: int = 200:
+var energia_maxima: int = 300
+var energia_actual: int = 300:
 	set(valor):
 		var anterior := energia_actual
 		energia_actual = clampi(valor, 0, energia_maxima)
@@ -141,7 +141,7 @@ var interrupcion_solicitada: bool:
 
 var jugador_esta_cerca: bool = false
 
-@export var velocidad_paso: float = 0.2
+@export var velocidad_paso: float = 0.35
 
 signal paso_dado(nueva_coordenada: Vector2i)
 signal movimiento_terminado(interrumpido: bool)
@@ -371,7 +371,7 @@ func obtener_voluntad() -> int:
 func obtener_atributo_base(atributo: String) -> int:
 	return {"fuerza": fue, "destreza": des, "voluntad": vol}.get(atributo, 0)
 
-func recibir_danio(cantidad: int, fuente: Object = null) -> int:
+func recibir_danio(cantidad: int, fuente: Object = null, tipo: StringName = &"") -> int:
 	if cantidad <= 0:
 		return 0
 	var anterior := pv_actual
@@ -385,8 +385,11 @@ func recibir_danio(cantidad: int, fuente: Object = null) -> int:
 		puntos_vida_cambiados.emit(pv_actual, pv_max)
 		danio_recibido.emit(aplicado, fuente)
 		var padre_vfx: Node = get_parent() if get_parent() != null else self
-		NUMERO_DANIO_FLOTANTE.instanciar_en(padre_vfx, global_position + Vector2(0, -32), aplicado)
+		NUMERO_DANIO_FLOTANTE.instanciar_en(padre_vfx, global_position + Vector2(0, -32), aplicado, tipo)
 	return aplicado
+
+func recibir_danio_tipificado(cantidad: int, fuente: Object, tipo: StringName) -> int:
+	return recibir_danio(cantidad, fuente, tipo)
 
 func curar(cantidad: int) -> int:
 	if cantidad <= 0 or pv_actual >= pv_max:
@@ -448,7 +451,7 @@ func retirar_estado(clave: StringName) -> bool:
 
 
 func puede_moverse() -> bool:
-	return obtener_estado(&"enredado") == null and obtener_estado(&"inmovilizado") == null and obtener_estado(&"aturdido") == null
+	return obtener_estado(&"enredado") == null and obtener_estado(&"inmovilizado") == null and obtener_estado(&"aturdido") == null and obtener_estado(&"petrificado") == null
 
 func aplicar_o_renovar_estado(
 	clave: StringName,

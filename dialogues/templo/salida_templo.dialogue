@@ -1,0 +1,9 @@
+~ entrada
+{{nombre}}: Este salón también parece formar parte del templo. Hace mucho que nadie pasa por aquí.
+{{nombre}}: Si aún quedan mecanismos como los de antes, será mejor vigilar dónde piso.
+=> END
+
+~ encuentro
+{{nombre}}: ¿Qué es esa cosa? Parece que no piensa dejarme pasar.
+{{nombre}}: Esas estatuas... Si consigo atraerlo cerca cuando se activen, quizá pueda quemarlo.
+=> END

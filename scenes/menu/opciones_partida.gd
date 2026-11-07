@@ -6,6 +6,9 @@ const SONIDO_CADENAS_MENU: AudioStream = preload("res://assets/sonidos/varios/ed
 
 @onready var sliderVolumen: HSlider = $RigUnico/Opciones/Margen/ContenidOpciones/VolumenSeccion/SliderVolume
 @onready var textoVolumen: Label = $RigUnico/Opciones/Margen/ContenidOpciones/VolumenSeccion/valorVolumen
+@onready var pantalla: CheckButton = $RigUnico/Opciones/Margen/ContenidOpciones/Pantalla
+@onready var slider_sacudida: HSlider = $RigUnico/Opciones/Margen/ContenidOpciones/Sacudida/SliderSacudida
+@onready var texto_sacudida: Label = $RigUnico/Opciones/Margen/ContenidOpciones/Sacudida/ValorSacudida
 @onready var botonVolver: Button = $RigUnico/Volver/BotonVolver
 
 @onready var rig: Control = $RigUnico
@@ -22,26 +25,25 @@ const SONIDO_CADENAS_MENU: AudioStream = preload("res://assets/sonidos/varios/ed
 var posiciones_base: Array[Vector2] = []
 var rotaciones_base: Dictionary[Control, float] = {}
 
-var bus_master_idx: int
-
-
-
 func _ready() -> void:
 	posiciones_base.append(rig.position)
-	bus_master_idx = AudioServer.get_bus_index("Master")
 	
 	# Configurar los valores del Slider (de 0.0 a 1.0)
 	sliderVolumen.min_value = 0.0
 	sliderVolumen.max_value = 1.0
 	sliderVolumen.step = 0.05
 	
-	# Obtener el volumen actual del juego y posicionar el slider en su lugar inicial
-	var db_actual := AudioServer.get_bus_volume_db(bus_master_idx)
-	sliderVolumen.value = db_to_linear(db_actual)
+	# Reflejar las preferencias actuales.
+	sliderVolumen.value = Preferencias.volumen
 	_actualizar_texto_volumen(sliderVolumen.value)
 	
 	
 	sliderVolumen.value_changed.connect(_on_slider_value_change)
+	pantalla.button_pressed = Preferencias.pantalla_completa
+	pantalla.toggled.connect(_on_pantalla_toggled)
+	slider_sacudida.value = Preferencias.sacudida
+	_actualizar_sacudida(Preferencias.sacudida)
+	slider_sacudida.value_changed.connect(_on_sacudida_changed)
 	posiciones_base.append(rig.position)
 	rig.pivot_offset = Vector2(rig.size.x * 0.5, 0.0)
 	for piezas in piezas_por_rig:
@@ -59,16 +61,23 @@ func _process(delta: float) -> void:
 	pass
 
 func _on_slider_value_change(valor: float) -> void:
-	# Si el valor es 0, silenciamos por completo (Mute)
-	if valor == 0:
-		AudioServer.set_bus_mute(bus_master_idx, true)
-	else:
-		AudioServer.set_bus_mute(bus_master_idx, false)
-		# Convertimos el valor lineal (0.0 a 1.0) a decibelios
-		var volumen_db := linear_to_db(valor)
-		AudioServer.set_bus_volume_db(bus_master_idx, volumen_db)
-	
+	Preferencias.volumen = valor
+	Preferencias.aplicar_volumen()
+	Preferencias.guardar()
 	_actualizar_texto_volumen(valor)
+
+func _on_pantalla_toggled(activa: bool) -> void:
+	Preferencias.pantalla_completa = activa
+	Preferencias.aplicar_pantalla()
+	Preferencias.guardar()
+
+func _on_sacudida_changed(valor: float) -> void:
+	Preferencias.sacudida = valor
+	Preferencias.guardar()
+	_actualizar_sacudida(valor)
+
+func _actualizar_sacudida(valor: float) -> void:
+	texto_sacudida.text = "%d%%" % int(valor * 100)
 
 
 func _actualizar_texto_volumen(valor: float) -> void:

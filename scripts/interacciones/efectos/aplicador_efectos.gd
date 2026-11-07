@@ -61,11 +61,11 @@ func aplicar(solicitud: SolicitudEfecto) -> Variant:
 		return motivo
 	if solicitud.tipo == &"estado":
 		return _aplicar_estado(solicitud)
-	var magnitud_aplicada: Variant = solicitud.objetivo.call(
-		&"recibir_danio",
-		int(solicitud.magnitud),
-		solicitud.fuente
-	)
+	var magnitud_aplicada: Variant
+	if solicitud.objetivo.has_method(&"recibir_danio_tipificado"):
+		magnitud_aplicada = solicitud.objetivo.call(&"recibir_danio_tipificado", int(solicitud.magnitud), solicitud.fuente, solicitud.clave)
+	else:
+		magnitud_aplicada = solicitud.objetivo.call(&"recibir_danio", int(solicitud.magnitud), solicitud.fuente)
 	if not magnitud_aplicada is int or magnitud_aplicada < 0:
 		return &"resultado_dano_invalido"
 	return ResultadoEfectoAplicado.new(

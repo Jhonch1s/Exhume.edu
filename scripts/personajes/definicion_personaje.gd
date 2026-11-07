@@ -10,7 +10,7 @@ enum ActitudInicialJugador {
 	HOSTIL,
 }
 
-enum EstiloCombate { BASICO, SIRVIENTE_EEK, TERROR_NOCTURNO }
+enum EstiloCombate { BASICO, SIRVIENTE_EEK, TERROR_NOCTURNO, GUARDIAN }
 
 ## Orden de frames para hojas de sprites 2x2:
 ## fila 0: abajo derecha, abajo izquierda;

@@ -25,6 +25,7 @@ var _texto_tirada_pendiente := ""
 var _prueba_pendiente: ResultadoPrueba
 var _dados_lanzados: Array[bool] = []
 var _animaciones_pendientes := 0
+var feedback_al_revelar: Callable
 
 
 func _ready() -> void:
@@ -62,6 +63,7 @@ func mostrar_tirada(
 	resultado: Variant,
 	mensajes: Array[String] = []
 ) -> bool:
+	feedback_al_revelar = Callable()
 	if (
 		(not resultado is ResultadoPrueba and not resultado is ResultadoTirada)
 		or not resultado.valida
@@ -168,6 +170,9 @@ func _revelar_tirada() -> void:
 			vista_dado_1.modulate.a = 0.45
 	var res := _prueba_pendiente
 	_prueba_pendiente = null
+	if feedback_al_revelar.is_valid():
+		feedback_al_revelar.call()
+		feedback_al_revelar = Callable()
 	veredicto_revelado.emit(res)
 	_ajustar_altura()
 
@@ -187,6 +192,7 @@ func ocultar() -> void:
 	if not visible:
 		return
 	_prueba_pendiente = null
+	feedback_al_revelar = Callable()
 	visible = false
 	cerrado.emit()
 

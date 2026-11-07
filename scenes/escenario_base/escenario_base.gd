@@ -257,7 +257,7 @@ var escenario_preparado := false
 
 func _ready() -> void:
 	# Las capas se guardan ocultas para poder editar el mapa sin la interfaz encima.
-	$FiltroCRT.visible = not preparando_viaje
+	$FiltroCRT.visible = not preparando_viaje and not es_escenario_de_descanso
 	$CanvasLayer.visible = not preparando_viaje
 	$CanvasLayerModalDados.visible = not preparando_viaje
 	CursorJuego.establecer_cursor(CursorJuego.Tipo.DEFAULT)
@@ -2206,12 +2206,13 @@ func ejecutar_bola_fuego(objetivo: PersonajeNPC) -> ResultadoAccion:
 		return ResultadoAccion.crear_bloqueo(&"bola_fuego_no_disponible")
 	if en_combate and not gestor_rondas.son_oponentes(ficha_jugador, objetivo):
 		return ResultadoAccion.crear_bloqueo(&"objetivo_no_oponente")
-	var celda_objetivo := tablero.obtener_celda(objetivo.coordenada_mapa)
+	var coordenada_objetivo := objetivo.obtener_celda_mas_cercana(ficha_jugador.coordenada_mapa)
+	var celda_objetivo := tablero.obtener_celda(coordenada_objetivo)
 	if celda_objetivo == null or celda_objetivo.visibilidad != Celda.EstadoVisibilidad.VISIBLE:
 		return ResultadoAccion.crear_bloqueo(&"objetivo_no_visible")
-	if _distancia_cuadricula(ficha_jugador.coordenada_mapa, objetivo.coordenada_mapa) > 4:
+	if _distancia_cuadricula(ficha_jugador.coordenada_mapa, coordenada_objetivo) > 4:
 		return ResultadoAccion.crear_bloqueo(&"fuera_de_alcance")
-	var motivo := validador_espacial.validar_linea_visual(ficha_jugador.coordenada_mapa, objetivo.coordenada_mapa)
+	var motivo := validador_espacial.validar_linea_visual(ficha_jugador.coordenada_mapa, coordenada_objetivo)
 	if motivo != &"":
 		return ResultadoAccion.crear_bloqueo(motivo)
 	var aplicador := AplicadorEfectos.new()
@@ -2279,7 +2280,7 @@ func ejecutar_ataque_doble(objetivo: PersonajeNPC) -> Array[ResultadoAccion]:
 		golpes.append(ResultadoAccion.crear_bloqueo(&"npc_no_combatiente"))
 		return golpes
 	var construccion: Variant = constructor_contexto_accion.construir_desde_opcion(
-		opcion, ficha_jugador, ficha_jugador.coordenada_mapa, objetivo.coordenada_mapa
+		opcion, ficha_jugador, ficha_jugador.coordenada_mapa, objetivo.obtener_celda_mas_cercana(ficha_jugador.coordenada_mapa)
 	)
 	if not construccion is ContextoAccion:
 		golpes.append(ResultadoAccion.crear_bloqueo(construccion))
@@ -2295,7 +2296,7 @@ func ejecutar_ataque_doble(objetivo: PersonajeNPC) -> Array[ResultadoAccion]:
 	ficha_jugador.consumir_ataque_doble()
 	if habilidades_nivel_dos.empuje_pendiente != null:
 		await habilidades_nivel_dos.empuje_resuelto
-	if objetivo.puede_actuar() and habilidades_nivel_dos._distancia(ficha_jugador.coordenada_mapa, objetivo.coordenada_mapa) == 1:
+	if objetivo.puede_actuar() and habilidades_nivel_dos._distancia(ficha_jugador.coordenada_mapa, objetivo.obtener_celda_mas_cercana(ficha_jugador.coordenada_mapa)) == 1:
 		golpes.append(objetivo.resolver_golpe_extra_ataque_doble(contexto))
 		if habilidades_nivel_dos.empuje_pendiente != null:
 			await habilidades_nivel_dos.empuje_resuelto
@@ -2416,7 +2417,7 @@ func _plan_combate_npc(npc: PersonajeNPC) -> Dictionary:
 
 func _programar_turno_npc() -> void:
 	_secuencia_turno_npc += 1
-	if en_combate and gestor_rondas != null and _es_turno_jugador() and ficha_jugador.obtener_estado(&"aturdido") != null:
+	if en_combate and gestor_rondas != null and _es_turno_jugador() and (ficha_jugador.obtener_estado(&"aturdido") != null or ficha_jugador.obtener_estado(&"petrificado") != null):
 		call_deferred(&"_finalizar_turno_jugador_aturdido", _secuencia_turno_npc)
 		return
 	if not en_combate or _es_turno_jugador() or gestor_rondas.actor_activo == null:
@@ -2447,7 +2448,7 @@ func _programar_turno_npc() -> void:
 			return
 		if _resolver_perdida_agro():
 			return
-		if npc.obtener_estado(&"caido") != null or npc.obtener_estado(&"aturdido") != null:
+		if npc.obtener_estado(&"caido") != null or npc.obtener_estado(&"aturdido") != null or npc.obtener_estado(&"petrificado") != null:
 			npc.agotar_recursos_turno()
 			break
 		var plan := _plan_combate_npc(npc)
@@ -2457,9 +2458,17 @@ func _programar_turno_npc() -> void:
 			if not _liberar_npc(npc):
 				break
 			await get_tree().create_timer(0.6).timeout
-		elif decision in [&"atacar", &"chillido_terror", AccionSirvienteEek.MORDIDA, AccionSirvienteEek.TELARANA]:
-			var ataque: Variant = AccionAtaqueNPC.new(objetivo, gestor_rondas) if decision == &"atacar" else (preload("res://scripts/interacciones/combate/accion_chillido_terror.gd").new(objetivo, gestor_rondas) if decision == &"chillido_terror" else AccionSirvienteEek.new(objetivo, gestor_rondas))
-			var contexto: ContextoAccion = ataque.construir_contexto(npc) if decision in [&"atacar", &"chillido_terror"] else ataque.construir_contexto(npc, decision)
+		elif decision in [&"atacar", &"chillido_terror", &"picotazo_guardian", &"barrida_guardian", AccionSirvienteEek.MORDIDA, AccionSirvienteEek.TELARANA]:
+			if decision in [&"picotazo_guardian", &"barrida_guardian"]:
+				npc.orientar_paso_movimiento(npc.obtener_celda_mas_cercana(objetivo.coordenada_mapa), objetivo.coordenada_mapa)
+			var ataque: Variant
+			match decision:
+				&"atacar": ataque = AccionAtaqueNPC.new(objetivo, gestor_rondas)
+				&"chillido_terror": ataque = AccionChillidoTerror.new(objetivo, gestor_rondas)
+				&"picotazo_guardian": ataque = AccionPicotazoGuardian.new(objetivo, gestor_rondas)
+				&"barrida_guardian": ataque = AccionBarridaGuardian.new(objetivo, gestor_rondas)
+				_: ataque = AccionSirvienteEek.new(objetivo, gestor_rondas)
+			var contexto: ContextoAccion = ataque.construir_contexto(npc, decision) if decision in [AccionSirvienteEek.MORDIDA, AccionSirvienteEek.TELARANA] else ataque.construir_contexto(npc)
 			var resultado := gestor_acciones.procesar_accion(contexto)
 			if resultado.tirada != null:
 				historial_tiradas.registrar(resultado.tirada)
@@ -2469,10 +2478,12 @@ func _programar_turno_npc() -> void:
 				historial_tiradas.registrar(resultado.tirada_dano)
 			if resultado.tirada_duracion != null:
 				historial_tiradas.registrar(resultado.tirada_duracion)
-			var titulo := "Chillido perforante" if decision == &"chillido_terror" else ("Ataque" if decision == &"atacar" else ("Mordida venenosa" if decision == AccionSirvienteEek.MORDIDA else "Lanzar telaraña"))
+			if resultado.tirada_adicional != null:
+				historial_tiradas.registrar(resultado.tirada_adicional)
+			var titulo := "Chillido perforante" if decision == &"chillido_terror" else ("Picotazo" if decision == &"picotazo_guardian" else ("Barrida con cola" if decision == &"barrida_guardian" else ("Ataque" if decision == &"atacar" else ("Mordida venenosa" if decision == AccionSirvienteEek.MORDIDA else "Lanzar telaraña"))))
 			_registrar_resultado_narrativo(
 				titulo, resultado, EntradaRegistroNarrativo.Categoria.DANO,
-				"VOL del objetivo" if decision == &"chillido_terror" else ("DES del objetivo" if decision == AccionSirvienteEek.TELARANA else "FUE"), npc
+				"VOL del objetivo" if decision == &"chillido_terror" else ("DES del objetivo" if decision in [AccionSirvienteEek.TELARANA, &"barrida_guardian"] else "FUE"), npc
 			)
 			if _resolver_fin_combate():
 				return
@@ -2521,7 +2532,7 @@ func _programar_turno_npc() -> void:
 
 
 func _finalizar_turno_jugador_aturdido(secuencia: int) -> void:
-	if secuencia == _secuencia_turno_npc and en_combate and _es_turno_jugador() and ficha_jugador.obtener_estado(&"aturdido") != null:
+	if secuencia == _secuencia_turno_npc and en_combate and _es_turno_jugador() and (ficha_jugador.obtener_estado(&"aturdido") != null or ficha_jugador.obtener_estado(&"petrificado") != null):
 		_finalizar_turno_combate()
 
 
@@ -3317,7 +3328,7 @@ func _actualizar_probabilidad_ataque_basico() -> void:
 			and gestor_rondas.son_oponentes(ficha_jugador, objetivo)
 		):
 			var texto := "ATAQUE BÁSICO · 0%"
-			var distancia: Vector2i = objetivo.coordenada_mapa - ficha_jugador.coordenada_mapa
+			var distancia: Vector2i = objetivo.obtener_celda_mas_cercana(ficha_jugador.coordenada_mapa) - ficha_jugador.coordenada_mapa
 			if absi(distancia.x) + absi(distancia.y) > 1:
 				texto += "\nFuera de alcance"
 			elif ficha_jugador.obtener_recurso_turno(RecursosTurnoActor.ACCION_PRINCIPAL) < 1:
@@ -3400,7 +3411,9 @@ func _solicitar_interaccion_en_celda(coord: Vector2i, punto_global: Variant = nu
 		punto_global
 	)
 	var coord_objetivo := coord
-	if objetivos.size() == 1 and (objetivos[0] is ItemSuelo or objetivos[0] is PersonajeNPC):
+	if objetivos.size() == 1 and objetivos[0] is PersonajeNPC:
+		coord_objetivo = objetivos[0].obtener_celda_mas_cercana(ficha_jugador.coordenada_mapa)
+	elif objetivos.size() == 1 and objetivos[0] is ItemSuelo:
 		coord_objetivo = objetivos[0].coordenada_mapa
 	var iniciada := estado_seleccion_objetivos.iniciar(coord_objetivo, objetivos)
 	_actualizar_resaltado_interaccion()
@@ -3409,7 +3422,9 @@ func _solicitar_interaccion_en_celda(coord: Vector2i, punto_global: Variant = nu
 
 func seleccionar_objetivo_interaccion(objetivo: Object) -> bool:
 	var seleccion_valida := estado_seleccion_objetivos.seleccionar(objetivo)
-	if seleccion_valida and (objetivo is ItemSuelo or objetivo is PersonajeNPC):
+	if seleccion_valida and objetivo is PersonajeNPC:
+		estado_seleccion_objetivos.celda_seleccionada = objetivo.obtener_celda_mas_cercana(ficha_jugador.coordenada_mapa)
+	elif seleccion_valida and objetivo is ItemSuelo:
 		estado_seleccion_objetivos.celda_seleccionada = objetivo.coordenada_mapa
 	_actualizar_resaltado_interaccion()
 	return seleccion_valida
@@ -3625,6 +3640,12 @@ func _procesar_accion_contextual(contexto: ContextoAccion) -> ResultadoAccion:
 		# La orden abre combate; el golpe y su penalización esperan el turno propio.
 		if not _es_turno_jugador() or _turno_exploracion_en_curso:
 			return ResultadoAccion.crear_exito()
+	if contexto.id_accion == &"ataque_basico" and contexto.objetivo is PersonajeNPC:
+		var objetivo := contexto.objetivo as PersonajeNPC
+		objetivo.diferir_feedback_ataque = true
+		var resultado := gestor_acciones.procesar_accion(contexto)
+		objetivo.diferir_feedback_ataque = false
+		return resultado
 	return gestor_acciones.procesar_accion(contexto)
 
 
@@ -3838,7 +3859,12 @@ func _presentar_resultado_contextual(
 			if catalogo_mensajes != null
 			else String(id_mensaje)
 		)
-	panel_resultado_accion.mostrar_tirada(titulo, resultado.tirada, mensajes)
+	var mostrada := panel_resultado_accion.mostrar_tirada(titulo, resultado.tirada, mensajes)
+	if mostrada and contexto != null and contexto.id_accion == &"ataque_basico" and contexto.objetivo is PersonajeNPC:
+		var objetivo := contexto.objetivo as PersonajeNPC
+		panel_resultado_accion.feedback_al_revelar = func() -> void:
+			if is_instance_valid(objetivo):
+				objetivo.reproducir_sonido_resultado_combate(resultado, contexto.actor)
 
 
 ## Mutation de Dialogue Manager: resuelve una vez y espera la presentación existente.

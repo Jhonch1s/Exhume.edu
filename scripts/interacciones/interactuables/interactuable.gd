@@ -68,6 +68,17 @@ func obtener_coordenadas_ocupadas(origen: Vector2i = coordenada_mapa) -> Array[V
 	return coordenadas
 
 
+func obtener_celda_mas_cercana(destino: Vector2i) -> Vector2i:
+	var mejor := coordenada_mapa
+	var distancia := absi(mejor.x - destino.x) + absi(mejor.y - destino.y)
+	for celda in obtener_coordenadas_ocupadas():
+		var actual := absi(celda.x - destino.x) + absi(celda.y - destino.y)
+		if actual < distancia:
+			mejor = celda
+			distancia = actual
+	return mejor
+
+
 func ocupa_coordenada(coordenada: Vector2i) -> bool:
 	return coordenada in obtener_coordenadas_ocupadas()
 

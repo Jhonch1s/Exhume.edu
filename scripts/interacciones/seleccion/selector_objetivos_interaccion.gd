@@ -20,7 +20,7 @@ func obtener_objetivos_perceptibles(
 				continue
 			# Los personajes y otros visuales altos se seleccionan por su sprite,
 			# incluso cuando este sobresale de la celda que ocupan.
-			if punto_global is Vector2 and interactuable.has_method(&"contiene_punto_visual"):
+			if punto_global is Vector2 and interactuable.has_method(&"contiene_punto_visual") and not (interactuable is Interactuable and interactuable.obtener_coordenadas_ocupadas().size() > 1):
 				continue
 			candidatos.append(interactuable)
 		if not punto_global is Vector2:
@@ -32,10 +32,14 @@ func obtener_objetivos_perceptibles(
 				continue
 			if not interactuable.has_method(&"contiene_punto_visual"):
 				continue
-			var celda_interactuable := tablero.obtener_celda(interactuable.coordenada_mapa)
+			var visible := false
+			for coord in interactuable.obtener_coordenadas_ocupadas():
+				var celda_interactuable := tablero.obtener_celda(coord)
+				if celda_interactuable != null and celda_interactuable.visibilidad == Celda.EstadoVisibilidad.VISIBLE:
+					visible = true
+					break
 			if (
-				celda_interactuable != null
-				and celda_interactuable.visibilidad == Celda.EstadoVisibilidad.VISIBLE
+				visible
 				and interactuable.call(&"contiene_punto_visual", punto_global)
 				and interactuable not in candidatos
 			):

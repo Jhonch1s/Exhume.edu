@@ -8,10 +8,11 @@ func _process(delta: float) -> void:
 	enabled = antorcha != null
 	if not enabled:
 		return
-	tiempo += delta * 12.0
+	tiempo += delta
 	color = antorcha.color_luz
-	texture_scale = antorcha.escala_luz
+	var variacion := sin(tiempo * 5.0) * 0.10 + sin(tiempo * 8.3) * 0.05
+	texture_scale = antorcha.escala_luz * (1.0 + variacion * 0.35)
 	var intensidad := antorcha.energia_luz
 	if antorcha.pasos_atenuacion > 0 and ficha.pasos_antorcha_actual <= antorcha.pasos_atenuacion:
 		intensidad *= float(ficha.pasos_antorcha_actual) / antorcha.pasos_atenuacion
-	energy = maxf(0.0, intensidad + sin(tiempo) * 0.1 + randf_range(-0.05, 0.05))
+	energy = intensidad * (0.85 + variacion)

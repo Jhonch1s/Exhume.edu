@@ -228,29 +228,52 @@ stretch_mode = 5
 [node name="Resumir" parent="MenuPausa/RigColgante/Carteles" unique_id=252711353 instance=ExtResource("4_gwi2u")]
 layout_mode = 0
 offset_left = 70.0
-offset_top = 280.0
+offset_top = 260.0
 offset_right = 550.0
-offset_bottom = 400.0
+offset_bottom = 380.0
 rotation = 0.036651913
 texto = "RESUMIR"
 
 [node name="Opciones" parent="MenuPausa/RigColgante/Carteles" unique_id=431927581 instance=ExtResource("4_gwi2u")]
 layout_mode = 0
 offset_left = 70.0
-offset_top = 430.0
+offset_top = 390.0
 offset_right = 550.0
-offset_bottom = 550.0
+offset_bottom = 510.0
 rotation = -0.017453292
 texto = "OPCIONES"
+
+[node name="Guardar" parent="MenuPausa/RigColgante/Carteles" instance=ExtResource("4_gwi2u")]
+layout_mode = 0
+offset_left = 70.0
+offset_top = 520.0
+offset_right = 550.0
+offset_bottom = 640.0
+rotation = 0.02
+texto = "GUARDAR"
 
 [node name="Salir" parent="MenuPausa/RigColgante/Carteles" unique_id=766665068 instance=ExtResource("4_gwi2u")]
 layout_mode = 0
 offset_left = 72.0
-offset_top = 600.00006
+offset_top = 650.0
 offset_right = 552.0
-offset_bottom = 720.00006
+offset_bottom = 770.0
 rotation = 0.02617994
 texto = "SALIR"
+
+[node name="EstadoGuardado" type="Label" parent="MenuPausa"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -120.0
+offset_bottom = -75.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.95, 0.9, 0.75, 1)
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
 
 [node name="OpcionesPartida" parent="." unique_id=460865988 instance=ExtResource("5_u41pk")]
 visible = false

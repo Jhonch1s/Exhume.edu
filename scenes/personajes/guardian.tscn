@@ -1,0 +1,31 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/personajes/personaje_npc.gd" id="1_npc"]
+[ext_resource type="Resource" path="res://recursos/personajes/guardian.tres" id="2_def"]
+[ext_resource type="Texture2D" path="res://assets/characters/npcs/guardian/sprites/guardian_4_direcciones.png" id="3_sprite"]
+[ext_resource type="Script" path="res://scripts/personajes/patrulla_npc.gd" id="4_patrulla"]
+
+[sub_resource type="Curve2D" id="Curve_patrulla"]
+resource_local_to_scene = true
+
+[node name="Guardian" type="Node2D"]
+script = ExtResource("1_npc")
+definicion = ExtResource("2_def")
+ajustar_a_celda_en_editor = true
+velocidad_paso = 0.32
+huella_celdas = Array[Vector2i]([Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)])
+texto_examen = "Una enorme criatura con aspecto de gallo, alas de murciélago y cola de lagarto. Su llanto suena casi humano."
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(32, 0)
+texture_filter = 2
+texture = ExtResource("3_sprite")
+hframes = 2
+vframes = 2
+scale = Vector2(0.55, 0.55)
+
+[node name="PuntoDialogo" type="Marker2D" parent="."]
+
+[node name="Patrulla" type="Path2D" parent="."]
+script = ExtResource("4_patrulla")
+curve = SubResource("Curve_patrulla")

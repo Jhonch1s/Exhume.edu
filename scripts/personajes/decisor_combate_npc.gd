@@ -28,10 +28,18 @@ func elegir(
 	var posicion_objetivo: Variant = objetivo.coordenada_mapa if objetivo_visible else recuerdo
 	var adyacente := false
 	if objetivo_conocido:
-		var distancia: Vector2i = npc.coordenada_mapa - posicion_objetivo
+		var distancia: Vector2i = npc.obtener_celda_mas_cercana(posicion_objetivo) - posicion_objetivo
 		adyacente = absi(distancia.x) + absi(distancia.y) == 1
 	var camino: Array[Vector2i] = []
 	camino.assign(seleccion["camino"])
+	if objetivo_visible and npc.obtener_definicion_personaje().estilo_combate == DefinicionPersonaje.EstiloCombate.GUARDIAN and not enredado and not caido:
+		var decision_guardian: StringName = &"terminar_turno"
+		var acciones := npc.obtener_recurso_turno(RecursosTurnoActor.ACCION_PRINCIPAL)
+		if adyacente and acciones > 0:
+			decision_guardian = &"picotazo_guardian" if acciones >= 2 else &"barrida_guardian"
+		elif not adyacente and camino.size() > 1:
+			decision_guardian = &"acercarse"
+		return {"decision": decision_guardian, "objetivo": objetivo, "camino": camino, "objetivo_visible": true, "destino": null}
 	if objetivo_visible and npc.obtener_definicion_personaje().estilo_combate == DefinicionPersonaje.EstiloCombate.SIRVIENTE_EEK:
 		return _plan_sirviente_eek(npc, objetivo, camino, tablero, buscador)
 	if objetivo_visible and npc.obtener_definicion_personaje().estilo_combate == DefinicionPersonaje.EstiloCombate.TERROR_NOCTURNO:
@@ -116,7 +124,7 @@ func _elegir_objetivo(
 	var camino_elegido: Array[Vector2i] = []
 	var mejor: Array = []
 	for candidato in visibles:
-		var delta: Vector2i = candidato.coordenada_mapa - npc.coordenada_mapa
+		var delta: Vector2i = candidato.coordenada_mapa - npc.obtener_celda_mas_cercana(candidato.coordenada_mapa)
 		var adyacente := absi(delta.x) + absi(delta.y) == 1
 		var camino: Array[Vector2i] = []
 		if not adyacente and npc.obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO) > 0:
@@ -180,17 +188,18 @@ func _camino_acercamiento(
 	var mejor: Array[Vector2i] = []
 	var mejor_peso := INF
 	# Orden estable: los empates no cambian entre evaluaciones o cargas.
-	for direccion in DIRECCIONES:
-		var destino: Vector2i = objetivo + direccion
-		var camino := buscador.calcular_camino(npc.coordenada_mapa, destino, tablero.datos, npc)
-		if camino.size() < 2:
-			continue
-		var peso := 0.0
-		for indice in range(1, camino.size()):
-			peso += tablero.obtener_celda(camino[indice]).calcular_peso_ruta(npc)
-		if peso < mejor_peso:
-			mejor = camino
-			mejor_peso = peso
+	for desplazamiento in npc.huella_celdas:
+		for direccion in DIRECCIONES:
+			var destino: Vector2i = objetivo + direccion - desplazamiento
+			var camino := buscador.calcular_camino(npc.coordenada_mapa, destino, tablero.datos, npc)
+			if camino.size() < 2:
+				continue
+			var peso := 0.0
+			for indice in range(1, camino.size()):
+				peso += tablero.obtener_celda(camino[indice]).calcular_peso_ruta(npc)
+			if peso < mejor_peso:
+				mejor = camino
+				mejor_peso = peso
 	return buscador.limitar_camino_por_movimiento(
 		mejor, tablero.datos, npc,
 		npc.obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO)

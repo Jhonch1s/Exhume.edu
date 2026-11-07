@@ -1,6 +1,8 @@
 class_name ResultadoAccion
 extends RefCounted
 
+var tirada_adicional: ResultadoPrueba
+
 var estado: TiposInteraccion.EstadoResolucion:
 	get:
 		return _estado
@@ -196,7 +198,7 @@ func consumio_turno() -> bool:
 func con_costes_consumidos(
 	nuevos_costes: Dictionary[StringName, float]
 ) -> ResultadoAccion:
-	return ResultadoAccion.new(
+	var resultado := ResultadoAccion.new(
 		_estado,
 		_motivo,
 		_mensajes,
@@ -212,6 +214,8 @@ func con_costes_consumidos(
 		_tirada_dano,
 		_tirada_duracion
 	)
+	resultado.tirada_adicional = tirada_adicional
+	return resultado
 
 
 func con_tirada(nueva_tirada: Variant) -> ResultadoAccion:

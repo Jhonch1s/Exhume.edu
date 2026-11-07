@@ -105,6 +105,60 @@ puede prolongar el perfil mayor hasta la duración conservada. Quemados sin esta
 criatura mantienen su perfil actual. Es una recomendación para su futuro
 incremento, todavía sin implementar.
 
+## El Guardián — implementación inicial
+
+El Guardián es una cockatrice de nivel 4, del tamaño de un caballo grande,
+con alas de murciélago y cola de lagarto. Fue una sacerdotisa druídica,
+obligada a conservar esta forma para proteger el templo. Su aparición o
+proximidad se anuncia con un llanto que combina voces de ave y mujer.
+El modelo recibido está en `assets/characters/knight3d/polloModelo.glb`;
+no contiene esqueleto ni animaciones.
+
+Balance inicial acordado para un jugador de nivel 2 con una habilidad adicional:
+
+- Dos ataques por turno, como máximo un picotazo y una barrida, a alcance.
+- Picotazo: ataque con daño moderado; si impacta, el objetivo tira FUE y,
+  al fallar, queda petrificado durante su siguiente turno. Tras petrificar,
+  el Guardián no puede aplicar de nuevo ese efecto en sus próximos dos turnos.
+- Barrida: el objetivo tira DES; si falla recibe el estado `caido` existente.
+  La barrida no causa daño adicional. Se respetan las reglas actuales de caída,
+  incluida su resolución al cerrar el turno del afectado.
+- El Guardián se acerca para atacar; el vuelo inicialmente es visual. Empezar
+  las pruebas con 20 PV y ajustar atributos y daño tras probar el encuentro.
+
+Prefab reutilizable: `res://scenes/personajes/guardian.tscn`; definición:
+`res://recursos/personajes/guardian.tres`. Instanciar bajo
+`Interactuables/Personajes` y asignar un `id_instancia` único. La criatura
+ocupa una huella de 2 × 2 casillas respecto de su ancla; no se ha añadido a ningún mapa existente. Tiene FUE 3,
+DES 2, VOL 3, 20 PV, movimiento 4 y 40 XP. El picotazo usa el ataque y daño
+naturales actuales; se realiza antes de la barrida. La recarga se consume al
+final del turno en que petrifica y de los dos siguientes. Los estados y la
+recarga se guardan con la partida.
+La huella completa se comprueba al desplazarse; Agarre y Transposición no se
+aplican a personajes de varias casillas, mientras se adaptan esas habilidades.
+
+El sprite de cuatro vistas se obtuvo del modelo original con
+`tools/render_guardian.py`, con cuadros de 256 × 256 y filtrado lineal. Su
+escala visual se ajustó a la huella de 2 × 2; el contorno puede sobresalir por
+las alas y la altura. Las vistas comparten el centro de apoyo y una proyección
+2:1, en el orden de `DefinicionPersonaje`. El paso dura 0,32 segundos y el
+Guardián se orienta hacia el objetivo antes de atacar. No hay animación de
+caminar o vuelo ni cadáver específico.
+El sprite se desplaza `(32, 0)` respecto del ancla: es el centro geométrico de
+las cuatro celdas en el TileSet de 64 × 32 y layout actual. El apoyo del modelo
+se proyecta en `(128, 192)` dentro de cada cuadro y usa offset `(0, -64)`;
+`prueba_apoyo_visual_guardian.gd` verifica la alineación con la huella.
+Como audio provisional de proximidad se usa `assets/sonidos/animales/gallo.wav`;
+queda pendiente un llanto que combine ave y mujer. La escena aislada
+`res://tests/interacciones/escena_guardian.tscn` se ejecuta con F6; K/C guardan
+y cargan su partida de prueba. Las pruebas automáticas son
+`prueba_guardian.gd`, `prueba_barrida_guardian.gd` y
+`prueba_escena_guardian.gd` y `prueba_huella_guardian.gd`. El balance y la presentación visual requieren
+prueba manual con un personaje de nivel 2.
+`prueba_seleccion_guardian.gd` comprueba el flujo de clic y selección con las
+cuatro casillas desde los cuatro lados: el ataque usa el borde del cuerpo más
+cercano al jugador, no la casilla de anclaje del NPC.
+
 ## Recursos, autoría y validación
 
 Prefab: `res://scenes/personajes/sirviente_eek.tscn`. Definición editable:

@@ -28,6 +28,9 @@ var _motas_celda_visible := false
 func _ready() -> void:
 	set_process(Engine.is_editor_hint())
 	_actualizar_representacion()
+	if not Engine.is_editor_hint() and definicion != null and String(definicion.id_definicion).contains("antorcha"):
+		var efecto := load("res://scenes/vfx/antorcha_ambiental.tscn") as PackedScene
+		add_child(efecto.instantiate())
 
 
 func _process(_delta: float) -> void:
@@ -236,7 +239,7 @@ func _obtener_offset_particulas() -> Vector2:
 		var id_str := String(datos.id_definicion).to_lower()
 		if id_str.contains("pared_izq"):
 			return Vector2(-9, -56)
-		elif id_str.contains("pared_der"):
+		elif id_str.contains("pared_der") or id_str == "prision_antorcha_pared_apartada":
 			return Vector2(9, -56)
 		elif id_str.contains("fogata"):
 			return Vector2(0, -12)

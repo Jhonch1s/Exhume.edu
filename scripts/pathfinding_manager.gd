@@ -73,6 +73,8 @@ func _calcular_camino(
 			or celda.tiene_contenido()
 			or celda.esta_reservada()
 		)
+		if actor is Interactuable and actor.huella_celdas.size() > 1:
+			bloqueada = not _puede_ubicar_huella(actor, coord, tablero_datos, solo_conocido)
 		if coord == origen:
 			bloqueada = false
 		var id := _obtener_id_unico(coord)
@@ -80,7 +82,7 @@ func _calcular_camino(
 		if not solo_conocido or celda.visibilidad != Celda.EstadoVisibilidad.OCULTO:
 			astar.set_point_weight_scale(id, celda.calcular_peso_ruta(actor))
 
-	if destino != origen:
+	if destino != origen and not (actor is Interactuable and actor.huella_celdas.size() > 1):
 		var celda_destino: Celda = tablero_datos[destino]
 		if celda_destino.tiene_contenido() or celda_destino.esta_reservada():
 			return camino
@@ -95,6 +97,20 @@ func _calcular_camino(
 			camino.append(Vector2i(int(pos_vector.x), int(pos_vector.y)))
 	
 	return camino
+
+
+func _puede_ubicar_huella(actor: Interactuable, origen: Vector2i, tablero_datos: Dictionary, solo_conocido: bool) -> bool:
+	for coord in actor.obtener_coordenadas_ocupadas(origen):
+		var celda: Celda = tablero_datos.get(coord)
+		if celda == null or (solo_conocido and celda.visibilidad == Celda.EstadoVisibilidad.OCULTO) or not celda.es_caminable_efectiva(actor):
+			return false
+		for ocupante in celda.contenido:
+			if ocupante != actor:
+				return false
+		for reserva in celda.reservas:
+			if reserva != actor:
+				return false
+	return true
 
 func dibujar_trayectoria (camino: Array[Vector2i], capa_camino:TileMapLayer, objetivo: Vector2i)-> void:
 	capa_camino.clear()

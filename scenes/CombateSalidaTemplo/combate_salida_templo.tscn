@@ -1,0 +1,295 @@
+[gd_scene format=4 uid="uid://bt0fljrfp0ewf"]
+
+[ext_resource type="Script" uid="uid://dkkd0pruoa4im" path="res://scripts/zonas/zona_explorable.gd" id="1_jt0ld"]
+[ext_resource type="TileSet" uid="uid://d1nvkie7qevtr" path="res://assets/tile_sets/terrain/cave_terrain.tres" id="2_wqdig"]
+[ext_resource type="TileSet" uid="uid://ppf8ki7fg8h8" path="res://assets/tile_sets/structures/walls_cave.tres" id="3_gf053"]
+[ext_resource type="Script" uid="uid://7ydarlpsaxpo" path="res://scripts/render/capa_paredes_oclusivas.gd" id="4_5ak0e"]
+[ext_resource type="PackedScene" uid="uid://bd8cy6slme5kb" path="res://scenes/interactuables/mecanismos/estatua_mecanismo.tscn" id="5_dg2h4"]
+[ext_resource type="PackedScene" path="res://scenes/zonas/PuntoSpawnZona.tscn" id="5_jw1jn"]
+[ext_resource type="PackedScene" uid="uid://gsnmo7fvpda3" path="res://scenes/interactuables/cofres/cofre_interactuable.tscn" id="5_wqdig"]
+[ext_resource type="Resource" uid="uid://bilwkw1yllj3b" path="res://recursos/prision/cofre_gastado.tres" id="6_gf053"]
+[ext_resource type="TileSet" uid="uid://6tn667rbykno" path="res://assets/tile_sets/structures/cave_columns.tres" id="7_7lclq"]
+[ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="7_qydjl"]
+[ext_resource type="Texture2D" uid="uid://dhsqpscg3dq18" path="res://assets/ilustraciones/examen/estatua.png" id="8_j01ho"]
+[ext_resource type="TileSet" uid="uid://dx8k2j0wsd65i" path="res://assets/tile_sets/decorations/cave_decorations_solid.tres" id="8_jp8m4"]
+[ext_resource type="TileSet" uid="uid://g6aw284h6bee" path="res://assets/tile_sets/decorations/cave_decorations_walkable.tres" id="9_moued"]
+[ext_resource type="Script" uid="uid://bccqt6gfe8843" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="9_n0wxg"]
+[ext_resource type="TileSet" uid="uid://cja2guulmaygb" path="res://assets/tile_sets/fog/cave_fog.tres" id="10_t0woy"]
+[ext_resource type="Script" uid="uid://c5sxr7hy2ff83" path="res://scripts/interacciones/interactuables/definicion_interactuable.gd" id="10_u68mh"]
+[ext_resource type="PackedScene" uid="uid://bxpf3kv60y8yj" path="res://scenes/interactuables/trampas/TrampaSuperficie.tscn" id="11_1ubqs"]
+[ext_resource type="TileSet" uid="uid://c0fcnkqgc0isg" path="res://assets/tile_sets/surface_effects/spikes.tres" id="11_04jcf"]
+[ext_resource type="TileSet" uid="uid://t08yc6kq88bo" path="res://assets/tile_sets/surface_effects/mud.tres" id="12_uh6gi"]
+[ext_resource type="TileSet" uid="uid://bdm815cgoj5qn" path="res://assets/tile_sets/surface_effects/ice.tres" id="13_57j8i"]
+[ext_resource type="TileSet" uid="uid://dr6pcgl80juta" path="res://assets/tile_sets/surface_effects/fire.tres" id="14_3cgk2"]
+[ext_resource type="TileSet" uid="uid://b2soug6txnn72" path="res://assets/tile_sets/surface_effects/web.tres" id="15_nfi2i"]
+[ext_resource type="PackedScene" path="res://scenes/zonas/TriggerMapa.tscn" id="18_syhl7"]
+[ext_resource type="Resource" path="res://dialogues/templo/salida_templo.tres" id="20_sxsq1"]
+[ext_resource type="Script" uid="uid://c47nsfflryre0" path="res://scripts/zonas/triggers/accion_trigger_dialogo.gd" id="21_8wpg1"]
+[ext_resource type="Shader" uid="uid://cn35vo7vn1ec" path="res://assets/shaders/occlusion_jugador.gdshader" id="25_elias"]
+
+[sub_resource type="Resource" id="Resource_xgogb"]
+script = ExtResource("7_qydjl")
+id_fragmento = &"identidad"
+nivel = 1
+id_mensaje = &"examen.estatua.basico"
+metadata/_custom_type_script = "uid://3dmpp1fn7gc7"
+
+[sub_resource type="Resource" id="Resource_xa8qm"]
+script = ExtResource("9_n0wxg")
+alcance_basico = 2.0
+alcance_detallado = 2.0
+alcance_secreto = 0.0
+metadata/_custom_type_script = "uid://bccqt6gfe8843"
+
+[sub_resource type="Resource" id="Resource_1ml2d"]
+script = ExtResource("10_u68mh")
+id_definicion = &"estatua_templo"
+nombre = "Estatua"
+descripcion_base = "Una figura amenazante de madera, tallada con una tosquedad casi conceptual. Su rostro está detenido en una expresión de horror."
+ilustracion_examen = ExtResource("8_j01ho")
+fragmentos_informacion = Array[ExtResource("7_qydjl")]([SubResource("Resource_xgogb")])
+perfil_observacion = SubResource("Resource_xa8qm")
+metadata/_custom_type_script = "uid://c5sxr7hy2ff83"
+
+[sub_resource type="Resource" id="Resource_trampa"]
+script = ExtResource("10_u68mh")
+id_definicion = &"trampa_superficie"
+nombre = "Trampa"
+
+[sub_resource type="Resource" id="Resource_eo3xm"]
+script = ExtResource("21_8wpg1")
+recurso_dialogo = ExtResource("20_sxsq1")
+punto_inicio = "entrada"
+
+[sub_resource type="Resource" id="Resource_urkx0"]
+script = ExtResource("21_8wpg1")
+recurso_dialogo = ExtResource("20_sxsq1")
+punto_inicio = "encuentro"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_os2b8"]
+shader = ExtResource("25_elias")
+shader_parameter/posicion_jugador = Vector2(0, 0)
+shader_parameter/radio = Vector2(64, 52)
+shader_parameter/ancho_borde = 12.0
+
+[node name="CombateSalidaTemplo" type="Node2D" unique_id=232529358]
+y_sort_enabled = true
+script = ExtResource("1_jt0ld")
+nombre_zona = "Salida del templo"
+
+[node name="CapaAgua" type="TileMapLayer" parent="." unique_id=1904412764]
+z_index = -4
+texture_filter = 1
+tile_set = ExtResource("2_wqdig")
+
+[node name="CapaLava" type="TileMapLayer" parent="." unique_id=871195654]
+z_index = -3
+texture_filter = 1
+tile_set = ExtResource("2_wqdig")
+
+[node name="CapaSuelo" type="TileMapLayer" parent="." unique_id=393309464]
+z_index = -2
+y_sort_enabled = true
+texture_filter = 1
+tile_map_data = PackedByteArray("AAD+//7/AAAAAAAAAAD+////AAABAAAAAAD+/wAAAAADAAAAAAD+/wEAAAABAAAAAAD+/wIAAAADAAAAAAD///7/AAADAAAAAAD/////AAABAAAAAAD//wAAAAADAAAAAAD//wEAAAABAAAAAAD//wIAAAACAAAAAAAAAP7/AAADAAAAAAAAAP//AAAAAAAAAAAAAAAAAAADAAAAAAAAAAEAAAABAAAAAAAAAAIAAAABAAAAAAABAP7/AAACAAAAAAABAP//AAADAAAAAAABAAAAAAACAAAAAAABAAEAAAACAAAAAAABAAIAAAADAAAAAAACAP7/AAACAAAAAAACAP//AAADAAAAAAACAAAAAAADAAAAAAACAAEAAAADAAAAAAACAAIAAAABAAAAAAD9//7/AAAAAAAAAAD9/wIAAAABAAAAAAD8/wIAAAACAAAAAAD7/wIAAAABAAAAAAD6/wIAAAADAAAAAAD6/wEAAAACAAAAAAD5/wEAAAABAAAAAAD5/wAAAAAAAAAAAAD5////AAACAAAAAAD6////AAAAAAAAAAD6//7/AAADAAAAAAD7//7/AAABAAAAAAD7//3/AAACAAAAAAD8//3/AAADAAAAAAD8//z/AAAAAAAAAAD9//z/AAACAAAAAAD9//v/AAAAAAAAAAD+//v/AAADAAAAAAD///v/AAABAAAAAAAAAPv/AAAAAAAAAAABAPv/AAABAAAAAAACAPv/AAAAAAAAAAADAPv/AAADAAAAAAAEAPv/AAABAAAAAAAEAPz/AAACAAAAAAAFAPz/AAAAAAAAAAAFAP3/AAACAAAAAAAEAP3/AAAAAAAAAAAEAP7/AAACAAAAAAAEAP//AAACAAAAAAADAP//AAADAAAAAAADAAAAAAACAAAAAAD+/wMAAAAAAAAAAAD9/wMAAAAAAAAAAAD8/wMAAAADAAAAAAD7/wMAAAACAAAAAAD5/wIAAAAAAAAAAAD5//7/AAACAAAAAAD5//3/AAAAAAAAAAD6//3/AAADAAAAAAD+//z/AAADAAAAAAD///z/AAABAAAAAAADAPz/AAAAAAAAAAADAP3/AAABAAAAAAADAP7/AAABAAAAAAD6/wAAAAADAAAAAAD8//7/AAACAAAAAAD9//3/AAADAAAAAAD+//3/AAABAAAAAAAAAPz/AAAAAAAAAAABAPz/AAABAAAAAAACAPz/AAABAAAAAAAFAP7/AAACAAAAAAD///3/AAACAAAAAAAAAP3/AAACAAAAAAABAP3/AAACAAAAAAAEAAAAAAABAAAAAAAEAAEAAAABAAAAAAADAAEAAAABAAAAAAADAAIAAAACAAAAAAACAAMAAAADAAAAAAABAAMAAAACAAAAAAABAAQAAAACAAAAAAAAAAQAAAABAAAAAAD//wQAAAAAAAAAAAD//wUAAAABAAAAAAD+/wUAAAAAAAAAAAD7/wEAAAADAAAAAAD7/wAAAAABAAAAAAD7////AAADAAAAAAD8////AAACAAAAAAD9////AAAAAAAAAAAEAAIAAAAAAAAAAAAEAAMAAAABAAAAAAADAAMAAAADAAAAAAADAAQAAAACAAAAAAACAAQAAAADAAAAAAACAAUAAAAAAAAAAAABAAUAAAABAAAAAAABAAYAAAABAAAAAAAAAAYAAAAAAAAAAAD//wYAAAADAAAAAAAAAAMAAAACAAAAAAD//wMAAAADAAAAAAD+/wQAAAADAAAAAAD9/wQAAAAAAAAAAAAFAPv/AAAAAAAAAAAGAPz/AAADAAAAAAAHAPz/AAACAAAAAAAGAP3/AAAAAAAAAAACAP3/AAACAAAAAAAGAP7/AAABAAAAAAAHAP7/AAACAAAAAAAIAP//AAADAAAAAAAHAP//AAADAAAAAAAHAAAAAAAAAAAAAAAGAAAAAAABAAAAAAAGAAEAAAAAAAAAAAAFAAEAAAACAAAAAAAIAP7/AAABAAAAAAAFAAAAAAADAAAAAAAIAAAAAAADAAAAAAAJAAAAAAABAAAAAAAKAAAAAAADAAAAAAAKAP//AAAAAAAAAAALAP//AAAAAAAAAAAMAP//AAABAAAAAAAMAAAAAAABAAAAAAANAAAAAAACAAAAAAALAAAAAAAAAAAAAAAGAP//AAABAAAAAAAFAP//AAADAAAAAAD8/wEAAAAAAAAAAAD9/wAAAAABAAAAAAD8/wAAAAABAAAAAAD9/wEAAAABAAAAAAAAAAUAAAADAAAAAAABAPr/AAABAAAAAAACAPr/AAABAAAAAAADAPr/AAADAAAAAAD4/wEAAAADAAAAAAD4/wAAAAACAAAAAAD4////AAABAAAAAAD3//7/AAACAAAAAAD2//3/AAAAAAAAAAD2//7/AAACAAAAAAD4//7/AAAAAAAAAAD4//3/AAACAAAAAAD3//3/AAAAAAAAAAD1//7/AAADAAAAAAD0//7/AAABAAAAAAA=")
+tile_set = ExtResource("2_wqdig")
+
+[node name="CapaParedes" type="TileMapLayer" parent="." unique_id=1848083603]
+y_sort_enabled = true
+texture_filter = 1
+tile_map_data = PackedByteArray("AAAHAP3/AgAAAAAAAAAGAPv/AgAAAAAAAAAHAPv/AQABAAAAAAAIAPv/AQAAAAAAAAAFAPr/AQACAAAAAAAFAPn/AQACAAAAAAADAPn/AQABAAAAAAADAPj/AQAAAAAAAAACAPn/AQACAAAAAAACAPj/AQACAAAAAAABAPn/AQAAAAAAAAABAPj/AQACAAAAAAD///r/AQACAAAAAAD///n/AQAAAAAAAAD+//r/AQAAAAAAAAD+//n/AQACAAAAAAD9//r/AQACAAAAAAD9//n/AQABAAAAAAD8//v/AQACAAAAAAD8//r/AQAAAAAAAAD6//z/AQABAAAAAAD7//z/AQABAAAAAAD7//v/AQABAAAAAAD6//v/AQAAAAAAAAD5//z/AgAAAAAAAAD5//v/AgAAAAAAAAAKAP7/AQAAAAAAAAAKAP3/AQAAAAAAAAALAP7/AQACAAAAAAALAP3/AQABAAAAAAAMAP7/AQACAAAAAAAMAP3/AQACAAAAAAANAP//AgAAAAAAAAANAP7/AQACAAAAAAAJAP//AgAAAAAAAAAJAP7/AgAAAAAAAAAIAPz/AgAAAAAAAAAIAP3/AgAAAAAAAAAJAP3/AgAAAAAAAAAEAPr/AgAAAAAAAAAAAPr/AgAAAAAAAAAAAPn/AgAAAAAAAAD3//z/AQABAAAAAAD2//z/AQACAAAAAAD4//z/AQAAAAAAAAD1//3/AQAAAAAAAAD0//3/AQABAAAAAAD1//z/AQABAAAAAAD4//v/AQACAAAAAAD3//v/AQAAAAAAAAD2//v/AQAAAAAAAAA=")
+tile_set = ExtResource("3_gf053")
+script = ExtResource("4_5ak0e")
+
+[node name="Interactuables" type="Node2D" parent="." unique_id=1985849153]
+y_sort_enabled = true
+
+[node name="FuentesLuz" type="Node2D" parent="Interactuables" unique_id=360849369]
+y_sort_enabled = true
+
+[node name="Mecanismos" type="Node2D" parent="Interactuables" unique_id=298335619]
+y_sort_enabled = true
+
+[node name="EstatuaFuegoNorte" parent="Interactuables/Mecanismos" unique_id=696075619 instance=ExtResource("5_dg2h4")]
+position = Vector2(-64, -32)
+orientacion = 1
+alcance_disparo = 4
+id_instancia = &"salida_estatua_001"
+definicion = SubResource("Resource_1ml2d")
+
+[node name="EstatuaFuegoOeste" parent="Interactuables/Mecanismos" unique_id=1626245854 instance=ExtResource("5_dg2h4")]
+position = Vector2(-160, 144)
+orientacion = 2
+alcance_disparo = 5
+id_instancia = &"salida_estatua_002"
+definicion = SubResource("Resource_1ml2d")
+
+[node name="Puertas" type="Node2D" parent="Interactuables" unique_id=1581039235]
+y_sort_enabled = true
+
+[node name="Trampas" type="Node2D" parent="Interactuables" unique_id=1834568645]
+y_sort_enabled = true
+
+[node name="PlacaFuegoNorte" parent="Interactuables/Trampas" unique_id=1153059965 instance=ExtResource("11_1ubqs")]
+position = Vector2(32, 16)
+escena_superficie = null
+ids_receptores_mecanismo = Array[StringName]([&"salida_estatua_001"])
+fila_atlas = 2
+id_instancia = &"salida_placa_001"
+definicion = SubResource("Resource_trampa")
+
+[node name="PlacaFuegoNorte4" parent="Interactuables/Trampas" unique_id=2063900452 instance=ExtResource("11_1ubqs")]
+position = Vector2(64, 32)
+escena_superficie = null
+ids_receptores_mecanismo = Array[StringName]([&"salida_estatua_001"])
+fila_atlas = 2
+id_instancia = &"salida_placa_008"
+definicion = SubResource("Resource_trampa")
+ruta_visual_resaltable = NodePath("../PlacaFuegoNorte/Sprite2D")
+
+[node name="PlacaFuegoNorte2" parent="Interactuables/Trampas" unique_id=1627969263 instance=ExtResource("11_1ubqs")]
+escena_superficie = null
+ids_receptores_mecanismo = Array[StringName]([&"salida_estatua_001"])
+fila_atlas = 2
+id_instancia = &"salida_placa_003"
+definicion = SubResource("Resource_trampa")
+ruta_visual_resaltable = NodePath("../PlacaFuegoNorte/Sprite2D")
+
+[node name="PlacaFuegoNorte3" parent="Interactuables/Trampas" unique_id=2113236328 instance=ExtResource("11_1ubqs")]
+position = Vector2(-32, -16)
+escena_superficie = null
+ids_receptores_mecanismo = Array[StringName]([&"salida_estatua_001"])
+fila_atlas = 2
+id_instancia = &"salida_placa_004"
+definicion = SubResource("Resource_trampa")
+ruta_visual_resaltable = NodePath("../PlacaFuegoNorte/Sprite2D")
+
+[node name="PlacaFuegoOeste" parent="Interactuables/Trampas" unique_id=214132145 instance=ExtResource("11_1ubqs")]
+position = Vector2(-32, 80)
+escena_superficie = null
+ids_receptores_mecanismo = Array[StringName]([&"salida_estatua_002"])
+fila_atlas = 2
+id_instancia = &"salida_placa_002"
+definicion = SubResource("Resource_trampa")
+
+[node name="PlacaFuegoOeste2" parent="Interactuables/Trampas" unique_id=1099574573 instance=ExtResource("11_1ubqs")]
+position = Vector2(-64, 96)
+escena_superficie = null
+ids_receptores_mecanismo = Array[StringName]([&"salida_estatua_002"])
+fila_atlas = 2
+id_instancia = &"salida_placa_005"
+definicion = SubResource("Resource_trampa")
+ruta_visual_resaltable = NodePath("../PlacaFuegoOeste/Sprite2D")
+
+[node name="PlacaFuegoOeste3" parent="Interactuables/Trampas" unique_id=1513844152 instance=ExtResource("11_1ubqs")]
+position = Vector2(-96, 112)
+escena_superficie = null
+ids_receptores_mecanismo = Array[StringName]([&"salida_estatua_002"])
+fila_atlas = 2
+id_instancia = &"salida_placa_006"
+definicion = SubResource("Resource_trampa")
+ruta_visual_resaltable = NodePath("../PlacaFuegoOeste/Sprite2D")
+
+[node name="PlacaFuegoOeste4" parent="Interactuables/Trampas" unique_id=1638015542 instance=ExtResource("11_1ubqs")]
+position = Vector2(-128, 128)
+escena_superficie = null
+ids_receptores_mecanismo = Array[StringName]([&"salida_estatua_002"])
+fila_atlas = 2
+id_instancia = &"salida_placa_007"
+definicion = SubResource("Resource_trampa")
+ruta_visual_resaltable = NodePath("../PlacaFuegoOeste/Sprite2D")
+
+[node name="Decoraciones" type="Node2D" parent="Interactuables" unique_id=294027806]
+y_sort_enabled = true
+
+[node name="Cofres" type="Node2D" parent="Interactuables" unique_id=1993379813]
+y_sort_enabled = true
+
+[node name="CofreInteractuable" parent="Interactuables/Cofres" unique_id=1433795063 instance=ExtResource("5_wqdig")]
+position = Vector2(-192, 0)
+id_instancia = &"cofre_pequeno_combate"
+definicion = ExtResource("6_gf053")
+
+[node name="Personajes" type="Node2D" parent="Interactuables" unique_id=2029944673]
+y_sort_enabled = true
+
+[node name="Guias" type="Node2D" parent="Interactuables" unique_id=1262025229]
+y_sort_enabled = true
+
+[node name="ItemsSuelo" type="Node2D" parent="." unique_id=615172051 groups=["items_suelo"]]
+y_sort_enabled = true
+
+[node name="PuntosSpawn" type="Node2D" parent="." unique_id=1329188819]
+
+[node name="PuntoSpawnEntrada" parent="PuntosSpawn" unique_id=1787467372 instance=ExtResource("5_jw1jn")]
+position = Vector2(448, -192)
+
+[node name="Triggers" type="Node2D" parent="." unique_id=1091788135]
+
+[node name="Dialogos" type="Node2D" parent="Triggers" unique_id=2024708992]
+
+[node name="AvisoEntrada" parent="Triggers/Dialogos" unique_id=1746642591 instance=ExtResource("18_syhl7")]
+position = Vector2(416, -176)
+id_trigger = &"salida_templo_entrada"
+tamano = Vector2i(1, 1)
+accion = SubResource("Resource_eo3xm")
+
+[node name="AvisoEncuentro" parent="Triggers/Dialogos" unique_id=1948616717 instance=ExtResource("18_syhl7")]
+position = Vector2(96, -80)
+id_trigger = &"salida_templo_encuentro"
+tamano = Vector2i(1, 4)
+accion = SubResource("Resource_urkx0")
+
+[node name="Mecanismos" type="Node2D" parent="Triggers" unique_id=1073089308]
+
+[node name="Viajes" type="Node2D" parent="Triggers" unique_id=1765975977]
+
+[node name="EfectosSuperficie" type="Node2D" parent="." unique_id=196984206]
+y_sort_enabled = true
+
+[node name="CapaColumnas" type="TileMapLayer" parent="." unique_id=1038976106]
+y_sort_enabled = true
+texture_filter = 1
+tile_set = ExtResource("7_7lclq")
+
+[node name="CapaDecoracionNoCaminable" type="TileMapLayer" parent="." unique_id=310569307]
+y_sort_enabled = true
+texture_filter = 1
+tile_set = ExtResource("8_jp8m4")
+
+[node name="CapaDecoracion" type="TileMapLayer" parent="." unique_id=263590685]
+y_sort_enabled = true
+texture_filter = 1
+tile_map_data = PackedByteArray("AAAGAP7/AAAAAAAAAAACAAIAAAABAAAAAAD6//3/AAAAAAIAAAD//wQAAAABAAIAAAAFAPz/AQAHAAAAAAAEAPz/AwABAAAAAAAIAP7/AQAQAAEAAAAIAP//AwADAAEAAAADAPr/AwADAAAAAAA=")
+tile_set = ExtResource("9_moued")
+
+[node name="CapaOscuridad" type="TileMapLayer" parent="." unique_id=1727431942]
+y_sort_enabled = true
+material = SubResource("ShaderMaterial_os2b8")
+tile_set = ExtResource("10_t0woy")
+y_sort_origin = 2
+
+[node name="CapaPinchos" type="TileMapLayer" parent="." unique_id=1761995582]
+y_sort_enabled = true
+texture_filter = 1
+tile_set = ExtResource("11_04jcf")
+
+[node name="CapaLodo" type="TileMapLayer" parent="." unique_id=1868516408]
+z_index = -1
+texture_filter = 1
+tile_set = ExtResource("12_uh6gi")
+
+[node name="CapaHielo" type="TileMapLayer" parent="." unique_id=810136237]
+z_index = -1
+texture_filter = 1
+tile_set = ExtResource("13_57j8i")
+
+[node name="CapaFuego" type="TileMapLayer" parent="." unique_id=548433855]
+z_index = -1
+texture_filter = 1
+tile_set = ExtResource("14_3cgk2")
+
+[node name="CapaTelaraña" type="TileMapLayer" parent="." unique_id=571503300]
+z_index = -1
+texture_filter = 1
+tile_set = ExtResource("15_nfi2i")

@@ -91,7 +91,7 @@ horizontal_alignment = 1
 
 [node name="VolumenSeccion" type="VBoxContainer" parent="RigUnico/Opciones/Margen/ContenidOpciones" unique_id=49021169]
 layout_mode = 2
-theme_override_constants/separation = 33
+theme_override_constants/separation = 12
 
 [node name="VolumenTitulo" type="Label" parent="RigUnico/Opciones/Margen/ContenidOpciones/VolumenSeccion" unique_id=373737590]
 layout_mode = 2
@@ -117,6 +117,39 @@ theme_override_fonts/font = ExtResource("3_bldc7")
 theme_override_font_sizes/font_size = 20
 text = "100"
 horizontal_alignment = 1
+
+[node name="Pantalla" type="CheckButton" parent="RigUnico/Opciones/Margen/ContenidOpciones"]
+process_mode = 3
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
+theme_override_fonts/font = ExtResource("3_bldc7")
+theme_override_font_sizes/font_size = 32
+text = "Pantalla completa"
+
+[node name="Sacudida" type="VBoxContainer" parent="RigUnico/Opciones/Margen/ContenidOpciones"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TituloSacudida" type="Label" parent="RigUnico/Opciones/Margen/ContenidOpciones/Sacudida"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
+theme_override_fonts/font = ExtResource("3_bldc7")
+theme_override_font_sizes/font_size = 39
+text = "Sacudida de cámara"
+
+[node name="SliderSacudida" type="HSlider" parent="RigUnico/Opciones/Margen/ContenidOpciones/Sacudida"]
+process_mode = 3
+layout_mode = 2
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="ValorSacudida" type="Label" parent="RigUnico/Opciones/Margen/ContenidOpciones/Sacudida"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
+theme_override_fonts/font = ExtResource("3_bldc7")
+theme_override_font_sizes/font_size = 20
+text = "100%"
 
 [node name="Volver" type="PanelContainer" parent="RigUnico" unique_id=484345406]
 process_mode = 3

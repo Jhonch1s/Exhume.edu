@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://bj6drlln1vbvq" path="res://assets/tiles/indicators/path/path_isometric.png" id="2_85xdd"]
 [ext_resource type="TileSet" uid="uid://b514khvcqn1oi" path="res://assets/tile_sets/basics.tres" id="3_elvtm"]
 [ext_resource type="Script" uid="uid://dmxu10ah1q6vf" path="res://scripts/fov_manager.gd" id="7_t484h"]
+[ext_resource type="Script" path="res://scenes/ui/hud/minimapa.gd" id="minimapa"]
 [ext_resource type="Shader" uid="uid://cmw1kk6ofvqkm" path="res://scenes/menu/filtro_crt_luminancia.gdshader" id="8_crt"]
 [ext_resource type="PackedScene" uid="uid://qsn46qnxpghl" path="res://scenes/ui/interacciones/panel_resultado_accion.tscn" id="9_panel_resultado"]
 [ext_resource type="Resource" uid="uid://fstyo5e070o6" path="res://assets/interactuables/mensajes_interacciones.tres" id="10_catalogo_mensajes"]
@@ -106,7 +107,7 @@ zoom = Vector2(3, 3)
 script = ExtResource("1_camara")
 
 [node name="FiltroCRT" type="CanvasLayer" parent="." unique_id=274575882]
-layer = 3
+layer = 120
 visible = false
 
 [node name="Pantalla" type="ColorRect" parent="FiltroCRT" unique_id=864690420]
@@ -124,6 +125,17 @@ visible = false
 
 [node name="HUD" parent="CanvasLayer" unique_id=207001 instance=ExtResource("17_hud")]
 z_index = 10
+
+[node name="Minimapa" type="Control" parent="CanvasLayer"]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -310.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 220.0
+grow_horizontal = 0
+mouse_filter = 2
+script = ExtResource("minimapa")
 
 [node name="PanelOrdenCombate" parent="CanvasLayer" unique_id=1800521258 instance=ExtResource("17_orden_combate")]
 anchors_preset = 5

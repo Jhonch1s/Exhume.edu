@@ -59,7 +59,7 @@ func _posicion_vfx_pared(id_emisor: StringName, pared: Node2D) -> Vector2:
 
 
 func solicitar(tipo: StringName, posicion: Vector2, duracion: float = -1.0, direccion: Vector2 = Vector2.ZERO) -> bool:
-	if not PERFILES.has(tipo) or intensidad_sacudida <= 0.0 or not _es_visible(posicion):
+	if not PERFILES.has(tipo) or intensidad_sacudida * Preferencias.sacudida <= 0.0 or not _es_visible(posicion):
 		return false
 	var frame := Engine.get_process_frames()
 	if _frames.get(tipo, -1) == frame:
@@ -115,7 +115,7 @@ func _process(delta: float) -> void:
 		return
 	_camara.offset -= _aporte
 	_aporte = Vector2.ZERO
-	if intensidad_sacudida <= 0.0:
+	if intensidad_sacudida * Preferencias.sacudida <= 0.0:
 		_efectos.clear()
 	for tipo in _efectos.keys():
 		var efecto: Dictionary = _efectos[tipo]
@@ -130,7 +130,7 @@ func _process(delta: float) -> void:
 		if efecto.direccion != Vector2.ZERO:
 			onda = efecto.direccion * sin(fase)
 		_aporte += onda * perfil.x * envolvente
-	_aporte = _aporte.limit_length(8.0) * clampf(intensidad_sacudida, 0.0, 1.0) / _camara.zoom
+	_aporte = _aporte.limit_length(8.0) * clampf(intensidad_sacudida, 0.0, 1.0) * Preferencias.sacudida / _camara.zoom
 	_camara.offset += _aporte
 
 

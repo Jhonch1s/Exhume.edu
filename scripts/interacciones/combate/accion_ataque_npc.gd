@@ -15,11 +15,15 @@ func _init(actor_objetivo: Object, gestor: GestorRondas = null) -> void:
 
 
 func construir_contexto(npc: PersonajeNPC) -> ContextoAccion:
+	var destino: Vector2i = objetivo.coordenada_mapa
+	var origen := npc.obtener_celda_mas_cercana(destino)
+	if objetivo is Interactuable:
+		destino = objetivo.obtener_celda_mas_cercana(origen)
 	return ContextoAccion.new(
 		TiposInteraccion.TipoAccion.INTERACTUAR,
 		npc,
-		npc.coordenada_mapa,
-		objetivo.coordenada_mapa,
+		origen,
+		destino,
 		self,
 		null,
 		&"ataque_basico_npc",
@@ -56,8 +60,8 @@ func validar_accion(contexto: ContextoAccion) -> StringName:
 	if motivo_atributos != &"":
 		return motivo_atributos
 	if (
-		contexto.origen != npc.coordenada_mapa
-		or contexto.celda_objetivo != objetivo.coordenada_mapa
+		not npc.ocupa_coordenada(contexto.origen)
+		or (not objetivo.ocupa_coordenada(contexto.celda_objetivo) if objetivo is Interactuable else contexto.celda_objetivo != objetivo.coordenada_mapa)
 		or contexto.alcance_maximo != 1.0
 		or contexto.item != null
 		or contexto.costes_solicitados != {RecursosTurnoActor.ACCION_PRINCIPAL: 1.0}

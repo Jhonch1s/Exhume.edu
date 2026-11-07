@@ -48,6 +48,9 @@ func _ejecutar() -> void:
 		and generador.state == estado_resuelto,
 		"El panel debe presentar la prueba ya resuelta sin volver a tirar."
 	)
+	var feedback := [0]
+	panel.feedback_al_revelar = func() -> void: feedback[0] += 1
+	_comprobar(feedback[0] == 0, "El feedback debe esperar la revelación del dado.")
 	panel.vista_dado_1.emit_signal(&"presionado")
 	panel.vista_dado_1.emit_signal(&"presionado")
 	if prueba.dados.size() > 1:
@@ -60,10 +63,12 @@ func _ejecutar() -> void:
 		panel.etiqueta_veredicto.visible
 		and panel.etiqueta_veredicto.text.begins_with("%d  -  " % prueba.dado_seleccionado)
 		and panel.etiqueta_objetivo.visible
+		and feedback[0] == 1
 		and generador.state == estado_resuelto,
 		"Pulsar los dados, incluso dos veces, debe revelar el resultado sin consumir azar adicional."
 	)
 	panel.ocultar()
+	_comprobar(feedback[0] == 1, "El feedback debe reproducirse una sola vez.")
 	panel.vista_dado_1.call(&"mostrar_valor", 1)
 	_comprobar(
 		is_equal_approx(panel.vista_dado_1.get_node("SubViewport/PivoteDado").rotation_degrees.y, 270.0),

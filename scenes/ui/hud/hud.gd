@@ -704,6 +704,9 @@ func _descripcion_estado(clave: StringName, estado: EstadoActor) -> String:
 	elif clave == &"caido":
 		titulo = "Caído"
 		descripcion = "Te levantarás al terminar este turno."
+	elif clave == &"petrificado":
+		titulo = "Petrificado"
+		descripcion = "No puedes moverte, actuar ni esquivar hasta terminar tu turno."
 	elif clave in EfectosEquipo.PENALIZACIONES:
 		titulo = "Atributo debilitado"
 		descripcion = "-%d %s mientras dure el efecto." % [int(estado.magnitud), String(clave).trim_prefix("debilitado_").to_upper()]

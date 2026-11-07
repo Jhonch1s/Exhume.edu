@@ -83,13 +83,15 @@ func validar(id: String, destino: Vector2i, fuente: Variant = null) -> StringNam
 		"ariete", "agarre":
 			if actor == null or _distancia(f.coordenada_mapa, destino) != 1 or (e.en_combate and not e.gestor_rondas.son_oponentes(f, actor)):
 				return &"objetivo_no_oponente"
-			if id == "ariete" and not libre(destino + destino - f.coordenada_mapa):
+			if id == "agarre" and actor.huella_celdas.size() > 1:
+				return &"objetivo_demasiado_grande"
+			if id == "ariete" and not e.tablero.puede_entrar(actor.coordenada_mapa + destino - f.coordenada_mapa, actor):
 				return &"destino_bloqueado"
 		"paso_sombra":
 			if f.turnos_oculto < 1 or not f.puede_moverse() or f.esta_sobrecargado() or not libre(destino) or destino == f.coordenada_mapa:
 				return &"paso_sombra_destino_invalido"
 		"transposicion":
-			if actor == null or not libre(f.coordenada_mapa, [f, actor]) or not libre(destino, [f, actor]):
+			if actor == null or actor.huella_celdas.size() > 1 or not libre(f.coordenada_mapa, [f, actor]) or not libre(destino, [f, actor]):
 				return &"transposicion_destino_invalido"
 		"senuelo":
 			if not libre(destino):
@@ -179,8 +181,9 @@ func mover_forzado(actor: Node2D, destino: Vector2i) -> bool:
 
 func empujar(actor: PersonajeNPC, pasos: int) -> void:
 	var f: Ficha = e.ficha_jugador
-	var direccion: Vector2i = actor.coordenada_mapa - f.coordenada_mapa
-	if _distancia(actor.coordenada_mapa, f.coordenada_mapa) != 1:
+	var borde := actor.obtener_celda_mas_cercana(f.coordenada_mapa)
+	var direccion: Vector2i = borde - f.coordenada_mapa
+	if _distancia(borde, f.coordenada_mapa) != 1:
 		return
 	for i in pasos:
 		if not f.puede_actuar() or not actor.puede_actuar() or not await _paso_empuje(actor, actor.coordenada_mapa + direccion):
@@ -191,7 +194,7 @@ func empujar(actor: PersonajeNPC, pasos: int) -> void:
 
 
 func _paso_empuje(actor: PersonajeNPC, destino: Vector2i) -> bool:
-	if not libre(destino) or actor.esta_moviendose or not e.tablero.reservar_celda(destino, actor):
+	if not e.tablero.puede_entrar(destino, actor) or actor.esta_moviendose or not e.tablero.reservar_celda(destino, actor):
 		return false
 	var origen := actor.coordenada_mapa
 	desplazando = true

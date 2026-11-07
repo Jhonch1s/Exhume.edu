@@ -46,7 +46,7 @@ func _process(_delta: float) -> void:
 			_emisores[coord].modulate.a = 1.0 if nivel == FOVManager.NivelLuz.LUZ else 0.6
 			continue
 		var motas := MOTAS.instantiate() as CPUParticles2D
-		motas.z_index = 1
+		motas.z_index = 0
 		motas.amount = 20
 		motas.position = _suelo.map_to_local(coord) + Vector2(0, -18)
 		motas.modulate.a = 1.0 if nivel == FOVManager.NivelLuz.LUZ else 0.6

@@ -103,6 +103,7 @@ var reproductor_audio: AudioStreamPlayer2D
 var reproductor_proximidad: AudioStreamPlayer2D
 var particulas_quemado: Node2D
 var material_quemado: ShaderMaterial
+var diferir_feedback_ataque := false
 
 
 func _ready() -> void:
@@ -319,6 +320,7 @@ func puede_moverse() -> bool:
 		puede_actuar() and obtener_estado(&"enredado") == null
 		and obtener_estado(&"inmovilizado") == null
 		and obtener_estado(&"aturdido") == null
+		and obtener_estado(&"petrificado") == null
 		and obtener_estado(&"caido") == null
 		and obtener_recurso_turno(RecursosTurnoActor.MOVIMIENTO) >= 0
 	)
@@ -433,9 +435,10 @@ func puede_ver_coordenada(
 	if perfil == null or perfil.radio_agro <= 0 or not puede_actuar() or validador == null:
 		return false
 	var radio := perfil.radio_agro if radio_maximo < 0 else mini(perfil.radio_agro, radio_maximo)
-	if Vector2(coordenada - coordenada_mapa).length_squared() > radio * radio:
-		return false
-	return validador.validar_linea_visual(coordenada_mapa, coordenada) == &""
+	for origen in obtener_coordenadas_ocupadas():
+		if Vector2(coordenada - origen).length_squared() <= radio * radio and validador.validar_linea_visual(origen, coordenada) == &"":
+			return true
+	return false
 
 
 func obtener_ultima_posicion_conocida() -> Variant:
@@ -517,7 +520,7 @@ func consumir_recurso_turno(clave: StringName, cantidad: int) -> bool:
 	)
 
 
-func recibir_danio(cantidad: int, fuente: Object = null) -> int:
+func recibir_danio(cantidad: int, fuente: Object = null, tipo: StringName = &"") -> int:
 	var estado := _asegurar_estado()
 	if estado == null:
 		return 0
@@ -525,15 +528,20 @@ func recibir_danio(cantidad: int, fuente: Object = null) -> int:
 	var aplicado := estado.recibir_danio(cantidad)
 	_notificar_cambio_vida(anterior, estado.vida_actual)
 	if aplicado > 0:
-		reproducir_gemido_dolor()
+		if not diferir_feedback_ataque:
+			reproducir_gemido_dolor()
 		danio_recibido.emit(aplicado, estado.vida_actual)
 		var padre_vfx: Node = get_parent() if get_parent() != null else self
-		NUMERO_DANIO_FLOTANTE.instanciar_en(padre_vfx, global_position + Vector2(0, -30), aplicado)
+		NUMERO_DANIO_FLOTANTE.instanciar_en(padre_vfx, global_position + Vector2(0, -30), aplicado, tipo)
 		if estado.vida_actual == 0:
 			derrotado.emit()
 	if anterior > 0 and estado.vida_actual == 0:
 		muerte_por_danio.emit(fuente)
 	return aplicado
+
+
+func recibir_danio_tipificado(cantidad: int, fuente: Object, tipo: StringName) -> int:
+	return recibir_danio(cantidad, fuente, tipo)
 
 
 func curar(cantidad: int, _fuente: Object = null) -> int:
@@ -908,7 +916,7 @@ func obtener_dialogo_por_accion(id_accion: StringName) -> DialogoNPC:
 func validar_accion(contexto: ContextoAccion) -> StringName:
 	if contexto == null or contexto.tipo != TiposInteraccion.TipoAccion.INTERACTUAR:
 		return super.validar_accion(contexto)
-	if contexto.objetivo != self or contexto.celda_objetivo != coordenada_mapa:
+	if contexto.objetivo != self or not ocupa_coordenada(contexto.celda_objetivo):
 		return &"objetivo_no_coincide"
 	if contexto.id_accion == &"recoger_botin":
 		if not esta_derrotado():
@@ -967,7 +975,8 @@ func _resolver_ataque_basico(contexto: ContextoAccion) -> ResultadoAccion:
 	var resultado := ResolverAtaqueBasico.resolver(contexto, self, motor_dados, aplicador_efectos)
 	if resultado.tirada == null:
 		return resultado
-	reproducir_sonido_resultado_combate(resultado, contexto.actor)
+	if not diferir_feedback_ataque:
+		reproducir_sonido_resultado_combate(resultado, contexto.actor)
 	combate_iniciado.emit(self)
 	# El intento cuenta también al fallar o ser esquivado; el daño no lo duplica.
 	en_oposicion_encuentro = true

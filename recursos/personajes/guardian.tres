@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="DefinicionPersonaje" format=3 uid="uid://dpk4bq3qms6y1"]
+
+[ext_resource type="Script" uid="uid://bmsmwb5764q7n" path="res://scripts/personajes/dialogo_npc.gd" id="1_8h6l3"]
+[ext_resource type="Script" uid="uid://cosqwlc2jnmwe" path="res://scripts/personajes/definicion_personaje.gd" id="1_def"]
+[ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="2_baw4w"]
+[ext_resource type="Texture2D" uid="uid://b7apakviliq54" path="res://assets/characters/npcs/guardian/sprites/guardian_4_direcciones.png" id="2_sprite"]
+[ext_resource type="AudioStream" uid="uid://kwhmbf6jts8a" path="res://assets/sonidos/animales/gallo.wav" id="3_voz"]
+
+[resource]
+script = ExtResource("1_def")
+fuerza = 3
+destreza = 2
+voluntad = 3
+vida_maxima = 20
+nivel = 4
+experiencia_recompensa_derrota = 40
+faccion_id = &"guardian_templo"
+actitud_inicial_jugador = 2
+actitud_hacia_jugador_fija = true
+puede_combatir = true
+estilo_combate = 3
+radio_agro = 6
+movimiento_fijo = 4
+acciones_principales_por_turno = 2
+acciones_adicionales_por_turno = 0
+textura_mapa = ExtResource("2_sprite")
+offset_sprite_mapa = Vector2(0, -64)
+sonidos_proximidad = Array[AudioStream]([ExtResource("3_voz")])
+id_definicion = &"guardian"
+nombre = "El Guardián"

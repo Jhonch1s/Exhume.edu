@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=18
+type="Resource"
+uid="uid://clqg7gt0d0buh"
+path="res://.godot/imported/salida_templo.dialogue-c2ac8a2cf505b8766b6669fbc99e3192.tres"
+
+[deps]
+
+source_file="res://dialogues/templo/salida_templo.dialogue"
+dest_files=["res://.godot/imported/salida_templo.dialogue-c2ac8a2cf505b8766b6669fbc99e3192.tres"]
+
+[params]
+
+defaults=true

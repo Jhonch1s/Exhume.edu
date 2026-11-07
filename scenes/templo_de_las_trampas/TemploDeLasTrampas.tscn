@@ -142,6 +142,10 @@ escena_destino = "uid://blpqrj0nxbnuh"
 id_spawn_destino = &"entrada_prision"
 metadata/_custom_type_script = "uid://4wpgg3groqja"
 
+[sub_resource type="Resource" id="viaje_salida_combate"]
+script = ExtResource("37_y6p87")
+escena_destino = "res://scenes/CombateSalidaTemplo/combate_salida_templo.tscn"
+
 [node name="TemploDeLasTrampas" type="Node2D" unique_id=1292300722]
 y_sort_enabled = true
 script = ExtResource("12_zona")
@@ -573,12 +577,12 @@ frecuencia = 1
 tamano = Vector2i(4, 1)
 accion = SubResource("Resource_12s7a")
 
-[node name="VueltaPrision2" parent="Triggers/Viajes" unique_id=658598175 instance=ExtResource("templo_trigger")]
+[node name="SalidaASalonDeCombate" parent="Triggers/Viajes" unique_id=658598175 instance=ExtResource("templo_trigger")]
 position = Vector2(-1760, -816)
-id_trigger = &"vuelta_prision2"
+id_trigger = &"salida_salon_combate"
 frecuencia = 1
 tamano = Vector2i(1, 1)
-accion = SubResource("Resource_12s7a")
+accion = SubResource("viaje_salida_combate")
 
 [node name="CapaColumnas" type="TileMapLayer" parent="." unique_id=1397874605]
 y_sort_enabled = true

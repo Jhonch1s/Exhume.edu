@@ -265,15 +265,19 @@ func es_caminable(coord: Vector2i) -> bool:
 	return datos.has(coord) and datos[coord].es_caminable_efectiva()
 
 func puede_entrar(coord: Vector2i, contenido: Object = null) -> bool:
-	if not es_caminable(coord):
-		return false
-	var celda: Celda = datos[coord]
-	for ocupante in celda.contenido:
-		if ocupante != contenido:
+	var huella: Array[Vector2i] = [coord]
+	if contenido is Interactuable:
+		huella = contenido.obtener_coordenadas_ocupadas(coord)
+	for posicion in huella:
+		if not datos.has(posicion) or not datos[posicion].es_caminable_efectiva(contenido):
 			return false
-	for reserva in celda.reservas:
-		if reserva != contenido:
-			return false
+		var celda: Celda = datos[posicion]
+		for ocupante in celda.contenido:
+			if ocupante != contenido:
+				return false
+		for reserva in celda.reservas:
+			if reserva != contenido:
+				return false
 	return true
 
 func obtener_celda(coord: Vector2i) -> Celda:
@@ -643,26 +647,39 @@ func liberar_celda(coord: Vector2i, contenido: Object) -> void:
 func reservar_celda(coord: Vector2i, contenido: Object) -> bool:
 	if contenido == null or not puede_entrar(coord, contenido):
 		return false
-	if contenido not in datos[coord].reservas:
-		datos[coord].reservas.append(contenido)
-		celda_reservada.emit(coord, contenido)
+	var huella: Array[Vector2i] = [coord]
+	if contenido is Interactuable:
+		huella = contenido.obtener_coordenadas_ocupadas(coord)
+	for posicion in huella:
+		if contenido not in datos[posicion].reservas:
+			datos[posicion].reservas.append(contenido)
+			celda_reservada.emit(posicion, contenido)
 	return true
 
 func cancelar_reserva(coord: Vector2i, contenido: Object) -> void:
-	if datos.has(coord) and contenido in datos[coord].reservas:
-		datos[coord].reservas.erase(contenido)
-		reserva_cancelada.emit(coord, contenido)
+	var huella: Array[Vector2i] = [coord]
+	if contenido is Interactuable:
+		huella = contenido.obtener_coordenadas_ocupadas(coord)
+	for posicion in huella:
+		if datos.has(posicion) and contenido in datos[posicion].reservas:
+			datos[posicion].reservas.erase(contenido)
+			reserva_cancelada.emit(posicion, contenido)
 
 func confirmar_movimiento(origen: Vector2i, destino: Vector2i, contenido: Object) -> bool:
-	if not datos.has(destino) or contenido not in datos[destino].reservas:
-		return false
+	var huella: Array[Vector2i] = [destino]
+	if contenido is Interactuable:
+		huella = contenido.obtener_coordenadas_ocupadas(destino)
+	for posicion in huella:
+		if not datos.has(posicion) or contenido not in datos[posicion].reservas:
+			return false
 	if not puede_entrar(destino, contenido):
 		return false
 	if contenido is Interactuable:
 		if contenido.coordenada_mapa != origen or not reubicar_interactuable(contenido, destino):
 			return false
-	datos[destino].reservas.erase(contenido)
-	reserva_confirmada.emit(destino, contenido)
+	for posicion in huella:
+		datos[posicion].reservas.erase(contenido)
+		reserva_confirmada.emit(posicion, contenido)
 	if not contenido is Interactuable:
 		liberar_celda(origen, contenido)
 		ocupar_celda(destino, contenido)

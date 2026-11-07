@@ -76,10 +76,12 @@ func calcular_coste_movimiento(actor: Object = null) -> int:
 func calcular_peso_ruta(actor: Object = null) -> float:
 	return float(calcular_coste_movimiento(actor)) + maxf(0.0, penalizacion_peligro_ruta)
 
-func es_caminable_efectiva() -> bool:
+func es_caminable_efectiva(actor: Object = null) -> bool:
 	if not caminable:
 		return false
 	for interactuable in interactuables.duplicate():
+		if interactuable == actor:
+			continue
 		if (
 			interactuable == null
 			or not is_instance_valid(interactuable)

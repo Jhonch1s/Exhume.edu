@@ -60,14 +60,14 @@ func validar_accion(contexto: ContextoAccion) -> StringName:
 	if not claves is Array:
 		return &"resultado_estados_actor_invalido"
 	for clave in claves:
-		if not clave is StringName or clave not in [&"quemado", &"veneno", &"enredado", &"inmovilizado", &"aturdido", &"recarga_chillido", &"caido"] + EfectosEquipo.PENALIZACIONES:
+		if not clave is StringName or clave not in [&"quemado", &"veneno", &"enredado", &"inmovilizado", &"aturdido", &"petrificado", &"recarga_petrificacion", &"recarga_chillido", &"caido"] + EfectosEquipo.PENALIZACIONES:
 			return &"estado_persistente_no_admitido"
 		var estado: Variant = contexto.actor.call(&"obtener_estado", clave)
-		if clave == &"recarga_chillido":
+		if clave in [&"recarga_chillido", &"recarga_petrificacion"]:
 			if not estado is EstadoActor or estado.magnitud != 1.0 or estado.duracion_total != 3 or estado.ticks_pendientes < 1 or estado.ticks_pendientes > 3 or not estado.terminos_dano_tick.is_empty():
 				return &"estado_persistente_invalido"
 			continue
-		if clave == &"aturdido":
+		if clave in [&"aturdido", &"petrificado"]:
 			if not estado is EstadoActor or estado.magnitud != 1.0 or estado.duracion_total != 1 or estado.ticks_pendientes != 1 or not estado.terminos_dano_tick.is_empty():
 				return &"estado_persistente_invalido"
 			continue
@@ -125,7 +125,7 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 	var rangos: Dictionary[StringName, Vector2i] = {}
 	for clave in claves:
 		var estado: EstadoActor = contexto.actor.call(&"obtener_estado", clave)
-		if clave in [&"enredado", &"inmovilizado", &"aturdido", &"recarga_chillido", &"caido"] + EfectosEquipo.PENALIZACIONES:
+		if clave in [&"enredado", &"inmovilizado", &"aturdido", &"petrificado", &"recarga_petrificacion", &"recarga_chillido", &"caido"] + EfectosEquipo.PENALIZACIONES:
 			continue
 		if estado.terminos_dano_tick.is_empty():
 			continue
@@ -146,12 +146,12 @@ func resolver_accion(contexto: ContextoAccion) -> ResultadoAccion:
 		var estado: EstadoActor = contexto.actor.call(&"obtener_estado", clave)
 		if clave == &"enredado":
 			continue
-		if clave == &"recarga_chillido":
+		if clave in [&"recarga_chillido", &"recarga_petrificacion"]:
 			cambios.append(contexto.actor.call(&"consumir_tick_estado", clave))
 			continue
-		if clave == &"aturdido":
+		if clave in [&"aturdido", &"petrificado"]:
 			cambios.append(contexto.actor.call(&"consumir_tick_estado", clave))
-			mensajes.append(&"estado.aturdido_expirado")
+			mensajes.append(StringName("estado.%s_expirado" % clave))
 			continue
 		if clave == &"inmovilizado":
 			var cambio_inmovilizado: Dictionary = contexto.actor.call(&"consumir_tick_estado", clave)

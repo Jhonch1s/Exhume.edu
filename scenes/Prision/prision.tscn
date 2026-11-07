@@ -16,6 +16,7 @@
 [ext_resource type="TileSet" uid="uid://b2soug6txnn72" path="res://assets/tile_sets/surface_effects/web.tres" id="11_telarana"]
 [ext_resource type="PackedScene" path="res://scenes/personajes/banga_npc.tscn" id="12_oopww"]
 [ext_resource type="Script" uid="uid://dkkd0pruoa4im" path="res://scripts/zonas/zona_explorable.gd" id="12_zona"]
+[ext_resource type="Script" path="res://scripts/render/polvo_ambiental.gd" id="12_polvo_ambiental"]
 [ext_resource type="Script" uid="uid://7ydarlpsaxpo" path="res://scripts/render/capa_paredes_oclusivas.gd" id="13_occlusion"]
 [ext_resource type="Texture2D" uid="uid://o80x8kkjjo6i" path="res://assets/characters/npcs/banga/sprites/banga_real_4_direcciones.png" id="13_oopww"]
 [ext_resource type="PackedScene" path="res://scenes/zonas/PuntoSpawnZona.tscn" id="14_spawn"]
@@ -124,6 +125,10 @@ metadata/_custom_type_script = "uid://4wpgg3groqja"
 y_sort_enabled = true
 script = ExtResource("12_zona")
 nombre_zona = "Prisión"
+
+[node name="PolvoAmbiental" type="Node2D" parent="."]
+y_sort_enabled = true
+script = ExtResource("12_polvo_ambiental")
 
 [node name="CapaAgua" type="TileMapLayer" parent="." unique_id=22986213]
 z_index = -4

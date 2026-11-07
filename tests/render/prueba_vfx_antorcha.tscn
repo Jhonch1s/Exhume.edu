@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tests/render/prueba_vfx_antorcha.gd" id="1"]
+
+[node name="PruebaVfxAntorcha" type="Node"]
+script = ExtResource("1")

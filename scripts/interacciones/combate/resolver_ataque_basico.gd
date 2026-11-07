@@ -42,7 +42,7 @@ static func resolver(
 			[StringName(prefijo + "ataque_fallido")]
 		).con_tirada(ataque)
 	var esquiva: ResultadoPrueba = null
-	if not defensor.has_method(&"obtener_estado") or defensor.obtener_estado(&"aturdido") == null:
+	if not defensor.has_method(&"obtener_estado") or (defensor.obtener_estado(&"aturdido") == null and defensor.obtener_estado(&"petrificado") == null):
 		esquiva = EfectosEquipo.resolver_prueba(
 			motor_dados, defensor, "destreza",
 			TiposTirada.Origen.AUTOMATICA, TiposTirada.Presentacion.SOLO_LOG, "esquiva"
