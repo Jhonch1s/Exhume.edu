@@ -306,7 +306,18 @@ func _al_soltar_item(
 	
 	# Caso 1: Reordenar / Mover dentro de la mochila
 	if not origen_es_equipo and not destino_es_equipo:
-		inventario_actual.mover_ranura(origen_indice, destino_indice)
+		var origen := inventario_actual.obtener_en_ranura(origen_indice)
+		var destino := inventario_actual.obtener_en_ranura(destino_indice)
+		if inventario_actual.apilar_en(origen, destino) == 0:
+			inventario_actual.mover_ranura(origen_indice, destino_indice)
+		else:
+			var hud := get_parent().get_node_or_null("HUD") as HUD
+			if hud != null:
+				if inventario_actual.obtener_por_id(origen.id_instancia) == null:
+					for indice in hud.items_rapidos_asignados.size():
+						if hud.items_rapidos_asignados[indice] == origen:
+							hud.asignar_item_rapido(indice, destino)
+				hud.actualizar_desde_ficha()
 		refrescar_mochila()
 		_reproducir_audio(SONIDO_BAG, -8.0)
 		return
@@ -362,6 +373,8 @@ func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
 	if not (data is Dictionary and data.get("tipo") == "item_inventario" and data.get("item") != null):
 		return false
 	var pos_cursor := global_position + at_position
+	if _ranura_rapida_en(pos_cursor, data) != null:
+		return true
 	if marco_principal != null and marco_principal.get_global_rect().has_point(pos_cursor):
 		return false
 	if pos_cursor.y >= 830.0:
@@ -373,8 +386,23 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 	if not _can_drop_data(at_position, data):
 		return
 	_ocultar_tooltip()
+	var ranura := _ranura_rapida_en(global_position + at_position, data)
+	if ranura != null:
+		ranura._drop_data(ranura.get_global_transform_with_canvas().affine_inverse() * (global_position + at_position), data)
+		return
 	var item: ItemInstancia = data.get("item")
 	var origen_indice: int = int(data.get("origen_indice", -1))
 	var es_equipo: bool = bool(data.get("es_equipo", false))
 	item_soltado_al_suelo.emit(item, origen_indice, es_equipo, global_position + at_position)
+
+
+func _ranura_rapida_en(posicion: Vector2, data: Variant) -> CasillaItemRapido:
+	if data.get("es_equipo", false):
+		return null
+	var hud := get_parent().get_node_or_null("HUD") as HUD
+	if hud != null:
+		for ranura in hud.items_rapidos:
+			if ranura.is_visible_in_tree() and ranura.get_global_rect().has_point(posicion) and ranura._can_drop_data(Vector2.ZERO, data):
+				return ranura as CasillaItemRapido
+	return null
 

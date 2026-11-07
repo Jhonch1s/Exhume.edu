@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://bmsmwb5764q7n" path="res://scripts/personajes/dialogo_npc.gd" id="1_vehkw"]
 [ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="2_fragmento"]
 [ext_resource type="Script" uid="uid://bccqt6gfe8843" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="3_perfil"]
-[ext_resource type="Texture2D" uid="uid://tb3xwiig6ul6" path="res://assets/characters/npcs/banga/sprites/banga_4_direcciones.png" id="4_sprite"]
+[ext_resource type="Texture2D" uid="uid://o80x8kkjjo6i" path="res://assets/characters/npcs/banga/sprites/banga_real_4_direcciones.png" id="4_sprite"]
 
 [sub_resource type="Resource" id="Fragmento_identidad"]
 script = ExtResource("2_fragmento")
@@ -24,6 +24,7 @@ vida_maxima = 10
 experiencia_recompensa_derrota = 120
 faccion_id = &"bangas"
 puede_tener_inventario = true
+caras_dano_natural = 6
 textura_mapa = ExtResource("4_sprite")
 offset_sprite_mapa = Vector2(0, -184)
 id_definicion = &"banga"

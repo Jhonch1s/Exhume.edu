@@ -6,8 +6,9 @@ func _initialize() -> void:
 
 
 func _ejecutar() -> void:
-	_probar_banga("res://scenes/personajes/banga_npc.tscn", "banga_4_direcciones.png")
-	_probar_banga("res://scenes/personajes/banga_npc_v2.tscn", "banga_ia_4_direcciones.png")
+	_probar_banga("res://scenes/personajes/banga_npc.tscn", "banga_real_4_direcciones.png")
+	_probar_banga("res://scenes/personajes/banga_npc_v2.tscn", "banga_real_4_direcciones.png")
+	_probar_danio_bangas()
 	print("BangaNPC: ambas escenas, nombre, sprite, registro y examen correctos.")
 	quit()
 
@@ -47,3 +48,27 @@ func _probar_banga(ruta: String, textura: String) -> void:
 	assert(banga.vida_actual == 10)
 	zona.free()
 	tablero.free()
+
+
+func _probar_danio_bangas() -> void:
+	var npc := (load("res://scenes/personajes/banga_npc.tscn") as PackedScene).instantiate() as PersonajeNPC
+	for ruta in ["res://recursos/personajes/banga.tres", "res://recursos/personajes/banga_v2.tres", "res://recursos/prision/guardia_peeble.tres", "res://recursos/prision/guardia_roffa.tres"]:
+		npc.definicion = load(ruta)
+		var terminos := EfectosEquipo.terminos_dano_armas(npc)
+		assert(terminos.size() == 1 and terminos[0].cantidad == 1 and terminos[0].caras == 6)
+		assert(EfectosEquipo.bono_fuerza_dano(npc) == 1)
+	var defensor := (load("res://scenes/personajes/banga_npc.tscn") as PackedScene).instantiate() as PersonajeNPC
+	var rng := RandomNumberGenerator.new()
+	for semilla in 20000:
+		rng.seed = semilla
+		if rng.randi_range(1, 6) == 1 and rng.randi_range(1, 6) == 6 and rng.randi_range(1, 6) == 6:
+			rng.seed = semilla
+			break
+	var contexto := ContextoAccion.new(TiposInteraccion.TipoAccion.INTERACTUAR, npc, null, null, defensor, null, &"ataque_basico")
+	var resultado := ResolverAtaqueBasico.resolver(contexto, defensor, MotorDados.new(rng), AplicadorEfectos.new())
+	assert(resultado.tirada_dano != null and resultado.tirada_dano.total_efectivo == 6)
+	assert(defensor.vida_actual == 3)
+	defensor.free()
+	npc.definicion = load("res://recursos/personajes/goblin_unico.tres")
+	assert(EfectosEquipo.terminos_dano_armas(npc)[0].caras == 2)
+	npc.free()

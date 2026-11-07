@@ -37,9 +37,12 @@ func _probar() -> void:
 	var equipo_guardado := ficha.equipo.obtener_estado_persistente()
 	comprobar(ficha.equipo.restaurar_estado_persistente(equipo_guardado) == &"" and not EfectosEquipo.fuentes(ficha, "destreza", "", "ventaja").is_empty(), "El efecto persiste al cargar el equipo.")
 	comprobar(ficha.equipo.desequipar(ficha.inventario, 1) == &"" and EfectosEquipo.fuentes(ficha, "destreza", "", "ventaja").is_empty(), "Desequipar retira la ventaja.")
-	var puerta := load("res://scenes/interactuables/puertas/puerta_interactuable.tscn").instantiate() as PuertaInteractuable
-	puerta.id_instancia = &"puerta_test"
-	puerta.definicion = (load("res://assets/interactuables/puertas/puerta_reja_metal/puerta_reja_metal_derecha.tres") as DefinicionPuerta).duplicate()
+	var prision := (load("res://scenes/Prision/prision.tscn") as PackedScene).instantiate()
+	var puerta := prision.get_node("Interactuables/Puertas/PuertaInteractuable") as PuertaInteractuable
+	comprobar(puerta.id_instancia == &"interactuable_001", "La prueba debe usar la puerta de Roffa.")
+	puerta.get_parent().remove_child(puerta)
+	puerta.definicion = puerta.definicion.duplicate()
+	prision.free()
 	root.add_child(puerta)
 	var tablero := TableroGrid.new()
 	root.add_child(tablero)
@@ -60,6 +63,11 @@ func _probar() -> void:
 	var exito := gestor.procesar_accion(contexto)
 	comprobar(exito.exitosa and not puerta.bloqueada and not puerta.abierta and ficha.inventario.obtener_por_id(herramienta.id_instancia) == null, "La ganzúa desbloquea la reja y se consume una sola vez.")
 	comprobar(not gestor.procesar_accion(contexto).exitosa, "No puede reutilizarse la ganzúa consumida.")
+	for candidata in puerta.obtener_opciones_accion(ficha):
+		if candidata.id == &"abrir":
+			opcion = candidata
+	contexto = ConstructorContextoAccion.new().construir_desde_opcion(opcion, ficha, Vector2i.ZERO, Vector2i.RIGHT) as ContextoAccion
+	comprobar(gestor.procesar_accion(contexto).exitosa and puerta.abierta and puerta.permite_caminar_interactuable(), "La puerta de Roffa desbloqueada se abre y permite el paso.")
 	var zona := (load("res://scenes/templo_de_las_trampas/TemploDeLasTrampas.tscn") as PackedScene).instantiate()
 	var cofre := zona.get_node("Interactuables/Cofres/CofreInteractuable5") as CofreInteractuable
 	comprobar(cofre._cargar_contenido_inicial() == &"" and cofre.inventario.obtener_contenido().size() == 2, "El cofre 006 contiene los dos objetos nuevos.")

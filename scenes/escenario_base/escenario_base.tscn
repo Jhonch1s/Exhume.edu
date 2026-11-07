@@ -165,6 +165,7 @@ offset_right = 1098.0
 offset_bottom = 348.0
 
 [node name="KnightSubViewport" type="SubViewport" parent="KnightViewPort" unique_id=1890890032]
+own_world_3d = true
 transparent_bg = true
 handle_input_locally = false
 canvas_item_default_texture_filter = 0
@@ -196,6 +197,7 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="WizardSubViewport" type="SubViewport" parent="WizardViewPort" unique_id=1179709218]
+own_world_3d = true
 transparent_bg = true
 handle_input_locally = false
 canvas_item_default_texture_filter = 0
@@ -227,6 +229,7 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="ThiefSubViewport" type="SubViewport" parent="ThiefViewPort" unique_id=1584483443]
+own_world_3d = true
 transparent_bg = true
 handle_input_locally = false
 render_target_update_mode = 0

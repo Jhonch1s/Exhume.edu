@@ -27,6 +27,12 @@ func _probar() -> void:
 		push_error("La secuencia no muestra entre uno y seis retratos.")
 		quit(1)
 		return
+	for tarjeta in panel._tarjetas.values():
+		var retrato := tarjeta.get_node("Retrato") as TextureRect
+		if retrato.offset_left < 3.0 or retrato.offset_top < 3.0 or retrato.offset_right > -3.0 or retrato.offset_bottom > -3.0:
+			push_error("El retrato debe dejar visible el marco de la tarjeta.")
+			quit(1)
+			return
 	var ronda: int = escenario.gestor_rondas.ronda_actual
 	var recursos: Variant = escenario.ficha_jugador.obtener_estado_persistente()["recursos_turno"]
 	escenario._on_retrato_combate_pulsado(npc.obtener_id_actor())

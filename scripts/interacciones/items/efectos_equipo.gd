@@ -127,7 +127,10 @@ static func terminos_dano_armas(actor: Object) -> Array[Dictionary]:
 			if secundaria != null and &"daga" in principal.definicion.etiquetas and &"daga" in secundaria.definicion.etiquetas:
 				_agregar_dado_arma(terminos, secundaria)
 	if terminos.is_empty():
-		terminos.append({&"cantidad": 1, &"caras": 2, &"signo": 1})
+		var caras := 2
+		if actor is PersonajeNPC and actor.obtener_definicion_personaje() != null:
+			caras = actor.obtener_definicion_personaje().caras_dano_natural
+		terminos.append({&"cantidad": 1, &"caras": caras, &"signo": 1})
 	return terminos
 
 

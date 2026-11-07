@@ -48,8 +48,16 @@ func _probar() -> void:
 			comprobar(not boton.disabled, f.clase + " tiene activa%d disponible." % indice)
 			await clic(boton)
 			comprobar(e.habilidad_en_seleccion == f.activas_aprendidas[indice], "Clic selecciona " + f.activas_aprendidas[indice])
+			await process_frame
+			comprobar(e.hud.get_node("GuiaHabilidad").visible and e.hud._texto_guia.text.contains("1 uso por descanso"), "La selección muestra los pasos y el coste.")
 			comprobar(f.usos_activas[f.activas_aprendidas[indice]] == 1 and f.coordenada_mapa == posicion, "Clic en HUD no gasta el uso ni mueve la ficha en el mapa.")
-			e._cancelar_habilidad_nueva()
+			if "--captura" in OS.get_cmdline_user_args() and f.clase == "Mago" and indice == 1:
+				if is_instance_valid(e.presentacion_zona) and e.presentacion_zona.visible:
+					await e.presentacion_zona.finalizada
+				await RenderingServer.frame_post_draw
+				root.get_texture().get_image().save_png("res://.godot/guia_habilidad.png")
+			await clic(e.hud._cancelar_guia)
+			comprobar(e.habilidad_en_seleccion == "" and f.usos_activas[f.activas_aprendidas[indice]] == 1, "Cancelar sale de la selección sin gastar el uso.")
 		if f.clase == "Mago":
 			await clic(e.hud.habilidades[3])
 			comprobar(f.contagio_elegido == "veneno", "Clic cambia la pasiva Contagio.")
@@ -57,7 +65,8 @@ func _probar() -> void:
 			comprobar((e.hud.habilidades[3].get_node("IconoHabilidad") as TextureRect).texture == CatalogoHabilidades.icono("contagio_arcano") and (e.hud.habilidades[3].get_node("EstadoHabilidad") as Label).text == "VENENO", "Contagio muestra icono y modo elegido.")
 		f.usos_activas[f.activas_aprendidas[1]] = 0
 		e._actualizar_disponibilidad_turno()
-		comprobar((e.hud.habilidades[2].get_node("EstadoHabilidad") as Label).text == "0/1", "La ranura muestra el uso agotado.")
+		await process_frame
+		comprobar((e.hud.habilidades[2].get_node("EstadoHabilidad") as Label).text == "SIN USOS", "La ranura explica el uso agotado.")
 		await clic(e.hud.habilidades[2])
 		comprobar(e.habilidad_en_seleccion == "", "Un clic en una activa agotada no inicia apuntado.")
 	laboratorio.queue_free()
@@ -136,7 +145,7 @@ func clic(boton: Button) -> void:
 	movimiento.global_position = punto
 	root.push_input(movimiento, true)
 	await process_frame
-	comprobar(root.gui_get_hovered_control() == boton, "El ratón alcanza la ranura visible del HUD.")
+	comprobar(root.gui_get_hovered_control() == boton, "El ratón alcanza la ranura visible del HUD: %s (recibe %s)." % [boton.get_path(), root.gui_get_hovered_control()])
 	for presionado in [true, false]:
 		var evento := InputEventMouseButton.new()
 		evento.position = punto

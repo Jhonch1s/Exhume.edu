@@ -10,6 +10,7 @@ func _init() -> void:
 	_probar_separacion_y_retiro_parcial()
 	_probar_fallos_atomicos()
 	_probar_inventario_de_ficha()
+	_probar_apilado_al_transferir()
 
 	if _fallos.is_empty():
 		print("Inventario: 6 pruebas correctas.")
@@ -18,6 +19,25 @@ func _init() -> void:
 	for fallo in _fallos:
 		push_error(fallo)
 	quit(1)
+
+
+func _probar_apilado_al_transferir() -> void:
+	var piedras := _crear_definicion(&"piedra_apilada", true, 5)
+	var mochila := Inventario.new()
+	mochila.capacidad = 1
+	var existente := ItemInstancia.new(&"existente", piedras, 3)
+	mochila.agregar(existente)
+	var cofre := Inventario.new()
+	cofre.agregar(ItemInstancia.new(&"recogida", piedras, 2))
+	_comprobar(cofre.transferir_a(mochila, &"recogida").exitosa and existente.cantidad == 5 and mochila.obtener_contenido().size() == 1, "Recoger en mochila llena completa una pila existente.")
+	cofre.agregar(ItemInstancia.new(&"sin_espacio", piedras, 1))
+	_comprobar(not cofre.transferir_a(mochila, &"sin_espacio").exitosa and cofre.obtener_por_id(&"sin_espacio") != null, "Una pila llena no pierde el objeto transferido.")
+	var otra := Inventario.new()
+	var a := ItemInstancia.new(&"a", piedras, 4)
+	var b := ItemInstancia.new(&"b", piedras, 3)
+	otra.agregar(a)
+	otra.agregar(b)
+	_comprobar(otra.apilar_en(b, a) == 1 and a.cantidad == 5 and b.cantidad == 2, "Apilar parcialmente conserva el sobrante.")
 
 
 func _probar_contratos_basicos() -> void:

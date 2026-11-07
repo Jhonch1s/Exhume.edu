@@ -7,6 +7,7 @@
 [ext_resource type="AudioStream" uid="uid://d3xf2dnivrv0v" path="res://assets/sonidos/animales/pasos araña.wav" id="4_pasos"]
 [ext_resource type="AudioStream" uid="uid://b3wlq1v8ffd6r" path="res://assets/sonidos/animales/araña.wav" id="5_arana"]
 [ext_resource type="Texture2D" uid="uid://dprfudrhbdl7a" path="res://assets/characters/npcs/sirviente_eek/sprites/arana_pixel_4_direcciones.png" id="6_sprite"]
+[ext_resource type="Texture2D" uid="uid://5pinuj6y3ex7" path="res://assets/characters/npcs/sirviente_eek/portraits/sirviente_eek_portrait.png" id="7_retrato"]
 
 [sub_resource type="Resource" id="Fragmento_aspecto"]
 script = ExtResource("2_fragmento")
@@ -33,6 +34,7 @@ radio_agro = 6
 movimiento_fijo = 5
 acciones_adicionales_por_turno = 0
 textura_mapa = ExtResource("6_sprite")
+retrato_turno = ExtResource("7_retrato")
 sonidos_pasos = Array[AudioStream]([ExtResource("4_pasos")])
 sonidos_dolor = Array[AudioStream]([ExtResource("5_arana")])
 sonidos_proximidad = Array[AudioStream]([ExtResource("5_arana")])

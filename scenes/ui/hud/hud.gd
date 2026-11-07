@@ -9,6 +9,7 @@ signal habilidad_aprendida_solicitada
 signal progresion_solicitada
 signal item_rapido_solicitado(indice: int)
 signal campamento_solicitado
+signal cancelar_habilidad_solicitado
 
 const RETRATOS_POR_CLASE := {
 	"Guerrero": preload("res://assets/ui/panels/hud/retratos/guerrero.png"),
@@ -72,9 +73,16 @@ var tooltip_estado: PanelContainer
 @onready var boton_progresion: Button = $HUDRoot/AccesoProgresion
 @onready var boton_campamento: Button = $HUDRoot/AccesoDescanso
 var items_rapidos_asignados: Array[ItemInstancia] = [null, null, null, null]
+var habilidad_seleccionada := ""
+var fuente_habilidad_elegida := false
+var _habilidad_hover: Button
+var _guia_habilidad: PanelContainer
+var _texto_guia: Label
+var _cancelar_guia: Button
 
 
 func _ready() -> void:
+	_crear_guia_habilidad()
 	pasar_turno.pressed.connect(func(): pasar_turno_solicitado.emit())
 	indicador_progresion.pressed.connect(func(): progresion_solicitada.emit())
 	var pulso := create_tween().set_loops()
@@ -96,6 +104,8 @@ func _ready() -> void:
 		_conectar_feedback_boton(boton)
 	for indice in habilidades.size():
 		var habilidad := habilidades[indice]
+		habilidad.mouse_entered.connect(func(): _habilidad_hover = habilidad)
+		habilidad.mouse_exited.connect(func(): _habilidad_hover = null)
 		habilidad.disabled = true
 		habilidad.tooltip_text = "Atajo %d · Habilidad todavía no implementada." % (indice + 1)
 		var icono := TextureRect.new()
@@ -204,6 +214,7 @@ func configurar_ataque_doble_en_turno(valor: bool) -> void:
 
 
 func _process(_delta: float) -> void:
+	_actualizar_guia_habilidad()
 	if ficha != null:
 		_actualizar_recursos_persistentes()
 		_actualizar_items()
@@ -255,6 +266,8 @@ func _actualizar_todo() -> void:
 
 func mostrar_icono_habilidad(indice: int, id: String, estado: String = "") -> void:
 	var boton := habilidades[indice]
+	boton.set_meta("habilidad_id", id)
+	boton.set_meta("estado_habilidad", estado)
 	var imagen := boton.get_node("IconoHabilidad") as TextureRect
 	var etiqueta := boton.get_node("EstadoHabilidad") as Label
 	var tecla := boton.get_node("TeclaHabilidad") as Label
@@ -271,6 +284,98 @@ func mostrar_icono_habilidad(indice: int, id: String, estado: String = "") -> vo
 	etiqueta.text = estado
 	etiqueta.visible = visible and not estado.is_empty()
 	tecla.visible = visible
+
+
+func _crear_guia_habilidad() -> void:
+	_guia_habilidad = PanelContainer.new()
+	_guia_habilidad.name = "GuiaHabilidad"
+	_guia_habilidad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_guia_habilidad)
+	_guia_habilidad.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	_guia_habilidad.offset_left = -420
+	_guia_habilidad.offset_right = 420
+	_guia_habilidad.offset_top = -350
+	_guia_habilidad.offset_bottom = -260
+	_guia_habilidad.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	var estilo := StyleBoxFlat.new()
+	estilo.bg_color = Color("201c18f2")
+	estilo.border_color = Color("b99757")
+	estilo.set_border_width_all(2)
+	estilo.content_margin_left = 16
+	estilo.content_margin_right = 16
+	estilo.content_margin_top = 10
+	estilo.content_margin_bottom = 10
+	_guia_habilidad.add_theme_stylebox_override("panel", estilo)
+	var fila := HBoxContainer.new()
+	fila.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fila.add_theme_constant_override("separation", 16)
+	_guia_habilidad.add_child(fila)
+	_texto_guia = Label.new()
+	_texto_guia.custom_minimum_size.x = 650
+	_texto_guia.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_texto_guia.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_texto_guia.add_theme_font_size_override("font_size", 17)
+	_texto_guia.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fila.add_child(_texto_guia)
+	_cancelar_guia = Button.new()
+	_cancelar_guia.text = "Cancelar\n[Esc]"
+	_cancelar_guia.pressed.connect(func(): cancelar_habilidad_solicitado.emit())
+	fila.add_child(_cancelar_guia)
+	_guia_habilidad.hide()
+
+
+func _motivo_bloqueo_habilidad(id: String) -> String:
+	if ficha == null or id.is_empty():
+		return ""
+	var opcion := CatalogoHabilidades.obtener(id)
+	if opcion.get("tipo") == "Pasiva":
+		return ""
+	var usos: int = ficha.usos_activas.get(id, 0)
+	match id:
+		"ataque_doble": usos = ficha.usos_ataque_doble
+		"bola_de_fuego": usos = ficha.usos_bola_fuego
+		"ocultarse": usos = ficha.usos_ocultarse
+	if usos < 1:
+		return "Sin usos: descansa en el campamento para recuperarlos."
+	var recurso: StringName = opcion.get("recurso", &"accion_adicional" if id == "ocultarse" else &"accion_principal")
+	if ficha.obtener_recurso_turno(recurso) < 1:
+		return "Sin acción %s disponible. Espera a tu siguiente turno." % ("adicional" if recurso == &"accion_adicional" else "principal")
+	if id == "paso_sombra" and ficha.turnos_oculto < 1:
+		return "Primero debes estar Oculto; conserva una acción adicional para dar el salto."
+	return ""
+
+
+func _actualizar_guia_habilidad() -> void:
+	if _guia_habilidad == null:
+		return
+	for boton in habilidades:
+		var id: String = boton.get_meta("habilidad_id", "")
+		var seleccionada := not id.is_empty() and id == habilidad_seleccionada
+		boton.self_modulate = Color("ffd77f") if seleccionada else Color.WHITE
+		var estado := boton.get_node("EstadoHabilidad") as Label
+		estado.text = "ELIGE" if seleccionada else String(boton.get_meta("estado_habilidad", ""))
+		if boton.disabled and not _motivo_bloqueo_habilidad(id).is_empty():
+			estado.text = "SIN USOS" if _motivo_bloqueo_habilidad(id).begins_with("Sin usos") else "BLOQUEADA"
+	var seleccionando := not habilidad_seleccionada.is_empty()
+	_guia_habilidad.visible = seleccionando or is_instance_valid(_habilidad_hover)
+	_cancelar_guia.visible = seleccionando
+	if seleccionando:
+		_texto_guia.text = CatalogoHabilidades.guia_uso(habilidad_seleccionada, fuente_habilidad_elegida) + "\nEl coste se consume al usarla sobre un objetivo válido. Esc o clic derecho cancela."
+		if habilidad_seleccionada == "bola_de_fuego" and ficha != null and ficha.conoce_habilidad("piromancia_libre"):
+			_texto_guia.text += "\nPiromancia libre: también puedes elegir suelo vacío para crear fuego."
+	elif is_instance_valid(_habilidad_hover):
+		_texto_guia.text = _habilidad_hover.tooltip_text
+		var id: String = _habilidad_hover.get_meta("habilidad_id", "")
+		var motivo := _motivo_bloqueo_habilidad(id)
+		if not motivo.is_empty():
+			_texto_guia.text += "\n" + motivo
+		elif _habilidad_hover.disabled:
+			if CatalogoHabilidades.obtener(id).get("tipo") == "Pasiva":
+				_texto_guia.text += "\nSe activa automáticamente al cumplirse sus condiciones."
+			elif id == "ataque_doble":
+				_texto_guia.text += "\nDisponible durante tu turno de combate."
+			else:
+				_texto_guia.text += "\nNo disponible en este momento."
 
 
 func _actualizar_ataque_doble() -> void:

@@ -283,6 +283,7 @@ func _ready() -> void:
 	hud.ocultarse_solicitado.connect(_on_ocultarse_hud)
 	hud.bola_fuego_solicitada.connect(_on_bola_fuego_hud)
 	hud.habilidad_aprendida_solicitada.connect(_on_habilidad_aprendida_hud)
+	hud.cancelar_habilidad_solicitado.connect(_cancelar_seleccion_habilidad)
 	hud.progresion_solicitada.connect(abrir_progresion)
 	if es_escenario_de_descanso and is_instance_valid(control_descanso):
 		hud.boton_campamento.set_meta("descripcion", "Regresar\nSalir del campamento y volver a la aventura.")
@@ -370,6 +371,12 @@ func _exit_tree() -> void:
 
 
 func _process(delta: float) -> void:
+	hud.habilidad_seleccionada = habilidad_en_seleccion
+	if seleccionando_ataque_doble:
+		hud.habilidad_seleccionada = "ataque_doble"
+	elif seleccionando_bola_fuego:
+		hud.habilidad_seleccionada = "bola_de_fuego"
+	hud.fuente_habilidad_elegida = fuente_trasvase != null
 	gestor_triggers.procesar(self)
 	_actualizar_estado_modal_interaccion()
 	_actualizar_decision_empuje()
@@ -1128,16 +1135,38 @@ func _cancelar_habilidad_nueva() -> void:
 	CursorJuego.ocultar_probabilidad_ataque()
 
 
+func _cancelar_seleccion_habilidad() -> void:
+	_cancelar_habilidad_nueva()
+	seleccionando_ataque_doble = false
+	_cancelar_bola_fuego()
+
+
 func _seleccionar_habilidad_nueva(coord: Vector2i) -> void:
 	if habilidad_en_seleccion == "trasvase" and fuente_trasvase == null:
-		if habilidades_nivel_dos.validar(habilidad_en_seleccion, coord) == &"":
+		var motivo: StringName = habilidades_nivel_dos.validar(habilidad_en_seleccion, coord)
+		if motivo == &"":
 			fuente_trasvase = coord
+		else:
+			CursorJuego.mostrar_probabilidad_ataque(_mensaje_objetivo_habilidad(motivo) + " · ESC CANCELA")
 		return
 	var resultado: ResultadoAccion = await habilidades_nivel_dos.ejecutar(habilidad_en_seleccion, coord, fuente_trasvase)
 	if resultado.exitosa:
 		_cancelar_habilidad_nueva()
 	else:
-		CursorJuego.mostrar_probabilidad_ataque("OBJETIVO INVÁLIDO · NO SE GASTÓ EL USO · ESC CANCELA")
+		_previsualizar_habilidad_nueva(coord)
+
+
+func _mensaje_objetivo_habilidad(motivo: StringName) -> String:
+	match motivo:
+		&"objetivo_no_visible": return "ELIGE UNA CASILLA VISIBLE"
+		&"fuera_de_alcance_o_linea": return "FUERA DE ALCANCE O CON EL PASO BLOQUEADO"
+		&"objetivo_no_oponente": return "ELIGE UN ENEMIGO ADYACENTE"
+		&"destino_bloqueado": return "EL DESTINO ESTÁ OCUPADO O BLOQUEADO"
+		&"superficie_no_trasladable": return "ELIGE FUEGO, HUMO O VENENO TEMPORAL"
+		&"transposicion_destino_invalido": return "ELIGE OTRO PERSONAJE CON ESPACIO PARA INTERCAMBIAR"
+		&"paso_sombra_destino_invalido": return "ELIGE UNA CASILLA LIBRE A LA QUE PUEDAS MOVERTE"
+		&"habilidad_sin_usos": return "SIN USOS · DESCANSA PARA RECUPERARLOS"
+	return "NO PUEDES USAR LA HABILIDAD AHORA"
 
 
 func _previsualizar_habilidad_nueva(coord: Vector2i) -> void:
@@ -1155,7 +1184,7 @@ func _previsualizar_habilidad_nueva(coord: Vector2i) -> void:
 		elif motivo == &"recursos_turno_insuficientes":
 			texto += " · SIN ACCIÓN DISPONIBLE · OCULTARSE TAMBIÉN GASTA LA ADICIONAL" if habilidad_en_seleccion == "paso_sombra" else " · SIN ACCIÓN DISPONIBLE"
 		else:
-			texto += " · ELIGE UN OBJETIVO VÁLIDO CON ALCANCE Y PASO LIBRES"
+			texto += " · " + _mensaje_objetivo_habilidad(motivo)
 	elif habilidad_en_seleccion == "trasvase":
 		texto += " · " + ("CLIC: SUPERFICIE DE ORIGEN" if fuente_trasvase == null else "CLIC: SUELO LIBRE DE DESTINO")
 	else:
@@ -4240,14 +4269,7 @@ func _on_item_suelo_retirado(_coord: Vector2i, item_suelo: ItemSuelo) -> void:
 	var inventario := ficha_jugador.inventario
 	var recogida := inventario.obtener_por_id(item_suelo.item.id_instancia)
 	if recogida == item_suelo.item and recogida.definicion.apilable:
-		for pila in inventario.obtener_por_definicion(recogida.definicion.id_definicion):
-			if (
-				pila != recogida
-				and pila.definicion == recogida.definicion
-				and pila.cantidad + recogida.cantidad <= pila.definicion.cantidad_maxima
-			):
-				if inventario.combinar(recogida.id_instancia, pila.id_instancia).exitosa:
-					break
+		inventario.apilar_item(recogida)
 	if item_suelo.item.definicion.id_definicion == &"antorcha":
 		ficha_jugador.activar_antorcha_si_necesario()
 		_actualizar_luz_jugador(ficha_jugador.coordenada_mapa)

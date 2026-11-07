@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://bmsmwb5764q7n" path="res://scripts/personajes/dialogo_npc.gd" id="1_e8fcf"]
 [ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="2_1b3fe"]
 [ext_resource type="Texture2D" uid="uid://neqa4xdwdlhv" path="res://assets/characters/npcs/terror_nocturno/sprites/terror_nocturno_4_direcciones.png" id="2_sprite"]
+[ext_resource type="Texture2D" uid="uid://dqqi8mdqs20qi" path="res://assets/characters/npcs/terror_nocturno/portraits/terror_nocturno_portrait.png" id="3_retrato"]
 
 [resource]
 script = ExtResource("1_def")
@@ -21,5 +22,6 @@ radio_agro = 6
 movimiento_fijo = 6
 acciones_adicionales_por_turno = 0
 textura_mapa = ExtResource("2_sprite")
+retrato_turno = ExtResource("3_retrato")
 id_definicion = &"terror_nocturno"
 nombre = "Terror Nocturno"

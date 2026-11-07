@@ -39,6 +39,18 @@ static func icono(id: String) -> Texture2D:
 	return ICONOS.get(id) as Texture2D
 
 
+static func guia_uso(id: String, fuente_elegida: bool = false) -> String:
+	match id:
+		"ataque_doble": return "Ataque doble · 1 acción principal y 1 uso por descanso\nHaz clic en un enemigo adyacente para atacarlo dos veces."
+		"bola_de_fuego": return "Bola de fuego · 1 acción principal y 1 uso por descanso\nHaz clic en un enemigo visible a un máximo de 4 casillas."
+		"ariete", "agarre": return obtener(id)["nombre"] + " · 1 acción principal y 1 uso por descanso\nHaz clic en un enemigo adyacente."
+		"senuelo": return "Señuelo · 1 acción adicional y 1 uso por descanso\nHaz clic en una casilla libre y visible a un máximo de 4 casillas."
+		"paso_sombra": return "Paso de sombra · 1 acción adicional y 1 uso por descanso\nEstando Oculto, elige una casilla libre hasta 3 casillas de distancia."
+		"transposicion": return "Transposición · 1 acción principal y 1 uso por descanso\nHaz clic en otro personaje visible a un máximo de 5 casillas."
+		"trasvase": return "Trasvase · 1 acción principal y 1 uso por descanso\n" + ("Paso 2 de 2: elige una casilla sin superficie, visible hasta 5 casillas de ti." if fuente_elegida else "Paso 1 de 2: elige fuego, humo o veneno temporal visible hasta 5 casillas de ti.")
+	return ""
+
+
 static func obtener(id: String) -> Dictionary:
 	if not DATOS.has(id):
 		return {}

@@ -25,6 +25,7 @@
 [ext_resource type="Script" uid="uid://dkkd0pruoa4im" path="res://scripts/zonas/zona_explorable.gd" id="12_zona"]
 [ext_resource type="TileSet" uid="uid://dx8k2j0wsd65i" path="res://assets/tile_sets/decorations/cave_decorations_solid.tres" id="13_sa51j"]
 [ext_resource type="TileSet" uid="uid://g6aw284h6bee" path="res://assets/tile_sets/decorations/cave_decorations_walkable.tres" id="14_mo2f4"]
+[ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="15_amqvp"]
 [ext_resource type="Script" uid="uid://bjmk05ma4ww44" path="res://scripts/interacciones/items/entrada_inventario_inicial.gd" id="16_hu6da"]
 [ext_resource type="Resource" uid="uid://duimmx1272hjc" path="res://assets/items/bomba_humo/bomba_humo.tres" id="17_5njko"]
 [ext_resource type="Resource" uid="uid://dxscf7l388d5k" path="res://assets/items/piedra/piedra.tres" id="18_njd4s"]
@@ -40,16 +41,21 @@
 [ext_resource type="Script" uid="uid://c47nsfflryre0" path="res://scripts/zonas/triggers/accion_trigger_dialogo.gd" id="templo_accion"]
 [ext_resource type="Resource" path="res://assets/items/amuleto_klink/amuleto_klink.tres" id="templo_amuleto"]
 [ext_resource type="PackedScene" path="res://scenes/personajes/sirviente_eek.tscn" id="templo_arana"]
-[ext_resource type="Resource" uid="uid://p7crtd35h8gq" path="res://dialogues/templo/lamentos.tres" id="templo_dialogo"]
+[ext_resource type="Script" uid="uid://c5sxr7hy2ff83" path="res://scripts/interacciones/interactuables/definicion_interactuable.gd" id="templo_def_interactuable"]
+[ext_resource type="Script" uid="uid://do6a1i24l6xxx" path="res://scripts/interacciones/interactuables/mecanismos/derrumbe.gd" id="templo_derrumbe"]
+[ext_resource type="Resource" path="res://dialogues/templo/lamentos.tres" id="templo_dialogo"]
 [ext_resource type="Resource" path="res://assets/items/ganzua_mecanica/ganzua_mecanica.tres" id="templo_ganzua"]
 [ext_resource type="PackedScene" path="res://scenes/interactuables/guias/hojas_interactuable.tscn" id="templo_hojas"]
+[ext_resource type="Script" uid="uid://d3hk7saacdba" path="res://scripts/zonas/triggers/accion_trigger_mecanismo.gd" id="templo_mecanismo"]
 [ext_resource type="Resource" uid="uid://cqqpor13us7df" path="res://recursos/templo/nota_tras_estatua.tres" id="templo_nota"]
 [ext_resource type="Resource" uid="uid://d0hgdclhajmto" path="res://assets/items/racion/racion.tres" id="templo_racion"]
-[ext_resource type="PackedScene" path="res://scenes/zonas/TriggerMapa.tscn" id="templo_trigger"]
-[ext_resource type="Script" path="res://scripts/zonas/triggers/accion_trigger_mecanismo.gd" id="templo_mecanismo"]
-[ext_resource type="Script" path="res://scripts/interacciones/interactuables/mecanismos/derrumbe.gd" id="templo_derrumbe"]
-[ext_resource type="Script" path="res://scripts/interacciones/interactuables/definicion_interactuable.gd" id="templo_def_interactuable"]
 [ext_resource type="PackedScene" path="res://scenes/decoraciones/rocas_derrumbadas_4x8.tscn" id="templo_rocas"]
+[ext_resource type="PackedScene" path="res://scenes/zonas/TriggerMapa.tscn" id="templo_trigger"]
+
+[sub_resource type="Resource" id="templo_derrumbe_definicion"]
+script = ExtResource("templo_def_interactuable")
+id_definicion = &"templo_derrumbe"
+nombre = "Derrumbe"
 
 [sub_resource type="Resource" id="Resource_5sqel"]
 script = ExtResource("16_hu6da")
@@ -129,11 +135,6 @@ punto_inicio = "cadaver"
 script = ExtResource("templo_mecanismo")
 id_receptor = &"templo_derrumbe"
 efecto_visual = &"derrumbe"
-
-[sub_resource type="Resource" id="templo_derrumbe_definicion"]
-script = ExtResource("templo_def_interactuable")
-id_definicion = &"templo_derrumbe"
-nombre = "Derrumbe"
 
 [sub_resource type="Resource" id="Resource_12s7a"]
 script = ExtResource("37_y6p87")
@@ -237,7 +238,7 @@ bloqueada = false
 id_instancia = &"templo_pared_movil_004"
 definicion = ExtResource("pared_movil_1")
 
-[node name="Derrumbe" type="Node2D" parent="Interactuables/Mecanismos"]
+[node name="Derrumbe" type="Node2D" parent="Interactuables/Mecanismos" unique_id=2109249446]
 y_sort_enabled = true
 position = Vector2(-1504, -816)
 script = ExtResource("templo_derrumbe")
@@ -248,7 +249,7 @@ ruta_fog_oculto = NodePath("Rocas/FogOculto")
 ruta_fog_explorado = NodePath("Rocas/FogExplorado")
 huella_celdas = Array[Vector2i]([Vector2i(0, 0), Vector2i(0, 1), Vector2i(0, 2), Vector2i(1, 2), Vector2i(2, 2)])
 
-[node name="Rocas" parent="Interactuables/Mecanismos/Derrumbe" groups=["decoracion_conserva_borde"] instance=ExtResource("templo_rocas")]
+[node name="Rocas" parent="Interactuables/Mecanismos/Derrumbe" unique_id=615956067 groups=["decoracion_conserva_borde"] instance=ExtResource("templo_rocas")]
 position = Vector2(32, 112)
 
 [node name="EstatuaMecanismo" parent="Interactuables/Mecanismos" unique_id=696075619 instance=ExtResource("6_xa8qm")]
@@ -570,6 +571,13 @@ position = Vector2(-32, 48)
 id_trigger = &"vuelta_prision"
 frecuencia = 1
 tamano = Vector2i(4, 1)
+accion = SubResource("Resource_12s7a")
+
+[node name="VueltaPrision2" parent="Triggers/Viajes" unique_id=658598175 instance=ExtResource("templo_trigger")]
+position = Vector2(-1760, -816)
+id_trigger = &"vuelta_prision2"
+frecuencia = 1
+tamano = Vector2i(1, 1)
 accion = SubResource("Resource_12s7a")
 
 [node name="CapaColumnas" type="TileMapLayer" parent="." unique_id=1397874605]

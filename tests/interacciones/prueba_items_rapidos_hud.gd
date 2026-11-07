@@ -54,6 +54,15 @@ func _probar() -> void:
 		"tipo_equipo": -1
 	}
 	comprobar(ranura_1._can_drop_data(Vector2.ZERO, datos_arrastre_antorcha), "Ranura 1 acepta drop de ítem de inventario.")
+	var panel: PanelInventarioEquipo = escenario.panel_inventario_equipo
+	panel.abrir(ficha)
+	await process_frame
+	var punto_ranura: Vector2 = ranura_1.get_global_rect().get_center() - panel.global_position
+	var fondo := panel.get_node("FondoAtenuado") as FondoInventarioDrop
+	comprobar(fondo._can_drop_data(punto_ranura, datos_arrastre_antorcha), "El panel abierto permite soltar sobre el HUD.")
+	fondo._drop_data(punto_ranura, datos_arrastre_antorcha)
+	comprobar(hud.items_rapidos_asignados[0] == item_antorchas, "Soltar desde el panel asigna la ranura rápida.")
+	panel.cerrar()
 	ranura_1._drop_data(Vector2.ZERO, datos_arrastre_antorcha)
 
 	comprobar(hud.items_rapidos_asignados[0] == item_antorchas, "Ranura 1 tiene asignado el ítem de antorchas.")
@@ -159,6 +168,14 @@ func _probar() -> void:
 	panel_inventario._al_seleccionar_item_mochila(pocion_exportada)
 	panel_inventario.boton_usar.pressed.emit()
 	comprobar(ficha.pv_actual > vida_previa and pocion_exportada.cantidad == 1, "Usar desde la mochila cura 1d6 y consume una unidad.")
+	var otra_pocion := ItemInstancia.new(&"otra_pocion_test", pocion_exportada.definicion, 2)
+	ficha.inventario.agregar(otra_pocion)
+	hud.asignar_item_rapido(3, otra_pocion)
+	panel_inventario.abrir(ficha)
+	var ranuras := ficha.inventario.obtener_ranuras()
+	panel_inventario._al_soltar_item(ranuras.find(otra_pocion), false, ranuras.find(pocion_exportada), false)
+	comprobar(pocion_exportada.cantidad == 3 and ficha.inventario.obtener_por_id(otra_pocion.id_instancia) == null, "Arrastrar sobre una pila compatible las combina.")
+	comprobar(hud.items_rapidos_asignados[3] == pocion_exportada, "El acceso rápido sigue apuntando a la pila combinada.")
 
 	escena.queue_free()
 	await process_frame

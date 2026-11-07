@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="2_ye37t"]
 [ext_resource type="Script" uid="uid://bccqt6gfe8843" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="3_36l4i"]
 [ext_resource type="Script" uid="uid://cosqwlc2jnmwe" path="res://scripts/personajes/definicion_personaje.gd" id="4_xtqx6"]
-[ext_resource type="Texture2D" uid="uid://tb3xwiig6ul6" path="res://assets/characters/npcs/banga/sprites/banga_4_direcciones.png" id="5_d7esg"]
+[ext_resource type="Texture2D" uid="uid://o80x8kkjjo6i" path="res://assets/characters/npcs/banga/sprites/banga_real_4_direcciones.png" id="5_d7esg"]
 [ext_resource type="Texture2D" uid="uid://bfm8tic4ctmev" path="res://assets/characters/npcs/banga/portraits/peeble_portrait.png" id="6_retrato"]
 
 [sub_resource type="Resource" id="Resource_gcvuq"]
@@ -35,6 +35,7 @@ faccion_id = &"bangas"
 actitud_inicial_jugador = 2
 puede_combatir = true
 puede_tener_inventario = true
+caras_dano_natural = 6
 movimiento_fijo = 7
 textura_mapa = ExtResource("5_d7esg")
 retrato_turno = ExtResource("6_retrato")

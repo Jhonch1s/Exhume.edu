@@ -127,6 +127,10 @@ func _crear_tarjeta(entrada: Dictionary) -> Button:
 	var imagen := TextureRect.new()
 	imagen.name = "Retrato"
 	imagen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	imagen.offset_left = 4.0
+	imagen.offset_top = 4.0
+	imagen.offset_right = -4.0
+	imagen.offset_bottom = -4.0
 	imagen.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	imagen.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	imagen.expand_mode = TextureRect.EXPAND_IGNORE_SIZE

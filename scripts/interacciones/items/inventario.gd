@@ -118,19 +118,26 @@ func obtener_por_definicion(id_definicion: StringName) -> Array[ItemInstancia]:
 	return encontrados
 
 
-func validar_agregado(item: ItemInstancia) -> StringName:
+func validar_agregado(item: ItemInstancia, permitir_apilado: bool = false) -> StringName:
 	if item == null or not item.es_valida():
 		return &"item_invalido"
 	if obtener_por_id(item.id_instancia) != null:
 		return &"id_item_duplicado"
 		
 	if esta_lleno():
+		if permitir_apilado and item.definicion.apilable:
+			var espacio := 0
+			for pila in obtener_por_definicion(item.definicion.id_definicion):
+				if pila.definicion == item.definicion:
+					espacio += pila.definicion.cantidad_maxima - pila.cantidad
+			if espacio >= item.cantidad:
+				return &""
 		return &"inventario_lleno"
 	return &""
 
 
-func agregar(item: ItemInstancia) -> ResultadoOperacionInventario:
-	var motivo := validar_agregado(item)
+func agregar(item: ItemInstancia, permitir_apilado: bool = false) -> ResultadoOperacionInventario:
+	var motivo := validar_agregado(item, permitir_apilado)
 	if motivo != &"":
 		return ResultadoOperacionInventario.crear_fallo(motivo)
 	_contenido.append(item)
@@ -243,6 +250,35 @@ func combinar(
 	)
 
 
+func apilar_en(origen: ItemInstancia, destino: ItemInstancia) -> int:
+	if origen == null or destino == null or origen == destino or not _contenido.has(origen) or not _contenido.has(destino):
+		return 0
+	if not origen.definicion.apilable or origen.definicion != destino.definicion:
+		return 0
+	var cantidad := mini(origen.cantidad, destino.definicion.cantidad_maxima - destino.cantidad)
+	if cantidad <= 0:
+		return 0
+	var pasos := destino.pasos_antorchas + origen.pasos_antorchas.slice(0, cantidad)
+	if cantidad == origen.cantidad:
+		retirar(origen.id_instancia)
+	else:
+		origen._establecer_cantidad(origen.cantidad - cantidad)
+	destino._establecer_cantidad(destino.cantidad + cantidad)
+	destino.pasos_antorchas = pasos
+	destino.pasos_antorchas.sort()
+	return cantidad
+
+
+func apilar_item(item: ItemInstancia) -> void:
+	if item == null or not item.definicion.apilable:
+		return
+	for destino in obtener_por_definicion(item.definicion.id_definicion):
+		if destino != item:
+			apilar_en(item, destino)
+			if not _contenido.has(item):
+				return
+
+
 func separar(
 	id_origen: StringName,
 	cantidad: int,
@@ -293,11 +329,12 @@ func transferir_a(
 	if item == null:
 		return ResultadoOperacionInventario.crear_fallo(&"item_no_encontrado")
 
-	var resultado := destino.agregar(item)
+	var resultado := destino.agregar(item, true)
 	if resultado.exitosa:
 		_contenido.erase(item)
 		var idx := _ranuras.find(item)
 		if idx != -1:
 			_ranuras[idx] = null
+		destino.apilar_item(item)
 
 	return resultado

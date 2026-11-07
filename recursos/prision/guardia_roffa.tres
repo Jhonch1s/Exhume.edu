@@ -5,7 +5,7 @@
 [ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="2_fg3s0"]
 [ext_resource type="Script" uid="uid://bccqt6gfe8843" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="3_vw212"]
 [ext_resource type="Script" uid="uid://cosqwlc2jnmwe" path="res://scripts/personajes/definicion_personaje.gd" id="4_ab88t"]
-[ext_resource type="Texture2D" uid="uid://tb3xwiig6ul6" path="res://assets/characters/npcs/banga/sprites/banga_4_direcciones.png" id="5_krqa0"]
+[ext_resource type="Texture2D" uid="uid://o80x8kkjjo6i" path="res://assets/characters/npcs/banga/sprites/banga_real_4_direcciones.png" id="5_krqa0"]
 [ext_resource type="Texture2D" uid="uid://df6ktser3lacd" path="res://assets/characters/npcs/banga/portraits/roffa_portrait.png" id="6_retrato"]
 [ext_resource type="Resource" uid="uid://b6a3auymlp2op" path="res://dialogues/prision/roffa.dialogue" id="7_dialogo"]
 [ext_resource type="Texture2D" uid="uid://offnnsgnt1hb" path="res://assets/characters/npcs/banga/portraits/roffa_dialogo.png" id="8_ilustracion"]
@@ -44,6 +44,7 @@ faccion_id = &"roffa"
 puede_dialogar = true
 puede_combatir = true
 puede_tener_inventario = true
+caras_dano_natural = 6
 movimiento_fijo = 7
 textura_mapa = ExtResource("5_krqa0")
 retrato_turno = ExtResource("6_retrato")

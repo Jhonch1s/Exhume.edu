@@ -74,11 +74,11 @@ func validar_recoger(contexto: ContextoAccion) -> StringName:
 	if motivo_cantidad != &"":
 		return motivo_cantidad
 	if contexto.cantidad_item == -1 or contexto.cantidad_item == item_suelo.item.cantidad:
-		return inventario.validar_agregado(item_suelo.item)
+		return inventario.validar_agregado(item_suelo.item, true)
 	if tablero.items_suelo_por_id.has(contexto.id_item_resultante):
 		return &"id_item_duplicado"
 	var parcial := item_suelo.item.crear_porcion(contexto.id_item_resultante, contexto.cantidad_item)
-	return inventario.validar_agregado(parcial)
+	return inventario.validar_agregado(parcial, true)
 
 
 func recoger(contexto: ContextoAccion) -> ResultadoAccion:
@@ -90,7 +90,8 @@ func recoger(contexto: ContextoAccion) -> ResultadoAccion:
 	var coordenada: Vector2i = item_suelo.coordenada_mapa
 	if contexto.cantidad_item != -1 and contexto.cantidad_item < item_suelo.item.cantidad:
 		return _recoger_parcial(contexto, item_suelo, inventario, coordenada)
-	var agregado := inventario.agregar(item_suelo.item)
+	var cantidad_recogida := item_suelo.item.cantidad
+	var agregado := inventario.agregar(item_suelo.item, true)
 	if not agregado.exitosa:
 		return ResultadoAccion.crear_fallo(agregado.motivo)
 	if not tablero.retirar_item_suelo(item_suelo):
@@ -98,12 +99,13 @@ func recoger(contexto: ContextoAccion) -> ResultadoAccion:
 		if not rollback.exitosa or rollback.item != item_suelo.item:
 			return ResultadoAccion.crear_fallo(&"rollback_inventario_fallido")
 		return ResultadoAccion.crear_fallo(&"retiro_item_suelo_fallido")
+	inventario.apilar_item(item_suelo.item)
 
 	var cambios: Array[Dictionary] = [{
 		&"tipo": &"item_recogido",
 		&"id_instancia": item_suelo.item.id_instancia,
 		&"id_definicion": item_suelo.item.definicion.id_definicion,
-		&"cantidad": item_suelo.item.cantidad,
+		&"cantidad": cantidad_recogida,
 		&"coordenada_origen": coordenada,
 	}]
 	return ResultadoAccion.crear_exito([&"item.recogido"], [], cambios)
@@ -557,18 +559,19 @@ func _recoger_parcial(
 	coordenada: Vector2i
 ) -> ResultadoAccion:
 	var parcial := item_suelo.item.crear_porcion(contexto.id_item_resultante, contexto.cantidad_item)
-	var agregado := inventario.agregar(parcial)
+	var agregado := inventario.agregar(parcial, true)
 	if not agregado.exitosa:
 		return ResultadoAccion.crear_fallo(agregado.motivo)
 	item_suelo.item._establecer_cantidad(
 		item_suelo.item.cantidad - contexto.cantidad_item
 	)
+	inventario.apilar_item(parcial)
 	var cambios: Array[Dictionary] = [{
 		&"tipo": &"item_recogido",
 		&"id_instancia": parcial.id_instancia,
 		&"id_origen": item_suelo.item.id_instancia,
 		&"id_definicion": parcial.definicion.id_definicion,
-		&"cantidad": parcial.cantidad,
+		&"cantidad": contexto.cantidad_item,
 		&"coordenada_origen": coordenada,
 	}]
 	return ResultadoAccion.crear_exito([&"item.recogido"], [], cambios)
