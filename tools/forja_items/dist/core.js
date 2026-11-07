@@ -13,7 +13,7 @@
   const slug = value => String(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 64);
   const uid = () => globalThis.crypto?.randomUUID?.() || 'item_' + Date.now() + '_' + Math.random().toString(36).slice(2);
   function createItem(preset = {}) {
-    const item = { key: uid(), id: '', name: '', description: '', kind: 'objeto', tags: [], classRestrictions: [], twoHanded: false, weight: 0.5, stackable: false, maxStack: 1, heal: 0, weaponDice: '0', magnitudes: {}, icon: null, world: null, illustration: null, pickupSound: null, impactSound: null, worldWidth: 64, hframes: 1, vframes: 1, lockPattern: '', torch: { duration: 80, vision: 5, fade: 10, energy: 1.3, scale: 1, color: '#ffe500' }, impact: { type: 'none', radius: 0, duration: 7, ticks: 3, dice: 1, sides: 2 }, source: null, updateExisting: false };
+    const item = { key: uid(), id: '', name: '', description: '', kind: 'objeto', tags: [], classRestrictions: [], twoHanded: false, weight: 0.5, stackable: false, maxStack: 1, heal: 0, weaponDice: '0', magnitudes: {}, icon: null, world: null, illustration: null, pickupSound: null, impactSound: null, worldWidth: 64, hframes: 1, vframes: 1, lockPattern: '', torch: { duration: 80, vision: 5, fade: 10, energy: 1.3, scale: 1, color: '#ffe500' }, impact: { type: 'none', radius: 0, duration: 4, ticks: 3, dice: 1, sides: 2 }, source: null, updateExisting: false };
     item.equipmentEffects = [];
     const input = clone(preset);
     for (const key of Object.keys(item)) {
@@ -21,6 +21,7 @@
       if (key === 'torch' || key === 'impact') item[key] = { ...item[key], ...input[key] };
       else item[key] = input[key];
     }
+    if (!Object.hasOwn(input.impact || {}, 'duration')) item.impact.duration = item.impact.type === 'fuego' || item.impact.type === 'none' ? 4 : 5;
     return item;
   }
   function healing(value) {

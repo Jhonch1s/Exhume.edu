@@ -8,6 +8,12 @@ func _init() -> void:
 
 
 func _ejecutar_prueba() -> void:
+	for datos in [[Fuego.new(), 4, 7], [Humo.new(), 5, 10], [HumoVeneno.new(), 5, 10]]:
+		var superficie: Node2D = datos[0]
+		_comprobar(superficie.obtener_duracion_superficie() == datos[1], "Duración predeterminada actualizada.")
+		_comprobar(superficie.restaurar_turnos_restantes_superficie(datos[2]) == &"" and superficie.obtener_turnos_restantes_superficie() == datos[1], "Los guardados antiguos se ajustan al límite nuevo.")
+		_comprobar(superficie.restaurar_turnos_restantes_superficie(0) != &"" and superficie.restaurar_turnos_restantes_superficie(datos[2] + 1) != &"", "Se rechazan duraciones inválidas.")
+		superficie.free()
 	var tablero := TableroGrid.new()
 	var contenedor := Node2D.new()
 	root.add_child(tablero)
@@ -49,7 +55,7 @@ func _ejecutar_prueba() -> void:
 		"Fuego debe transformarse en humo al expirar."
 	)
 	_comprobar(
-		humo_resultante.obtener_turnos_restantes_superficie() == 10
+		humo_resultante.obtener_turnos_restantes_superficie() == 5
 		and tablero.obtener_celda(Vector2i.RIGHT).bloquea_vision_efectiva(),
 		"El humo nuevo debe comenzar completo y bloquear visión."
 	)

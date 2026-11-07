@@ -2,7 +2,7 @@ class_name Humo
 extends Node2D
 
 @export var id_instancia: StringName = &""
-@export_range(1, 99, 1) var duracion_superficie: int = 10
+@export_range(1, 99, 1) var duracion_superficie: int = 5
 
 var coordenada_mapa: Vector2i
 var _turnos_restantes: int = -1
@@ -48,7 +48,8 @@ func consumir_turno_superficie() -> int:
 
 
 func restaurar_turnos_restantes_superficie(turnos: int) -> StringName:
-	if turnos <= 0 or turnos > duracion_superficie:
+	# Los guardados anteriores al ajuste de balance conservaban hasta diez rondas.
+	if turnos <= 0 or turnos > maxi(duracion_superficie, 10):
 		return &"duracion_superficie_guardada_invalida"
-	_turnos_restantes = turnos
+	_turnos_restantes = mini(turnos, duracion_superficie)
 	return &""

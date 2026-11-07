@@ -48,7 +48,7 @@ func _ejecutar_prueba() -> void:
 	root.add_child(humo_b)
 	_comprobar(tablero.registrar_efecto_superficie(Vector2i(1, 0), humo_a), "Debe registrar el primer humo.")
 	_comprobar(tablero.registrar_efecto_superficie(Vector2i(1, 0), humo_b), "Debe registrar el humo superpuesto.")
-	_comprobar(humo_a.obtener_duracion_superficie() == 10, "El humo debe declarar duración diez.")
+	_comprobar(humo_a.obtener_duracion_superficie() == 5, "El humo debe declarar duración cinco.")
 	_comprobar(
 		tablero.obtener_celda(Vector2i(1, 0)).bloquea_vision_efectiva(),
 		"El humo debe volver opaca su celda."

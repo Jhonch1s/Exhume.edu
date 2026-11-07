@@ -136,6 +136,26 @@ func _ejecutar() -> void:
 		"Una pared debe detener la llamarada y evitar fuego nuevo."
 	)
 
+	placa.estado = TrampaSuperficie.Estado.OCULTA
+	placa.ids_receptores_mecanismo = []
+	placa.escena_superficie = null
+	placa.placa_senuelo = true
+	var fuegos_antes := tablero.efectos_superficie_por_id.size()
+	resultado = ResolverReaccionesCelda.new(gestor).resolver(
+		TiposInteraccion.TipoAccion.ENTRAR,
+		ficha,
+		Vector2i(1, 0),
+		Vector2i(2, 0),
+		ConsultorReaccionesCelda.new().obtener_reacciones(
+			tablero.obtener_celda(Vector2i(2, 0)),
+			TiposInteraccion.TipoAccion.ENTRAR,
+			ficha
+		)
+	)
+	_comprobar(placa.estado == TrampaSuperficie.Estado.ACTIVADA, "La placa señuelo debe hundirse.")
+	_comprobar(tablero.efectos_superficie_por_id.size() == fuegos_antes and &"trampa.mecanismo_activado" not in resultado.mensajes and &"estatua.escupe_fuego" not in resultado.mensajes, "La placa señuelo no debe crear superficies ni activar mecanismos.")
+	_comprobar(placa.obtener_reacciones_encadenadas(TiposInteraccion.TipoAccion.ENTRAR).is_empty(), "La placa señuelo no encadena otras trampas.")
+
 	gestor.queue_free()
 	ficha.queue_free()
 	placa.queue_free()

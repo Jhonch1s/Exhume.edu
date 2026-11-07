@@ -56,6 +56,10 @@ y al escenario como estados adicionales. Las pruebas y consecuencias específica
 de una conversación de NPC siguen usando la
 [guía de diálogos de NPC](CONSECUENCIAS_DIALOGO_NPC.md).
 
+Los diálogos internos de estos triggers muestran la ilustración del protagonista
+según su clase (Guerrero, Ladrón o Mago), reutilizando las imágenes configuradas en
+`EscenarioBase`. Usar `{{nombre}}:` como hablante para mostrar el nombre actual.
+
 La ruta termina en la casilla que activó el evento. Al cerrar el diálogo, el
 jugador elige su siguiente movimiento. Durante la espera y el diálogo se bloquean
 interacciones, guardado, viaje y avance incompatible de turnos/NPC. Otro diálogo

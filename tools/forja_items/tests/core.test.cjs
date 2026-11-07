@@ -45,7 +45,9 @@ const cold = F.createItem({ ...seeds[0], id: 'frio', magnitudes: { temperatura: 
 check(!F.validate(cold).errors.length, 'temperatura negativa');
 const copy = F.createItem({ ...items[0], key: F.uid() });
 check(F.validate(copy, [items[0], copy]).errors.some(error => error.includes('otro ítem')), 'ID duplicado');
-check(F.createItem({ impact: { type: 'fuego' } }).impact.duration === 7, 'valores parciales');
+check(F.createItem({ impact: { type: 'fuego' } }).impact.duration === 4, 'valores parciales');
+check(F.createItem({ impact: { type: 'humo' } }).impact.duration === 5, 'duración inicial de humo');
+check(F.createItem({ impact: { type: 'veneno' } }).impact.duration === 5, 'duración inicial de veneno');
 check(!Object.hasOwn(F.createItem(JSON.parse('{"__proto__":{"unsafe":true}}')), 'unsafe'), 'campos desconocidos');
 assert.throws(() => F.parseProject({ version: 1, items: [{ torch: null }] })); checks++;
 assert.throws(() => F.parseProject({ version: 2, items: [] })); checks++;

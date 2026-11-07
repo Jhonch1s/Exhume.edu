@@ -61,7 +61,7 @@ func _ejecutar_prueba() -> void:
 		veneno != null and veneno.duracion_total == 2 and veneno.ticks_pendientes == 2,
 		"Veneno debe reservar sus dos daños para fines de turno."
 	)
-	_comprobar((superficies[1] as Fuego).obtener_duracion_superficie() == 7, "El fuego debe declarar siete turnos de superficie.")
+	_comprobar((superficies[1] as Fuego).obtener_duracion_superficie() == 4, "El fuego debe declarar cuatro turnos de superficie.")
 	var vida_tras_entrada := ficha.pv_actual
 	var renovacion := ResolverReaccionesCelda.new(gestor).resolver(
 		TiposInteraccion.TipoAccion.ENTRAR,

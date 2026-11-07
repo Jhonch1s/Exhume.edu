@@ -65,7 +65,7 @@ celda envía únicamente `true` a todos sus receptores prevalidados.
 una línea de fuego de tres celdas en la dirección de su orientación, detenida por el
 primer obstáculo. Cada celda usa la superficie `Fuego` existente: queda iluminada,
 añade coste de movimiento, quema a quien alcance al aparecer y permanece
-siete turnos antes de transformarse en humo. Las orientaciones del atlas se traducen
+cuatro turnos antes de transformarse en humo. Las orientaciones del atlas se traducen
 a cuadrícula así: abajo-izquierda=`DOWN`, abajo-derecha=`RIGHT`,
 arriba-izquierda=`LEFT`, arriba-derecha=`UP`.
 

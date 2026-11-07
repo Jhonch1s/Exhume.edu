@@ -1,0 +1,23 @@
+~ entrada
+{{nombre}}: ¿Un lamento? Parece venir de dentro de la piedra.
+{{nombre}}: El aire pasa por esas grietas... pero no estoy seguro de que sea solo el viento.
+=> END
+
+~ taller
+{{nombre}}: Estas marcas en el suelo son más recientes que la piedra del templo.
+{{nombre}}: Alguien instaló sus mecanismos aquí mucho después de que se construyera este lugar.
+=> END
+
+~ tunel
+{{nombre}}: Esto no pinta nada bien...
+{{nombre}}: No alcanzo a ver qué hay al fondo. Mejor avanzar con cuidado.
+=> END
+
+~ zona_aranas
+{{nombre}}: Hay telarañas por todas partes. Tal vez entre todo esto haya alguna pista de cómo seguir.
+=> END
+
+~ cadaver
+{{nombre}}: Parece que este no tuvo mucha suerte. Ese derrumbe tuvo que ser una trampa enorme...
+{{nombre}}: Espero no encontrarme con una de esas.
+=> END

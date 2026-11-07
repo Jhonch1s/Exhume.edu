@@ -5,6 +5,8 @@ extends AccionTrigger
 ## ID de una puerta u otro receptor del contrato de mecanismos.
 @export var id_receptor: StringName
 @export var activar: bool = true
+## Perfil de GestorVFX que se percibe desde el umbral al cambiar el mecanismo.
+@export var efecto_visual: StringName
 
 
 func validar_configuracion() -> String:
@@ -25,4 +27,8 @@ func ejecutar(escenario: Node, trigger: TriggerMapa) -> StringName:
 	var resultado: Variant = receptor.call(&"aplicar_cambio_mecanismo", trigger.id_trigger, activar)
 	if not resultado is ResultadoAccion:
 		return &"resultado_receptor_mecanismo_invalido"
-	return &"" if resultado.exitosa else resultado.motivo
+	if not resultado.exitosa:
+		return resultado.motivo
+	if efecto_visual != &"" and not resultado.cambios_estado.is_empty():
+		escenario.gestor_vfx.solicitar(efecto_visual, escenario.ficha_jugador.global_position)
+	return &""

@@ -1,5 +1,14 @@
 # Decisiones arquitectónicas
 
+- El 05-11-2026 se consolidó el incremento del Templo de las Trampas: subzona
+  del Templo de los Lamentos, taller posterior de Klink, placas conectadas por
+  IDs y paso de cuatro paredes móviles a +2X. El cofre 006 contiene el amuleto
+  con ventaja DES al equiparlo y la ganzúa de un uso para rejas compatibles.
+  Duraciones de superficies: fuego 4 rondas; humo y nube venenosa 5, separadas
+  de los estados del personaje. GestorVFX local al escenario observa acciones
+  y paredes, conserva cámara/turnos y agrupa las sacudidas por acontecimiento.
+  [Estado, pruebas y pendientes](../contenido/TEMPLO_DE_LAS_TRAMPAS.md).
+
 - El 20-10-2026 el usuario definió un campamento de descanso inspirado en
   Baldur's Gate: se podrá acceder desde cualquier lugar y sin límite de visitas.
   Será un escenario propio con una fogata central; allí el jugador decidirá si

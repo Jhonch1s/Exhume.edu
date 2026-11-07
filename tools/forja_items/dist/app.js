@@ -231,7 +231,7 @@
   $('#tags').addEventListener('input', () => { const item = current(); if (item) { item.tags = [...new Set($('#tags').value.split(',').map(t => t.trim()).filter(Boolean))]; renderTags(); changed(); } });
   $$('[data-tab]').forEach(button => button.addEventListener('click', () => setTab(button.dataset.tab)));
   $$('[data-view]').forEach(button => button.addEventListener('click', () => { view = button.dataset.view; $$('[data-view]').forEach(other => other.classList.toggle('active', other === button)); renderPreview(); }));
-  $$('[data-effect]').forEach(button => button.addEventListener('click', () => { const item = current(); if (!item) return; const next = button.dataset.effect; item.impact.type = next; if (next !== 'none') { item.impact.duration = next === 'fuego' ? 7 : 10; item.impact.ticks = next === 'veneno' ? 2 : 3; } renderFormNumbers(); changed(); }));
+  $$('[data-effect]').forEach(button => button.addEventListener('click', () => { const item = current(); if (!item) return; const next = button.dataset.effect; item.impact.type = next; if (next !== 'none') { item.impact.duration = next === 'fuego' ? 4 : 5; item.impact.ticks = next === 'veneno' ? 2 : 3; } renderFormNumbers(); changed(); }));
   $('#search').addEventListener('input', renderLibrary);
   $('#preview-quantity').addEventListener('input', () => { quantity = Number($('#preview-quantity').value); renderPreview(); });
   $('#add-magnitude').addEventListener('click', () => { const item = current(); let key = 'temperatura', i = 2; while (Object.hasOwn(item.magnitudes, key)) key = 'magnitud_' + i++; item.magnitudes[key] = 0; renderMagnitudes(); changed(); });

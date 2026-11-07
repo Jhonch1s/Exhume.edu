@@ -56,7 +56,7 @@ func _actualizar_disponibilidad_turno() -> void:
 		return
 	if is_instance_valid(boton_campamento):
 		boton_campamento.disabled = get_parent()._bloqueado()
-		boton_campamento.tooltip_text = "Laboratorio: reponer PV, energía, usos y oportunidades de turno."
+		boton_campamento.set_meta("descripcion", "Descanso\nLaboratorio: reponer PV, energía, usos y oportunidades de turno.")
 	var boton := hud.habilidades[2]
 	var deshabilitada := true
 	var id_icono := ""

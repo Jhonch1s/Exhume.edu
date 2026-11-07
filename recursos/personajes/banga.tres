@@ -21,6 +21,7 @@ fuerza = 4
 destreza = 4
 voluntad = 4
 vida_maxima = 10
+experiencia_recompensa_derrota = 120
 faccion_id = &"bangas"
 puede_tener_inventario = true
 textura_mapa = ExtResource("4_sprite")

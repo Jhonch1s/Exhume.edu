@@ -8,7 +8,7 @@ extends Node2D
 @export_range(1, 99, 1) var ticks_quemado: int = 3
 @export_range(1, 99, 1) var cantidad_dados_tick: int = 1
 @export_range(2, 99, 1) var caras_dado_tick: int = 2
-@export_range(1, 99, 1) var duracion_superficie: int = 7
+@export_range(1, 99, 1) var duracion_superficie: int = 4
 @export_range(0, 32, 1) var radio_luz: int = 2
 @export_range(0, 16, 1) var radio_penumbra: int = 1
 
@@ -82,9 +82,10 @@ func consumir_turno_superficie() -> int:
 
 
 func restaurar_turnos_restantes_superficie(turnos: int) -> StringName:
-	if turnos <= 0 or turnos > duracion_superficie:
+	# Los guardados anteriores al ajuste de balance conservaban hasta siete rondas.
+	if turnos <= 0 or turnos > maxi(duracion_superficie, 7):
 		return &"duracion_superficie_guardada_invalida"
-	_turnos_restantes = turnos
+	_turnos_restantes = mini(turnos, duracion_superficie)
 	return &""
 
 

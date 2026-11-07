@@ -244,6 +244,11 @@ func _registrar_estado(texto: String) -> void:
 		escenario_descanso.registro_narrativo.registrar(EntradaRegistroNarrativo.Categoria.SISTEMA, "Campamento", texto)
 
 
+func volver_al_mundo() -> void:
+	if not _transicion_en_curso and is_instance_valid(escenario):
+		escenario.salir_campamento()
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed or event.echo or _transicion_en_curso:
 		return

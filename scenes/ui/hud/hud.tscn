@@ -2,17 +2,12 @@
 
 [ext_resource type="Script" uid="uid://btv44wv5v8j7f" path="res://scenes/ui/hud/hud.gd" id="0_script"]
 [ext_resource type="Texture2D" uid="uid://dfinu3vuddyb3" path="res://assets/ui/panels/hud/hud_base_roca_v01.png" id="1_base"]
-[ext_resource type="Texture2D" path="res://assets/ui/panels/hud/retratos/guerrero.png" id="2_portrait"]
+[ext_resource type="Texture2D" uid="uid://bd0djk1knvoti" path="res://assets/ui/panels/hud/retratos/guerrero.png" id="2_portrait"]
 [ext_resource type="FontFile" uid="uid://c0l0sby5jy2p4" path="res://assets/ui/fonts/Amarante-Regular.ttf" id="3_font"]
 [ext_resource type="PackedScene" uid="uid://7yotsv0ybgvs" path="res://scenes/ui/interacciones/panel_registro_narrativo.tscn" id="4_log"]
-[ext_resource type="Script" path="res://scenes/ui/hud/estado_tooltip.gd" id="5_state_tip"]
-[ext_resource type="Script" path="res://scenes/ui/hud/casilla_item_rapido.gd" id="6_item_slot"]
-
-[sub_resource type="Shader" id="ShaderBarAnimated"]
-code = "shader_type canvas_item;\n\nuniform float speed = 0.55;\nuniform float intensity = 0.10;\n\nvoid fragment() {\n\tvec4 base = COLOR;\n\tfloat onda = sin(UV.x * 18.0 + UV.y * 3.0 + TIME * speed);\n\tfloat sombra = smoothstep(-0.65, 0.65, onda) * intensity;\n\tCOLOR = vec4(base.rgb * (1.0 - sombra), base.a);\n}\n"
-
-[sub_resource type="ShaderMaterial" id="MaterialBarAnimated"]
-shader = SubResource("ShaderBarAnimated")
+[ext_resource type="Script" uid="uid://ct17xw4jrq63u" path="res://scenes/ui/hud/estado_tooltip.gd" id="5_state_tip"]
+[ext_resource type="Script" uid="uid://d22mh4ymnecb5" path="res://scenes/ui/hud/casilla_item_rapido.gd" id="6_item_slot"]
+[ext_resource type="Texture2D" uid="uid://clgcal1qsixly" path="res://assets/items/piedra/icons/piedra_icon.png.png" id="7_roca"]
 
 [sub_resource type="StyleBoxFlat" id="StylePanel"]
 bg_color = Color(0.075, 0.09, 0.11, 0.96)
@@ -28,6 +23,33 @@ corner_radius_bottom_left = 1
 shadow_color = Color(0.01, 0.012, 0.016, 0.9)
 shadow_size = 4
 shadow_offset = Vector2(0, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleProgresion"]
+bg_color = Color(0.075, 0.075, 0.07, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.78, 0.57, 0.27, 1)
+
+[sub_resource type="Shader" id="ShaderBarAnimated"]
+code = "shader_type canvas_item;
+
+uniform float speed = 0.55;
+uniform float intensity = 0.10;
+
+void fragment() {
+	vec4 base = COLOR;
+	float onda = sin(UV.x * 18.0 + UV.y * 3.0 + TIME * speed);
+	float sombra = smoothstep(-0.65, 0.65, onda) * intensity;
+	COLOR = vec4(base.rgb * (1.0 - sombra), base.a);
+}
+"
+
+[sub_resource type="ShaderMaterial" id="MaterialBarAnimated"]
+shader = SubResource("ShaderBarAnimated")
+shader_parameter/speed = 0.55
+shader_parameter/intensity = 0.1
 
 [sub_resource type="StyleBoxFlat" id="StyleBarEmpty"]
 bg_color = Color(0.04, 0.045, 0.055, 0.95)
@@ -80,6 +102,14 @@ shadow_color = Color(0.008, 0.01, 0.014, 0.95)
 shadow_size = 5
 shadow_offset = Vector2(0, 3)
 
+[sub_resource type="Shader" id="ShaderFlama"]
+code = "shader_type canvas_item;
+instance uniform float fase = 0.0;
+void fragment() { vec2 p = UV; p.x += sin(TIME * 5.0 + fase + p.y * 5.0) * 0.07 * (1.0 - p.y); float width = 0.5 - abs(p.x - 0.5); float shape = smoothstep(0.0, 0.07, width - (1.0 - p.y) * 0.42) * smoothstep(0.0, 0.13, p.y) * (1.0 - smoothstep(0.82, 1.0, p.y)); COLOR = vec4(COLOR.rgb * (0.9 + 0.2 * sin(TIME * 6.0 + fase) + 0.25 * p.y), COLOR.a * shape); }"
+
+[sub_resource type="ShaderMaterial" id="MaterialFlama"]
+shader = SubResource("ShaderFlama")
+
 [sub_resource type="StyleBoxFlat" id="StyleBarMovement"]
 bg_color = Color(0.84, 0.86, 0.86, 1)
 border_width_left = 1
@@ -103,14 +133,6 @@ corner_radius_top_left = 2
 corner_radius_top_right = 2
 corner_radius_bottom_right = 2
 corner_radius_bottom_left = 2
-
-[sub_resource type="StyleBoxFlat" id="StyleProgresion"]
-bg_color = Color(0.075, 0.075, 0.07, 0.96)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.78, 0.57, 0.27, 1)
 
 [node name="HUD" type="Control" unique_id=1068463453]
 layout_mode = 3
@@ -182,7 +204,7 @@ texture = ExtResource("2_portrait")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="IndicadorProgresion" type="Button" parent="HUDRoot/SeccionesHUD/SeccionJugador/Retrato"]
+[node name="IndicadorProgresion" type="Button" parent="HUDRoot/SeccionesHUD/SeccionJugador/Retrato" unique_id=959708838]
 visible = false
 layout_mode = 0
 offset_left = 97.0
@@ -191,10 +213,10 @@ offset_right = 139.0
 offset_bottom = 50.0
 tooltip_text = "Recompensa de nivel pendiente. Pulsa para elegir [P]."
 theme_override_styles/normal = SubResource("StyleProgresion")
-theme_override_styles/hover = SubResource("StyleProgresion")
 theme_override_styles/pressed = SubResource("StyleProgresion")
+theme_override_styles/hover = SubResource("StyleProgresion")
 
-[node name="Flecha" type="Polygon2D" parent="HUDRoot/SeccionesHUD/SeccionJugador/Retrato/IndicadorProgresion"]
+[node name="Flecha" type="Polygon2D" parent="HUDRoot/SeccionesHUD/SeccionJugador/Retrato/IndicadorProgresion" unique_id=2019127484]
 position = Vector2(3, 3)
 color = Color(1, 0.81, 0.42, 1)
 polygon = PackedVector2Array(18, 3, 29, 14, 24, 14, 24, 30, 12, 30, 12, 14, 7, 14)
@@ -219,12 +241,12 @@ theme_override_font_sizes/font_size = 22
 text = "SIN FICHA"
 
 [node name="VidaBarra" type="ProgressBar" parent="HUDRoot/SeccionesHUD/SeccionJugador/Recursos" unique_id=1462209239]
+material = SubResource("MaterialBarAnimated")
 layout_mode = 0
 offset_left = 16.0
 offset_top = 30.0
 offset_right = 304.0
 offset_bottom = 54.0
-material = SubResource("MaterialBarAnimated")
 theme_override_styles/background = SubResource("StyleBarEmpty")
 theme_override_styles/fill = SubResource("StyleBarHealth")
 value = 78.0
@@ -295,13 +317,15 @@ theme_override_constants/separation = 7
 custom_minimum_size = Vector2(25, 25)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleSlot")
+script = ExtResource("5_state_tip")
 
 [node name="Luz" type="ColorRect" parent="HUDRoot/SeccionesHUD/SeccionJugador/EngarcesAntorchas/Engarce1" unique_id=893997444]
+material = SubResource("MaterialFlama")
 layout_mode = 0
-offset_left = 7.0
-offset_top = 7.0
-offset_right = 18.0
-offset_bottom = 18.0
+offset_left = 3.0
+offset_top = 2.0
+offset_right = 22.0
+offset_bottom = 24.0
 mouse_filter = 2
 color = Color(0.22, 0.18, 0.12, 1)
 
@@ -309,13 +333,15 @@ color = Color(0.22, 0.18, 0.12, 1)
 custom_minimum_size = Vector2(25, 25)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleSlot")
+script = ExtResource("5_state_tip")
 
 [node name="Luz" type="ColorRect" parent="HUDRoot/SeccionesHUD/SeccionJugador/EngarcesAntorchas/Engarce2" unique_id=1333458448]
+material = SubResource("MaterialFlama")
 layout_mode = 0
-offset_left = 7.0
-offset_top = 7.0
-offset_right = 18.0
-offset_bottom = 18.0
+offset_left = 3.0
+offset_top = 2.0
+offset_right = 22.0
+offset_bottom = 24.0
 mouse_filter = 2
 color = Color(0.22, 0.18, 0.12, 1)
 
@@ -323,13 +349,15 @@ color = Color(0.22, 0.18, 0.12, 1)
 custom_minimum_size = Vector2(25, 25)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleSlot")
+script = ExtResource("5_state_tip")
 
 [node name="Luz" type="ColorRect" parent="HUDRoot/SeccionesHUD/SeccionJugador/EngarcesAntorchas/Engarce3" unique_id=625076779]
+material = SubResource("MaterialFlama")
 layout_mode = 0
-offset_left = 7.0
-offset_top = 7.0
-offset_right = 18.0
-offset_bottom = 18.0
+offset_left = 3.0
+offset_top = 2.0
+offset_right = 22.0
+offset_bottom = 24.0
 mouse_filter = 2
 color = Color(0.22, 0.18, 0.12, 1)
 
@@ -340,79 +368,6 @@ offset_top = -22.0
 offset_right = 948.0
 offset_bottom = 28.0
 mouse_filter = 1
-
-[node name="ReservasTurno" type="HBoxContainer" parent="HUDRoot/SeccionesHUD"]
-layout_mode = 0
-offset_left = 532.0
-offset_top = 56.0
-offset_right = 1292.0
-offset_bottom = 96.0
-mouse_filter = 2
-theme_override_constants/separation = 8
-
-[node name="Movimiento" type="PanelContainer" parent="HUDRoot/SeccionesHUD/ReservasTurno"]
-custom_minimum_size = Vector2(184, 40)
-layout_mode = 2
-mouse_filter = 0
-theme_override_styles/panel = SubResource("StyleSlot")
-
-[node name="Texto" type="Label" parent="HUDRoot/SeccionesHUD/ReservasTurno/Movimiento"]
-layout_mode = 2
-mouse_filter = 2
-theme_override_colors/font_color = Color(0.86, 0.83, 0.74, 1)
-theme_override_fonts/font = ExtResource("3_font")
-theme_override_font_sizes/font_size = 19
-text = "MOVIMIENTO --"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Principal" type="PanelContainer" parent="HUDRoot/SeccionesHUD/ReservasTurno"]
-custom_minimum_size = Vector2(184, 40)
-layout_mode = 2
-mouse_filter = 0
-theme_override_styles/panel = SubResource("StyleSlot")
-
-[node name="Texto" type="Label" parent="HUDRoot/SeccionesHUD/ReservasTurno/Principal"]
-layout_mode = 2
-mouse_filter = 2
-theme_override_colors/font_color = Color(0.86, 0.83, 0.74, 1)
-theme_override_fonts/font = ExtResource("3_font")
-theme_override_font_sizes/font_size = 19
-text = "PRINCIPAL --"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Adicional" type="PanelContainer" parent="HUDRoot/SeccionesHUD/ReservasTurno"]
-custom_minimum_size = Vector2(184, 40)
-layout_mode = 2
-mouse_filter = 0
-theme_override_styles/panel = SubResource("StyleSlot")
-
-[node name="Texto" type="Label" parent="HUDRoot/SeccionesHUD/ReservasTurno/Adicional"]
-layout_mode = 2
-mouse_filter = 2
-theme_override_colors/font_color = Color(0.58, 0.59, 0.59, 1)
-theme_override_fonts/font = ExtResource("3_font")
-theme_override_font_sizes/font_size = 19
-text = "ADICIONAL --"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Reaccion" type="PanelContainer" parent="HUDRoot/SeccionesHUD/ReservasTurno"]
-custom_minimum_size = Vector2(184, 40)
-layout_mode = 2
-mouse_filter = 0
-theme_override_styles/panel = SubResource("StyleSlot")
-
-[node name="Texto" type="Label" parent="HUDRoot/SeccionesHUD/ReservasTurno/Reaccion"]
-layout_mode = 2
-mouse_filter = 2
-theme_override_colors/font_color = Color(0.58, 0.59, 0.59, 1)
-theme_override_fonts/font = ExtResource("3_font")
-theme_override_font_sizes/font_size = 19
-text = "REACCIÓN --"
-horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="EstadoQuemado" type="Panel" parent="HUDRoot/SeccionesHUD/EstadosAlterados" unique_id=832046906]
 layout_mode = 0
@@ -428,7 +383,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
 theme_override_colors/font_color = Color(0.91, 0.3, 0.14, 1)
 theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 24
@@ -451,7 +405,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
 theme_override_colors/font_color = Color(0.46, 0.73, 0.36, 1)
 theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 24
@@ -474,11 +427,75 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
 theme_override_colors/font_color = Color(0.82, 0.67, 0.27, 1)
 theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 24
 text = "C"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ReservasTurno" type="HBoxContainer" parent="HUDRoot/SeccionesHUD" unique_id=547129885]
+layout_mode = 0
+offset_left = 532.0
+offset_top = 56.0
+offset_right = 1292.0
+offset_bottom = 96.0
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Movimiento" type="PanelContainer" parent="HUDRoot/SeccionesHUD/ReservasTurno" unique_id=736016179]
+custom_minimum_size = Vector2(184, 40)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleSlot")
+
+[node name="Texto" type="Label" parent="HUDRoot/SeccionesHUD/ReservasTurno/Movimiento" unique_id=1341826084]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.83, 0.74, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 19
+text = "MOVIMIENTO --"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Principal" type="PanelContainer" parent="HUDRoot/SeccionesHUD/ReservasTurno" unique_id=320638755]
+custom_minimum_size = Vector2(184, 40)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleSlot")
+
+[node name="Texto" type="Label" parent="HUDRoot/SeccionesHUD/ReservasTurno/Principal" unique_id=551857487]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.83, 0.74, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 19
+text = "PRINCIPAL --"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Adicional" type="PanelContainer" parent="HUDRoot/SeccionesHUD/ReservasTurno" unique_id=641430038]
+custom_minimum_size = Vector2(184, 40)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleSlot")
+
+[node name="Texto" type="Label" parent="HUDRoot/SeccionesHUD/ReservasTurno/Adicional" unique_id=480362148]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.58, 0.59, 0.59, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 19
+text = "ADICIONAL --"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Reaccion" type="PanelContainer" parent="HUDRoot/SeccionesHUD/ReservasTurno" unique_id=1308457657]
+custom_minimum_size = Vector2(184, 40)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleSlot")
+
+[node name="Texto" type="Label" parent="HUDRoot/SeccionesHUD/ReservasTurno/Reaccion" unique_id=1702190319]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.58, 0.59, 0.59, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 19
+text = "REACCIÓN --"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -567,9 +584,8 @@ offset_bottom = 110.0
 theme_override_font_sizes/font_size = 22
 theme_override_styles/normal = SubResource("StyleSlot")
 script = ExtResource("6_item_slot")
-indice_rapido = 0
 
-[node name="Icono" type="TextureRect" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura1"]
+[node name="Icono" type="TextureRect" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura1" unique_id=1801070455]
 texture_filter = 1
 layout_mode = 1
 anchors_preset = 15
@@ -579,18 +595,21 @@ offset_left = 7.0
 offset_top = 7.0
 offset_right = -7.0
 offset_bottom = -7.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Cantidad" type="Label" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura1"]
+[node name="Cantidad" type="Label" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura1" unique_id=926682774]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_right = -6.0
 offset_bottom = -4.0
-mouse_filter = 2
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_colors/font_color = Color(0.92, 0.88, 0.76, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
 theme_override_constants/shadow_offset_x = 1
@@ -611,7 +630,7 @@ theme_override_styles/normal = SubResource("StyleSlot")
 script = ExtResource("6_item_slot")
 indice_rapido = 1
 
-[node name="Icono" type="TextureRect" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura2"]
+[node name="Icono" type="TextureRect" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura2" unique_id=193784096]
 texture_filter = 1
 layout_mode = 1
 anchors_preset = 15
@@ -621,18 +640,21 @@ offset_left = 7.0
 offset_top = 7.0
 offset_right = -7.0
 offset_bottom = -7.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Cantidad" type="Label" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura2"]
+[node name="Cantidad" type="Label" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura2" unique_id=650860742]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_right = -6.0
 offset_bottom = -4.0
-mouse_filter = 2
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_colors/font_color = Color(0.92, 0.88, 0.76, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
 theme_override_constants/shadow_offset_x = 1
@@ -653,7 +675,7 @@ theme_override_styles/normal = SubResource("StyleSlot")
 script = ExtResource("6_item_slot")
 indice_rapido = 2
 
-[node name="Icono" type="TextureRect" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura3"]
+[node name="Icono" type="TextureRect" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura3" unique_id=1264192667]
 texture_filter = 1
 layout_mode = 1
 anchors_preset = 15
@@ -663,18 +685,21 @@ offset_left = 7.0
 offset_top = 7.0
 offset_right = -7.0
 offset_bottom = -7.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Cantidad" type="Label" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura3"]
+[node name="Cantidad" type="Label" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura3" unique_id=1022720242]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_right = -6.0
 offset_bottom = -4.0
-mouse_filter = 2
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_colors/font_color = Color(0.92, 0.88, 0.76, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
 theme_override_constants/shadow_offset_x = 1
@@ -695,7 +720,7 @@ theme_override_styles/normal = SubResource("StyleSlot")
 script = ExtResource("6_item_slot")
 indice_rapido = 3
 
-[node name="Icono" type="TextureRect" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura4"]
+[node name="Icono" type="TextureRect" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura4" unique_id=1667476645]
 texture_filter = 1
 layout_mode = 1
 anchors_preset = 15
@@ -705,18 +730,21 @@ offset_left = 7.0
 offset_top = 7.0
 offset_right = -7.0
 offset_bottom = -7.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Cantidad" type="Label" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura4"]
+[node name="Cantidad" type="Label" parent="HUDRoot/SeccionesHUD/SeccionItems/Ranura4" unique_id=1079735867]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_right = -6.0
 offset_bottom = -4.0
-mouse_filter = 2
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_colors/font_color = Color(0.92, 0.88, 0.76, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
 theme_override_constants/shadow_offset_x = 1
@@ -749,31 +777,28 @@ mouse_filter = 2
 theme_override_constants/separation = 3
 
 [node name="MovimientoBarra" type="ProgressBar" parent="HUDRoot/SeccionesHUD" unique_id=181223020]
+material = SubResource("MaterialBarAnimated")
 layout_mode = 0
 offset_left = 1410.25
 offset_top = 214.75
 offset_right = 1495.8372
 offset_bottom = 228.5
 rotation = -1.5707964
-material = SubResource("MaterialBarAnimated")
 tooltip_text = "Movimiento restante"
-mouse_filter = 0
 theme_override_styles/background = SubResource("StyleBarEmpty")
 theme_override_styles/fill = SubResource("StyleBarMovement")
 show_percentage = false
 
 [node name="ExperienciaBarra" type="ProgressBar" parent="HUDRoot" unique_id=181223030]
+material = SubResource("MaterialBarAnimated")
 layout_mode = 0
 offset_left = 360.0
 offset_top = 1058.0
 offset_right = 1560.0
 offset_bottom = 1066.0
-material = SubResource("MaterialBarAnimated")
 tooltip_text = "Experiencia acumulada: 0 XP"
-mouse_filter = 0
 theme_override_styles/background = SubResource("StyleBarEmpty")
 theme_override_styles/fill = SubResource("StyleBarExperience")
-value = 0.0
 show_percentage = false
 
 [node name="LogAcontecimientos" parent="HUDRoot" unique_id=155326214 instance=ExtResource("4_log")]
@@ -815,3 +840,92 @@ theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 16
 text = "ACCIONES RESTANTES: 3"
 horizontal_alignment = 1
+
+[node name="AccesoProgresion" type="Button" parent="HUDRoot" unique_id=369803138]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -362.0
+offset_top = -87.0
+offset_right = -269.0
+offset_bottom = 6.0
+grow_horizontal = 0
+grow_vertical = 0
+focus_mode = 0
+flat = true
+
+[node name="Roca" type="TextureRect" parent="HUDRoot/AccesoProgresion" unique_id=1008919885]
+texture_filter = 1
+modulate = Color(0.78, 0.88, 1, 1)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("7_roca")
+expand_mode = 1
+stretch_mode = 5
+flip_h = true
+
+[node name="Simbolo" type="Label" parent="HUDRoot/AccesoProgresion" unique_id=1400079205]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.52, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0.07, 0.05, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 38
+text = "↑"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AccesoDescanso" type="Button" parent="HUDRoot" unique_id=2143093367]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 273.0
+offset_top = -82.0
+offset_right = 366.0
+offset_bottom = 11.0
+grow_vertical = 0
+focus_mode = 0
+flat = true
+
+[node name="Roca" type="TextureRect" parent="HUDRoot/AccesoDescanso" unique_id=1216050091]
+texture_filter = 1
+modulate = Color(0.78, 0.88, 1, 1)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("7_roca")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Simbolo" type="Label" parent="HUDRoot/AccesoDescanso" unique_id=792526365]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.52, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0.07, 0.05, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 30
+text = "ZzZ"
+horizontal_alignment = 1
+vertical_alignment = 1

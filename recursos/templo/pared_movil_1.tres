@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="DefinicionPuerta" format=3]
+
+[ext_resource type="Script" path="res://scripts/interacciones/interactuables/puertas/definicion_puerta.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/tiles/structures/walls/sources/walls_cave_tall.png" id="2"]
+[ext_resource type="AudioStream" path="res://assets/sonidos/sonidos finales/sonido ambiente/Rock 1.wav" id="3"]
+
+[resource]
+script = ExtResource("1")
+id_definicion = &"templo_pared_movil_1"
+nombre = "Muro de piedra"
+descripcion_base = "Un bloque de piedra encajado entre los muros del templo."
+modo_control = 1
+textura = ExtResource("2")
+region_cerrada = Rect2(96, 0, 96, 128)
+region_abierta = Rect2(96, 0, 96, 128)
+desplazamiento_sprite = Vector2(0, -48)
+desplazamiento_apertura = Vector2(64, -32)
+sonido_abrir = ExtResource("3")

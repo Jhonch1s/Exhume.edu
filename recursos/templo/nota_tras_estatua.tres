@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="DefinicionInteractuable" format=3 uid="uid://cqqpor13us7df"]
+
+[ext_resource type="Script" uid="uid://3dmpp1fn7gc7" path="res://scripts/interacciones/examen/fragmento_informacion.gd" id="1_fragmento"]
+[ext_resource type="Texture2D" uid="uid://b8nuoqi25606s" path="res://assets/ilustraciones/examen/pergamino.png" id="2_ilustracion"]
+[ext_resource type="Script" uid="uid://bccqt6gfe8843" path="res://scripts/interacciones/examen/perfil_observacion.gd" id="3_perfil"]
+[ext_resource type="Script" uid="uid://c5sxr7hy2ff83" path="res://scripts/interacciones/interactuables/definicion_interactuable.gd" id="4_definicion"]
+[ext_resource type="AudioStream" uid="uid://13neah6m3tb8" path="res://assets/sonidos/sonidos finales/sonidos extras/Page 03.wav" id="5_sonido"]
+
+[sub_resource type="Resource" id="basico"]
+script = ExtResource("1_fragmento")
+id_fragmento = &"identidad"
+nivel = 1
+id_mensaje = &"examen.templo.nota_estatua.basico"
+
+[sub_resource type="Resource" id="detalle"]
+script = ExtResource("1_fragmento")
+id_fragmento = &"detalle"
+nivel = 2
+id_mensaje = &"examen.templo.nota_estatua.detalle"
+
+[sub_resource type="Resource" id="perfil"]
+script = ExtResource("3_perfil")
+alcance_secreto = 0.0
+
+[resource]
+script = ExtResource("4_definicion")
+id_definicion = &"templo_nota_tras_estatua"
+nombre = "Nota polvorienta"
+descripcion_base = "Una hoja polvorienta yace cerca de la gran estatua. La escritura todavía es legible."
+ilustracion_examen = ExtResource("2_ilustracion")
+fragmentos_informacion = Array[ExtResource("1_fragmento")]([SubResource("basico"), SubResource("detalle")])
+perfil_observacion = SubResource("perfil")
+sonido_examen = ExtResource("5_sonido")

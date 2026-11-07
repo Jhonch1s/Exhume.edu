@@ -70,6 +70,13 @@ script = ExtResource("prision_entrada_item")
 definicion = ExtResource("prision_antorcha")
 cantidad = 2
 
+[sub_resource type="Curve2D" id="Curve2D_jtkln"]
+resource_local_to_scene = true
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, 29, 39, 0, 0, 0, 0, -85, 36, 0, 0, 0, 0, -141, -69, 0, 0, 0, 0, -1, -99)
+}
+point_count = 4
+
 [sub_resource type="Curve2D" id="Curve2D_inthk"]
 resource_local_to_scene = true
 _data = {
@@ -79,10 +86,6 @@ point_count = 4
 
 [sub_resource type="Curve2D" id="Curve2D_3y3p1"]
 resource_local_to_scene = true
-_data = {
-"points": PackedVector2Array(0, 0, 0, 0, 29, 39, 0, 0, 0, 0, -85, 36, 0, 0, 0, 0, -141, -69, 0, 0, 0, 0, -1, -99)
-}
-point_count = 4
 
 [sub_resource type="Curve2D" id="Curve2D_olbwr"]
 resource_local_to_scene = true
@@ -91,9 +94,6 @@ resource_local_to_scene = true
 resource_local_to_scene = true
 
 [sub_resource type="Curve2D" id="Curve2D_8aue3"]
-resource_local_to_scene = true
-
-[sub_resource type="Curve2D" id="Curve2D_udsty"]
 resource_local_to_scene = true
 _data = {
 "points": PackedVector2Array(0, 0, 0, 0, -65, -42, 0, 0, 0, 0, 47, -13)
@@ -388,7 +388,7 @@ texture = ExtResource("13_oopww")
 offset = Vector2(0, -184)
 
 [node name="Patrulla" parent="Interactuables/Personajes/Rengo" index="2"]
-curve = SubResource("Curve2D_inthk")
+curve = SubResource("Curve2D_jtkln")
 
 [node name="Peeble" parent="Interactuables/Personajes" unique_id=2101092238 instance=ExtResource("12_oopww")]
 position = Vector2(1248, 144)
@@ -404,7 +404,7 @@ texture = ExtResource("13_oopww")
 offset = Vector2(0, -184)
 
 [node name="Patrulla" parent="Interactuables/Personajes/Peeble" index="2"]
-curve = SubResource("Curve2D_3y3p1")
+curve = SubResource("Curve2D_inthk")
 
 [node name="Roffa" parent="Interactuables/Personajes" unique_id=1294033136 instance=ExtResource("12_oopww")]
 position = Vector2(992, -976)
@@ -421,7 +421,7 @@ offset = Vector2(0, -184)
 
 [node name="Patrulla" parent="Interactuables/Personajes/Roffa" index="2"]
 position = Vector2(-12, 33)
-curve = SubResource("Curve2D_olbwr")
+curve = SubResource("Curve2D_3y3p1")
 
 [node name="SirvienteEek" parent="Interactuables/Personajes" unique_id=801714611 instance=ExtResource("27_d7eni")]
 position = Vector2(2816, -1280)
@@ -432,7 +432,7 @@ id_instancia = &"sirviente_eek_001"
 offset = Vector2(0, -32)
 
 [node name="Patrulla" parent="Interactuables/Personajes/SirvienteEek" index="2"]
-curve = SubResource("Curve2D_u52ja")
+curve = SubResource("Curve2D_olbwr")
 
 [node name="TerrorNocturno" parent="Interactuables/Personajes" unique_id=801295521 instance=ExtResource("28_jtkln")]
 position = Vector2(2784, -1136)
@@ -443,7 +443,7 @@ id_instancia = &"terror_nocturno_001"
 offset = Vector2(0, -32)
 
 [node name="Patrulla" parent="Interactuables/Personajes/TerrorNocturno" index="2"]
-curve = SubResource("Curve2D_8aue3")
+curve = SubResource("Curve2D_u52ja")
 
 [node name="SirvienteEek2" parent="Interactuables/Personajes" unique_id=849922405 instance=ExtResource("27_d7eni")]
 position = Vector2(-704, -704)
@@ -454,7 +454,7 @@ id_instancia = &"sirviente_eek_002"
 offset = Vector2(0, -32)
 
 [node name="Patrulla" parent="Interactuables/Personajes/SirvienteEek2" index="2"]
-curve = SubResource("Curve2D_udsty")
+curve = SubResource("Curve2D_8aue3")
 
 [node name="Guias" type="Node2D" parent="Interactuables" unique_id=2089181346]
 y_sort_enabled = true
@@ -499,6 +499,10 @@ y_sort_enabled = true
 
 [node name="PuntoSpawnEntrada" parent="PuntosSpawn" unique_id=516284755 instance=ExtResource("14_spawn")]
 position = Vector2(32, 16)
+
+[node name="PuntoSpawnEntrada2" parent="PuntosSpawn" unique_id=575736004 instance=ExtResource("14_spawn")]
+position = Vector2(1728, -1664)
+id_spawn = &"entrada_prision"
 
 [node name="EfectosSuperficie" type="Node2D" parent="." unique_id=1480593722]
 y_sort_enabled = true

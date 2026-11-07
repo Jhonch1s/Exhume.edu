@@ -25,27 +25,27 @@ func _ready() -> void:
 		&"cantidad": 1, &"caras": 2, &"signo": 1,
 	}])
 	if (
-		"1d2 de daño" not in hud.estados[0].tooltip_text
-		or "3 turnos restantes" not in hud.estados[0].tooltip_text
+		"1d2 de daño" not in str(hud.estados[0].get_meta("descripcion", ""))
+		or "3 turnos restantes" not in str(hud.estados[0].get_meta("descripcion", ""))
 		or (hud.estados[0].get_node("Icono") as Label).mouse_filter != Control.MOUSE_FILTER_IGNORE
 	):
 		_fallar("El tooltip de quemado no describe el daño o su duración.")
 		return
 	ficha.consumir_tick_estado(&"quemado")
-	if "2 turnos restantes" not in hud.estados[0].tooltip_text:
+	if "2 turnos restantes" not in str(hud.estados[0].get_meta("descripcion", "")):
 		_fallar("El tooltip no actualizó los turnos restantes.")
 		return
 	ficha.aplicar_o_renovar_estado(&"veneno", 0.0, 2, 2, null, [{
 		&"cantidad": 1, &"caras": 4, &"signo": 1,
 	}])
 	if (
-		"1d4 de daño" not in hud.estados[1].tooltip_text
-		or "2 turnos restantes" not in hud.estados[1].tooltip_text
+		"1d4 de daño" not in str(hud.estados[1].get_meta("descripcion", ""))
+		or "2 turnos restantes" not in str(hud.estados[1].get_meta("descripcion", ""))
 	):
 		_fallar("El tooltip de veneno no describe el daño o su duración.")
 		return
 	var cuadro := hud.estados[1].call(
-		&"_make_custom_tooltip", hud.estados[1].tooltip_text
+		&"_make_custom_tooltip", str(hud.estados[1].get_meta("descripcion", ""))
 	) as PanelContainer
 	if cuadro == null:
 		_fallar("El estado no crea el tooltip con el marco del HUD.")
@@ -55,6 +55,21 @@ func _ready() -> void:
 	if panel_veneno.call(&"_get_tooltip", Vector2.ZERO) != "":
 		_fallar("El tooltip nativo del estado debe estar desactivado para respetar el filtro CRT.")
 		return
+	if not panel_veneno.tooltip_text.is_empty():
+		_fallar("El estado no debe activar un tooltip nativo adicional.")
+		return
+	var engarce := hud.antorcha_engarces[0]
+	engarce.mouse_entered.emit()
+	if hud.tooltip_estado == null or not engarce.tooltip_text.is_empty():
+		_fallar("La antorcha debe usar solo el tooltip del HUD.")
+		return
+	engarce.mouse_exited.emit()
+	for acceso in [hud.boton_progresion, hud.boton_campamento]:
+		acceso.mouse_entered.emit()
+		if hud.tooltip_estado == null or not acceso.tooltip_text.is_empty():
+			_fallar("Los accesos deben mostrar solo el tooltip del HUD.")
+			return
+		acceso.mouse_exited.emit()
 	panel_veneno.mouse_entered.emit()
 	if hud.tooltip_estado == null or hud.tooltip_estado.get_parent() != hud.get_node("HUDRoot"):
 		_fallar("El tooltip del estado debe dibujarse dentro del HUD, bajo el filtro CRT.")
@@ -64,7 +79,7 @@ func _ready() -> void:
 		_fallar("El tooltip del estado debe ocultarse al salir del icono.")
 		return
 	ficha.consumir_tick_estado(&"veneno")
-	if "1 turno restante" not in hud.estados[1].tooltip_text:
+	if "1 turno restante" not in str(hud.estados[1].get_meta("descripcion", "")):
 		_fallar("El tooltip de veneno no actualizó la duración.")
 		return
 	var ranura_antorcha := hud.items_rapidos[0]

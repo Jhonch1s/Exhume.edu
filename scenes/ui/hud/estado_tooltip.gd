@@ -10,7 +10,10 @@ func _get_tooltip(_at_position: Vector2) -> String:
 
 func _make_custom_tooltip(for_text: String) -> Object:
 	var cuadro := PanelContainer.new()
-	var piedra := get_theme_stylebox(&"panel").duplicate() as StyleBoxFlat
+	var estilo := get_theme_stylebox(&"panel")
+	if not estilo is StyleBoxFlat:
+		estilo = get_node("../../../EstadosAlterados/EstadoQuemado").get_theme_stylebox(&"panel")
+	var piedra := estilo.duplicate() as StyleBoxFlat
 	piedra.content_margin_left = 12.0
 	piedra.content_margin_top = 9.0
 	piedra.content_margin_right = 12.0
@@ -25,7 +28,7 @@ func _make_custom_tooltip(for_text: String) -> Object:
 	titulo.text = for_text.get_slice("\n", 0)
 	titulo.add_theme_font_override(&"font", FUENTE)
 	titulo.add_theme_font_size_override(&"font_size", 20)
-	titulo.add_theme_color_override(&"font_color", ($Icono as Label).modulate)
+	titulo.add_theme_color_override(&"font_color", ($Icono as Label).modulate if has_node("Icono") else Color("#f39a35"))
 	contenido.add_child(titulo)
 
 	var descripcion := Label.new()

@@ -22,6 +22,13 @@ func ejecutar(escenario: Node, _trigger: TriggerMapa) -> StringName:
 	)
 	if globo == null:
 		return &"dialogo_trigger_no_iniciado"
+	if globo.has_method(&"configurar_participantes"):
+		globo.call(
+			&"configurar_participantes",
+			escenario.ficha_jugador.nombre,
+			escenario._obtener_ilustracion_dialogo_jugador(),
+			"", null
+		)
 	# Cerrar el globo anticipadamente también libera la cámara del escenario.
 	globo.tree_exiting.connect(escenario._on_dialogo_camara_finalizado.bind(recurso_dialogo), CONNECT_ONE_SHOT)
 	escenario.gestor_triggers.esperar_globo(globo)

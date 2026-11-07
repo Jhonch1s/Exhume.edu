@@ -1,5 +1,7 @@
 # Contenido
 
+Duraciones actuales y compatibilidad de guardados: [Superficies](SUPERFICIES.md).
+
 Consulta [[../GUIA_CREAR_CONTENIDO_INTERACCIONES|Crear y diagnosticar contenido]]
 para duplicar, colocar, conectar y validar contenido real.
 
@@ -14,6 +16,12 @@ Una variante reutiliza escena y definición. Un comportamiento nuevo implementa 
 receptor o reacción fuera de `GestorAcciones` y deja una prueba headless pequeña.
 
 ## Guías específicas
+
+- [Templo de las Trampas](TEMPLO_DE_LAS_TRAMPAS.md): contenido, botín, conexiones y estado de implementación.
+
+- [Gestor de VFX](VFX.md): sacudidas por acontecimientos e integración con cámara y paredes.
+
+- [Paredes móviles](PAREDES_MOVILES.md): placa, deslizamiento y apertura persistente del pasaje del Templo.
 
 - [Cofres](COFRES.md): autoría desde el Inspector, contenido inicial, interfaz y niebla.
 - [Personajes](PERSONAJES.md): modelos 3D de Guerrero, Mago y Ladrón y su integración en la ficha 2D.

@@ -24,6 +24,7 @@ signal estado_modal_interaccion_cambiado(activo: bool)
 	zona_actual.get_node("CapaParedes") as CapaParedesOclusivas
 )
 @onready var camera_2d: CamaraEscenario = $Camera2D
+@onready var gestor_vfx: Node = $GestorVFX
 @onready var capa_camino: TileMapLayer = $CapaCamino
 @onready var trayectoria_lanzamiento: Line2D = $TrayectoriaLanzamiento
 @onready var gestor_vision: FOVManager = $GestorVision
@@ -279,6 +280,11 @@ func _ready() -> void:
 	hud.bola_fuego_solicitada.connect(_on_bola_fuego_hud)
 	hud.habilidad_aprendida_solicitada.connect(_on_habilidad_aprendida_hud)
 	hud.progresion_solicitada.connect(abrir_progresion)
+	if es_escenario_de_descanso and is_instance_valid(control_descanso):
+		hud.boton_campamento.set_meta("descripcion", "Regresar\nSalir del campamento y volver a la aventura.")
+		hud.campamento_solicitado.connect(control_descanso.volver_al_mundo)
+	else:
+		hud.campamento_solicitado.connect(entrar_campamento)
 	hud.item_rapido_solicitado.connect(_on_item_rapido_hud_solicitado)
 	panel_orden_combate.retrato_pulsado.connect(_on_retrato_combate_pulsado)
 	menu_contextual.opcion_accion_elegida.connect(_on_opcion_contextual_elegida)
@@ -330,6 +336,7 @@ func _ready() -> void:
 		else:
 			for error in errores_contenido:
 				push_error("Contenido de zona invalido: %s" % error)
+	gestor_vfx.configurar(camera_2d, tablero, gestor_acciones)
 	pathfinding.inicializar(tablero.datos)
 	gestor_vision.inicializar(capa_oscuridad, tablero)
 	if not preparando_viaje:
@@ -364,7 +371,6 @@ func _process(delta: float) -> void:
 	if ficha_jugador != null:
 		habilidades_nivel_dos.limpiar_agarre()
 	if is_instance_valid(boton_progresion):
-		boton_progresion.text = "Nivel 2 · Elegir recompensa [P]" if ficha_jugador != null and ficha_jugador.nivel_recompensa_pendiente == 2 else "Progresión [P]"
 		var bloqueo_progresion := motivo_bloqueo_campamento()
 		boton_progresion.disabled = bloqueo_progresion != &""
 		hud.indicador_progresion.tooltip_text = (
@@ -374,7 +380,7 @@ func _process(delta: float) -> void:
 	if is_instance_valid(boton_campamento):
 		var motivo_campamento := motivo_bloqueo_campamento()
 		boton_campamento.disabled = motivo_campamento != &""
-		boton_campamento.tooltip_text = mensaje_bloqueo_campamento(motivo_campamento)
+		boton_campamento.set_meta("descripcion", "Descanso\n" + mensaje_bloqueo_campamento(motivo_campamento))
 	if capa_vision_npc.visible:
 		capa_vision_npc.actualizar(gestor_rondas)
 	if ficha_jugador and capa_paredes_oclusivas:
@@ -951,6 +957,7 @@ func cargar_partida(ruta: String = RUTA_GUARDADO) -> StringName:
 			return preparacion
 		gestor_guardado = preparacion as GestorRondas
 	_restaurando_partida = true
+	gestor_vfx.limpiar()
 	var tenia_vision := gestor_vision.tiene_vision_calculada
 	# Las señales de restauración no deben explorar desde la posición anterior.
 	gestor_vision.tiene_vision_calculada = false
@@ -1015,14 +1022,8 @@ func _crear_acceso_progresion() -> void:
 	capa_progresion.add_child(panel_progresion)
 	panel_progresion.visibility_changed.connect(_actualizar_estado_modal_interaccion)
 	panel_progresion.recompensa_elegida.connect(_aprender_recompensa)
-	boton_progresion = Button.new()
-	boton_progresion.name = "AccesoProgresion"
-	boton_progresion.position = Vector2(24, 124)
-	boton_progresion.custom_minimum_size = Vector2(270, 44)
-	boton_progresion.text = "Progresión [P]"
-	boton_progresion.tooltip_text = "Consulta tu nivel y aprende una de las cuatro recompensas de tu clase al llegar a 100 XP. Fuera de combate."
-	boton_progresion.pressed.connect(abrir_progresion)
-	$CanvasLayer.add_child(boton_progresion)
+	boton_progresion = hud.boton_progresion
+	boton_progresion.set_meta("descripcion", "Progresión\nConsulta tu nivel y las recompensas de tu clase.")
 
 
 func abrir_progresion() -> StringName:
@@ -1194,13 +1195,7 @@ func _crear_ficha() -> Ficha:
 
 
 func _crear_acceso_campamento() -> void:
-	boton_campamento = Button.new()
-	boton_campamento.name = "AccesoCampamento"
-	boton_campamento.text = "Campamento [B]"
-	boton_campamento.position = Vector2(24, 72)
-	boton_campamento.custom_minimum_size = Vector2(210, 44)
-	boton_campamento.pressed.connect(entrar_campamento)
-	$CanvasLayer.add_child(boton_campamento)
+	boton_campamento = hud.boton_campamento
 
 
 func motivo_bloqueo_campamento() -> StringName:
@@ -1241,6 +1236,7 @@ func entrar_campamento() -> StringName:
 func _mostrar_campamento() -> void:
 	if is_instance_valid(campamento):
 		return
+	gestor_vfx.limpiar()
 	CursorJuego.ocultar_probabilidad_ataque()
 	if is_instance_valid(presentacion_zona):
 		presentacion_zona.queue_free()
@@ -4055,6 +4051,7 @@ func _desactivar_estado_cerca_muerte() -> void:
 
 
 func _mostrar_pantalla_muerte() -> void:
+	gestor_vfx.limpiar()
 	if is_instance_valid(reproductor_musica) and reproductor_musica.playing:
 		reproductor_musica.stop()
 	if is_instance_valid(reproductor_fuego) and reproductor_fuego.playing:

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="DefinicionItem" format=3]
+
+[ext_resource type="Script" path="res://scripts/interacciones/items/definicion_item.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/items/amuleto_klink/icono.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/items/amuleto_klink/ilustracion.png" id="3"]
+[ext_resource type="PackedScene" path="res://assets/items/amuleto_klink/suelo.tscn" id="4"]
+
+[resource]
+script = ExtResource("1")
+id_definicion = &"amuleto_klink"
+nombre = "Amuleto del Pulso Firme"
+descripcion_base = "Un medallón de bronce con tres dedos de plata articulados sobre una rueda dentada. Se cuenta que perteneció a Maese Klink, artífice del taller de trampas instalado en el antiguo templo. Lo llevaba junto al pecho cuando ajustaba resortes capaces de cercenar una mano. Al tocarlo, un leve temblor recorre el metal y tus dedos encuentran su sitio. Equipado: otorga ventaja en las tiradas de Destreza."
+icono = ExtResource("2")
+ilustracion_examen = ExtResource("3")
+escena_mundo = ExtResource("4")
+etiquetas = Array[StringName]([&"amuleto"])
+magnitudes = Dictionary[StringName, float]({&"peso": 0.2})
+efectos_equipo = Array[Dictionary]([{"tipo": "tirada", "prueba": "destreza", "modo": "ventaja"}])
+

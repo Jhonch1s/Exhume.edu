@@ -63,7 +63,7 @@ func _ejecutar() -> void:
 		and tablero.obtener_item_suelo(&"piedras_suelo").desplazamiento_visual
 			== Vector2(3.5, -2.0)
 		and not tablero.efectos_superficie_por_id.has(&"humo_extra")
-		and restaurada.call(&"obtener_turnos_restantes_superficie") == 7,
+		and restaurada.call(&"obtener_turnos_restantes_superficie") == int(copia_json["superficies"][0]["turnos_restantes"]),
 		"El snapshot debe reemplazar exactamente items, superficies y duracion."
 	)
 

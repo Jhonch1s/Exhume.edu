@@ -1,8 +1,21 @@
 [gd_scene format=3 uid="uid://c64qchxwoxucd"]
 
-[ext_resource type="Theme" uid="uid://lef354d5f11x" path="res://assets/ui/themes/tema_interacciones.tres" id="1_lpglp"]
+[ext_resource type="Theme" uid="uid://de5w5spo1otp" path="res://assets/ui/themes/tema_tirada_dados.tres" id="1_lpglp"]
 [ext_resource type="Script" uid="uid://bdm3a6p4beygh" path="res://scenes/ui/interacciones/menu_contextual_interacciones.gd" id="1_menu"]
 [ext_resource type="FontFile" uid="uid://c0l0sby5jy2p4" path="res://assets/ui/fonts/Amarante-Regular.ttf" id="3_qborq"]
+[ext_resource type="Texture2D" path="res://assets/ui/panels/interacciones/panel_resultado_accion_frame_v01.png" id="4_frame"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_menu"]
+content_margin_left = 21.0
+content_margin_top = 19.0
+content_margin_right = 21.0
+content_margin_bottom = 19.0
+texture = ExtResource("4_frame")
+texture_margin_left = 48.0
+texture_margin_top = 56.0
+texture_margin_right = 48.0
+texture_margin_bottom = 56.0
+modulate_color = Color(0.72, 0.72, 0.72, 1)
 
 [node name="MenuContextualInteracciones" type="PanelContainer" unique_id=885564624]
 visible = false
@@ -10,6 +23,7 @@ custom_minimum_size = Vector2(220, 0)
 offset_right = 220.0
 offset_bottom = 160.0
 theme = ExtResource("1_lpglp")
+theme_override_styles/panel = SubResource("StyleBoxTexture_menu")
 script = ExtResource("1_menu")
 
 [node name="Margen" type="MarginContainer" parent="." unique_id=955545530]
@@ -25,7 +39,6 @@ theme_override_constants/separation = 10
 
 [node name="Titulo" type="Label" parent="Margen/Contenido" unique_id=213218783]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.12941177, 0.10980392, 0.08627451, 1)
 theme_override_fonts/font = ExtResource("3_qborq")
 theme_override_font_sizes/font_size = 20
 text = "Objetivo"

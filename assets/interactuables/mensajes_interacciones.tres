@@ -12,6 +12,8 @@ mensajes = {
 &"combate.npc_ataque_acertado": "El enemigo te alcanza.",
 &"combate.npc_ataque_esquivado": "Esquivas el ataque del enemigo.",
 &"combate.npc_ataque_fallido": "El enemigo falla el ataque.",
+&"examen.templo.nota_estatua.basico": "Una hoja polvorienta yace cerca de la gran estatua. La escritura todavía es legible.",
+&"examen.templo.nota_estatua.detalle": "«Detrás del que no tiene rostro, la piedra suena hueca. No encontré cerradura alguna; quizá Klink escondió otro de sus mecanismos por aquí.»",
 &"dialogo_no_disponible": "Este personaje no tiene un diálogo disponible.",
 &"eek.mordida": "La mordida venenosa causa 1d6+3 de daño.",
 &"eek.mordida_resistida": "El objetivo supera la prueba de FUE y resiste la mordida venenosa.",
