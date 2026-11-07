@@ -1,5 +1,7 @@
 extends SceneTree
 
+var EstadoPartida = preload("res://scripts/estado_partida.gd").new()
+
 
 func _initialize() -> void:
 	call_deferred(&"_ejecutar")

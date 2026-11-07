@@ -29,6 +29,12 @@ signal presionado
 		modo_horizontal = valor
 		_configurar_orientacion()
 
+## Altura de la cámara en modo horizontal para centrar el dado verticalmente en la bandeja.
+@export var altura_camara_horizontal: float = 0.68:
+	set(valor):
+		altura_camara_horizontal = valor
+		_configurar_orientacion()
+
 const ANGULOS_POR_VALOR := {
 	1: 270.0,
 	2: 30.0,
@@ -69,7 +75,7 @@ func _configurar_orientacion() -> void:
 	if not is_inside_tree() or not is_node_ready():
 		return
 	if modo_horizontal:
-		camara.position = Vector3(0.0, 0.45, 2.2)
+		camara.position = Vector3(0.0, altura_camara_horizontal, 2.2)
 		camara.rotation_degrees = Vector3(-18.0, 0.0, 0.0)
 		camara.size = 0.82
 		pivote_dado.rotation_degrees = Vector3(0.0, 0.0, -90.0)

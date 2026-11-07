@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://c3g23tii0ma53"
+path="res://.godot/imported/lograras sobrevivir.mp3-f62e06b4c77e28fb341c64716d9f6da2.mp3str"
+
+[deps]
+
+source_file="res://assets/sonidos/narrador/lograras sobrevivir.mp3"
+dest_files=["res://.godot/imported/lograras sobrevivir.mp3-f62e06b4c77e28fb341c64716d9f6da2.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

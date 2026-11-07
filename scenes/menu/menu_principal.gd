@@ -1,5 +1,8 @@
 extends Control
 
+const SONIDO_NARRADOR_CONTINUAR: AudioStream = preload("res://assets/sonidos/narrador/vuelve a la oscuridad.mp3")
+const SONIDO_NARRADOR_NUEVA_EXPLORACION: AudioStream = preload("res://assets/sonidos/narrador/lograras sobrevivir.mp3")
+
 @onready var musica_menu: AudioStreamPlayer = $MusicaMenu
 @onready var menu_colgante: Control = $MenuColgante
 @onready var nueva_partida: Control = $NuevaPartida
@@ -16,10 +19,29 @@ func _ready() -> void:
 	if musica_menu.stream is AudioStreamMP3:
 		musica_menu.stream.loop = true
 
+
+func _reproducir_narrador_global(stream: AudioStream, vol_db: float = 2.5) -> void:
+	if stream == null or not is_inside_tree():
+		return
+	var anterior := get_tree().root.get_node_or_null("AudioNarradorGlobal") as AudioStreamPlayer
+	if is_instance_valid(anterior):
+		anterior.stop()
+		anterior.queue_free()
+	var rep := AudioStreamPlayer.new()
+	rep.name = "AudioNarradorGlobal"
+	rep.stream = stream
+	rep.volume_db = vol_db
+	rep.process_mode = Node.PROCESS_MODE_ALWAYS
+	get_tree().root.add_child(rep)
+	rep.play()
+	rep.finished.connect(rep.queue_free)
+
+
 func _on_jugar_pressed() -> void:
 	if transicion_activa:
 		return
 
+	_reproducir_narrador_global(SONIDO_NARRADOR_NUEVA_EXPLORACION)
 	transicion_activa = true
 	menu_colgante.process_mode = Node.PROCESS_MODE_DISABLED
 
@@ -62,6 +84,7 @@ func _on_excursion_solicitada(datos: Dictionary) -> void:
 
 
 func _on_continuar_pressed() -> void:
+	_reproducir_narrador_global(SONIDO_NARRADOR_CONTINUAR)
 	get_tree().change_scene_to_file("res://scenes/menu/personajes.tscn")
 
 

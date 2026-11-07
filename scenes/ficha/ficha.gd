@@ -20,6 +20,7 @@ var shaderMat = ShaderMaterial.new()
 var shaderMatQ = ShaderMaterial.new()
 var particulaFuegoInstancia: Node2D = null
 const SONIDO_DANIO_DEFECTO: AudioStream = preload("res://assets/sonidos/sonidos finales/sonidos mmo/MMO_Game_Magic_Source_Armor_02_Metal_Hit_Shuffle.wav")
+const NUMERO_DANIO_FLOTANTE = preload("res://scenes/vfx/numero_danio_flotante.gd")
 const SONIDO_QUEMADURA_DEFECTO: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ambiente/fuego quemadura.wav")
 const SONIDO_VENENO_DEBUFF_DEFECTO: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ambiente/561216__terrytom__poison-debuff.wav")
 const SONIDO_TOS_1: AudioStream = preload("res://assets/sonidos/toser/editado/varias toses.wav")
@@ -63,8 +64,14 @@ var pasos_inercia := 0
 var agarre_objetivo := ""
 var agarre_pasos := 0
 var senuelos: Dictionary = {}
+var suprimir_senales_recursos: bool = false
 var energia_maxima: int = 200
-var energia_actual: int = 200
+var energia_actual: int = 200:
+	set(valor):
+		var anterior := energia_actual
+		energia_actual = clampi(valor, 0, energia_maxima)
+		if not suprimir_senales_recursos and anterior > 0 and energia_actual == 0:
+			energia_agotada.emit()
 var movimiento_por_turno: int:
 	get:
 		if esta_sobrecargado():
@@ -145,6 +152,8 @@ signal descanso_realizado
 signal usos_habilidades_cambiados
 signal progresion_cambiada
 signal golpe_conectado(objetivo: Object)
+signal danio_recibido(cantidad: int, fuente: Object)
+signal energia_agotada
 
 
 
@@ -362,7 +371,7 @@ func obtener_voluntad() -> int:
 func obtener_atributo_base(atributo: String) -> int:
 	return {"fuerza": fue, "destreza": des, "voluntad": vol}.get(atributo, 0)
 
-func recibir_danio(cantidad: int, _fuente: Object = null) -> int:
+func recibir_danio(cantidad: int, fuente: Object = null) -> int:
 	if cantidad <= 0:
 		return 0
 	var anterior := pv_actual
@@ -374,6 +383,9 @@ func recibir_danio(cantidad: int, _fuente: Object = null) -> int:
 		reproducir_sonido_danio()
 		print("Vida de %s: %d/%d" % [nombre, pv_actual, pv_max])
 		puntos_vida_cambiados.emit(pv_actual, pv_max)
+		danio_recibido.emit(aplicado, fuente)
+		var padre_vfx: Node = get_parent() if get_parent() != null else self
+		NUMERO_DANIO_FLOTANTE.instanciar_en(padre_vfx, global_position + Vector2(0, -32), aplicado)
 	return aplicado
 
 func curar(cantidad: int) -> int:
@@ -721,7 +733,9 @@ func restaurar_estado_persistente(estado: Variant) -> StringName:
 	if capa_referencia != null:
 		global_position = capa_referencia.to_global(capa_referencia.map_to_local(coordenada_mapa))
 	pv_actual = int(estado["pv_actual"])
+	suprimir_senales_recursos = true
 	energia_actual = int(estado["energia_actual"])
+	suprimir_senales_recursos = false
 	# Los guardados anteriores nunca persistían el contador inicial de tres.
 	raciones = int(estado.get("raciones", 3))
 	usos_ataque_doble = int(estado.get("usos_ataque_doble", 1))

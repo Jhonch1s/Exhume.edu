@@ -12,6 +12,7 @@ const RETRATOS := {
 }
 const CLASE_POR_ATRIBUTO := {&"fuerza": "Guerrero", &"destreza": "Ladrón", &"voluntad": "Mago"}
 const ORIGENES := ["Mina Ciénaga", "Bastión Solitario", "Cripta Apócrifa", "Páramo Ceniciento"]
+const SONIDO_CADENAS_MENU: AudioStream = preload("res://assets/sonidos/varios/editados/cadenas menu.wav")
 
 @onready var rigs: Array[Control] = [$RigIzquierdo, $RigCentral, $RigDerecho]
 @onready var piezas_por_rig: Array[Array] = [
@@ -293,8 +294,23 @@ func _reproducir_cinematica_provisional() -> void:
 	await get_tree().create_timer(0.75).timeout
 
 
+func _reproducir_sonido_cadenas() -> void:
+	if not is_inside_tree():
+		return
+	var rep := get_node_or_null("AudioCadenasMenu") as AudioStreamPlayer
+	if rep == null:
+		rep = AudioStreamPlayer.new()
+		rep.name = "AudioCadenasMenu"
+		rep.stream = SONIDO_CADENAS_MENU
+		rep.volume_db = -4.0
+		add_child(rep)
+	rep.pitch_scale = randf_range(0.97, 1.03)
+	rep.play()
+
+
 func reproducir_entrada() -> Signal:
 	show()
+	_reproducir_sonido_cadenas()
 	var ultimo_tween: Tween
 	for indice in rigs.size():
 		var rig := rigs[indice]

@@ -12,6 +12,25 @@ var libre := false
 var desplazando := false
 var limites := Rect2()
 var _esperar_salida_borde := true
+var _shake_tween: Tween
+
+
+func sacudir(intensidad: float = 6.0, duracion: float = 0.22) -> void:
+	if _shake_tween != null and _shake_tween.is_valid():
+		_shake_tween.kill()
+	var tween := create_tween()
+	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	var pasos := 6
+	var paso_tiempo := duracion / float(pasos)
+	for i in range(pasos):
+		var decaimiento := 1.0 - float(i) / float(pasos)
+		var desplazamiento := Vector2(
+			randf_range(-intensidad, intensidad),
+			randf_range(-intensidad, intensidad)
+		) * decaimiento
+		tween.tween_property(self, "offset", desplazamiento, paso_tiempo)
+	tween.tween_property(self, "offset", Vector2.ZERO, 0.04)
+	_shake_tween = tween
 
 
 func configurar_limites(zona: Node2D) -> void:

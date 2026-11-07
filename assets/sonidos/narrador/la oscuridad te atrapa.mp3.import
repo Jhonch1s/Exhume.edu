@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://byd5c73ixvp7h"
+path="res://.godot/imported/la oscuridad te atrapa.mp3-9c11e76e1a3ffda503a689a1e5fc204f.mp3str"
+
+[deps]
+
+source_file="res://assets/sonidos/narrador/la oscuridad te atrapa.mp3"
+dest_files=["res://.godot/imported/la oscuridad te atrapa.mp3-9c11e76e1a3ffda503a689a1e5fc204f.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

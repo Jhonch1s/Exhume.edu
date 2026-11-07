@@ -30,6 +30,7 @@ extends Control
 @onready var salir: TablaMenuOpcion = $MenuPausa/RigColgante/Carteles/Salir
 
 const CURSOR_PERSONALIZADO = preload("res://assets/ui/cursors/cursor_default.png")
+const SONIDO_CADENAS_MENU: AudioStream = preload("res://assets/sonidos/varios/editados/cadenas menu.wav")
 
 
 var posicion_final_y: float
@@ -64,7 +65,8 @@ func _ready() -> void:
 	if opciones_partida.has_signal("volver_solicitado_opciones"):
 		opciones_partida.volver_solicitado_opciones.connect(_on_volver_desde_opciones)
 
-	call_deferred("reproducir_entrada")
+	if visible:
+		call_deferred("reproducir_entrada")
 	
 	print("--- PRUEBA DE OPCIONES PARTIDA ---")
 	print("Nodo existe: ", is_instance_valid(opciones_partida))
@@ -132,8 +134,23 @@ func resumir_juego() -> void:
 func _on_resumir_pressed() -> void:
 	resumir_juego()
 
+func _reproducir_sonido_cadenas() -> void:
+	if not is_inside_tree():
+		return
+	var rep := get_node_or_null("AudioCadenasMenu") as AudioStreamPlayer
+	if rep == null:
+		rep = AudioStreamPlayer.new()
+		rep.name = "AudioCadenasMenu"
+		rep.stream = SONIDO_CADENAS_MENU
+		rep.volume_db = -4.0
+		add_child(rep)
+	rep.pitch_scale = randf_range(0.97, 1.03)
+	rep.play()
+
+
 func reproducir_entrada() -> Signal:
 	_detener_balanceo_colas()
+	_reproducir_sonido_cadenas()
 	rig_colgante.show()
 	#posicion_final_y = rig_colgante.position.y
 

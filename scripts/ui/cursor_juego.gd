@@ -87,7 +87,9 @@ func _ready() -> void:
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.is_pressed():
-		if _sobre_interfaz:
+		var control := get_viewport().gui_get_hovered_control()
+		var es_boton := control is BaseButton or (control != null and control.find_parent("BaseButton") != null)
+		if _sobre_interfaz and not es_boton:
 			reproducir_click_ui()
 
 
@@ -112,7 +114,7 @@ func _conectar_boton(boton: BaseButton) -> void:
 
 func reproducir_click_ui() -> void:
 	var ahora := Time.get_ticks_msec()
-	if ahora - _ultimo_click_msec < 60:
+	if ahora - _ultimo_click_msec < 140:
 		return
 	_ultimo_click_msec = ahora
 	if _reproductor_click == null:

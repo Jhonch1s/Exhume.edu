@@ -1,0 +1,60 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/pantalla_desmayo.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://c0l0sby5jy2p4" path="res://assets/ui/fonts/Amarante-Regular.ttf" id="2_fuente"]
+
+[node name="PantallaDesmayo" type="CanvasLayer"]
+process_mode = 3
+layer = 115
+script = ExtResource("1_script")
+
+[node name="FondoNegro" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="ContenedorCentral" type="VBoxContainer" parent="FondoNegro"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -100.0
+offset_right = 300.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="Titulo" type="Label" parent="FondoNegro/ContenedorCentral"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_fuente")
+theme_override_font_sizes/font_size = 46
+theme_override_colors/font_color = Color(0.88, 0.82, 0.82, 1)
+theme_override_colors/font_shadow_color = Color(0.12, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+text = "Caes desmayado"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Subtitulo" type="Label" parent="FondoNegro/ContenedorCentral"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_fuente")
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.68, 0.58, 0.58, 1)
+text = "Te quedaste sin energia"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AudioCaida" type="AudioStreamPlayer" parent="."]
+volume_db = 0.0
+
+[node name="AudioNarrador" type="AudioStreamPlayer" parent="."]
+volume_db = 3.5

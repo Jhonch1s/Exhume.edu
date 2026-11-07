@@ -92,9 +92,11 @@ const SONIDO_CAMPANAS_ESTATUA: AudioStream = preload("res://assets/sonidos/campa
 const SONIDO_DADO_EXITO: AudioStream = preload("res://assets/sonidos/narrador/la fortuna te perdona.mp3")
 const SONIDO_DADO_FRACASO: AudioStream = preload("res://assets/sonidos/narrador/tu suerte se agota.mp3")
 const SONIDO_NARRADOR_TEMPLO_TRAMPAS: AudioStream = preload("res://assets/sonidos/narrador/templo de las trampas.mp3")
+const SONIDO_NARRADOR_PRISION: AudioStream = preload("res://assets/sonidos/narrador/prision.mp3")
 const SONIDO_LATIDO_CORAZON: AudioStream = preload("res://assets/sonidos/corazon/332819__loudernoises__heartbeat-80bpm-limited.wav")
 
 const ESCENA_PANTALLA_MUERTE = preload("res://scenes/ui/pantalla_muerte.tscn")
+const ESCENA_PANTALLA_DESMAYO = preload("res://scenes/ui/pantalla_desmayo.tscn")
 const ESCENA_PRESENTACION_ZONA = preload("res://scenes/ui/presentacion_zona.tscn")
 const SHADER_CERCA_MUERTE = preload("res://assets/ui/shaders/cerca_muerte.gdshader")
 
@@ -223,6 +225,8 @@ var reproductor_magia_fuego: AudioStreamPlayer
 var reproductor_ocultarse: AudioStreamPlayer
 var guardado_en_fogata_realizado: bool = false
 var pantalla_muerte: PantallaMuerte
+var pantalla_desmayo: CanvasLayer = null
+var _desmayo_en_curso: bool = false
 var presentacion_zona: PresentacionZona
 var capa_cerca_muerte: CanvasLayer
 var rect_cerca_muerte: ColorRect
@@ -349,6 +353,10 @@ func _ready() -> void:
 		hud.configurar_ficha(ficha_jugador)
 		if not ficha_jugador.puntos_vida_cambiados.is_connected(_on_vida_jugador_cambiada):
 			ficha_jugador.puntos_vida_cambiados.connect(_on_vida_jugador_cambiada)
+		if not ficha_jugador.danio_recibido.is_connected(_on_ficha_danio_recibido):
+			ficha_jugador.danio_recibido.connect(_on_ficha_danio_recibido)
+		if not ficha_jugador.energia_agotada.is_connected(_on_energia_jugador_agotada):
+			ficha_jugador.energia_agotada.connect(_on_energia_jugador_agotada)
 		if not preparando_viaje:
 			_on_vida_jugador_cambiada(ficha_jugador.pv_actual, ficha_jugador.pv_max)
 		capa_vision_npc.configurar(tablero, validador_espacial, ficha_jugador, gestor_vision)
@@ -1603,6 +1611,8 @@ func spawnear_ficha_inicial(id_spawn: StringName = &"entrada") -> void:
 	ficha_jugador.texturas_por_direccion[180] = await capturar_textura(270,nombreClase) # Mirando hacia atrás
 	ficha_jugador.texturas_por_direccion[270] = await capturar_textura(180,nombreClase) # Mirando hacia arriba
 	ficha_jugador.sprite_render.texture = ficha_jugador.texturas_por_direccion[0]
+	ficha_jugador.add_child(ficha_jugador.sprite_render)
+	ficha_jugador.sprite_render.position = Vector2(0,-20)
 	ficha_jugador.sprite_render.scale = Vector2(
 		0.12,0.12
 	)
@@ -3968,15 +3978,79 @@ func _presentar_entrada_nueva_zona() -> void:
 		else:
 			nombre = zona_actual.name.to_upper()
 
-	if nombre.to_upper().contains("TEMPLO"):
+	var es_templo := nombre.to_upper().contains("TEMPLO") or (zona_actual != null and zona_actual.scene_file_path.to_lower().contains("templo"))
+	var es_prision := nombre.to_upper().contains("PRISIÓN") or nombre.to_upper().contains("PRISION") or (zona_actual != null and zona_actual.scene_file_path.to_lower().contains("prision"))
+
+	if es_templo:
 		var rep_narrador := _crear_reproductor_global(&"AudioNarradorZona", 2.5)
 		_desactivar_loop_audio(SONIDO_NARRADOR_TEMPLO_TRAMPAS)
 		rep_narrador.stream = SONIDO_NARRADOR_TEMPLO_TRAMPAS
+		rep_narrador.play()
+	elif es_prision:
+		var rep_narrador := _crear_reproductor_global(&"AudioNarradorZona", 2.5)
+		_desactivar_loop_audio(SONIDO_NARRADOR_PRISION)
+		rep_narrador.stream = SONIDO_NARRADOR_PRISION
 		rep_narrador.play()
 
 	presentacion_zona = ESCENA_PRESENTACION_ZONA.instantiate() as PresentacionZona
 	add_child(presentacion_zona)
 	presentacion_zona.presentar(nombre)
+
+
+func _on_ficha_danio_recibido(_cantidad: int, _fuente: Object) -> void:
+	if is_instance_valid(camera_2d) and camera_2d.has_method(&"sacudir"):
+		camera_2d.sacudir(6.5, 0.22)
+	elif is_instance_valid(gestor_vfx):
+		gestor_vfx.solicitar(&"impacto", ficha_jugador.global_position, 0.25)
+
+
+func _on_energia_jugador_agotada() -> void:
+	if _restaurando_partida or _desmayo_en_curso or not is_instance_valid(ficha_jugador) or ficha_jugador.pv_actual <= 0:
+		return
+	_ejecutar_desmayo_energia()
+
+
+func _ejecutar_desmayo_energia() -> void:
+	if _desmayo_en_curso or not is_instance_valid(ficha_jugador) or ficha_jugador.pv_actual <= 0:
+		return
+	_desmayo_en_curso = true
+	_actualizar_estado_modal_interaccion()
+
+	if ficha_jugador.esta_moviendose:
+		ficha_jugador.solicitar_interrupcion()
+		await ficha_jugador.movimiento_terminado
+
+	if not is_instance_valid(ficha_jugador) or ficha_jugador.pv_actual <= 0:
+		_desmayo_en_curso = false
+		_actualizar_estado_modal_interaccion()
+		return
+
+	camino_actual_tentativo.clear()
+	if is_instance_valid(menu_contextual):
+		menu_contextual.ocultar()
+
+	if pantalla_desmayo == null or not is_instance_valid(pantalla_desmayo):
+		pantalla_desmayo = ESCENA_PANTALLA_DESMAYO.instantiate() as PantallaDesmayo
+		add_child(pantalla_desmayo)
+
+	pantalla_desmayo.iniciar_desmayo(5.0)
+	await pantalla_desmayo.desmayo_completado
+
+	if is_instance_valid(ficha_jugador) and ficha_jugador.pv_actual > 0:
+		var energia_recuperar: int = int(round(float(ficha_jugador.energia_maxima) * 0.60))
+		ficha_jugador.energia_actual = energia_recuperar
+
+		var danio_aplicar: int = 3
+		if ficha_jugador.pv_actual <= danio_aplicar:
+			danio_aplicar = maxi(1, ficha_jugador.pv_actual - 1)
+		if danio_aplicar > 0:
+			ficha_jugador.recibir_danio(danio_aplicar, self)
+
+		if is_instance_valid(hud):
+			hud.actualizar_desde_ficha()
+
+	_desmayo_en_curso = false
+	_actualizar_estado_modal_interaccion()
 
 
 func _on_vida_jugador_cambiada(actual: int, maximo: int) -> void:
@@ -4552,7 +4626,8 @@ func _cancelar_lanzamiento() -> void:
 
 func _hay_modal_ajeno_a_triggers() -> bool:
 	return (
-		lanzamiento_en_vuelo
+		_desmayo_en_curso
+		or lanzamiento_en_vuelo
 		or (habilidades_nivel_dos != null and habilidades_nivel_dos.empuje_pendiente != null)
 		or (is_instance_valid(panel_progresion) and panel_progresion.visible)
 		or dialogo_npc_activo
@@ -4583,7 +4658,9 @@ func _hay_modal_ajeno_a_triggers() -> bool:
 
 
 func _actualizar_estado_modal_interaccion() -> void:
-	var siguiente := viajes.en_curso or _hay_modal_ajeno_a_triggers() or gestor_triggers.tiene_actividad()
+	var viaje_activo := viajes != null and viajes.en_curso
+	var trigger_activo := gestor_triggers != null and gestor_triggers.tiene_actividad()
+	var siguiente := viaje_activo or _hay_modal_ajeno_a_triggers() or trigger_activo
 	if interaccion_modal_activa == siguiente:
 		return
 	interaccion_modal_activa = siguiente

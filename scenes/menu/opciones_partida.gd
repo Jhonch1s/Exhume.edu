@@ -2,6 +2,8 @@ extends Control
 
 signal volver_solicitado_opciones
 
+const SONIDO_CADENAS_MENU: AudioStream = preload("res://assets/sonidos/varios/editados/cadenas menu.wav")
+
 @onready var sliderVolumen: HSlider = $RigUnico/Opciones/Margen/ContenidOpciones/VolumenSeccion/SliderVolume
 @onready var textoVolumen: Label = $RigUnico/Opciones/Margen/ContenidOpciones/VolumenSeccion/valorVolumen
 @onready var botonVolver: Button = $RigUnico/Volver/BotonVolver
@@ -78,8 +80,23 @@ func _actualizar_texto_volumen(valor: float) -> void:
 func _on_boton_pressed() -> void:
 	volver_solicitado_opciones.emit()
 	
+func _reproducir_sonido_cadenas() -> void:
+	if not is_inside_tree():
+		return
+	var rep := get_node_or_null("AudioCadenasMenu") as AudioStreamPlayer
+	if rep == null:
+		rep = AudioStreamPlayer.new()
+		rep.name = "AudioCadenasMenu"
+		rep.stream = SONIDO_CADENAS_MENU
+		rep.volume_db = -4.0
+		add_child(rep)
+	rep.pitch_scale = randf_range(0.97, 1.03)
+	rep.play()
+
+
 func reproducir_entrada() -> Signal:
 	show()
+	_reproducir_sonido_cadenas()
 	# Caída inicial desde arriba con pequeña inclinación
 	rig.position.y = -rig.size.y - 100.0
 	rig.rotation_degrees = -2.5

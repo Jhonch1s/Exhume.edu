@@ -92,6 +92,7 @@ const SONIDO_FALLO_WHOOSH_1: AudioStream = preload("res://assets/sonidos/espada,
 const SONIDO_FALLO_WHOOSH_2: AudioStream = preload("res://assets/sonidos/espada, daga y escudo/Whoosh 6_4.wav")
 const SONIDO_ESCUDO_BLOQUEO: AudioStream = preload("res://assets/sonidos/espada, daga y escudo/Shield Metal 1_3.wav")
 const ESCENA_CORTE_SANGRE: PackedScene = preload("res://scenes/vfx/efecto_corte_sangre.tscn")
+const NUMERO_DANIO_FLOTANTE = preload("res://scenes/vfx/numero_danio_flotante.gd")
 
 static var _whoosh_alternado: bool = false
 const SONIDO_QUEMADURA: AudioStream = preload("res://assets/sonidos/sonidos finales/sonido ambiente/fuego quemadura.wav")
@@ -141,6 +142,10 @@ func _actualizar_representacion(inicializar: bool = false) -> void:
 	if cambiar_frame:
 		sprite_personaje.frame = 0 if usa_cadaver else perfil.orientacion_mapa_inicial
 	sprite_personaje.offset = perfil.offset_sprite_mapa
+	if muerto:
+		sprite_personaje.modulate = Color(0.35, 0.35, 0.35, 0.55)
+	else:
+		sprite_personaje.modulate = Color.WHITE
 
 
 func actualizar_presentacion_visibilidad(estado: int) -> void:
@@ -522,6 +527,8 @@ func recibir_danio(cantidad: int, fuente: Object = null) -> int:
 	if aplicado > 0:
 		reproducir_gemido_dolor()
 		danio_recibido.emit(aplicado, estado.vida_actual)
+		var padre_vfx: Node = get_parent() if get_parent() != null else self
+		NUMERO_DANIO_FLOTANTE.instanciar_en(padre_vfx, global_position + Vector2(0, -30), aplicado)
 		if estado.vida_actual == 0:
 			derrotado.emit()
 	if anterior > 0 and estado.vida_actual == 0:
@@ -546,6 +553,9 @@ func _notificar_cambio_vida(anterior: int, actual: int) -> void:
 		solicitar_interrupcion()
 		olvidar_posicion_jugador()
 		agotar_recursos_turno()
+		if anterior > 0 and is_instance_valid(sprite_personaje):
+			var tw := create_tween()
+			tw.tween_property(sprite_personaje, "modulate", Color(0.35, 0.35, 0.35, 0.55), 0.45)
 	_actualizar_representacion()
 	_actualizar_visual_quemado()
 	puntos_vida_cambiados.emit(actual, estado_personaje.definicion.vida_maxima)
@@ -698,7 +708,8 @@ func reproducir_paso_monstruo() -> void:
 			reproductor_audio.stream = sonido
 			reproductor_audio.volume_db = -8.0
 			reproductor_audio.pitch_scale = randf_range(0.9, 1.1)
-			reproductor_audio.play()
+			if reproductor_audio.is_inside_tree():
+				reproductor_audio.play()
 
 
 func reproducir_gemido_dolor() -> void:
@@ -710,7 +721,8 @@ func reproducir_gemido_dolor() -> void:
 			reproductor_audio.stream = sonido
 			reproductor_audio.volume_db = -4.0
 			reproductor_audio.pitch_scale = randf_range(0.95, 1.05)
-			reproductor_audio.play()
+			if reproductor_audio.is_inside_tree():
+				reproductor_audio.play()
 
 
 func _reproducir_sonido_quemadura() -> void:
@@ -718,7 +730,8 @@ func _reproducir_sonido_quemadura() -> void:
 	if is_instance_valid(reproductor_audio):
 		reproductor_audio.stream = SONIDO_QUEMADURA
 		reproductor_audio.volume_db = -6.0
-		reproductor_audio.play()
+		if reproductor_audio.is_inside_tree():
+			reproductor_audio.play()
 
 
 func reproducir_sonido_proximidad() -> void:

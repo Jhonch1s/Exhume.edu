@@ -376,6 +376,7 @@ size_flags_horizontal = 4
 size_flags_vertical = 4
 tamano_pixel = 2
 modo_horizontal = true
+altura_camara_horizontal = 0.68
 
 [node name="Texto" type="Label" parent="RigIzquierdo/Atributos/Margen/Contenido/ZonaTirada/MarginContainer" unique_id=1778646343]
 layout_mode = 2
