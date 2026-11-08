@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="DefinicionItem" format=3]
+
+[ext_resource type="Script" path="res://scripts/interacciones/items/definicion_item.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/items/anillo_impacto/icono.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/items/anillo_impacto/ilustracion.png" id="3"]
+[ext_resource type="PackedScene" path="res://assets/items/anillo_impacto/suelo.tscn" id="4"]
+
+[resource]
+script = ExtResource("1")
+id_definicion = &"anillo_impacto"
+nombre = "Anillo del Impacto"
+descripcion_base = "Un anillo de metal oscuro con una piedra roja engastada. Al llevarlo, cada golpe que alcanza a su blanco descarga una fuerza adicional. Equipado: +1 al daño de cada ataque que cause daño."
+icono = ExtResource("2")
+ilustracion_examen = ExtResource("3")
+escena_mundo = ExtResource("4")
+etiquetas = Array[StringName]([&"anillo"])
+magnitudes = Dictionary[StringName, float]({&"peso": 0.1})
+efectos_equipo = Array[Dictionary]([{"tipo": "dano_final", "valor": 1}])

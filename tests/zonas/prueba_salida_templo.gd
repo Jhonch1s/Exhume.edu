@@ -6,6 +6,12 @@ func _init() -> void:
 
 
 func _probar() -> void:
+	var texturas: Array[Texture2D] = []
+	for nombre in ["icono", "ilustracion", "suelo"]:
+		var ruta := "res://assets/items/anillo_impacto/%s.png" % nombre
+		var textura := ImageTexture.create_from_image(Image.load_from_file(ruta))
+		textura.take_over_path(ruta)
+		texturas.append(textura)
 	var templo := (load("res://scenes/templo_de_las_trampas/TemploDeLasTrampas.tscn") as PackedScene).instantiate()
 	root.add_child(templo)
 	var salida := templo.get_node("Triggers/Viajes/SalidaASalonDeCombate") as TriggerMapa
@@ -18,8 +24,20 @@ func _probar() -> void:
 	var zona := (load("res://scenes/CombateSalidaTemplo/combate_salida_templo.tscn") as PackedScene).instantiate()
 	root.add_child(zona)
 	var suelo: TileMapLayer = zona.get_node("CapaSuelo")
+	var cofre := zona.get_node("Interactuables/Cofres/CofreInteractuable") as CofreInteractuable
+	assert(cofre.inventario.obtener_contenido().size() == 1)
+	assert(cofre.inventario.obtener_contenido()[0].definicion.id_definicion == &"anillo_impacto")
 	var spawn := zona.get_node("PuntosSpawn/PuntoSpawnEntrada") as PuntoSpawnZona
 	assert(spawn.id_spawn == viaje.id_spawn_destino and suelo.get_cell_source_id(spawn.obtener_coordenada(suelo)) >= 0)
+	var regreso := zona.get_node("Triggers/Viajes/vuelta_prision") as TriggerMapa
+	var viaje_regreso := regreso.accion as AccionTriggerViajar
+	assert(viaje_regreso != null and viaje_regreso.validar_configuracion().is_empty())
+	assert(viaje_regreso.obtener_ruta_destino() == "res://scenes/Prision/prision.tscn")
+	var prision := (load(viaje_regreso.obtener_ruta_destino()) as PackedScene).instantiate()
+	var entrada3 := prision.get_node("PuntosSpawn/PuntoSpawnEntrada3") as PuntoSpawnZona
+	assert(viaje_regreso.id_spawn_destino == entrada3.id_spawn)
+	assert(ViajeEntreZonas.new()._validar_destino(prision, entrada3.id_spawn) == &"")
+	prision.free()
 	templo.free()
 	var tablero := TableroGrid.new()
 	root.add_child(tablero)

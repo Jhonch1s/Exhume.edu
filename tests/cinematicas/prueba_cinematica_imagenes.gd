@@ -39,12 +39,23 @@ func _ejecutar() -> void:
 	cinematica.queue_free()
 	await process_frame
 
+	var saltada = escena.instantiate()
+	saltada.terminada.connect(func(): finales[0] += 1)
+	root.add_child(saltada)
+	saltada.get_node("Saltar").pressed.emit()
+	saltada.get_node("Saltar").pressed.emit()
+	_comprobar(finales[0] == 2, "Saltar debe terminar la cinemática una sola vez.")
+	_comprobar(not saltada.reproductor_musica.playing and not saltada.reproductor_narrador.playing, "Saltar debe detener la música y la narración.")
+	saltada.queue_free()
+	await process_frame
+
 	var vacia = escena.instantiate()
 	vacia.videos.clear()
 	vacia.imagenes.clear()
 	vacia.terminada.connect(func(): finales[0] += 1)
 	root.add_child(vacia)
-	_comprobar(finales[0] == 2, "Una secuencia vacía debe terminar sin bloquearse.")
+	await create_timer(1.2).timeout
+	_comprobar(finales[0] == 3, "Una secuencia vacía debe terminar sin bloquearse.")
 	vacia.queue_free()
 	await process_frame
 	for fallo in _fallos:

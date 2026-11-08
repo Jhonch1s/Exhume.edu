@@ -57,6 +57,7 @@ func _probar_danio_bangas() -> void:
 		var terminos := EfectosEquipo.terminos_dano_armas(npc)
 		assert(terminos.size() == 1 and terminos[0].cantidad == 1 and terminos[0].caras == 6)
 		assert(EfectosEquipo.bono_fuerza_dano(npc) == 1)
+		assert(npc.obtener_definicion_personaje().bono_dano_ataque == (2 if "guardia_" in ruta else 0))
 	var defensor := (load("res://scenes/personajes/banga_npc.tscn") as PackedScene).instantiate() as PersonajeNPC
 	var rng := RandomNumberGenerator.new()
 	for semilla in 20000:
@@ -67,7 +68,7 @@ func _probar_danio_bangas() -> void:
 	var contexto := ContextoAccion.new(TiposInteraccion.TipoAccion.INTERACTUAR, npc, null, null, defensor, null, &"ataque_basico")
 	var resultado := ResolverAtaqueBasico.resolver(contexto, defensor, MotorDados.new(rng), AplicadorEfectos.new())
 	assert(resultado.tirada_dano != null and resultado.tirada_dano.total_efectivo == 6)
-	assert(defensor.vida_actual == 3)
+	assert(defensor.vida_actual == 1)
 	defensor.free()
 	npc.definicion = load("res://recursos/personajes/goblin_unico.tres")
 	assert(EfectosEquipo.terminos_dano_armas(npc)[0].caras == 2)

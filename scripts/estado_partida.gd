@@ -7,6 +7,8 @@ var trompo_conocido: bool = false
 var roffa_conocido: bool = false
 var prision_derrumbe_visto: bool = false
 var guardado_en_fogata_realizado: bool = false
+var carga_pendiente: bool = false
+var error_carga: StringName = &""
 var _triggers_consumidos: Dictionary = {}
 
 
@@ -14,12 +16,37 @@ func establecer_aventurero(datos: Dictionary) -> bool:
 	if validar_aventurero(datos) != &"":
 		return false
 	aventurero_pendiente = datos.duplicate(true)
+	carga_pendiente = false
 	trompo_conocido = false
 	roffa_conocido = false
 	prision_derrumbe_visto = false
 	guardado_en_fogata_realizado = false
 	_triggers_consumidos.clear()
 	return true
+
+
+func preparar_carga() -> StringName:
+	error_carga = &""
+	var snapshot: Variant = ArchivoPartida.new().cargar("user://partida.json")
+	if not snapshot is Dictionary:
+		return &"archivo_guardado_invalido"
+	var ruta: Variant = snapshot.get("escena_zona", "res://scenes/Zona1/zona_1.tscn")
+	if not ruta is String or not ResourceLoader.exists(ruta, "PackedScene"):
+		return &"zona_guardada_invalida"
+	var escena := load(ruta) as PackedScene
+	var zona := escena.instantiate() if escena != null else null
+	if not zona is ZonaExplorable:
+		if zona != null:
+			zona.free()
+		return &"zona_guardada_invalida"
+	zona.free()
+	aventurero_pendiente.clear()
+	carga_pendiente = true
+	var error := get_tree().change_scene_to_file(ruta)
+	if error != OK:
+		carga_pendiente = false
+		return &"zona_guardada_invalida"
+	return &""
 
 
 func consumir_aventurero() -> Dictionary:

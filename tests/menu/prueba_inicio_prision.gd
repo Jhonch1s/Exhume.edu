@@ -25,6 +25,10 @@ func _ejecutar() -> void:
 		"nombre": "Ada", "titulo": "la Audaz", "clase": "Ladrón",
 		"origen": "Cripta Apócrifa", "fuerza": 3, "destreza": 4, "voluntad": 2,
 	})
+	var cinematica: Node = menu.find_child("CinematicaImagenes", true, false)
+	_comprobar(cinematica != null, "La nueva partida debe mostrar la cinemática.")
+	if cinematica != null:
+		cinematica.get_node("Saltar").pressed.emit()
 
 	var escenario: Node
 	for intento in 300:

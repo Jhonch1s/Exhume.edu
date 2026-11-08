@@ -29,6 +29,7 @@ const MUSICA_ANCIENT_RUINS: AudioStream = preload("res://assets/sonidos/sonidos 
 
 var reproductor_narrador: AudioStreamPlayer
 var reproductor_musica: AudioStreamPlayer
+var finalizada := false
 
 
 func _ready() -> void:
@@ -72,6 +73,21 @@ func _finalizar_cinematica() -> void:
 		await tween.finished
 		if is_instance_valid(reproductor_musica):
 			reproductor_musica.stop()
+	if finalizada:
+		return
+	finalizada = true
+	terminada.emit()
+
+
+func _on_saltar_pressed() -> void:
+	if finalizada:
+		return
+	finalizada = true
+	reproductor.stop()
+	if is_instance_valid(reproductor_narrador):
+		reproductor_narrador.stop()
+	if is_instance_valid(reproductor_musica):
+		reproductor_musica.stop()
 	terminada.emit()
 
 

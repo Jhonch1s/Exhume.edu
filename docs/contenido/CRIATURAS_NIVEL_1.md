@@ -22,8 +22,8 @@ no son estadísticas del texto original proporcionado por el usuario.
 
 | Criatura | FUE | DES | VOL | PV | Movimiento | Detección | XP |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| Sirviente de Eek | 2 | 3 | 1 | 8 | 5 | 6 | 10 |
-| Terror Nocturno | 2 | 4 | 2 | 10 | 6 | 6 | 15 |
+| Sirviente de Eek | 2 | 2 | 1 | 8 | 5 | 6 | 10 |
+| Terror Nocturno | 2 | 2 | 2 | 10 | 6 | 6 | 15 |
 | Escupe Infierno | 3 | 2 | 2 | 12 | 4 | 6 | 15 |
 
 Una casilla ocupada por criatura, actitud hostil fija, sin diálogo ni botín

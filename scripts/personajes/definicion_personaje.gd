@@ -48,6 +48,7 @@ enum OrientacionMapa {
 
 @export_category("Recursos de combate")
 @export_range(2, 100, 1) var caras_dano_natural: int = 2
+@export_range(0, 99, 1) var bono_dano_ataque: int = 0
 ## -1 conserva DES + 3; un valor mayor o igual a cero fija los puntos por turno.
 @export_range(-1, 102, 1) var movimiento_fijo: int = -1
 @export_range(0, 9, 1) var acciones_principales_por_turno: int = 1

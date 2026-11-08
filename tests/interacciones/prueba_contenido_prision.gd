@@ -131,7 +131,8 @@ func _ejecutar() -> void:
 			continue
 		var perfil := arana.obtener_definicion_personaje()
 		_comprobar(perfil != null and perfil.puede_combatir and perfil.estilo_combate == DefinicionPersonaje.EstiloCombate.SIRVIENTE_EEK and arana.se_opone_al_jugador(), "%s hereda IA hostil de Eek." % id)
-		_comprobar(arana.vida_actual == 8 and arana.obtener_fuerza() == 2 and arana.obtener_destreza() == 3 and arana.obtener_voluntad() == 1, "%s conserva los atributos de Eek." % id)
+		_comprobar(arana.vida_actual == 8 and arana.obtener_fuerza() == 2 and arana.obtener_destreza() == 2 and arana.obtener_voluntad() == 1, "%s conserva los atributos de Eek." % id)
+		_comprobar(arana.obtener_nombre_interaccion() == "Sirviente de Eek", "%s muestra el nombre de la criatura." % id)
 		_comprobar(arana.get_node_or_null(arana.ruta_visual_resaltable) == arana.get_node_or_null("Sprite2D"), "%s resalta su propio sprite." % id)
 		var vecino: Variant = null
 		for dir in [Vector2i.UP, Vector2i.LEFT, Vector2i.RIGHT, Vector2i.DOWN]:
@@ -159,7 +160,8 @@ func _ejecutar() -> void:
 	if terror != null:
 		var perfil := terror.obtener_definicion_personaje()
 		_comprobar(perfil.puede_combatir and perfil.estilo_combate == DefinicionPersonaje.EstiloCombate.TERROR_NOCTURNO and terror.se_opone_al_jugador(), "El terror nocturno tiene IA hostil.")
-		_comprobar(terror.vida_actual == 10 and terror.obtener_fuerza() == 2 and terror.obtener_destreza() == 4 and terror.obtener_voluntad() == 2, "El terror nocturno conserva sus atributos.")
+		_comprobar(terror.vida_actual == 10 and terror.obtener_fuerza() == 2 and terror.obtener_destreza() == 2 and terror.obtener_voluntad() == 2, "El terror nocturno conserva sus atributos.")
+		_comprobar(terror.obtener_nombre_interaccion() == "Terror Nocturno", "El terror nocturno muestra el nombre de la criatura.")
 		_comprobar(terror.get_node_or_null(terror.ruta_visual_resaltable) == terror.get_node_or_null("Sprite2D"), "El terror nocturno resalta su propio sprite.")
 	if escenario.en_combate:
 		escenario._terminar_combate(false)

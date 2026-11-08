@@ -15,8 +15,8 @@
 [ext_resource type="TileSet" uid="uid://dr6pcgl80juta" path="res://assets/tile_sets/surface_effects/fire.tres" id="10_fuego"]
 [ext_resource type="TileSet" uid="uid://b2soug6txnn72" path="res://assets/tile_sets/surface_effects/web.tres" id="11_telarana"]
 [ext_resource type="PackedScene" path="res://scenes/personajes/banga_npc.tscn" id="12_oopww"]
+[ext_resource type="Script" uid="uid://3ww5owi0h6e6" path="res://scripts/render/polvo_ambiental.gd" id="12_polvo_ambiental"]
 [ext_resource type="Script" uid="uid://dkkd0pruoa4im" path="res://scripts/zonas/zona_explorable.gd" id="12_zona"]
-[ext_resource type="Script" path="res://scripts/render/polvo_ambiental.gd" id="12_polvo_ambiental"]
 [ext_resource type="Script" uid="uid://7ydarlpsaxpo" path="res://scripts/render/capa_paredes_oclusivas.gd" id="13_occlusion"]
 [ext_resource type="Texture2D" uid="uid://o80x8kkjjo6i" path="res://assets/characters/npcs/banga/sprites/banga_real_4_direcciones.png" id="13_oopww"]
 [ext_resource type="PackedScene" path="res://scenes/zonas/PuntoSpawnZona.tscn" id="14_spawn"]
@@ -28,6 +28,7 @@
 [ext_resource type="PackedScene" path="res://scenes/zonas/TriggerMapa.tscn" id="30_7iq3v"]
 [ext_resource type="Resource" uid="uid://b3d807810g6ni" path="res://dialogues/prision/guardias.dialogue" id="31_84x55"]
 [ext_resource type="Script" uid="uid://4wpgg3groqja" path="res://scripts/zonas/triggers/accion_trigger_viajar.gd" id="31_o4vwm"]
+[ext_resource type="Script" path="res://scripts/zonas/triggers/accion_escape_prision.gd" id="escape_prision_script"]
 [ext_resource type="Script" uid="uid://c47nsfflryre0" path="res://scripts/zonas/triggers/accion_trigger_dialogo.gd" id="31_s8wft"]
 [ext_resource type="Resource" uid="uid://cpykgpaxx2atp" path="res://dialogues/prision/derrumbe.dialogue" id="32_derrumbe"]
 [ext_resource type="Resource" uid="uid://c31j7ypx36s2r" path="res://dialogues/prision/peligro1.dialogue" id="33_peligro1"]
@@ -121,12 +122,15 @@ script = ExtResource("31_o4vwm")
 escena_destino = "uid://bgteils8qnldb"
 metadata/_custom_type_script = "uid://4wpgg3groqja"
 
+[sub_resource type="Resource" id="Accion_escape_prision"]
+script = ExtResource("escape_prision_script")
+
 [node name="Prision" type="Node2D" unique_id=2018468090]
 y_sort_enabled = true
 script = ExtResource("12_zona")
 nombre_zona = "Prisión"
 
-[node name="PolvoAmbiental" type="Node2D" parent="."]
+[node name="PolvoAmbiental" type="Node2D" parent="." unique_id=1912136984]
 y_sort_enabled = true
 script = ExtResource("12_polvo_ambiental")
 
@@ -428,7 +432,6 @@ curve = SubResource("Curve2D_u52ja")
 
 [node name="SirvienteEek" parent="Interactuables/Personajes" unique_id=801714611 instance=ExtResource("27_d7eni")]
 position = Vector2(2816, -1280)
-nombre_unico = "SirvienteEek_01"
 id_instancia = &"sirviente_eek_001"
 
 [node name="Sprite2D" parent="Interactuables/Personajes/SirvienteEek" index="0"]
@@ -439,7 +442,6 @@ curve = SubResource("Curve2D_8aue3")
 
 [node name="TerrorNocturno" parent="Interactuables/Personajes" unique_id=801295521 instance=ExtResource("28_jtkln")]
 position = Vector2(2784, -1136)
-nombre_unico = "terrornocturno_02"
 id_instancia = &"terror_nocturno_001"
 
 [node name="Sprite2D" parent="Interactuables/Personajes/TerrorNocturno" index="0"]
@@ -450,7 +452,6 @@ curve = SubResource("Curve2D_udsty")
 
 [node name="SirvienteEek2" parent="Interactuables/Personajes" unique_id=849922405 instance=ExtResource("27_d7eni")]
 position = Vector2(-704, -704)
-nombre_unico = "SirvienteEek_02"
 id_instancia = &"sirviente_eek_002"
 
 [node name="Sprite2D" parent="Interactuables/Personajes/SirvienteEek2" index="0"]
@@ -573,6 +574,13 @@ longitud_umbral = 10
 accion = ExtResource("prision_sala_accion")
 
 [node name="Mecanismos" type="Node2D" parent="Triggers" unique_id=1200584905]
+
+[node name="escape_prision" parent="Triggers/Mecanismos" unique_id=1580073801 instance=ExtResource("30_7iq3v")]
+position = Vector2(1216, 256)
+id_trigger = &"escape_prision"
+frecuencia = 1
+tamano = Vector2i(12, 1)
+accion = SubResource("Accion_escape_prision")
 
 [node name="Viajes" type="Node2D" parent="Triggers" unique_id=561693782]
 

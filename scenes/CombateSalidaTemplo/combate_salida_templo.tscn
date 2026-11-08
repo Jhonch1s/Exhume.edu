@@ -19,6 +19,7 @@
 [ext_resource type="PackedScene" uid="uid://bxpf3kv60y8yj" path="res://scenes/interactuables/trampas/TrampaSuperficie.tscn" id="11_1ubqs"]
 [ext_resource type="TileSet" uid="uid://c0fcnkqgc0isg" path="res://assets/tile_sets/surface_effects/spikes.tres" id="11_04jcf"]
 [ext_resource type="TileSet" uid="uid://t08yc6kq88bo" path="res://assets/tile_sets/surface_effects/mud.tres" id="12_uh6gi"]
+[ext_resource type="PackedScene" path="res://scenes/personajes/guardian.tscn" id="13_3cgk2"]
 [ext_resource type="TileSet" uid="uid://bdm815cgoj5qn" path="res://assets/tile_sets/surface_effects/ice.tres" id="13_57j8i"]
 [ext_resource type="TileSet" uid="uid://dr6pcgl80juta" path="res://assets/tile_sets/surface_effects/fire.tres" id="14_3cgk2"]
 [ext_resource type="TileSet" uid="uid://b2soug6txnn72" path="res://assets/tile_sets/surface_effects/web.tres" id="15_nfi2i"]
@@ -26,6 +27,9 @@
 [ext_resource type="Resource" path="res://dialogues/templo/salida_templo.tres" id="20_sxsq1"]
 [ext_resource type="Script" uid="uid://c47nsfflryre0" path="res://scripts/zonas/triggers/accion_trigger_dialogo.gd" id="21_8wpg1"]
 [ext_resource type="Shader" uid="uid://cn35vo7vn1ec" path="res://assets/shaders/occlusion_jugador.gdshader" id="25_elias"]
+[ext_resource type="Script" uid="uid://bjmk05ma4ww44" path="res://scripts/interacciones/items/entrada_inventario_inicial.gd" id="anillo_entrada_script"]
+[ext_resource type="Resource" path="res://assets/items/anillo_impacto/anillo_impacto.tres" id="anillo_impacto"]
+[ext_resource type="Script" path="res://scripts/zonas/triggers/accion_trigger_viajar.gd" id="viaje_prision_script"]
 
 [sub_resource type="Resource" id="Resource_xgogb"]
 script = ExtResource("7_qydjl")
@@ -56,6 +60,10 @@ script = ExtResource("10_u68mh")
 id_definicion = &"trampa_superficie"
 nombre = "Trampa"
 
+[sub_resource type="Resource" id="contenido_anillo_impacto"]
+script = ExtResource("anillo_entrada_script")
+definicion = ExtResource("anillo_impacto")
+
 [sub_resource type="Resource" id="Resource_eo3xm"]
 script = ExtResource("21_8wpg1")
 recurso_dialogo = ExtResource("20_sxsq1")
@@ -65,6 +73,11 @@ punto_inicio = "entrada"
 script = ExtResource("21_8wpg1")
 recurso_dialogo = ExtResource("20_sxsq1")
 punto_inicio = "encuentro"
+
+[sub_resource type="Resource" id="Viaje_vuelta_prision"]
+script = ExtResource("viaje_prision_script")
+escena_destino = "res://scenes/Prision/prision.tscn"
+id_spawn_destino = &"entrada_prision2"
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_os2b8"]
 shader = ExtResource("25_elias")
@@ -207,11 +220,17 @@ y_sort_enabled = true
 
 [node name="CofreInteractuable" parent="Interactuables/Cofres" unique_id=1433795063 instance=ExtResource("5_wqdig")]
 position = Vector2(-192, 0)
+contenido_inicial = Array[ExtResource("anillo_entrada_script")]([SubResource("contenido_anillo_impacto")])
 id_instancia = &"cofre_pequeno_combate"
 definicion = ExtResource("6_gf053")
 
 [node name="Personajes" type="Node2D" parent="Interactuables" unique_id=2029944673]
 y_sort_enabled = true
+
+[node name="Guardian" parent="Interactuables/Personajes" unique_id=1119667180 instance=ExtResource("13_3cgk2")]
+position = Vector2(-96, 48)
+nombre_unico = "El Guardián"
+id_instancia = &"guardian_salida_templo"
 
 [node name="Guias" type="Node2D" parent="Interactuables" unique_id=1262025229]
 y_sort_enabled = true
@@ -243,6 +262,12 @@ accion = SubResource("Resource_urkx0")
 [node name="Mecanismos" type="Node2D" parent="Triggers" unique_id=1073089308]
 
 [node name="Viajes" type="Node2D" parent="Triggers" unique_id=1765975977]
+
+[node name="vuelta_prision" parent="Triggers/Viajes" unique_id=2014314924 instance=ExtResource("18_syhl7")]
+position = Vector2(-384, 160)
+id_trigger = &"vuelta_prision"
+tamano = Vector2i(1, 1)
+accion = SubResource("Viaje_vuelta_prision")
 
 [node name="EfectosSuperficie" type="Node2D" parent="." unique_id=196984206]
 y_sort_enabled = true

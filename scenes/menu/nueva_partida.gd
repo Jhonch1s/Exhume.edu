@@ -257,7 +257,6 @@ func _solicitar_excursion() -> void:
 	if comenzar.disabled or atributos.size() != 3:
 		return
 	comenzar.disabled = true
-	await _reproducir_cinematica_provisional()
 	excursion_solicitada.emit({
 		"nombre": nombre.text.strip_edges(),
 		"titulo": titulo_aventurero.text.strip_edges(),
@@ -268,30 +267,6 @@ func _solicitar_excursion() -> void:
 		"clase": clase,
 		"origen": origen,
 	})
-
-
-func _reproducir_cinematica_provisional() -> void:
-	var pantalla := ColorRect.new()
-	pantalla.name = &"CinematicaProvisional"
-	pantalla.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	pantalla.color = Color.BLACK
-	pantalla.modulate.a = 0.0
-	pantalla.mouse_filter = Control.MOUSE_FILTER_STOP
-	pantalla.z_index = 100
-	add_child(pantalla)
-
-	var texto := Label.new()
-	texto.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	texto.text = "Las cavernas grises de Ubren aguardan...\n\nZONA 1"
-	texto.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	texto.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	texto.add_theme_font_size_override(&"font_size", 32)
-	pantalla.add_child(texto)
-
-	var tween := create_tween()
-	tween.tween_property(pantalla, "modulate:a", 1.0, 0.5)
-	await tween.finished
-	await get_tree().create_timer(0.75).timeout
 
 
 func _reproducir_sonido_cadenas() -> void:

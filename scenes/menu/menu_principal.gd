@@ -7,6 +7,7 @@ const SONIDO_NARRADOR_NUEVA_EXPLORACION: AudioStream = preload("res://assets/son
 @onready var menu_colgante: Control = $MenuColgante
 @onready var nueva_partida: Control = $NuevaPartida
 @onready var opciones_partida: Control = $OpcionesPartida
+@onready var personajes: Control = $Personajes
 
 
 var transicion_activa := false
@@ -18,6 +19,8 @@ var mostrando_opciones := false
 func _ready() -> void:
 	if musica_menu.stream is AudioStreamMP3:
 		musica_menu.stream.loop = true
+	if EstadoPartida.error_carga != &"":
+		_on_continuar_pressed()
 
 
 func _reproducir_narrador_global(stream: AudioStream, vol_db: float = 2.5) -> void:
@@ -78,14 +81,44 @@ func _on_excursion_solicitada(datos: Dictionary) -> void:
 	if not EstadoPartida.establecer_aventurero(datos):
 		push_error("No se puede iniciar la excursión: datos de aventurero inválidos.")
 		return
-	if FileAccess.file_exists("user://partida.json"):
-		DirAccess.remove_absolute("user://partida.json")
+	musica_menu.stop()
+	var narrador := get_tree().root.get_node_or_null("AudioNarradorGlobal")
+	if narrador != null:
+		narrador.queue_free()
+	var capa := CanvasLayer.new()
+	capa.layer = 4
+	add_child(capa)
+	var cinematica := preload("res://scenes/cinematicas/cinematica_imagenes.tscn").instantiate()
+	capa.add_child(cinematica)
+	await cinematica.terminada
 	get_tree().change_scene_to_file("res://scenes/Prision/prision.tscn")
 
 
 func _on_continuar_pressed() -> void:
+	if transicion_activa:
+		return
 	_reproducir_narrador_global(SONIDO_NARRADOR_CONTINUAR)
-	get_tree().change_scene_to_file("res://scenes/menu/personajes.tscn")
+	transicion_activa = true
+	menu_colgante.process_mode = Node.PROCESS_MODE_DISABLED
+	var tween := create_tween()
+	tween.tween_property(menu_colgante, "position:y", menu_colgante.position.y - menu_colgante.size.y - 80.0, 0.55).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	await tween.finished
+	menu_colgante.hide()
+	personajes.actualizar()
+	personajes.show()
+	transicion_activa = false
+
+
+func _on_volver_personajes() -> void:
+	if transicion_activa:
+		return
+	personajes.hide()
+	menu_colgante.position.y = 0.0
+	menu_colgante.show()
+	menu_colgante.process_mode = Node.PROCESS_MODE_INHERIT
+	transicion_activa = true
+	await menu_colgante.reproducir_entrada()
+	transicion_activa = false
 
 
 func _on_opciones_pressed() -> void:

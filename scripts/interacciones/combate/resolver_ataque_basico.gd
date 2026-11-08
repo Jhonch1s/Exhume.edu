@@ -60,10 +60,15 @@ static func resolver(
 	)
 	if not tirada_dano.valida:
 		return ResultadoAccion.crear_fallo(tirada_dano.motivo).con_tirada(ataque).con_tirada_defensa(esquiva)
+	var bono_npc := 0
+	if contexto.actor is PersonajeNPC:
+		var perfil: DefinicionPersonaje = contexto.actor.obtener_definicion_personaje()
+		if perfil != null:
+			bono_npc = perfil.bono_dano_ataque
 	var solicitud := SolicitudEfecto.new(
 		contexto.id_accion, &"dano", defensor,
 		contexto.id_evento if contexto.id_evento != &"" else contexto.id_accion,
-		float(maxi(1, tirada_dano.total_efectivo + EfectosEquipo.bono_fuerza_dano(contexto.actor) + EfectosEquipo.bono_dano(contexto.actor, true) - EfectosEquipo.bono_armadura(defensor))), 0, TiposInteraccion.PoliticaApilado.NO_APILAR_Y_RENOVAR, contexto.actor
+		float(maxi(1, tirada_dano.total_efectivo + bono_npc + EfectosEquipo.bono_fuerza_dano(contexto.actor) + EfectosEquipo.bono_dano(contexto.actor, true) - EfectosEquipo.bono_armadura(defensor)) + EfectosEquipo.bono_dano_final(contexto.actor)), 0, TiposInteraccion.PoliticaApilado.NO_APILAR_Y_RENOVAR, contexto.actor
 	)
 	var efecto: Variant = aplicador_efectos.aplicar(solicitud)
 	if efecto is StringName:

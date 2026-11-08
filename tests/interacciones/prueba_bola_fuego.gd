@@ -9,6 +9,12 @@ func _initialize() -> void:
 
 
 func _probar() -> void:
+	var texturas: Array[Texture2D] = []
+	for nombre in ["icono", "ilustracion", "suelo"]:
+		var ruta := "res://assets/items/anillo_impacto/%s.png" % nombre
+		var textura := ImageTexture.create_from_image(Image.load_from_file(ruta))
+		textura.take_over_path(ruta)
+		texturas.append(textura)
 	var escena: Node = load("res://tests/interacciones/escena_facciones_npc.tscn").instantiate()
 	var escenario = escena.get_node("Escenario")
 	escenario.set_script(load("res://tests/soporte/escenario_sin_render.gd"))
@@ -20,6 +26,10 @@ func _probar() -> void:
 	escena.set_process(false)
 	escenario.set_process(false)
 	var ficha: Ficha = escenario.ficha_jugador
+	var anillo := ItemInstancia.new(&"anillo_prueba", load("res://assets/items/anillo_impacto/anillo_impacto.tres"))
+	ficha.inventario.agregar(anillo)
+	comprobar(EfectosEquipo.bono_dano_final(ficha) == 0, "El anillo en la mochila no aumenta el daño.")
+	comprobar(ficha.equipo.equipar(ficha.inventario, anillo.id_instancia, 7) == &"", "El anillo se equipa.")
 	var npc: PersonajeNPC = escena.get("_enemigos")[0]
 	ficha.clase = "Mago"
 	escenario.hud.actualizar_desde_ficha()
@@ -63,7 +73,9 @@ func _probar() -> void:
 		semilla += 1
 	seed(semilla)
 	var acierto: ResultadoAccion = escenario.ejecutar_bola_fuego(npc)
-	comprobar(acierto.exitosa and npc.vida_actual == vida - 1, "Impacta con un daño inicial de fuego.")
+	comprobar(acierto.exitosa and npc.vida_actual == vida - 2, "El anillo suma un punto al daño inicial de Bola de fuego.")
+	comprobar(ficha.equipo.desequipar(ficha.inventario, 7) == &"" and EfectosEquipo.bono_dano_final(ficha) == 0, "Desequipar retira el bono.")
+	ficha.inventario.retirar(anillo.id_instancia)
 	comprobar(escenario.habilidades_nivel_dos.superficie(destino) != null and escenario.habilidades_nivel_dos.superficie(destino).obtener_turnos_restantes_superficie() == 3, "La celda enemiga arde3turnos al aplicar Quemado.")
 	comprobar(npc.obtener_estado(&"quemado") != null and npc.obtener_estado(&"quemado").ticks_pendientes == 3, "La probabilidad favorable aplica Quemado estándar.")
 	comprobar(npc.sprite_personaje.material == npc.material_quemado and is_instance_valid(npc.particulas_quemado), "Quemado tiñe al enemigo y muestra las mismas llamas que al jugador.")

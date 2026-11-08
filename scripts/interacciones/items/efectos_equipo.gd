@@ -26,6 +26,9 @@ static func validar(efectos: Variant) -> bool:
 			"tirada":
 				if e.get("prueba") not in PRUEBAS or e.get("modo") not in ["ventaja", "desventaja"]:
 					return false
+			"dano_final":
+				if not entero(e.get("valor"), 1, 99):
+					return false
 			"dano", "estado", "penalizacion":
 				if e.get("alcance") not in ["arma", "directo"] or not entero(e.get("valor"), 1, 99):
 					return false
@@ -103,6 +106,14 @@ static func bono_dano(actor: Object, es_arma: bool) -> int:
 	return bono
 
 
+static func bono_dano_final(actor: Object) -> int:
+	var bono := 0
+	for entrada in entradas(actor):
+		if entrada.efecto.tipo == "dano_final":
+			bono += int(entrada.efecto.valor)
+	return bono
+
+
 static func bono_armadura(actor: Object) -> int:
 	var bono := 0
 	for entrada in entradas(actor):
@@ -169,4 +180,5 @@ static func describir(e: Dictionary) -> String:
 		"atributo": return "Equipado: %+d %s." % [int(e.valor), String(e.atributo).to_upper()]
 		"tirada": return "Equipado: %s en %s." % [e.modo, e.prueba]
 		"dano": return "Al acertar (%s): +%d daño." % [e.alcance, int(e.valor)]
+		"dano_final": return "Equipado: +%d daño en cada ataque que cause daño." % int(e.valor)
 		_: return "Al acertar (%s): %s %d, %d turnos%s." % [e.alcance, e.get("estado", "-" + e.get("atributo", "")), int(e.valor), int(e.duracion), "; salvación " + e.salvacion if e.salvacion != "" else ""]

@@ -22,6 +22,8 @@ Roffa: Ah, eres tú. ¿Qué necesitas?
 
 ~ preguntas
 Roffa: Dime. Te escucho.
+- Ahora sí tengo un mecanismo para abrir la puerta. [if ficha_jugador.inventario.obtener_por_definicion("ganzua_mecanica").size() > 0 /]
+	=> mecanismo
 - ¿Por qué estás encerrado?
 	=> encierro
 - ¿Quieres que te ayude a salir?
@@ -80,4 +82,40 @@ else
 
 ~ despedida
 Roffa: Aquí estaré. Por el momento.
+=> END
+
+~ mecanismo
+{{nombre}}: Encontré un mecanismo en el templo. Creo que puede abrir tu cerradura.
+Roffa: ¡Pues abre la puerta de una vez! Ya he pasado bastante tiempo aquí dentro.
+=> END
+
+~ liberacion
+Roffa: ¡Por fin! Ya necesitaba estirar las piernas.
+Roffa: Sígueme. Vamos a hablar con los guardias; yo les explicaré quién eres.
+{{nombre}}: Está bien. Ve delante.
+=> END
+
+~ encuentro_guardias
+Roffa: Deja que hable yo. No entenderán lo que les digas.
+Peeble: ¡Oinc, oinc! ¡Oinc!
+Rengo: ¡Oinc, oinc, oinc!
+{{nombre}}: ¿De qué se ríen?
+Roffa: Quieren saber cómo he salido de la celda.
+Roffa: Me encerraron ahí como una broma. Una broma que ya había durado bastante.
+{{nombre}}: ¿Una broma? Pensé que podías haber hecho algo terrible.
+Roffa: Sí, bueno. Ahora voy a explicarles quién eres.
+Roffa: Oinc, oinc. Oinc, oinc, oinc.
+Peeble: ¿Oinc?
+Roffa: Oinc. ¡Oinc, oinc!
+Rengo: ¡Oinc, oinc! ¡Oinc!
+{{nombre}}: ¿Y ahora qué les hace tanta gracia?
+Roffa: Les dije que caíste por un agujero enorme y que no eres un prisionero.
+Roffa: Dicen que puedes pasar. El camino lleva al campamento.
+=> END
+
+~ encuentro_guardias_muertos
+Roffa: ¡Peeble! ¡Rengo! ¿Qué les ha pasado?
+{{nombre}}: Me atacaron. No pude hacerles entender quién era.
+Roffa: Eran mis amigos. Me encerraron como una broma, pero jamás quise que esto ocurriera.
+Roffa: No puedo dejarte marchar después de esto.
 => END

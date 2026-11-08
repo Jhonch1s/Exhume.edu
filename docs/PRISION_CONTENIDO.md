@@ -106,8 +106,27 @@ muros opacos. El alcance de ataques y botín sigue siendo de una casilla.
 La puerta colocada en `(45, -13)` tenía una definición vacía, que impedía registrar
 todo el contenido de la prisión. Se le asignó la definición existente de reja
 metálica derecha; se conserva su posición, ID y estado cerrado con cerradura.
-La liberación, seguimiento del preso y mediación posterior quedan pendientes de
-su implementación como secuencia de nivel; esta conversación no los ejecuta.
+Al abrir esta puerta con Roffa vivo y fuera de combate comienza una secuencia:
+primero Roffa pide al protagonista que lo siga para hablar con los guardias.
+El traslado espera a que se cierre ese diálogo y la cámara sigue al jugador
+durante la secuencia aunque los controles permanezcan bloqueados.
+Roffa sale y el protagonista lo acompaña hasta `escape_prision`. El movimiento
+de la escena no consume los recursos de movimiento o energía; los guardias no
+inician combate durante el traslado. Si bloquea la salida de la celda, el
+protagonista se aparta antes de continuar. Con ambos guardias vivos, Roffa
+traduce, se descubre la broma y termina la demo. Si falta alguno, Roffa enfrenta
+al jugador; la demo termina tras derrotarlo y salir de combate.
+
+Si el protagonista lleva la ganzúa mecánica, el menú de preguntas permite
+anunciar que encontró un mecanismo. Roffa le pide abrir la puerta de una vez;
+esa opción desaparece al perder o consumir la herramienta.
+
+El trigger `escape_prision` tiene una acción independiente del viaje al templo.
+Permite terminar la demo sin liberar a Roffa cuando ambos guardias están muertos,
+o con Roffa muerto. La pantalla final vuelve al menú principal. La marca de
+venganza se guarda en la memoria de triggers para conservar el desenlace si se
+guarda durante el combate. La ruta de la escena requiere que el mapa permita
+llegar a la zona del trigger y que existan sus cuatro interactuables originales.
 
 ## Ilustraciones
 

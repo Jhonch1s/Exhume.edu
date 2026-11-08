@@ -45,6 +45,7 @@ puede_dialogar = true
 puede_combatir = true
 puede_tener_inventario = true
 caras_dano_natural = 6
+bono_dano_ataque = 2
 movimiento_fijo = 7
 textura_mapa = ExtResource("5_krqa0")
 retrato_turno = ExtResource("6_retrato")

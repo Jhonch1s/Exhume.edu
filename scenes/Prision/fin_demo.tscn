@@ -1,0 +1,157 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/Prision/fin_demo.gd" id="1"]
+[ext_resource type="Shader" path="res://scenes/menu/filtro_crt_luminancia.gdshader" id="2_crt"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_crt"]
+shader = ExtResource("2_crt")
+shader_parameter/tipo_mascara = 4
+shader_parameter/curvatura = 0.03
+shader_parameter/separacion_color_px = 0.45
+shader_parameter/fuerza_mascara = 0.72
+shader_parameter/brillo_mascara = 0.95
+shader_parameter/aspecto = 0.5625
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxPanel"]
+bg_color = Color(0.075, 0.058, 0.05, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.38, 0.29, 0.19, 0.8)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+content_margin_left = 70.0
+content_margin_top = 32.0
+content_margin_right = 70.0
+content_margin_bottom = 32.0
+
+[node name="FinDemo" type="Control"]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Fondo" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.035, 0.027, 0.024, 1)
+
+[node name="Marco" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -490.0
+offset_top = -415.0
+offset_right = 490.0
+offset_bottom = 415.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxPanel")
+
+[node name="Contenido" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Columna" type="VBoxContainer" parent="Contenido"]
+layout_mode = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="Titulo" type="Label" parent="Contenido/Columna"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+theme_override_colors/font_color = Color(0.9, 0.77, 0.5, 1)
+text = "Fin de la demo"
+horizontal_alignment = 1
+
+[node name="Mensaje" type="Label" parent="Contenido/Columna"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.83, 0.79, 0.71, 1)
+text = "Gracias por jugar."
+horizontal_alignment = 1
+
+[node name="VerCreditos" type="Button" parent="Contenido/Columna"]
+layout_mode = 2
+text = "Ver créditos"
+
+[node name="Creditos" type="CenterContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Columna" type="VBoxContainer" parent="Creditos"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="Titulo" type="Label" parent="Creditos/Columna"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 44
+theme_override_colors/font_color = Color(0.9, 0.77, 0.5, 1)
+text = "Créditos"
+horizontal_alignment = 1
+
+[node name="Equipo" type="Label" parent="Creditos/Columna"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 23
+theme_override_colors/font_color = Color(0.87, 0.83, 0.75, 1)
+text = "Desarrollo, diseño y contenido\nJhon Guimaraens\n\nSonido y diálogos adicionales\nMatias Pareente\n\nModelado 3D de personajes y NPC\nCarlos Cardozo"
+horizontal_alignment = 1
+
+[node name="JuegoOriginal" type="Label" parent="Creditos/Columna"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 23
+theme_override_colors/font_color = Color(0.8, 0.73, 0.61, 1)
+text = "Basado en el juego de mesa Exhume\ncreado por RolePerSecond (Irvin Morales).\nReglas y elementos del lore y enemigos utilizados con permiso."
+horizontal_alignment = 1
+
+[node name="Enlace" type="LinkButton" parent="Creditos/Columna"]
+layout_mode = 2
+text = "Conocer Exhume, el juego original"
+theme_override_colors/font_color = Color(0.88, 0.7, 0.42, 1)
+theme_override_colors/font_hover_color = Color(1, 0.9, 0.65, 1)
+horizontal_alignment = 1
+
+[node name="VolverAlMenu" type="Button" parent="Creditos/Columna"]
+layout_mode = 2
+text = "Volver al menú principal"
+
+[node name="FiltroCRT" type="CanvasLayer" parent="."]
+layer = 3
+
+[node name="Pantalla" type="ColorRect" parent="FiltroCRT"]
+material = SubResource("ShaderMaterial_crt")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[connection signal="pressed" from="Contenido/Columna/VerCreditos" to="." method="_on_ver_creditos_pressed"]
+[connection signal="pressed" from="Creditos/Columna/Enlace" to="." method="_on_juego_original_pressed"]
+[connection signal="pressed" from="Creditos/Columna/VolverAlMenu" to="." method="_on_volver_al_menu_pressed"]

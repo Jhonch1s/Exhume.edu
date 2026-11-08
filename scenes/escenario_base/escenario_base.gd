@@ -174,6 +174,7 @@ var representacion_lanzamiento: Node2D = null
 var ultimo_contexto_contextual: ContextoAccion = null
 var ultimo_resultado_contextual: ResultadoAccion = null
 var interaccion_modal_activa: bool = false
+var secuencia_prision_activa: bool = false
 var dialogo_npc_activo: bool = false
 var recurso_dialogo_npc_activo: DialogueResource
 var tema_dialogo_npc_activo: DialogoNPC
@@ -262,8 +263,6 @@ func _ready() -> void:
 	$CanvasLayerModalDados.visible = not preparando_viaje
 	CursorJuego.establecer_cursor(CursorJuego.Tipo.DEFAULT)
 	guardado_en_fogata_realizado = EstadoPartida.guardado_en_fogata_realizado
-	if not preparando_viaje and not guardado_en_fogata_realizado and FileAccess.file_exists(RUTA_GUARDADO):
-		DirAccess.remove_absolute(RUTA_GUARDADO)
 	nombreClase = EstadoPartida.aventurero_pendiente.get("clase", nombreClase)
 	var limite_hud := hud.get_node("HUDRoot/SeccionesHUD/SeccionJugador/Retrato") as Control
 	menu_contextual.hud_inferior = limite_hud
@@ -348,7 +347,8 @@ func _ready() -> void:
 		_inicializar_audio_ambiente()
 		if not es_escenario_de_descanso:
 			_inicializar_musica()
-			_presentar_entrada_nueva_zona()
+			if not EstadoPartida.carga_pendiente:
+				_presentar_entrada_nueva_zona()
 	await spawnear_ficha_inicial(id_spawn_inicial)
 	if ficha_jugador:
 		hud.configurar_ficha(ficha_jugador)
@@ -364,7 +364,21 @@ func _ready() -> void:
 		_actualizar_luz_jugador(ficha_jugador.coordenada_mapa)
 		_actualizar_audio_proximidad()
 		centrar_camara_en_ficha()
+	if EstadoPartida.carga_pendiente and not preparando_viaje and not es_escenario_de_descanso:
+		EstadoPartida.carga_pendiente = false
+		var motivo_carga := cargar_partida()
+		if motivo_carga != &"":
+			push_error("No se pudo cargar la partida: %s" % motivo_carga)
+			EstadoPartida.error_carga = motivo_carga
+			get_tree().call_deferred(&"change_scene_to_file", "res://scenes/menu/menu_principal.tscn")
+			return
+		guardado_en_fogata_realizado = true
+		EstadoPartida.guardado_en_fogata_realizado = true
 	escenario_preparado = true
+	if zona_actual.scene_file_path == "res://scenes/Prision/prision.tscn":
+		var controlador: Node = load("res://scripts/zonas/secuencia_roffa.gd").new()
+		controlador.name = "SecuenciaRoffa"
+		add_child(controlador)
 
 func _exit_tree() -> void:
 	gestor_triggers.limpiar()
@@ -1021,6 +1035,8 @@ func cargar_partida(ruta: String = RUTA_GUARDADO) -> StringName:
 			campamento.actualizar()
 		else:
 			salir_campamento()
+	elif snapshot.get("en_campamento", false):
+		_mostrar_campamento()
 	return &""
 
 
@@ -1545,7 +1561,7 @@ func _agregar_detalle_dano_fisico(detalles: Array[String], resultado: ResultadoA
 		detalles.append("Daño: %s + %d FUE + %d equipo" % [
 			_formatear_pista_tirada(resultado.tirada_dano),
 			EfectosEquipo.bono_fuerza_dano(atacante),
-			EfectosEquipo.bono_dano(atacante, true),
+			EfectosEquipo.bono_dano(atacante, true) + EfectosEquipo.bono_dano_final(atacante),
 		])
 		for efecto_dano in resultado.efectos_aplicados:
 			if efecto_dano.tipo == &"dano":
@@ -2216,7 +2232,7 @@ func ejecutar_bola_fuego(objetivo: PersonajeNPC) -> ResultadoAccion:
 	if motivo != &"":
 		return ResultadoAccion.crear_bloqueo(motivo)
 	var aplicador := AplicadorEfectos.new()
-	var dano := SolicitudEfecto.new(&"bola_fuego", &"dano", objetivo, &"bola_fuego", 1.0, 0, TiposInteraccion.PoliticaApilado.NO_APILAR_Y_RENOVAR, ficha_jugador)
+	var dano := SolicitudEfecto.new(&"bola_fuego", &"dano", objetivo, &"bola_fuego", float(1 + EfectosEquipo.bono_dano_final(ficha_jugador)), 0, TiposInteraccion.PoliticaApilado.NO_APILAR_Y_RENOVAR, ficha_jugador)
 	var quemado := SolicitudEfecto.new(&"quemado", &"estado", objetivo, &"bola_fuego", 0.0, 3, TiposInteraccion.PoliticaApilado.NO_APILAR_Y_RENOVAR, ficha_jugador, [{&"cantidad": 1, &"caras": 2, &"signo": 1}])
 	for solicitud in [dano, quemado]:
 		motivo = aplicador.validar(solicitud)
@@ -3277,6 +3293,9 @@ func _puntero_sobre_interfaz() -> bool:
 
 
 func _actualizar_camara(delta: float) -> void:
+	if secuencia_prision_activa and ficha_jugador != null:
+		camera_2d.centrar(ficha_jugador.global_position)
+		return
 	var bloqueada := _camara_bloqueada()
 	if _centrado_camara_pendiente and not bloqueada:
 		centrar_camara_en_ficha()
@@ -4221,13 +4240,9 @@ func _ejecutar_carga_tras_muerte() -> void:
 	
 	var escena_guardada: String = snapshot.get("escena_zona", "")
 	if not escena_guardada.is_empty() and escena_guardada != zona_actual.scene_file_path:
-		if is_instance_valid(pantalla_muerte):
-			pantalla_muerte.queue_free()
-			pantalla_muerte = null
-		if is_instance_valid(campamento):
-			campamento.queue_free()
-			campamento = null
-		get_tree().change_scene_to_file(escena_guardada)
+		var motivo_cambio: StringName = EstadoPartida.preparar_carga()
+		if motivo_cambio != &"":
+			push_error("No se pudo cargar la partida tras muerte: %s" % motivo_cambio)
 		return
 	
 	var motivo := cargar_partida(RUTA_GUARDADO)
@@ -4674,7 +4689,8 @@ func _cancelar_lanzamiento() -> void:
 
 func _hay_modal_ajeno_a_triggers() -> bool:
 	return (
-		_desmayo_en_curso
+		secuencia_prision_activa
+		or _desmayo_en_curso
 		or lanzamiento_en_vuelo
 		or (habilidades_nivel_dos != null and habilidades_nivel_dos.empuje_pendiente != null)
 		or (is_instance_valid(panel_progresion) and panel_progresion.visible)

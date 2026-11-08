@@ -9,7 +9,7 @@
 [resource]
 script = ExtResource("1_def")
 fuerza = 2
-destreza = 4
+destreza = 2
 voluntad = 2
 vida_maxima = 10
 experiencia_recompensa_derrota = 25

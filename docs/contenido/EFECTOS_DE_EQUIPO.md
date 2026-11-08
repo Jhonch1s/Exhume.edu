@@ -19,6 +19,8 @@ Implementados en el editor y en el juego. Consulta `tools/forja_items/README.md`
 
 Tras acertar y fallar la esquiva, el ataque básico tira el daño del arma. La Forja guarda ese dado como `dano_arma_dados` y `dano_arma_caras` en `DefinicionItem.magnitudes`: espada `1d3`, daga `1d2` y bastón `1d2`. Dos dagas equipadas tiran `2d2` en el mismo ataque. Se suma una sola vez el bono `max(0, floor((FUE efectiva - 1) / 2))` y después los bonos de daño de equipo. Sin un arma configurada se tira `1d2`. Cada golpe de Ataque doble hace su propia tirada. El daño mágico del mago se definirá aparte.
 
+Los NPC pueden añadir un bono de ataque en su definición antes de descontar armadura. Rengo, Peeble y Roffa tienen +2, que junto al +1 de FUE deja su daño natural en `1d6+3`; contra la protección inicial de 2 del Guerrero causan 2–7 PV por golpe.
+
 `salvacion` es vacío (sin salvación) o fuerza/destreza/voluntad. Cada fila con salvación se comprueba de forma independiente. Resistir tiene feedback narrativo. Fallar, esquivar o no causar daño no activa los efectos.
 
 ## Modelo y persistencia

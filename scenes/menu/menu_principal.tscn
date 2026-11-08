@@ -14,6 +14,7 @@
 [ext_resource type="PackedScene" uid="uid://xk23b4orfmmv" path="res://scenes/menu/nueva_partida.tscn" id="12_nueva_partida"]
 [ext_resource type="Shader" uid="uid://cmw1kk6ofvqkm" path="res://scenes/menu/filtro_crt_luminancia.gdshader" id="13_crt"]
 [ext_resource type="PackedScene" uid="uid://7ayd71c8ghrr" path="res://scenes/menu/opciones_partida.tscn" id="13_hrcl3"]
+[ext_resource type="PackedScene" path="res://scenes/menu/personajes.tscn" id="14_personajes"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_niebla"]
 shader = ExtResource("8_niebla")
@@ -184,6 +185,32 @@ layout_mode = 1
 visible = false
 layout_mode = 1
 
+[node name="Personajes" parent="." instance=ExtResource("14_personajes")]
+visible = false
+layout_mode = 1
+
+[node name="Version" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -260.0
+offset_top = -48.0
+offset_right = -24.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.86, 0.81, 0.72, 0.9)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 20
+text = "v0.1 DEMO"
+horizontal_alignment = 2
+
 [node name="FiltroCRT" type="CanvasLayer" parent="." unique_id=739281923]
 layer = 3
 
@@ -203,3 +230,4 @@ mouse_filter = 2
 [connection signal="excursion_solicitada" from="NuevaPartida" to="." method="_on_excursion_solicitada"]
 [connection signal="volver_solicitado" from="NuevaPartida" to="." method="_on_volver_nueva_partida"]
 [connection signal="volver_solicitado_opciones" from="OpcionesPartida" to="." method="_on_volver_opciones"]
+[connection signal="volver_solicitado" from="Personajes" to="." method="_on_volver_personajes"]

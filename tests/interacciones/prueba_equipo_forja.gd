@@ -66,6 +66,15 @@ func _probar() -> void:
 	var golpe_defensa := ResolverAtaqueBasico.resolver(contexto_defensa, f, motor([1, 6, 6]), AplicadorEfectos.new())
 	comprobar(golpe_defensa.tirada_dano != null and vida_defensa - f.pv_actual == maxi(1, golpe_defensa.tirada_dano.total_efectivo + EfectosEquipo.bono_fuerza_dano(npc) - 2), "La protección reduce el daño físico real sin anular el golpe.")
 	f.curar(f.pv_max)
+	var definicion_original = npc.definicion
+	npc.definicion = load("res://recursos/prision/guardia_peeble.tres")
+	npc.atributos_actuales[&"fuerza"] = 4
+	for dado in [1, 6]:
+		vida_defensa = f.pv_actual
+		var golpe_banga := ResolverAtaqueBasico.resolver(contexto_defensa, f, motor([1, 6, dado]), AplicadorEfectos.new())
+		comprobar(golpe_banga.tirada_dano != null and vida_defensa - f.pv_actual == dado + 1, "El banga causa 2 a 7 de daño contra la armadura inicial del Guerrero.")
+		f.curar(f.pv_max)
+	npc.definicion = definicion_original
 	npc.atributos_actuales[&"fuerza"] = fuerza_npc_original
 	comprobar(CasillaInventario.texto_tooltip_item(espada_inicial).contains("Solo: Guerrero"), "El inventario explica la restricción de clase.")
 	comprobar(EquipoActor.new().validar_estado_persistente(f.equipo.obtener_estado_persistente(), [], "Ladrón") == &"equipo_guardado_incompatible", "Un guardado no puede equipar armas de otra clase.")

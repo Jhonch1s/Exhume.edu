@@ -41,8 +41,7 @@ func _ejecutar() -> void:
 
 	var datos_emitidos: Array[Dictionary] = []
 	menu.excursion_solicitada.connect(func(datos: Dictionary): datos_emitidos.append(datos))
-	await menu.call(&"_solicitar_excursion")
-	assert(menu.has_node("CinematicaProvisional"))
+	menu.call(&"_solicitar_excursion")
 	assert(datos_emitidos.size() == 1 and datos_emitidos[0]["titulo"] == "la Audaz")
 	print("CreacionPersonaje: prueba correcta.")
 	quit()

@@ -36,6 +36,7 @@ actitud_inicial_jugador = 2
 puede_combatir = true
 puede_tener_inventario = true
 caras_dano_natural = 6
+bono_dano_ataque = 2
 movimiento_fijo = 7
 textura_mapa = ExtResource("5_d7esg")
 retrato_turno = ExtResource("6_retrato")
