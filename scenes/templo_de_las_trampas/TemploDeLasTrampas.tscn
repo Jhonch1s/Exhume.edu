@@ -43,7 +43,7 @@
 [ext_resource type="PackedScene" path="res://scenes/personajes/sirviente_eek.tscn" id="templo_arana"]
 [ext_resource type="Script" uid="uid://c5sxr7hy2ff83" path="res://scripts/interacciones/interactuables/definicion_interactuable.gd" id="templo_def_interactuable"]
 [ext_resource type="Script" uid="uid://do6a1i24l6xxx" path="res://scripts/interacciones/interactuables/mecanismos/derrumbe.gd" id="templo_derrumbe"]
-[ext_resource type="Resource" path="res://dialogues/templo/lamentos.tres" id="templo_dialogo"]
+[ext_resource type="Resource" path="res://dialogues/templo/lamentos.dialogue" id="templo_dialogo"]
 [ext_resource type="Resource" path="res://assets/items/ganzua_mecanica/ganzua_mecanica.tres" id="templo_ganzua"]
 [ext_resource type="PackedScene" path="res://scenes/interactuables/guias/hojas_interactuable.tscn" id="templo_hojas"]
 [ext_resource type="Script" uid="uid://d3hk7saacdba" path="res://scripts/zonas/triggers/accion_trigger_mecanismo.gd" id="templo_mecanismo"]

@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sistema de interacciones · Exhume</title>
+<style>
+/* ANATOMY CSS */
+:root {
+  color-scheme: dark;
+  --bg: #11171d;
+  --surface: #172027;
+  --code-bg: #10171d;
+  --line: #364752;
+  --text: #f0f5f7;
+  --muted: #afc1ca;
+  --accent: #a5dfcc;
+  --accent-bg: #223d37;
+  --error: #ffc3ab;
+  --mono: "IBM Plex Mono", Consolas, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 "Instrument Sans", system-ui, sans-serif; }
+main { width: min(1216px, calc(100% - 40px)); margin: 34px auto 64px; }
+header { padding: 0 0 24px; border-bottom: 1px solid var(--line); }
+header p { margin: 0; color: var(--muted); }
+.project { color: var(--accent); font: 600 12px/1.5 var(--mono); letter-spacing: .1em; }
+h1 { margin: 4px 0 6px; font-size: clamp(30px, 5vw, 53px); letter-spacing: -.04em; line-height: 1.07; }
+h2, h3, h4, p { margin: 0; }
+h2 { font-size: 19px; }
+h3 { font-size: 23px; line-height: 1.24; }
+h4 { font-size: 14px; }
+code, pre { font-family: var(--mono); }
+a { color: var(--accent); text-underline-offset: 3px; overflow-wrap: anywhere; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+button, select { font: inherit; color: var(--text); border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+button { cursor: pointer; }
+:is(button, select, a):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+button:disabled { opacity: .5; cursor: default; }
+button:not(:disabled):hover, select:hover { border-color: var(--accent); }
+.filters { display: flex; gap: 12px; flex-wrap: wrap; margin: 20px 0 14px; }
+.filters label { display: grid; gap: 4px; color: var(--muted); font-size: 13px; font-weight: 650; }
+.filters > button { align-self: end; min-height: 44px; padding: 7px 12px; margin-left: auto; }
+select { min-height: 44px; padding: 7px 32px 7px 10px; width: 100%; cursor: pointer; }
+.summary { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin: 0 0 24px; border: 1px solid var(--line); background: var(--line); border-radius: 8px; overflow: hidden; }
+.summary div { background: var(--surface); padding: 12px 16px; }
+dt { color: var(--muted); font: 600 11px/1.5 var(--mono); text-transform: uppercase; letter-spacing: .05em; }
+dd { margin: 3px 0 0; }
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(300px, 5fr) minmax(0, 7fr);
+  grid-template-areas: "board exchanges" "inspector inspector";
+  gap: 18px 22px;
+  align-items: start;
+}
+.board {
+  grid-area: board; margin: 0; min-width: 0; overflow: hidden;
+  border: 1px solid #b6a792; border-radius: 8px;
+  color: #2b2822; background: #f2eadc;
+}
+.board-heading { padding: 12px 14px 0; font-size: 15px; }
+#board-view { background: radial-gradient(ellipse at 52% 50%, #fcf7ec 15%, #f2eadc 72%); }
+#board-view svg { overflow: hidden; }
+.board figcaption {
+  min-height: 49px; padding: 9px 14px; border-top: 1px solid #d6c8b2;
+  background: #e8dfcf; color: #3c342b; font: 600 12px/1.5 var(--mono);
+}
+.board.iso[data-theme=light] {
+  --anatomy-paper: #e4dac8; --anatomy-top: #ded3bf;
+  --anatomy-shade-0: #a08d73; --anatomy-shade-1: #aa987f;
+  --anatomy-shade-2: #bcaa92; --anatomy-shade-3: #cabba3;
+  --anatomy-mid: #71634f; --anatomy-hi: #534631; --anatomy-lo: #9d8e76;
+  --anatomy-faint: #ab9b83; --anatomy-halo: #746452;
+}
+.floor-tile { --anatomy-top: #d8cdb8; }
+.stone-light { --anatomy-top: #e3d9c6; }
+.leaf {
+  --anatomy-top: #be9262; --anatomy-paper: #a77b52; --anatomy-hi: #644329;
+  --anatomy-shade-0: #8d6242; --anatomy-shade-1: #916444;
+  --anatomy-shade-2: #a4784e; --anatomy-shade-3: #ae8254;
+  --anatomy-mid: #714b33; --anatomy-faint: #896246;
+}
+.iron {
+  --anatomy-top: #7e837f; --anatomy-paper: #575c59; --anatomy-hi: #373a38; --anatomy-dot: #e0d5bd;
+  --anatomy-shade-0: #454a48; --anatomy-shade-1: #4e5350;
+  --anatomy-shade-2: #535854; --anatomy-shade-3: #656b66;
+  --anatomy-mid: #373a38; --anatomy-faint: #343635;
+}
+.brass {
+  --anatomy-top: #edc37d; --anatomy-paper: #d2994d;
+  --anatomy-shade-0: #8d5724; --anatomy-shade-1: #9e652a;
+  --anatomy-shade-2: #b07b37; --anatomy-shade-3: #c18c43;
+  --anatomy-hi: #795326; --anatomy-mid: #835723;
+}
+.piece {
+  --anatomy-paper: #4f7e78; --anatomy-top: #8eb2a5;
+  --anatomy-shade-0: #3b5d57; --anatomy-shade-1: #466e64;
+  --anatomy-shade-2: #588073; --anatomy-shade-3: #679487;
+  --anatomy-hi: #243e38; --anatomy-mid: #365b51;
+}
+.plate { --anatomy-top: #a8a38c; --anatomy-shade-3: #8d866e; }
+.highlight { fill: #d9ba7b; stroke: #9c7540; stroke-width: 1; opacity: 0; transition: opacity 210ms ease; }
+.view-cells .highlight { fill: #d3e3ed; stroke: #6893ad; }
+.route-cells .highlight { fill: #c6dcb0; stroke: #799460; }
+.smoke-cells .highlight { fill: #d1badc; stroke: #9770a8; }
+.board :is(.cloud, .poison-mark) { opacity: 0; transition: opacity 280ms ease; }
+.board .key { display: none; }
+.board [data-key=matching] .matching, .board [data-key=mismatched] .mismatched { display: inline; }
+.board [data-focus=door] .target-door, .board [data-focus=key] .target-door,
+.board [data-focus=rejected] .target-door, .board [data-focus=vision] .view-cells .highlight,
+.board [data-focus=route] .route-cells .highlight, .board [data-focus=lever] .target-lever,
+.board [data-focus=receivers] .receiver, .board [data-focus=missing] .receiver-a,
+.board [data-missing=true] .receiver-b, .board [data-focus=plate] .target-plate,
+.board [data-smoke=true] :is(.cloud, .smoke-cells .highlight), .board [data-poisoned=true] .poison-mark { opacity: 1; }
+.board [data-missing=true] .receiver-b, .board [data-focus=rejected] .target-door { fill: #e7baaa; stroke: #a75849; }
+.board [data-missing=true] .receiver-b { stroke-dasharray: 4 3; }
+.board [data-missing=true] .receiver-portal-b { display: none; }
+.board .actor, .board .plate-top, .board .lever-handle { transition: transform 350ms cubic-bezier(.22,.61,.36,1); }
+.board [data-pressed=true] .plate-top { transform: translateY(2px); }
+.board .lever-handle { transform: rotate(-24deg); }
+.board [data-activated=true] .lever-handle { transform: rotate(24deg); }
+.board .poison-mark { --anatomy-top: #996bb1; --anatomy-shade-3: #7e4e95; }
+.board [data-focus=actor] .piece { --anatomy-top: #a8cec1; }
+.board [data-focus=rejected] .bolt { --anatomy-top: #f1aa8a; }
+.board svg[data-snap] * { transition: none; }
+.sequence { min-width: 0; margin-bottom: 18px; }
+.sequence ol { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; padding: 0; margin: 0; }
+.sequence li { flex: 1; min-width: 44px; }
+.step {
+  min-height: 44px; width: 100%; height: 100%; padding: 7px;
+  color: var(--muted); font: 600 13px/1.5 var(--mono);
+  border-top-width: 3px;
+}
+.step[data-past] { border-top-color: #67978a; color: var(--accent); }
+.step[data-past] .step-number::after { content: " ✓"; }
+.step[aria-current=step] { color: #102822; background: var(--accent); border-color: var(--accent); }
+.step-phase { display: none; }
+@media (min-width: 980px) {
+  .step-phase { display: block; font: 11px/1.3 system-ui, sans-serif; }
+}
+.exchanges {
+  grid-area: exchanges; min-width: 0; padding: 16px 18px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--surface);
+}
+.exchanges h3 { margin: 3px 0 2px; }
+.step-event { display: block; margin: 2px 0 12px; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.cast { display: flex; flex-wrap: wrap; gap: 5px; list-style: none; padding: 0; margin: 7px 0 16px; }
+.cast li {
+  padding: 3px 7px; border: 1px solid var(--line); border-radius: 4px; color: var(--muted);
+  font: 11px/1.5 var(--mono); overflow-wrap: anywhere;
+}
+.cast li[data-active] { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); font-weight: 700; }
+.cast li[data-active]::before { content: "◆ "; }
+.handoffs { display: grid; gap: 7px; list-style: none; margin: 8px 0 0; padding: 0; }
+.handoff {
+  display: grid; grid-template-columns: minmax(0,1fr) clamp(36px, 7vw, 96px) minmax(0,1fr); gap: 5px 8px;
+  padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--code-bg);
+}
+.endpoint { color: var(--accent); font: 600 12px/1.4 var(--mono); overflow-wrap: anywhere; }
+.endpoint:last-of-type { text-align: right; }
+.endpoint small { display: block; color: var(--muted); font: 11px/1.4 system-ui, sans-serif; }
+.handoff code { grid-column: 1 / -1; color: var(--text); overflow-wrap: anywhere; font-size: 12px; }
+.handoff code small { margin-right: 6px; font: 600 11px/1.4 system-ui, sans-serif; color: var(--muted); }
+.handoff[data-kind=Rechazo] code small { color: var(--error); }
+.handoff[data-kind=Señal] .track { color: #b8d6fb; }
+.track { position: relative; display: block; align-self: center; height: 10px; color: var(--accent); }
+.track::before { content: ""; position: absolute; inset: 4px 2px auto 0; border-top: 1px solid currentColor; }
+.track::after {
+  content: ""; position: absolute; right: 1px; top: 2px; width: 4px; height: 4px;
+  border-top: 1px solid currentColor; border-right: 1px solid currentColor; transform: rotate(45deg);
+}
+.packet {
+  position: absolute; inset: 2px 6px auto 0; opacity: 0;
+}
+.packet::before { content: ""; display: block; width: 5px; height: 5px; background: currentColor; border-radius: 1px; }
+.handoff[data-local] .endpoint { grid-column: 1 / -1; text-align: left; }
+@media (prefers-reduced-motion: no-preference) {
+  .handoffs[data-animate] .packet { animation: send 510ms ease-out var(--delay) both; }
+  .handoffs[data-animate] .handoff[data-local] .endpoint { animation: arrive 340ms ease-out var(--delay) both; }
+}
+@keyframes send {
+  0% { transform: translateX(0); opacity: 0; }
+  15%, 82% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+@keyframes arrive { from { opacity: .55; } to { opacity: 1; } }
+.inspector { grid-area: inspector; border: 1px solid var(--line); border-radius: 8px; padding: 18px; background: var(--surface); min-width: 0; }
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.toolbar button { min-height: 44px; padding: 6px 10px; background: var(--code-bg); }
+#next:not(:disabled) { background: var(--accent-bg); border-color: #67978a; }
+#counter, .phase { color: var(--accent); font: 600 12px/1.5 var(--mono); }
+.phase[data-phase=Rechazo] { color: var(--error); }
+#owner { color: var(--muted); font-size: 13px; margin: 4px 0 10px; overflow-wrap: anywhere; }
+.io { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 15px 0; }
+.io div { min-width: 0; border-left: 2px solid var(--line); padding-left: 10px; }
+.io code { font-size: 12px; overflow-wrap: anywhere; }
+.source { margin: 9px 0 0; }
+.source a { font: 12px/1.5 var(--mono); }
+.source pre { margin: 5px 0 0; padding: 9px 10px; overflow: auto; max-height: 300px; border-radius: 5px; background: var(--code-bg); border: 1px solid var(--line); font-size: 12px; line-height: 1.55; tab-size: 4; }
+.source pre:focus-visible { outline: 2px solid var(--accent); }
+main:not([data-film]) :is(.film-info, .film-controls) { display: none; }
+main[data-film] :is(.exchanges, .summary, .sequence, .inspector) { display: none; }
+main[data-film] .workspace {
+  gap: 0; grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+  grid-template-areas: "board film" "controls controls";
+  align-items: stretch; border: 1px solid var(--line); border-radius: 10px; background: #171f24;
+}
+main[data-film] .board {
+  display: flex; flex-direction: column; border: 0; border-radius: 9px 0 0 0; color: #eee5d5;
+  background: #252625; position: relative; isolation: isolate;
+}
+main[data-film] .board-heading {
+  position: absolute; z-index: 1; left: 0; top: 0; padding: 12px 15px;
+  color: #eee5d5; font: 600 11px/1.5 var(--mono);
+}
+main[data-film] #board-view {
+  display: grid; flex: 1; place-items: center; padding-top: 7px; overflow: hidden;
+  background: radial-gradient(ellipse at 53% 44%, #575248 5%, #292c2b 65%, #1c2225 100%);
+}
+main[data-film] #board-view svg { max-height: clamp(190px, 46vh, 470px); }
+@media (prefers-reduced-motion: no-preference) {
+  main[data-film] #board-view svg { transform: scale(var(--film-zoom, 1)); }
+}
+main[data-film] .board figcaption {
+  background: #151b1d; color: #f3ebdc; border-color: #555043; font: 500 14px/1.45 system-ui, sans-serif;
+}
+.film-info {
+  grid-area: film; min-width: 0; padding: clamp(16px, 3vw, 32px);
+  display: flex; flex-direction: column; justify-content: center; gap: 12px;
+}
+.film-info > p { color: var(--accent); font: 600 12px/1.4 var(--mono); }
+.film-info h2 { font-size: clamp(20px, 3vw, 33px); line-height: 1.14; letter-spacing: -.02em; }
+.film-transfer { min-width: 0; margin-top: 6px; }
+.film-actor { border-left: 2px solid var(--accent); padding: 2px 10px; }
+.film-actor strong { font: 650 13px/1.45 var(--mono); color: var(--accent); overflow-wrap: anywhere; }
+.film-data { display: block; overflow-wrap: anywhere; color: var(--text); font-size: 13px; }
+.film-wire { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 9px; min-height: 53px; align-items: center; }
+.film-wire .track { width: 1px; height: 100%; justify-self: center; background: #67978a; }
+.film-wire .track::before { display: none; }
+.film-wire .track::after { right: -2px; top: auto; bottom: 0; transform: rotate(135deg); }
+.film-wire .packet {
+  inset: 0 auto 6px -2px; width: 5px;
+  transform: translateY(var(--travel, 0%)); opacity: 1;
+}
+.film-wire .packet[hidden] { display: none; }
+.film-wire code { padding-block: 8px; }
+.film-transfer[data-local] .film-wire { grid-template-columns: minmax(0, 1fr); min-height: 35px; }
+.film-transfer[data-local] .track { display: none; }
+.film-controls {
+  grid-area: controls; padding: 12px 15px;
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px;
+  background: var(--code-bg); border-top: 1px solid var(--line); border-radius: 0 0 9px 9px;
+}
+.transport { display: flex; gap: 5px; }
+.film-controls button { min-height: 44px; min-width: 44px; padding: 5px 9px; }
+#play { background: var(--accent-bg); border-color: #67978a; }
+#film-seek { min-height: 44px; margin: 0; width: 100%; accent-color: var(--accent); cursor: pointer; }
+#film-seek:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#film-time { color: var(--muted); font: 12px/1.5 var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+footer { margin-top: 24px; color: var(--muted); font-size: 13px; }
+@media (max-width: 760px) {
+  main { width: calc(100% - 28px); margin-top: 22px; }
+  .workspace, .summary, .io { grid-template-columns: 1fr; }
+  .workspace { grid-template-areas: "exchanges" "board" "inspector"; }
+  .handoff { grid-template-columns: minmax(0,1fr) 36px minmax(0,1fr); gap: 5px; }
+  .filters label { flex: 1 1 200px; min-width: 0; }
+  .filters > button { margin-left: 0; }
+  main[data-film] .workspace { grid-template-columns: minmax(0, 1fr); grid-template-areas: "board" "controls" "film"; }
+  main[data-film] .board { border-radius: 9px 9px 0 0; }
+  .film-controls { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; border-radius: 0; }
+  .film-controls .transport { grid-column: 1 / -1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .board svg * { transition: none !important; }
+}
+</style>
+</head>
+<body>
+<main data-film>
+  <header>
+    <p class="project">EXHUME / GODOT</p>
+    <h1>Sistema de interacciones</h1>
+    <p>Elegí un caso y seguí qué dispara cada paso, qué datos entrega y qué cambia en el juego.</p>
+  </header>
+  <div class="filters">
+    <label>Mecánica <select id="trace"></select></label>
+    <label>Caso <select id="case"></select></label>
+    <button type="button" id="toggle-film">Ver detalle técnico</button>
+  </div>
+  <dl class="summary">
+    <div><dt>Estado inicial</dt><dd id="initial"></dd></div>
+    <div><dt>Resultado del caso</dt><dd id="outcome"></dd></div>
+  </dl>
+  <nav class="sequence" aria-labelledby="sequence-heading">
+    <div class="toolbar">
+      <div>
+        <h2 id="sequence-heading">Línea de tiempo</h2>
+        <p id="counter"></p>
+      </div>
+      <div>
+        <button type="button" id="previous">← Anterior</button>
+        <button type="button" id="next">Siguiente →</button>
+      </div>
+    </div>
+    <ol id="sequence"></ol>
+  </nav>
+  <div class="workspace">
+    <figure class="board iso" data-theme="light" aria-labelledby="board-title">
+      <h2 class="board-heading" id="board-title">Estado del tablero</h2>
+      <div id="board-view"></div>
+      <figcaption id="board-state"></figcaption>
+    </figure>
+    <section class="film-info" aria-labelledby="film-title">
+      <p id="film-chapter"></p>
+      <h2 id="film-title"></h2>
+      <div class="film-transfer" id="film-transfer">
+        <div class="film-actor">
+          <small id="film-from-label">Envía</small>
+          <strong id="film-from"></strong>
+        </div>
+        <div class="film-wire">
+          <span class="track" aria-hidden="true"><span class="packet" id="film-packet" hidden></span></span>
+          <code class="film-data" id="film-data"></code>
+        </div>
+        <div class="film-actor" id="film-receiver">
+          <small>Recibe</small>
+          <strong id="film-to"></strong>
+        </div>
+      </div>
+    </section>
+    <div class="film-controls" role="group" aria-label="Controles de reproducción">
+      <div class="transport">
+        <button type="button" id="film-prev" aria-label="Escena anterior">‹</button>
+        <button type="button" id="play">▶ Reproducir</button>
+        <button type="button" id="film-next" aria-label="Escena siguiente">›</button>
+      </div>
+      <input type="range" id="film-seek" min="0" max="1" step="0.05" value="0" aria-label="Posición de la reproducción">
+      <span id="film-time" aria-hidden="true"></span>
+    </div>
+    <section class="exchanges" aria-labelledby="step-title">
+      <p class="phase" id="phase"></p>
+      <h3 id="step-title"></h3>
+      <code class="step-event" id="step-event"></code>
+      <h4>Participantes del caso</h4>
+      <ul class="cast" id="cast"></ul>
+      <h4>Qué se intercambia en este paso</h4>
+      <ol class="handoffs" id="handoffs"></ol>
+    </section>
+    <section class="inspector" aria-labelledby="technical-heading">
+      <h2 id="technical-heading">Detalle técnico</h2>
+      <p id="owner"></p>
+      <p id="description"></p>
+      <dl class="io">
+        <div><dt>Entrada</dt><dd><code id="input"></code></dd></div>
+        <div><dt>Salida</dt><dd><code id="output"></code></dd></div>
+      </dl>
+      <h4>GDScript del proyecto</h4>
+      <div id="sources"></div>
+    </section>
+  </div>
+  <p id="announcement" role="status" class="sr-only"></p>
+  <footer>
+    <p>Maquetas de referencia sincronizadas con recorridos del código. <a id="contract">Ver contrato del sistema</a></p>
+  </footer>
+  <noscript>Activá JavaScript para seleccionar una mecánica y recorrer sus pasos.</noscript>
+</main>
+<script id="data" type="application/json"><!-- TRAZAS --></script>
+<script>/* ANATOMY JS */</script>
+<script>
+const byId = id => document.getElementById(id);
+const traces = JSON.parse(byId("data").textContent);
+const traceSelect = byId("trace");
+const caseSelect = byId("case");
+const sequence = byId("sequence");
+const cast = byId("cast");
+const handoffs = byId("handoffs");
+const main = document.querySelector("main");
+const seek = byId("film-seek");
+const play = byId("play");
+const leafKit = { solidSvg, extrude, iso, dotsSvg };
+const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+const transferSeconds = 2.4;
+let current;
+let index = 0;
+let board;
+let leaves;
+let frame = 0;
+let angle = 0;
+let extension = 0;
+let chapterStarts = [];
+let duration = 0;
+let filmTime = 0;
+let filmFrame = 0;
+let playing = false;
+let displayedTransfer;
+
+function timestamp(seconds) {
+  const whole = Math.floor(seconds);
+  return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
+}
+
+function showFilmTime(seconds, snap = false) {
+  filmTime = Math.min(duration, Math.max(0, seconds));
+  const chapter = chapterStarts.findLastIndex(start => start <= filmTime);
+  if (chapter !== index) showStep(chapter, snap);
+  const step = current.steps[chapter];
+  const intoChapter = filmTime - chapterStarts[chapter];
+  const previousPose = current.steps[chapter - 1]?.pose;
+  const boardChanged = previousPose && ["open", "locked", "activated", "moved", "pressed", "poisoned"]
+    .some(flag => Boolean(previousPose[flag]) !== Boolean(step.pose[flag]));
+  const chapterDuration = (chapterStarts[chapter + 1] ?? duration) - chapterStarts[chapter];
+  const zoom = boardChanged && !reducedMotion.matches ? 1 + .1 * Math.sin(Math.PI * intoChapter / chapterDuration) : 1;
+  board.style.setProperty("--film-zoom", zoom.toFixed(3));
+  const transferIndex = Math.min(step.traspasos.length - 1, Math.floor(intoChapter / transferSeconds));
+  const transfer = step.traspasos[transferIndex];
+  const [from, to, data, kind = "Llamada"] = transfer;
+  if (displayedTransfer !== transfer) {
+    displayedTransfer = transfer;
+    const exchange = step.traspasos.length > 1 ? ` · ${transferIndex + 1}/${step.traspasos.length}` : "";
+    byId("film-chapter").textContent = `Escena ${chapter + 1} de ${current.steps.length} · ${step.fase}${exchange}`;
+    byId("film-title").textContent = step.titulo;
+    byId("film-transfer").toggleAttribute("data-local", from === to);
+    byId("film-from-label").textContent = from === to ? "Procesa" : "Envía";
+    byId("film-from").textContent = from;
+    byId("film-to").textContent = to;
+    byId("film-receiver").hidden = from === to;
+    byId("film-data").textContent = `${kind} · ${data}`;
+    byId("film-prev").disabled = chapter === 0;
+    byId("film-next").disabled = chapter === current.steps.length - 1;
+  }
+  const packet = byId("film-packet");
+  packet.hidden = reducedMotion.matches || from === to;
+  if (!packet.hidden) {
+    const travel = Math.max(0, Math.min(1, (intoChapter - transferIndex * transferSeconds - .18) / .9));
+    packet.style.setProperty("--travel", `${(1 - (1 - travel) ** 2) * 100}%`);
+  }
+  seek.value = filmTime;
+  const clock = `${timestamp(filmTime)} / ${timestamp(duration)}`;
+  if (byId("film-time").textContent !== clock) {
+    byId("film-time").textContent = clock;
+    seek.setAttribute("aria-valuetext", `${timestamp(filmTime)} de ${timestamp(duration)}`);
+  }
+  if (!playing) play.textContent = filmTime >= duration ? "↻ Repetir" : "▶ Reproducir";
+}
+
+function pauseFilm() {
+  if (!playing) return;
+  playing = false;
+  cancelAnimationFrame(filmFrame);
+  showPose(current.steps[index].pose, true);
+  play.textContent = filmTime >= duration ? "↻ Repetir" : "▶ Reproducir";
+}
+
+function playFilm() {
+  if (playing) {
+    pauseFilm();
+    return;
+  }
+  if (filmTime >= duration) showFilmTime(0, true);
+  playing = true;
+  play.textContent = "Ⅱ Pausar";
+  const start = performance.now() - filmTime * 1000;
+  function tick(now) {
+    showFilmTime((now - start) / 1000);
+    if (filmTime < duration) filmFrame = requestAnimationFrame(tick);
+    else pauseFilm();
+  }
+  filmFrame = requestAnimationFrame(tick);
+}
+
+function goToScene(chapter) {
+  pauseFilm();
+  showFilmTime(chapterStarts[chapter]);
+}
+
+function mountBoard(mode) {
+  cancelAnimationFrame(frame);
+  byId("board-view").innerHTML = boardGeometry.scenes[mode];
+  board = byId("board-view").firstElementChild;
+  leaves = [...board.querySelectorAll(".leaf")].map(node => ({
+    node, x: Number(node.dataset.x), y: Number(node.dataset.y), mechanical: node.dataset.hardware === "gate",
+  }));
+  angle = 0;
+  extension = 0;
+}
+
+function showPose(pose, snap) {
+  const label = byId("board-state");
+  label.textContent = pose.label;
+  board.dataset.focus = pose.focus ?? "";
+  board.dataset.key = pose.key ?? "";
+  for (const flag of ["activated", "missing", "smoke", "pressed", "poisoned"]) {
+    board.dataset[flag] = Boolean(pose[flag]);
+  }
+  const [x, y] = pose.moved ? boardGeometry.stepDelta : [0, 0];
+  if (snap) board.setAttribute("data-snap", "");
+  board.querySelector(".actor").style.transform = `translate(${x}px, ${y}px)`;
+  if (snap) {
+    const scene = board;
+    requestAnimationFrame(() => scene.removeAttribute("data-snap"));
+  }
+  if (!leaves.length) return;
+
+  const targetAngle = pose.open ? Math.PI * .48 : 0;
+  const targetExtension = pose.locked ? 3.2 : 0;
+  cancelAnimationFrame(frame);
+  if (angle === targetAngle && extension === targetExtension) return;
+  const fromAngle = angle;
+  const fromExtension = extension;
+  const start = performance.now();
+  function paint(now) {
+    const t = snap || reducedMotion.matches ? 1 : Math.max(0, Math.min(1, (now - start) / 360));
+    const ease = 1 - (1 - t) ** 3;
+    angle = t === 1 ? targetAngle : fromAngle + (targetAngle - fromAngle) * ease;
+    extension = t === 1 ? targetExtension : fromExtension + (targetExtension - fromExtension) * ease;
+    for (const { node, x, y, mechanical } of leaves) {
+      node.innerHTML = drawLeaf(leafKit, boardGeometry.projection, x, y, angle, extension, mechanical);
+    }
+    if (t < 1) frame = requestAnimationFrame(paint);
+  }
+  if (snap || reducedMotion.matches) paint(start);
+  else frame = requestAnimationFrame(paint);
+}
+
+function showStep(nextIndex, snap = false) {
+  index = nextIndex;
+  const item = current.steps[index];
+  showPose(item.pose, snap);
+  byId("counter").textContent = `Paso ${index + 1} de ${current.steps.length}`;
+  byId("phase").textContent = item.fase;
+  byId("phase").dataset.phase = item.fase;
+  byId("step-title").textContent = item.titulo;
+  byId("step-event").textContent = item.evento;
+  byId("owner").textContent = item.sistema;
+  byId("description").textContent = item.explicacion;
+  byId("input").textContent = item.entrada;
+  byId("output").textContent = item.salida;
+  byId("previous").disabled = index === 0;
+  byId("next").disabled = index === current.steps.length - 1;
+  for (const [position, button] of [...sequence.querySelectorAll("button")].entries()) {
+    button.toggleAttribute("data-past", position < index);
+    if (position === index) button.setAttribute("aria-current", "step");
+    else button.removeAttribute("aria-current");
+  }
+  showHandoffs(item.traspasos, snap);
+  byId("announcement").textContent = `Paso ${index + 1} de ${current.steps.length}. ${item.titulo}. ${item.pose.label}`;
+  byId("sources").replaceChildren(...item.fuentes.map(source => {
+    const block = document.createElement("div");
+    block.className = "source";
+    const link = document.createElement("a");
+    link.href = "../../" + source.archivo;
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.textContent = source.nombre + ":" + source.inicio;
+    link.title = source.archivo;
+    const pre = document.createElement("pre");
+    pre.tabIndex = 0;
+    const code = document.createElement("code");
+    code.textContent = source.lineas.map((line, i) => (source.inicio + i) + "  " + line).join("\n");
+    pre.append(code);
+    block.append(link, pre);
+    return block;
+  }));
+}
+
+function showHandoffs(transfers, snap) {
+  const active = new Set(transfers.flatMap(([from, to]) => [from, to]));
+  for (const actor of cast.children) actor.toggleAttribute("data-active", active.has(actor.textContent));
+  handoffs.toggleAttribute("data-animate", !snap);
+  handoffs.replaceChildren(...transfers.map(([from, to, message, kind = "Llamada"], order) => {
+    const row = document.createElement("li");
+    row.className = "handoff";
+    row.dataset.kind = kind;
+    row.toggleAttribute("data-local", from === to);
+    row.style.setProperty("--delay", `${order * 320}ms`);
+    row.innerHTML = from === to
+      ? '<span class="endpoint"><small>Procesa</small><strong></strong></span><code><small></small><span></span></code>'
+      : '<span class="endpoint"><small>Envía</small><strong></strong></span><span class="track" aria-hidden="true"><span class="packet"></span></span><span class="endpoint"><small>Recibe</small><strong></strong></span><code><small></small><span></span></code>';
+    const [sender, receiver] = row.querySelectorAll(".endpoint strong");
+    for (const [label, name] of [[sender, from], [receiver, to]]) {
+      if (!label) continue;
+      for (const [i, part] of name.split(/(?<=[a-z])(?=[A-Z])/).entries()) {
+        if (i) label.append(document.createElement("wbr"));
+        label.append(part);
+      }
+    }
+    row.querySelector("code small").textContent = kind;
+    row.querySelector("code span").textContent = message;
+    return row;
+  }));
+}
+
+function showCase() {
+  pauseFilm();
+  const trace = traces[traceSelect.selectedIndex];
+  current = trace.cases[caseSelect.selectedIndex];
+  mountBoard(trace.board);
+  byId("initial").textContent = current.initial;
+  byId("outcome").textContent = current.result;
+  byId("contract").href = "../contratos/" + trace.contract;
+  const actors = new Set(current.steps.flatMap(item => item.traspasos.flatMap(([from, to]) => [from, to])));
+  cast.replaceChildren(...[...actors].map(actor => {
+    const label = document.createElement("li");
+    label.textContent = actor;
+    return label;
+  }));
+  sequence.replaceChildren(...current.steps.map((item, position) => {
+    const row = document.createElement("li");
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "step";
+    button.innerHTML = '<span class="step-number"></span><span class="step-phase"></span>';
+    button.firstElementChild.textContent = String(position + 1).padStart(2, "0");
+    button.lastElementChild.textContent = item.fase;
+    button.title = item.titulo;
+    button.setAttribute("aria-label", `Paso ${position + 1}. ${item.titulo}`);
+    button.addEventListener("click", () => {
+      if (position === index) showStep(position);
+      goToScene(position);
+    });
+    row.append(button);
+    return row;
+  }));
+  showStep(0, true);
+  duration = 0;
+  chapterStarts = current.steps.map(step => {
+    const start = duration;
+    duration = Math.round((duration + Math.max(3.5, step.traspasos.length * transferSeconds + .45)) * 100) / 100;
+    return start;
+  });
+  seek.max = duration;
+  displayedTransfer = null;
+  showFilmTime(0, true);
+}
+
+function showTrace() {
+  caseSelect.replaceChildren(...traces[traceSelect.selectedIndex].cases.map(item => new Option(item.name)));
+  showCase();
+}
+
+traceSelect.replaceChildren(...traces.map(item => new Option(item.title)));
+traceSelect.addEventListener("change", showTrace);
+caseSelect.addEventListener("change", showCase);
+byId("previous").addEventListener("click", () => goToScene(index - 1));
+byId("next").addEventListener("click", () => goToScene(index + 1));
+byId("film-prev").addEventListener("click", () => goToScene(index - 1));
+byId("film-next").addEventListener("click", () => goToScene(index + 1));
+play.addEventListener("click", playFilm);
+seek.addEventListener("input", () => {
+  pauseFilm();
+  showFilmTime(seek.valueAsNumber, true);
+});
+byId("toggle-film").addEventListener("click", event => {
+  pauseFilm();
+  const enabled = main.toggleAttribute("data-film");
+  event.currentTarget.textContent = enabled ? "Ver detalle técnico" : "Modo película";
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) pauseFilm();
+});
+reducedMotion.addEventListener("change", () => showFilmTime(filmTime, true));
+showTrace();
+</script>
+</body>
+</html>

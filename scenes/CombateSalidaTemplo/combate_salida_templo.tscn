@@ -24,7 +24,7 @@
 [ext_resource type="TileSet" uid="uid://dr6pcgl80juta" path="res://assets/tile_sets/surface_effects/fire.tres" id="14_3cgk2"]
 [ext_resource type="TileSet" uid="uid://b2soug6txnn72" path="res://assets/tile_sets/surface_effects/web.tres" id="15_nfi2i"]
 [ext_resource type="PackedScene" path="res://scenes/zonas/TriggerMapa.tscn" id="18_syhl7"]
-[ext_resource type="Resource" path="res://dialogues/templo/salida_templo.tres" id="20_sxsq1"]
+[ext_resource type="Resource" path="res://dialogues/templo/salida_templo.dialogue" id="20_sxsq1"]
 [ext_resource type="Script" uid="uid://c47nsfflryre0" path="res://scripts/zonas/triggers/accion_trigger_dialogo.gd" id="21_8wpg1"]
 [ext_resource type="Shader" uid="uid://cn35vo7vn1ec" path="res://assets/shaders/occlusion_jugador.gdshader" id="25_elias"]
 [ext_resource type="Script" uid="uid://bjmk05ma4ww44" path="res://scripts/interacciones/items/entrada_inventario_inicial.gd" id="anillo_entrada_script"]

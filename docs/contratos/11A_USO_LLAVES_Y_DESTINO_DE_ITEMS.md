@@ -13,6 +13,8 @@ basándose en items que todavía permanecen en posesión del actor.
 
 ### Puerta y llave compatible — incremento 8.4
 
+[Recorrer el flujo técnico de la puerta y la llave](../arquitectura/puerta-con-cerradura.html)
+
 `DefinicionLlave` añade un `patron_cerradura` estable y exige la etiqueta `&"llave"`.
 `DefinicionPuerta` declara el patrón aceptado y dos regiones visuales de `64×96`.
 El patrón no es una etiqueta: representa compatibilidad de contenido y evita crear

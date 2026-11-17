@@ -18,8 +18,9 @@ explicación confirmada.
 
 - Dos triggers de diálogo, únicos por partida, sugieren los lamentos y la
   diferencia entre la piedra antigua y los mecanismos posteriores. Su fuente es
-  `dialogues/templo/lamentos.dialogue`. Tras editarla, regenerar el recurso usado
-  por la escena ejecutando `tests/zonas/compilar_dialogo_templo.gd` con Godot.
+  `dialogues/templo/lamentos.dialogue`, usado directamente por la escena mediante
+  el importador de Dialogue Manager. Las copias `.tres` compiladas manualmente
+  dejaban las frases vacías en Web; el salón de salida también usa su `.dialogue`.
 - Dos Sirvientes de Eek reutilizan el prefab existente en la sala oriental.
   Cada uno otorga 25 XP según su definición compartida; su balance debe probarse.
 - `zona_aranas` sugiere buscar una pista entre las telarañas una vez por partida.
